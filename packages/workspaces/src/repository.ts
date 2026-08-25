@@ -197,13 +197,13 @@ export async function upsertVisitor(
     ...(input.metadata !== undefined && { metadata: input.metadata }),
   };
 
-  const identityMatch = input.externalUserId
-    ? or(
-        eq(visitors.id, input.id),
-        eq(visitors.installationId, input.installationId),
-        eq(visitors.externalUserId, input.externalUserId),
-      )
-    : or(eq(visitors.id, input.id), eq(visitors.installationId, input.installationId));
+  // Client-supplied user IDs are advisory until a product backend signs them.
+  // Only the opaque browser installation (and its deterministic visitor ID)
+  // may resume an anonymous transcript.
+  const identityMatch = or(
+    eq(visitors.id, input.id),
+    eq(visitors.installationId, input.installationId),
+  );
 
   await db.batch([
     db

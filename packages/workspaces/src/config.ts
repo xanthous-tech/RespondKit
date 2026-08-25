@@ -2,6 +2,7 @@ import {
   InboxIdSchema,
   InstallationIdSchema,
   JsonValueSchema,
+  LanguageTagSchema,
   VisitorIdSchema,
   WorkspaceIdSchema,
 } from "@agent-chat/protocol";
@@ -70,7 +71,7 @@ export const visitorContextSchema = z.strictObject({
   externalUserId: z.string().trim().min(1).max(512).nullish(),
   email: z.string().trim().email().max(320).nullish(),
   posthogDistinctId: z.string().trim().min(1).max(512).nullish(),
-  locale: z.string().trim().min(2).max(35).nullish(),
+  locale: LanguageTagSchema.nullish(),
   timezone: z.string().trim().min(1).max(64).nullish(),
   region: z.string().trim().min(2).max(80).nullish(),
   userAgent: z.string().trim().min(1).max(1024).nullish(),
@@ -80,7 +81,7 @@ export const visitorContextSchema = z.strictObject({
 export const inboxConfigurationSchema = z.strictObject({
   id: InboxIdSchema,
   name: z.string().trim().min(1).max(160),
-  defaultLocale: z.string().trim().min(2).max(35).optional(),
+  defaultLocale: LanguageTagSchema.optional(),
   allowedOrigins: z.array(allowedOriginConfigSchema).min(1).max(100),
 });
 

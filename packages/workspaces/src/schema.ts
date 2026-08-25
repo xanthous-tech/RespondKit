@@ -154,7 +154,7 @@ export const visitors = sqliteTable(
       table.inboxId,
       table.installationId,
     ),
-    uniqueIndex("visitor_external_user_inbox_uq").on(
+    index("visitor_external_user_inbox_idx").on(
       table.workspaceId,
       table.inboxId,
       table.externalUserId,

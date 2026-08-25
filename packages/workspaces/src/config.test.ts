@@ -52,6 +52,31 @@ describe("workspace configuration", () => {
 
     expect(result.products[0]?.inboxes[0]?.allowedOrigins).toEqual(["https://canto.example.com"]);
   });
+
+  it("rejects an invalid default language tag before it reaches translation", () => {
+    const result = workspaceConfigurationSchema.safeParse({
+      id: "workspace_one",
+      slug: "canto-transcriber",
+      name: "Canto Transcriber",
+      products: [
+        {
+          id: "product_canto",
+          slug: "canto-transcriber",
+          name: "Canto Transcriber",
+          inboxes: [
+            {
+              id: "inbox_canto",
+              name: "Customer support",
+              defaultLocale: "not_a_language",
+              allowedOrigins: ["https://canto.example.com"],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(result.success).toBe(false);
+  });
 });
 
 describe("visitor context", () => {

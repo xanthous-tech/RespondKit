@@ -36,4 +36,12 @@ describe("workspace D1 schema", () => {
     expect(inboxColumns).not.toContain("installation_id");
     expect(visitorColumns).toContain("installation_id");
   });
+
+  it("keeps client-reported user IDs advisory instead of unique identity keys", () => {
+    const externalUserIndex = getTableConfig(visitors).indexes.find(
+      (index) => index.config.name === "visitor_external_user_inbox_idx",
+    );
+
+    expect(externalUserIndex?.config.unique).toBe(false);
+  });
 });
