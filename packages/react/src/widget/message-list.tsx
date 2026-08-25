@@ -138,6 +138,7 @@ export function MessageList({
             const customer = message.direction === "customer_to_operator";
             const failed =
               message.localDelivery === "failed_retryable" || message.state === "failed";
+            const retryable = failed || message.localDelivery === "acceptance_unknown";
             const status = customer ? deliveryLabel(message) : undefined;
 
             return (
@@ -174,11 +175,14 @@ export function MessageList({
                       }).format(date)}
                     </time>
                     {status === undefined ? null : <span>{status}</span>}
-                    {failed && message.clientMessageId !== undefined ? (
+                    {retryable && message.clientMessageId !== undefined ? (
                       <Button
                         variant="link"
                         size="xs"
-                        className="ac:h-auto ac:px-0 ac:text-destructive"
+                        className={cn(
+                          "ac:h-auto ac:px-0",
+                          failed ? "ac:text-destructive" : "ac:text-primary",
+                        )}
                         onClick={() => onRetry(message.clientMessageId!)}
                       >
                         <AlertCircleIcon data-icon="inline-start" />
