@@ -4,17 +4,24 @@ Status: preliminary research for decision-making
 Last updated: 2026-08-24
 Decision owner: Simon
 
+> **Current decision (2026-08-25):** build the React-only, Canto-first Cloudflare core with durable text threads/messages, translation, a small API, and Discord as the operator UI. Paid and open-source findings below remain fallback research, not the active implementation plan. See [Canto Transcriber support base](../spec/canto-transcriber-mvp.md).
+
 ## Bottom line
 
 There is no credible product that satisfies the full requirement set out of the box.
 
-The best near-term candidate is **Chatwoot**, used as one account with one inbox per product. It is the only option researched so far that is mature, actively maintained, permissively licensed, extensible enough for a custom agent, and strong on email and operator workflows. It still misses three important requirements: high-quality automatic two-way translation, a Discord thread inbox, and a proper native customer SDK for iOS.
+There are, however, credible single-account paid alternatives:
+
+- **Freshchat Pro + Freddy Copilot** is the closest turnkey match at $78/agent/month billed annually. It combines native customer iOS/Android SDKs, up to 30 web widgets, email, operator apps, and automatic two-way Live Translate. Translation is still documented as Beta and Discord remains custom.
+- **JivoChat Enterprise** is the strongest lower-cost trial at $56/agent/month billed annually. It advertises unlimited websites, native customer mobile SDKs, and automatic two-way translation after the operator enables it for a conversation. Discord and email-reply behavior still need validation.
+- If Discord is non-negotiable, **HelpCrunch Pro** ($20/month annually for one operator) is the strongest paid substrate for a Cloudflare sidecar because it has native SDKs plus realtime per-message webhooks and a send-message API. Its own translation does not meet the requirement.
+- **Chatwoot Startups** ($19/agent/month annually) remains the strongest open/extensible substrate, but its customer mobile and translation experiences require more work.
 
 The most sensible sequence is:
 
-1. Pilot Chatwoot on one product and build a thin Cloudflare sidecar for translation, Discord, and the custom AI agent.
-2. Keep the customer protocol and UI behind our own adapter so Chatwoot is replaceable.
-3. Build the Cloudflare-native conversation backend only if the pilot proves that the remaining platform constraints matter more than the several months of engineering needed for a reliable cross-platform product.
+1. Run simultaneous hands-on trials of Freshchat and JivoChat using one real multilingual conversation on web, iOS, Android, and email. If their operator apps are acceptable, one subscription may solve the urgent translation problem without a build.
+2. In parallel, time-box a HelpCrunch-or-Chatwoot Cloudflare adapter spike for automatic translation, direct Discord threads, and the external agent. Keep the customer protocol/provider integration behind an adapter.
+3. Build the Cloudflare-native conversation backend only if direct Discord workflow, media limits, identity control, or provider APIs remain unacceptable after those trials.
 
 This is not an argument against building. A Cloudflare-first implementation is technically feasible and should be inexpensive to operate at indie scale. The expensive part is product correctness: native SDK lifecycle, identity, push credentials, offline synchronization, email threading, translation semantics, Discord's persistent Gateway connection, abuse controls, and long-lived client compatibility.
 
@@ -32,7 +39,36 @@ This is not an argument against building. A Cloudflare-first implementation is t
 | Product actions | Typed, versioned cards for coupons, upgrades, and app deep links with plain-text fallbacks. |
 | Multiple products | Separate branding/configuration and routing without paying for a full support workspace per product. |
 
-## Candidate assessment
+## Paid single-account assessment
+
+Prices below are for one operator and annual billing unless noted. Vendor claims must be verified in a trial before migration.
+
+| Candidate | Likely price | Products under one bill | Translation | Customer mobile | Discord/agent extension | Verdict |
+| --- | ---: | --- | --- | --- | --- | --- |
+| Freshchat Pro + Freddy Copilot | $78/month | Up to 30 web widgets in one account | ✅ automatic two-way Live Translate, currently Beta | ✅ official iOS/Android SDKs with media/files and push | 🟡 no Discord; message events require a Freshworks serverless app/forwarder | Best turnkey multilingual trial. |
+| JivoChat Enterprise | $56/month | Unlimited websites | ✅ one-click enablement, then automatic two-way Google translation | ✅ official iOS/Android SDKs and customer push | 🟡 no Discord; Bot/Chat APIs need a feasibility trial | Best price/value turnkey trial. |
+| HelpCrunch Pro | $20/month annual or $25 monthly | Five applications; WebView reuse makes two product widgets fit | ❌ only manual outgoing AI-editor translation | ✅ official iOS/Android SDKs, media/files and push | ✅ signed per-message webhooks and reply API; Discord still custom | Best inexpensive paid substrate. |
+| Chatwoot Startups | $19/month | Multiple inboxes, roughly 15 for one agent under current fair-use guidance | ❌ manual incoming translation only | 🟡 WebView-oriented customer integrations | ✅ paid API/webhooks and AgentBot; Discord still custom | Best open/extensible substrate. |
+
+### Freshchat — strongest turnkey multilingual trial
+
+Freshchat Pro is $49/agent/month annually and Freddy Copilot is an additional $29. Growth and higher accounts can configure up to 30 web widgets, and the official customer SDKs cover iOS, Android, push, identity/custom properties, camera/gallery/file attachments, and external IDs. Freddy Live Translate detects incoming language, shows an operator translation, and translates the response back across roughly 45 languages on web, email, and mobile. See [pricing](https://www.freshworks.com/live-chat-software/pricing/), [Live Translate](https://crmsupport.freshworks.com/support/solutions/articles/50000009800-live-translate-by-freddy), [web-widget limits](https://crmsupport.freshworks.com/support/solutions/articles/50000004797-how-to-configure-the-web-widget-in-freshchat), and [mobile SDKs](https://developers.freshchat.com/mobile/).
+
+It has no native Discord integration. A Cloudflare bridge is possible, but individual message events are exposed to a Freshworks serverless app, which then has to forward normalized events; this is less direct than a normal webhook. See [`onMessageCreate`](https://developers.freshworks.com/docs/app-sdk/v2.3/freshchat/serverless-apps/product-events/onmessage/). Freshchat explicitly does not expose delivered/read status for email, and Live Translate remains labelled Beta. The trial must also determine whether Live Translate applies to API-originated Discord replies or only replies composed in the Freshchat UI; do not assume it does.
+
+### JivoChat — lower-cost all-product translation trial
+
+JivoChat Enterprise advertises $56/agent/month annually, unlimited websites at no extra fee, native open-source iOS/Android customer SDKs, customer push, operator apps, and its Chat API. The Professional/Enterprise translator is enabled once in a conversation and then automatically translates both received and sent messages using Google Translate languages. See [pricing and unlimited-site FAQ](https://www.jivochat.com/pricing/), [translator](https://www.jivochat.com/help/agentapp/how-to-use-translator-feature.html), [mobile SDK](https://www.jivochat.com/mobilesdk/), [iOS source](https://github.com/JivoChat/JivoSDK-iOS), and [Android source](https://github.com/JivoChat/JivoSDK-Android).
+
+This is a strong immediate multilingual alternative if the Jivo operator app replaces Discord. For the required Discord-first workflow, trial whether the Chat/Bot APIs can mirror every human/customer message and whether translation still applies to API-originated replies. Customer email reply threading, email-open status, modern SwiftUI/Compose presentation, and screen-recording selection/limits also remain trial gates.
+
+### HelpCrunch — inexpensive paid substrate
+
+HelpCrunch Pro advertises $25/month or $20/month annually for one operator and five applications. It has maintained iOS and Android customer SDKs, photo/video/file selection, customer and operator push, user ID/email/custom attributes/events, email follow-up, signed realtime webhooks for customer and operator chat/email messages, and a REST send-message API. See [pricing](https://helpcrunch.com/en/pricing.html), [mobile SDK overview](https://helpcrunch.com/chat-sdk.html), [iOS docs](https://docs.helpcrunch.com/en/ios-sdk), [Android docs](https://docs.helpcrunch.com/en/android-sdk), [message webhooks](https://docs.helpcrunch.com/en/webhooks/message-webhooks), and [reply API](https://docs.helpcrunch.com/en/rest-api-v1/create-message-v1).
+
+Its translation is only a manual outgoing AI-editor action in a small set of languages, so Cloudflare must provide automatic two-way translation. It has no Discord integration. Two products each registered separately as web, iOS, and Android would exceed the five-application limit; embedding each product's web application through the short-term native WebView shells should consume only two product applications, but that billing interpretation must be confirmed during trial. The current Android SDK surfaces a 16 MB attachment limit, which is likely too small for many screen recordings.
+
+## Open-source and developer-first candidate assessment
 
 Legend: ✅ solid; 🟡 partial or extension required; ❌ missing; ⚠️ material risk.
 
@@ -51,12 +87,13 @@ Legend: ✅ solid; 🟡 partial or extension required; ❌ missing; ⚠️ mater
 | Productization license | ✅ Chatwoot core is MIT | ⚠️ AGPL file plus a README statement requesting a commercial licence; clarify before basing a commercial fork on it | 🟡 AGPL-3.0 | 🟡 mixed component licences; needs a full audit |
 | Operational maturity | ✅ strongest of the group | 🟡 young and moving quickly | 🟡 young; tenancy model is unclear | 🟡 complex/stale edges |
 
-### 1. Chatwoot — pilot this first
+### 1. Chatwoot — strongest open-source pilot
 
 Why it is the lead candidate:
 
 - A Chatwoot account can contain multiple inboxes, including multiple website inboxes with their own settings. That maps naturally to one inbox per indie product instead of one paid Crisp workspace per product. See [Chatwoot's inbox/channel model](https://www.chatwoot.com/hc/user-guide/articles/1677492191-adding-inboxes).
 - Chatwoot Cloud currently offers Hacker at $0 for two agents/500 live-chat conversations and 30-day retention, Startups at $19/agent/month annually with all channels and one-year retention, and Business at $39/agent/month with custom attributes and automation. See [cloud pricing](https://www.chatwoot.com/pricing).
+- Since July 2026, new Chatwoot Cloud Hacker accounts no longer receive API or webhook access. The Discord/translation/agent adapter therefore requires at least a paid Startups account; self-hosted installations retain API/webhook access. See [the API/webhook access change](https://www.chatwoot.com/blog/updating-api-and-webhook-access-on-chatwoot-cloud).
 - The free self-hosted Community Edition exists, but production requires Rails web and worker processes, PostgreSQL, Redis, email, and object storage. Chatwoot recommends at least 4 GB RAM and 2 CPU cores. It is not a natural Cloudflare-native deployment. See [production architecture](https://developers.chatwoot.com/self-hosted/deployment/architecture) and [requirements](https://developers.chatwoot.com/self-hosted/deployment/requirements).
 - Website conversation continuity can collect an email, send the transcript/reply notification, and put the customer's email response back into the existing conversation. See [conversation continuity](https://www.chatwoot.com/hc/user-guide/articles/1677587761-how-to-continue-conversations-through-email).
 - The web SDK accepts a stable user identifier, HMAC identity validation, standard profile/location fields, and custom attributes. Webhook payloads include browser, platform, referer, browser language, and widget language. See [SDK identity/context](https://www.chatwoot.com/hc/user-guide/articles/1677587234-how-to-send-additional-user-information-to-chatwoot-using-sdk), [custom attributes](https://www.chatwoot.com/hc/user-guide/articles/1677502327-how-to-create-and-use-custom-attributes), and [webhooks](https://www.chatwoot.com/hc/user-guide/articles/1677693021-how-to-use-webhooks).
@@ -73,7 +110,7 @@ Important gaps:
 Recommended pilot configuration:
 
 - Use Chatwoot Cloud rather than self-hosting for the pilot.
-- Start with Hacker only for UI/workflow validation, then trial Startups or Business for email/API/custom-metadata validation.
+- Hacker can validate the unmodified widget and operator UI only. Use Startups for the integration pilot; use Business only if custom attributes must be defined and viewed inside Chatwoot rather than kept in the Cloudflare sidecar/Discord context panel.
 - One account, one inbox per product, one operator.
 - Add a Cloudflare Worker that verifies Chatwoot webhooks, translates both directions, mirrors each conversation into Discord, and runs the custom agent.
 - Do not fork Chatwoot during the pilot. Use its public APIs and keep the integration adapter isolated.
@@ -84,7 +121,7 @@ Cossistant is extremely relevant because it independently validates the proposed
 
 Its translation implementation is also directionally right: it keeps the original and stores audience-specific translated message parts instead of overwriting the message. That makes it the best product to benchmark for the most painful current workflow, even if it is not yet the best operational foundation.
 
-The current launch pricing is attractive: Free includes small usage, email replies and auto-translate; Hobby is advertised at $20/month for unlimited conversations/messages, 2,000 contacts, two seats, email replies, auto-translate, and AI credits.
+The current launch pricing is attractive at first glance: Free includes small usage, email replies and auto-translate; Hobby is advertised at $20/month for unlimited conversations/messages, 2,000 contacts, two seats, email replies, auto-translate, and AI credits. However, the hosted billing implementation is website-scoped: each website needs its own subscription. Two products therefore cost $40/month at the Hobby launch rate ($60/month at the advertised regular rate), not one shared $20 plan. See [the website-scoped subscription design](https://github.com/cossistantcom/cossistant/blob/main/docs/ai-credits-metering.md) and [self-host billing behavior](https://cossistant.com/docs/self-host/billing).
 
 Reasons not to choose it as the foundation yet:
 
@@ -309,26 +346,53 @@ A plausible open-core split:
 
 The internal product should come first. Productization is warranted only after the same integration is running in several of Simon's products and the typed actions measurably improve support or conversion.
 
-## Questions that change the decision
+## Decision update: 2026-08-24
 
-1. What are the actual client stacks for the first two products: web framework, iOS (SwiftUI/UIKit/React Native/Flutter), and Android (Compose/Views/React Native/Flutter)?
-2. Is a polished WebView chat acceptable for the first mobile release, or is native SwiftUI/Compose UI a day-one requirement?
-3. Roughly how many products, conversations/messages per month, attachment-heavy conversations, and important language pairs are in scope?
-4. Is a single managed bill around $20–40/month across all products acceptable as a bridge, or is Cloudflare-only/data ownership already non-negotiable?
-5. Can Discord replies use a Reply button/modal or `/reply` command for v0, or must typing a normal message in the thread immediately reply to the customer?
-6. Should the AI auto-send today? Which knowledge sources and product APIs may it read, and which actions—if any—may it execute without approval?
+The initial product constraints are now concrete:
+
+- Client stacks are React on web, SwiftUI on iOS, and Jetpack Compose on Android.
+- A WebView customer UI is acceptable for the short-term release, provided the surrounding native SDK handles photo-library screenshots, screen recordings, general file selection, lifecycle, and customer-context injection.
+- A single managed subscription covering all products is acceptable; the objection is duplicated per-workspace pricing, not paying anything at all.
+- Discord is the actual operator inbox. A configured Discord channel maps to one product inbox, each support conversation maps to a Discord thread, and ordinary operator messages in the thread must reach the customer. This selects the persistent Gateway-bot design, not the stateless button/modal design.
+- The AI agent remains external to the messaging service and close to each product's source, documentation, APIs, and maintained support manual. It consumes normalized conversation events, automatically answers only manual-covered high-confidence cases, and otherwise leaves the thread to a human.
+- The dominant pain is multilingual response latency. Translation quality and operator ergonomics should therefore be the first pilot success criteria, ahead of analytics breadth or a fully native chat renderer.
+
+Two existing Crisp workspaces were supplied for a volume/language audit. The signed-in browser was unavailable in the research session and the local Crisp CLI had no configured profiles, so no conversation content or metrics have been inferred. That audit remains explicitly pending rather than being replaced with guesses.
+
+### Consequence for the shortlist
+
+The fastest paid trials are now **Freshchat Pro + Freddy Copilot** and **JivoChat Enterprise** because they can solve the multilingual operator workflow without first building translation. If direct Discord remains non-negotiable after those trials, evaluate **HelpCrunch Pro + Cloudflare sidecar** first and **Chatwoot Startups + sidecar** second. HelpCrunch has stronger ready-made customer mobile SDKs; Chatwoot has the stronger open-source and replaceability story.
+
+Cossistant remains the most relevant translation and source-owned-UI benchmark, but it does not solve the single-bill problem: hosted subscriptions are scoped per website. Its missing native SDKs, missing Discord integration, immature webhooks, and commercial-licensing ambiguity prevent selecting it without a vendor clarification.
+
+## Remaining questions that change the decision
+
+1. Browser or API access is still needed to measure the two Crisp workspaces: recent conversation/message volume, language distribution, attachments, response times, and email-continuation usage.
+2. Is using Freshchat's or JivoChat's operator app acceptable for an immediate paid solution, or is the Discord operator surface a hard launch requirement?
+3. What operator language should every incoming message translate into, and which customer languages are most important for the quality benchmark?
+4. Should a normal Discord reply send immediately after translation or use a short preview/undo window, and what prefix or channel behavior marks an internal note?
+5. Will the repository-adjacent agent be a continuously deployed daemon or sometimes a developer laptop? Can one process load both repositories, or must each product have an isolated agent/Queue?
+6. What is the expected maximum screen-recording size/duration, and must uploads survive app suspension or termination in v0?
+7. Unless requested otherwise, v0 will permit AI text answers and read-only tools only. Which, if any, mutating product action must be allowed initially?
 
 ## Next validation step after the questions
 
-Run a time-boxed pilot on one real product with a representative non-English conversation:
+Run two time-boxed validations on one real product with a representative non-English conversation.
 
-1. Chatwoot Cloud inbox and web widget.
-2. Identified user with signed product ID/PostHog metadata.
-3. Customer message mirrored into a Discord thread with original + translation.
-4. Operator reply translated and returned to the customer.
-5. AgentBot answers one safe FAQ and hands off one deliberately unsupported request.
-6. Offline email is delivered, replied to, and restored to the same conversation.
-7. Chatwoot operator mobile notification is exercised on a physical device.
-8. The same widget is embedded in a thin mobile WebView proof of concept if WebView is acceptable.
+Paid, no-custom-inbox trial:
+
+1. Freshchat Pro + Copilot on web/iOS/Android/email.
+2. JivoChat Enterprise on the same platforms and language pair.
+3. Measure response time, translation corrections, attachment behavior, email continuity, identity/context, and operator notification quality.
+
+Discord-first bridge spike:
+
+1. Use HelpCrunch Pro first, retaining Chatwoot Startups as the open-source fallback.
+2. Identify a customer with a signed product ID/PostHog context.
+3. Mirror the customer message into a Discord thread with original + translation.
+4. Translate a normal Discord reply and deliver it exactly once.
+5. Let the source-local agent answer one approved FAQ and hand off one unsupported request.
+6. Deliver and ingest an offline email reply in the same conversation.
+7. Embed the responsive widget in SwiftUI/Compose shells and upload a screenshot and real screen recording from each platform.
 
 The result should be judged against response-time improvement, translation edits required, dropped/duplicated messages, email thread correctness, and whether the customer UI feels native enough—not against a feature checklist alone.
