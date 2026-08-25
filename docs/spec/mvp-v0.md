@@ -1,7 +1,9 @@
-# Agent Chat v0: clarified MVP
+# Agent Chat v0: broad cross-platform draft
 
-Status: proposed after initial research and product-owner answers
+Status: superseded for implementation by [Canto Transcriber support base](./canto-transcriber-mvp.md); retained as broader follow-on architecture
 Last updated: 2026-08-24
+
+> The 2026-08-25 decision narrowed the launch to a React-only Canto Transcriber widget, durable text threads/messages, English-canonical translation, Discord replies, and a small API. Native clients, media, email, AI agents, multi-product support, and the paid-provider bridge are no longer base requirements. Use the linked Canto specification for current implementation decisions.
 
 ## Outcome
 

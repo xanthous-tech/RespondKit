@@ -4,6 +4,8 @@ Status: preliminary research for decision-making
 Last updated: 2026-08-24
 Decision owner: Simon
 
+> **Current decision (2026-08-25):** build the React-only, Canto-first Cloudflare core with durable text threads/messages, translation, a small API, and Discord as the operator UI. Paid and open-source findings below remain fallback research, not the active implementation plan. See [Canto Transcriber support base](../spec/canto-transcriber-mvp.md).
+
 ## Bottom line
 
 There is no credible product that satisfies the full requirement set out of the box.
