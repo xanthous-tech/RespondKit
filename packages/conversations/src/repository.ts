@@ -16,6 +16,7 @@ import type { DrizzleD1Database } from "drizzle-orm/d1";
 
 import { sortMessagesForDisplay, toCustomerMessageState } from "./domain";
 import {
+  customerTranscriptEntries,
   messageTranslations,
   messages,
   threads,
@@ -253,6 +254,12 @@ export async function acceptCustomerIngress(
       })
       .onConflictDoNothing()
       .returning({ id: messages.id }),
+    prepareCustomerTranscriptEntryStatement(db, {
+      workspaceId: input.workspaceId,
+      inboxId: input.inboxId,
+      threadId: input.threadId,
+      messageId: input.id,
+    }),
     prepareThreadActivityStatement(db, input),
   ]);
 
@@ -324,6 +331,33 @@ function prepareThreadActivityStatement(
       updatedAt: sql`max(${threads.updatedAt}, ${canonicalAcceptedAt})`,
     })
     .where(threadScope(input));
+}
+
+function prepareCustomerTranscriptEntryStatement(
+  db: DrizzleD1Database,
+  input: {
+    readonly workspaceId: WorkspaceId;
+    readonly inboxId: InboxId;
+    readonly threadId: ThreadId;
+    readonly messageId: MessageId;
+  },
+) {
+  return db
+    .insert(customerTranscriptEntries)
+    .select(
+      db
+        .select({
+          rowId: sql<number>`null`.as("row_id"),
+          workspaceId: messages.workspaceId,
+          inboxId: messages.inboxId,
+          threadId: messages.threadId,
+          messageId: messages.id,
+          availableAt: messages.updatedAt,
+        })
+        .from(messages)
+        .where(and(messageScope(input), eq(messages.customerAvailability, "available"))),
+    )
+    .onConflictDoNothing();
 }
 
 export async function findMessageById(
@@ -562,6 +596,7 @@ export async function publishOperatorReply(
           inArray(messages.processingStatus, activeProcessingStatuses),
         ),
       ),
+    prepareCustomerTranscriptEntryStatement(db, input),
   ]);
 
   return requireTranslationResult(
@@ -897,23 +932,35 @@ export async function listCustomerMessages(
   const after = parseCursor(input.after ?? "0");
   const limit = Math.min(Math.max(input.limit ?? 50, 1), 100);
   const fetched = await db
-    .select()
-    .from(messages)
+    .select({
+      cursor: customerTranscriptEntries.rowId,
+      message: messages,
+    })
+    .from(customerTranscriptEntries)
+    .innerJoin(
+      messages,
+      and(
+        eq(messages.id, customerTranscriptEntries.messageId),
+        eq(messages.workspaceId, customerTranscriptEntries.workspaceId),
+        eq(messages.inboxId, customerTranscriptEntries.inboxId),
+        eq(messages.threadId, customerTranscriptEntries.threadId),
+      ),
+    )
     .where(
       and(
-        eq(messages.workspaceId, input.workspaceId),
-        eq(messages.inboxId, input.inboxId),
-        eq(messages.threadId, input.threadId),
-        gt(messages.rowId, after),
+        eq(customerTranscriptEntries.workspaceId, input.workspaceId),
+        eq(customerTranscriptEntries.inboxId, input.inboxId),
+        eq(customerTranscriptEntries.threadId, input.threadId),
+        gt(customerTranscriptEntries.rowId, after),
         eq(messages.customerAvailability, "available"),
       ),
     )
-    .orderBy(asc(messages.rowId))
+    .orderBy(asc(customerTranscriptEntries.rowId))
     .limit(limit + 1);
 
   const page = fetched.slice(0, limit);
-  const nextCursor = String(page.at(-1)?.rowId ?? after) as Cursor;
-  const projected = page.map(toCustomerMessageV1);
+  const nextCursor = String(page.at(-1)?.cursor ?? after) as Cursor;
+  const projected = page.map(({ message }) => toCustomerMessageV1(message));
 
   return {
     threadId: input.threadId,

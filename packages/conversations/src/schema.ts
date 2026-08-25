@@ -240,6 +240,38 @@ export const messages = sqliteTable(
   ],
 );
 
+/**
+ * Append-only customer transcript cursor. Message rows are created before an
+ * operator reply is translated, so their insertion order cannot safely act as
+ * a visibility cursor. A row is appended here exactly when a message becomes
+ * customer-visible.
+ */
+export const customerTranscriptEntries = sqliteTable(
+  "customer_transcript_entry",
+  {
+    rowId: integer("row_id").primaryKey({ autoIncrement: true }),
+    workspaceId: text("workspace_id").$type<WorkspaceId>().notNull(),
+    inboxId: text("inbox_id").$type<InboxId>().notNull(),
+    threadId: text("thread_id").$type<ThreadId>().notNull(),
+    messageId: text("message_id").$type<MessageId>().notNull(),
+    availableAt: integer("available_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [
+    foreignKey({
+      name: "customer_transcript_entry_message_scope_fk",
+      columns: [table.messageId, table.workspaceId, table.inboxId, table.threadId],
+      foreignColumns: [messages.id, messages.workspaceId, messages.inboxId, messages.threadId],
+    }).onDelete("cascade"),
+    uniqueIndex("customer_transcript_entry_message_uq").on(table.messageId),
+    index("customer_transcript_entry_thread_cursor_idx").on(
+      table.workspaceId,
+      table.inboxId,
+      table.threadId,
+      table.rowId,
+    ),
+  ],
+);
+
 export const messageTranslations = sqliteTable(
   "message_translation",
   {
@@ -297,5 +329,7 @@ export type ThreadRow = typeof threads.$inferSelect;
 export type NewThreadRow = typeof threads.$inferInsert;
 export type MessageRow = typeof messages.$inferSelect;
 export type NewMessageRow = typeof messages.$inferInsert;
+export type CustomerTranscriptEntryRow = typeof customerTranscriptEntries.$inferSelect;
+export type NewCustomerTranscriptEntryRow = typeof customerTranscriptEntries.$inferInsert;
 export type MessageTranslationRow = typeof messageTranslations.$inferSelect;
 export type NewMessageTranslationRow = typeof messageTranslations.$inferInsert;
