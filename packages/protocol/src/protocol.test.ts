@@ -83,6 +83,40 @@ describe("customer protocol v1", () => {
     ).toThrow("message thread does not match");
   });
 
+  it("ties client message identity to customer-authored messages", () => {
+    const shared = {
+      id: "msg_1",
+      threadId: "thread_1",
+      text: "hello",
+      acceptedAt: "2026-08-25T12:00:00.000Z",
+      state: "available",
+    } as const;
+
+    expect(() =>
+      ListMessagesResponseV1Schema.parse({
+        threadId: "thread_1",
+        messages: [{ ...shared, direction: "customer_to_operator" }],
+        nextCursor: "1",
+        hasMore: false,
+      }),
+    ).toThrow("requires its client message ID");
+
+    expect(() =>
+      ListMessagesResponseV1Schema.parse({
+        threadId: "thread_1",
+        messages: [
+          {
+            ...shared,
+            clientMessageId: "cmsg_1",
+            direction: "operator_to_customer",
+          },
+        ],
+        nextCursor: "1",
+        hasMore: false,
+      }),
+    ).toThrow("cannot have a client message ID");
+  });
+
   it("creates client idempotency keys without touching browser state", () => {
     expect(ClientMessageIdSchema.parse(createClientMessageId())).toMatch(/^cmsg_/);
     expect(createClientThreadId()).toMatch(/^cthread_/);

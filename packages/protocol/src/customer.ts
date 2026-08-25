@@ -144,7 +144,23 @@ export const MessageV1Schema = z
     acceptedAt: z.iso.datetime({ offset: true }),
     state: MessageStateSchema,
   })
-  .strict();
+  .strict()
+  .superRefine((message, context) => {
+    if (message.direction === "customer_to_operator" && message.clientMessageId === undefined) {
+      context.addIssue({
+        code: "custom",
+        path: ["clientMessageId"],
+        message: "a customer message requires its client message ID",
+      });
+    }
+    if (message.direction === "operator_to_customer" && message.clientMessageId !== undefined) {
+      context.addIssue({
+        code: "custom",
+        path: ["clientMessageId"],
+        message: "an operator message cannot have a client message ID",
+      });
+    }
+  });
 export type MessageV1 = z.infer<typeof MessageV1Schema>;
 
 export const ListMessagesQueryV1Schema = z
