@@ -37,6 +37,7 @@ function dayKey(date: Date) {
 function deliveryLabel(message: DisplayMessage) {
   if (message.localDelivery === "acceptance_unknown") return "Confirming…";
   if (message.localDelivery === "optimistic") return "Sending…";
+  if (message.state === "failed") return "Failed";
   if (message.localDelivery === "accepted" || message.state === "processing") {
     return "Sending…";
   }
@@ -135,7 +136,8 @@ export function MessageList({
             const showDate =
               previous === undefined || dayKey(new Date(previous.acceptedAt)) !== dayKey(date);
             const customer = message.direction === "customer_to_operator";
-            const failed = message.localDelivery === "failed_retryable";
+            const failed =
+              message.localDelivery === "failed_retryable" || message.state === "failed";
             const status = customer ? deliveryLabel(message) : undefined;
 
             return (

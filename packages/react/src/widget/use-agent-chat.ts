@@ -305,6 +305,12 @@ export function useAgentChat({ apiBaseUrl, context, fetch, open }: UseAgentChatI
       if (session === undefined || thread === undefined) return;
       const identityEpoch = identityEpochRef.current;
 
+      setServerMessages((current) =>
+        current.filter(
+          (message) =>
+            message.clientMessageId !== pending.clientMessageId || message.state !== "failed",
+        ),
+      );
       setPendingMessages((current) => {
         const next = new Map(current);
         next.set(pending.clientMessageId, {
@@ -365,10 +371,26 @@ export function useAgentChat({ apiBaseUrl, context, fetch, open }: UseAgentChatI
 
   const retryMessage = useCallback(
     (clientMessageId: string) => {
-      const pending = pendingMessages.get(clientMessageId);
+      const pending =
+        pendingMessages.get(clientMessageId) ??
+        (() => {
+          const failed = serverMessages.find(
+            (message) =>
+              message.clientMessageId === clientMessageId &&
+              message.direction === "customer_to_operator" &&
+              message.state === "failed",
+          );
+          if (failed === undefined) return undefined;
+          return {
+            clientMessageId,
+            text: failed.text,
+            acceptedAt: failed.acceptedAt,
+            delivery: "failed_retryable" as const,
+          };
+        })();
       if (pending !== undefined) void submitPending(pending);
     },
-    [pendingMessages, submitPending],
+    [pendingMessages, serverMessages, submitPending],
   );
 
   const contextMatches = activeContextKey === contextKey;

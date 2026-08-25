@@ -102,6 +102,59 @@ function createApiFetch() {
   });
 }
 
+function createFailedMessageApiFetch() {
+  const baseFetch = createApiFetch();
+  return vi.fn<typeof fetch>(async (input, init) => {
+    const url = new URL(requestUrl(input));
+    if (url.pathname === "/v1/threads/thread_test/messages" && init?.method === "GET") {
+      return json({
+        threadId: "thread_test",
+        messages: [
+          {
+            id: "message_failed",
+            threadId: "thread_test",
+            clientMessageId: "cmsg_failed",
+            direction: "customer_to_operator",
+            text: "Please retry this message",
+            language: "en",
+            acceptedAt: "2026-08-25T10:00:00.000Z",
+            state: "failed",
+          },
+        ],
+        nextCursor: "1",
+        hasMore: false,
+      });
+    }
+    if (url.pathname === "/v1/threads/thread_test/messages" && init?.method === "POST") {
+      const request = JSON.parse(requestBody(init.body)) as {
+        clientMessageId: string;
+        text: string;
+      };
+      return json(
+        {
+          acceptance: {
+            messageId: "message_failed",
+            clientMessageId: request.clientMessageId,
+            status: "processing",
+            message: {
+              id: "message_failed",
+              threadId: "thread_test",
+              clientMessageId: request.clientMessageId,
+              direction: "customer_to_operator",
+              text: request.text,
+              language: "en",
+              acceptedAt: "2026-08-25T10:00:00.000Z",
+              state: "processing",
+            },
+          },
+        },
+        { status: 202 },
+      );
+    }
+    return baseFetch(input, init);
+  });
+}
+
 afterEach(() => {
   vi.unstubAllGlobals();
   window.localStorage.clear();
@@ -177,6 +230,37 @@ describe("AgentChatWidget", () => {
     };
     expect(body.clientMessageId).toMatch(/^cmsg_/);
     expect(body.text).toBe("composing\nHello");
+  });
+
+  it("shows and retries a terminal server failure after a fresh load", async () => {
+    const apiFetch = createFailedMessageApiFetch();
+    vi.stubGlobal("fetch", apiFetch);
+    const user = userEvent.setup();
+
+    render(
+      <AgentChatWidget
+        apiBaseUrl="https://support.test"
+        context={{ inboxId: "inbox_test", locale: "en" }}
+        initiallyOpen
+      />,
+    );
+
+    expect(await screen.findByText("Failed")).toBeVisible();
+    await user.click(screen.getByRole("button", { name: /Try again/ }));
+
+    const retryRequest = await waitFor(() => {
+      const request = apiFetch.mock.calls.find(
+        ([input, init]) =>
+          requestUrl(input).includes("/v1/threads/thread_test/messages") && init?.method === "POST",
+      );
+      expect(request).toBeDefined();
+      return request;
+    });
+    expect(JSON.parse(requestBody(retryRequest?.[1]?.body))).toEqual({
+      clientMessageId: "cmsg_failed",
+      text: "Please retry this message",
+    });
+    expect(await screen.findByText("Sending…")).toBeVisible();
   });
 
   it("isolates persisted installation and thread IDs when the host account changes", async () => {
