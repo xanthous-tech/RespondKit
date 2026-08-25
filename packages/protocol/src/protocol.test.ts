@@ -4,6 +4,7 @@ import {
   ClientMessageIdSchema,
   CreateClientSessionRequestV1Schema,
   CursorSchema,
+  ListMessagesResponseV1Schema,
   MessageAcceptanceV1Schema,
   SendMessageRequestV1Schema,
   createClientMessageId,
@@ -53,10 +54,33 @@ describe("customer protocol v1", () => {
     ).toBe("  မင်္ဂလာပါ  ");
   });
 
-  it("uses decimal strings as lossless cursors", () => {
-    expect(CursorSchema.parse("90071992547409930000")).toBe("90071992547409930000");
+  it("uses safe decimal D1 row IDs as cursors", () => {
+    expect(CursorSchema.parse(String(Number.MAX_SAFE_INTEGER))).toBe(
+      String(Number.MAX_SAFE_INTEGER),
+    );
+    expect(() => CursorSchema.parse("9007199254740992")).toThrow("maximum safe integer");
     expect(() => CursorSchema.parse("01")).toThrow();
     expect(() => CursorSchema.parse("-1")).toThrow();
+  });
+
+  it("rejects a list response containing a message from another thread", () => {
+    expect(() =>
+      ListMessagesResponseV1Schema.parse({
+        threadId: "thread_expected",
+        messages: [
+          {
+            id: "msg_1",
+            threadId: "thread_other",
+            direction: "operator_to_customer",
+            text: "hello",
+            acceptedAt: "2026-08-25T12:00:00.000Z",
+            state: "available",
+          },
+        ],
+        nextCursor: "1",
+        hasMore: false,
+      }),
+    ).toThrow("message thread does not match");
   });
 
   it("creates client idempotency keys without touching browser state", () => {
@@ -104,5 +128,61 @@ describe("customer protocol v1", () => {
         },
       }),
     ).toThrow("canonical message does not match");
+  });
+
+  it("requires an embedded canonical message state to match its acceptance status", () => {
+    expect(() =>
+      MessageAcceptanceV1Schema.parse({
+        messageId: "msg_1",
+        clientMessageId: "cmsg_1",
+        status: "processing",
+        message: {
+          id: "msg_1",
+          threadId: "thread_1",
+          clientMessageId: "cmsg_1",
+          direction: "customer_to_operator",
+          text: "hello",
+          acceptedAt: "2026-08-25T12:00:00.000Z",
+          state: "available",
+        },
+      }),
+    ).toThrow("state does not match");
+
+    expect(() =>
+      MessageAcceptanceV1Schema.parse({
+        messageId: "msg_1",
+        clientMessageId: "cmsg_1",
+        status: "accepted",
+        message: {
+          id: "msg_1",
+          threadId: "thread_1",
+          clientMessageId: "cmsg_1",
+          direction: "customer_to_operator",
+          text: "hello",
+          acceptedAt: "2026-08-25T12:00:00.000Z",
+          state: "processing",
+        },
+      }),
+    ).toThrow("state does not match");
+  });
+
+  it("accepts the full persisted failure-code width", () => {
+    expect(
+      MessageAcceptanceV1Schema.parse({
+        messageId: "msg_1",
+        clientMessageId: "cmsg_1",
+        status: "failed",
+        failureCode: "f".repeat(128),
+      }).failureCode,
+    ).toHaveLength(128);
+
+    expect(() =>
+      MessageAcceptanceV1Schema.parse({
+        messageId: "msg_1",
+        clientMessageId: "cmsg_1",
+        status: "failed",
+        failureCode: "f".repeat(129),
+      }),
+    ).toThrow();
   });
 });

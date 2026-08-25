@@ -21,35 +21,51 @@ function acceptedResponse(status = "accepted") {
         status,
       },
     },
-    { status: status === "acceptance_unknown" ? 503 : 202 },
+    { status: 202 },
   );
 }
 
 describe("Agent Chat API client", () => {
   it("builds authenticated cursor requests", async () => {
+    const after = String(Number.MAX_SAFE_INTEGER - 1);
+    const nextCursor = String(Number.MAX_SAFE_INTEGER);
     const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
       jsonResponse({
         threadId: "thread_1",
         messages: [],
-        nextCursor: "90071992547409930000",
+        nextCursor,
         hasMore: false,
       }),
     );
     const client = createAgentChatClient({ baseUrl: "https://chat.example.com/", fetch });
 
-    const page = await client.listMessages(SESSION_TOKEN, "thread_1", {
-      after: "90071992547409929999",
-      limit: 50,
-    });
+    const page = await client.listMessages(SESSION_TOKEN, "thread_1", { after, limit: 50 });
 
-    expect(page.nextCursor).toBe("90071992547409930000");
+    expect(page.nextCursor).toBe(nextCursor);
     expect(fetch).toHaveBeenCalledWith(
-      "https://chat.example.com/v1/threads/thread_1/messages?after=90071992547409929999&limit=50",
+      `https://chat.example.com/v1/threads/thread_1/messages?after=${after}&limit=50`,
       expect.objectContaining({
         method: "GET",
         headers: expect.objectContaining({ authorization: `Bearer ${SESSION_TOKEN}` }),
       }),
     );
+  });
+
+  it("rejects a list response for a different requested thread", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
+      jsonResponse({
+        threadId: "thread_other",
+        messages: [],
+        nextCursor: "0",
+        hasMore: false,
+      }),
+    );
+    const client = createAgentChatClient({ baseUrl: "https://chat.example.com", fetch });
+
+    await expect(client.listMessages(SESSION_TOKEN, "thread_expected")).rejects.toMatchObject({
+      code: "internal_error",
+      retryable: false,
+    });
   });
 
   it("retries a network ambiguity with the exact serialized message", async () => {
@@ -148,6 +164,42 @@ describe("Agent Chat API client", () => {
     });
   });
 
+  it("rejects an embedded accepted message from another thread", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
+      jsonResponse(
+        {
+          acceptance: {
+            messageId: "msg_1",
+            clientMessageId: "cmsg_1",
+            status: "available",
+            message: {
+              id: "msg_1",
+              threadId: "thread_other",
+              clientMessageId: "cmsg_1",
+              direction: "customer_to_operator",
+              text: "hello",
+              acceptedAt: "2026-08-25T12:00:00.000Z",
+              state: "available",
+            },
+          },
+        },
+        { status: 202 },
+      ),
+    );
+    const client = createAgentChatClient({ baseUrl: "https://chat.example.com", fetch });
+
+    await expect(
+      client.sendMessage(SESSION_TOKEN, "thread_expected", {
+        clientMessageId: "cmsg_1",
+        text: "hello",
+      }),
+    ).rejects.toMatchObject({
+      code: "internal_error",
+      clientMessageId: "cmsg_1",
+      retryable: false,
+    });
+  });
+
   it("treats a truncated POST response as ambiguous and retries unchanged", async () => {
     const fetch = vi
       .fn<typeof globalThis.fetch>()
@@ -211,6 +263,70 @@ describe("Agent Chat API client", () => {
       }),
     ).rejects.toMatchObject({ code: "invalid_request", retryable: false, status: 400 });
     expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not retry a non-JSON definitive client error", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(new Response("forbidden", { status: 403 }));
+    const client = createAgentChatClient({
+      baseUrl: "https://chat.example.com",
+      fetch,
+      acceptanceRetry: { attempts: 3, delayMs: 0, maxDelayMs: 0 },
+    });
+
+    await expect(
+      client.sendMessage(SESSION_TOKEN, "thread_1", {
+        clientMessageId: "cmsg_1",
+        text: "hello",
+      }),
+    ).rejects.toMatchObject({ code: "internal_error", retryable: false, status: 403 });
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("never accepts a success-shaped body from a non-success response", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
+      jsonResponse(
+        {
+          acceptance: {
+            messageId: "msg_1",
+            clientMessageId: "cmsg_1",
+            status: "accepted",
+          },
+        },
+        { status: 400 },
+      ),
+    );
+    const client = createAgentChatClient({ baseUrl: "https://chat.example.com", fetch });
+
+    await expect(
+      client.sendMessage(SESSION_TOKEN, "thread_1", {
+        clientMessageId: "cmsg_1",
+        text: "hello",
+      }),
+    ).rejects.toMatchObject({ code: "internal_error", retryable: false, status: 400 });
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("retries malformed successful acceptance bodies as ambiguous", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValueOnce(jsonResponse({ accepted: true }, { status: 202 }))
+      .mockResolvedValueOnce(acceptedResponse("already_accepted"));
+    const client = createAgentChatClient({
+      baseUrl: "https://chat.example.com",
+      fetch,
+      acceptanceRetry: { attempts: 2, delayMs: 0, maxDelayMs: 0 },
+    });
+
+    const response = await client.sendMessage(SESSION_TOKEN, "thread_1", {
+      clientMessageId: "cmsg_1",
+      text: "hello",
+    });
+
+    expect(response.acceptance.status).toBe("already_accepted");
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(fetch.mock.calls[0]?.[1]?.body).toBe(fetch.mock.calls[1]?.[1]?.body);
   });
 
   it("does not resolve fetch or browser globals until a method is called", () => {

@@ -49,7 +49,11 @@ export type SessionToken = z.infer<typeof SessionTokenSchema>;
 
 export const CursorSchema = z
   .string()
-  .regex(/^(0|[1-9][0-9]*)$/, "cursor must be an unsigned decimal integer");
+  .regex(/^(0|[1-9][0-9]*)$/, "cursor must be an unsigned decimal integer")
+  .refine(
+    (cursor) => Number.isSafeInteger(Number(cursor)),
+    "cursor must not exceed JavaScript's maximum safe integer",
+  );
 export type Cursor = z.infer<typeof CursorSchema>;
 
 export const INITIAL_CURSOR: Cursor = "0";

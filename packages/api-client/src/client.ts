@@ -303,8 +303,9 @@ export function createAgentChatClient(options: AgentChatClientOptions): AgentCha
 
     async createThread(sessionToken, input, requestOptions) {
       const token = SessionTokenSchema.parse(sessionToken);
-      const body = JSON.stringify(CreateThreadRequestV1Schema.parse(input));
-      return request({
+      const immutableInput = CreateThreadRequestV1Schema.parse(input);
+      const body = JSON.stringify(immutableInput);
+      const response = await request({
         path: `/${API_VERSION}/threads`,
         method: "POST",
         responseSchema: CreateThreadResponseV1Schema,
@@ -312,6 +313,13 @@ export function createAgentChatClient(options: AgentChatClientOptions): AgentCha
         body,
         signal: requestOptions?.signal,
       });
+      if (response.thread.clientThreadId !== immutableInput.clientThreadId) {
+        throw new AgentChatClientError(
+          "Agent Chat returned a response for a different client thread",
+          { code: "internal_error", retryable: false },
+        );
+      }
+      return response;
     },
 
     async listMessages(sessionToken, threadId, query = {}, requestOptions) {
@@ -323,13 +331,20 @@ export function createAgentChatClient(options: AgentChatClientOptions): AgentCha
       if (parsedQuery.limit !== undefined) search.set("limit", String(parsedQuery.limit));
       const queryString = search.size === 0 ? "" : `?${search.toString()}`;
 
-      return request({
+      const page = await request({
         path: `/${API_VERSION}/threads/${encodeURIComponent(parsedThreadId)}/messages${queryString}`,
         method: "GET",
         responseSchema: ListMessagesResponseV1Schema,
         token,
         signal: requestOptions?.signal,
       });
+      if (page.threadId !== parsedThreadId) {
+        throw new AgentChatClientError(
+          "Agent Chat returned messages for a different support thread",
+          { code: "internal_error", retryable: false },
+        );
+      }
+      return page;
     },
 
     async sendMessage(sessionToken, threadId, input, requestOptions) {
@@ -360,6 +375,31 @@ export function createAgentChatClient(options: AgentChatClientOptions): AgentCha
           continue;
         }
 
+        if (!response.ok) {
+          let responseBody: unknown;
+          try {
+            responseBody = await responseJson(response);
+          } catch (cause) {
+            if (wasAborted(requestOptions?.signal)) throw cause;
+
+            const error = serverError(response, undefined);
+            if (!shouldRetryStatus(response.status) && !error.retryable) throw error;
+
+            lastCause = cause;
+            if (attempt === acceptanceRetry.attempts) break;
+            await wait(retryDelay(acceptanceRetry, attempt, response), requestOptions?.signal);
+            continue;
+          }
+
+          const error = serverError(response, responseBody);
+          if (!shouldRetryStatus(response.status) && !error.retryable) throw error;
+
+          lastCause = error;
+          if (attempt === acceptanceRetry.attempts) break;
+          await wait(retryDelay(acceptanceRetry, attempt, response), requestOptions?.signal);
+          continue;
+        }
+
         let responseBody: unknown;
         try {
           responseBody = await responseJson(response);
@@ -384,6 +424,20 @@ export function createAgentChatClient(options: AgentChatClientOptions): AgentCha
               },
             );
           }
+          if (
+            acceptance.data.acceptance.message !== undefined &&
+            acceptance.data.acceptance.message.threadId !== parsedThreadId
+          ) {
+            throw new AgentChatClientError(
+              "Agent Chat returned a message from a different support thread",
+              {
+                code: "internal_error",
+                status: response.status,
+                retryable: false,
+                clientMessageId: immutableInput.clientMessageId,
+              },
+            );
+          }
 
           if (
             acceptance.data.acceptance.status !== "acceptance_unknown" ||
@@ -396,23 +450,15 @@ export function createAgentChatClient(options: AgentChatClientOptions): AgentCha
           continue;
         }
 
-        if (!response.ok) {
-          const error = serverError(response, responseBody);
-          if (!shouldRetryStatus(response.status) && !error.retryable) throw error;
-
-          lastCause = error;
-          if (attempt === acceptanceRetry.attempts) break;
-          await wait(retryDelay(acceptanceRetry, attempt, response), requestOptions?.signal);
-          continue;
-        }
-
-        throw new AgentChatClientError("Agent Chat returned an invalid protocol response", {
+        lastCause = new AgentChatClientError("Agent Chat returned an invalid protocol response", {
           code: "internal_error",
           status: response.status,
-          retryable: false,
+          retryable: true,
           cause: acceptance.error,
           clientMessageId: immutableInput.clientMessageId,
         });
+        if (attempt === acceptanceRetry.attempts) break;
+        await wait(retryDelay(acceptanceRetry, attempt, response), requestOptions?.signal);
       }
 
       throw new AgentChatClientError(

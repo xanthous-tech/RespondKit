@@ -162,7 +162,18 @@ export const ListMessagesResponseV1Schema = z
     nextCursor: CursorSchema,
     hasMore: z.boolean(),
   })
-  .strict();
+  .strict()
+  .superRefine((response, context) => {
+    for (const [index, message] of response.messages.entries()) {
+      if (message.threadId !== response.threadId) {
+        context.addIssue({
+          code: "custom",
+          path: ["messages", index, "threadId"],
+          message: "message thread does not match the response thread",
+        });
+      }
+    }
+  });
 export type ListMessagesResponseV1 = z.infer<typeof ListMessagesResponseV1Schema>;
 
 const nonBlankMessageText = z
@@ -195,7 +206,7 @@ export const MessageAcceptanceV1Schema = z
     clientMessageId: ClientMessageIdSchema,
     status: MessageAcceptanceStatusSchema,
     message: MessageV1Schema.optional(),
-    failureCode: z.string().min(1).max(64).optional(),
+    failureCode: z.string().min(1).max(128).optional(),
   })
   .strict()
   .superRefine((acceptance, context) => {
@@ -227,6 +238,23 @@ export const MessageAcceptanceV1Schema = z
         code: "custom",
         path: ["message"],
         message: "an available acceptance must include its canonical message",
+      });
+    }
+
+    const expectedMessageState =
+      acceptance.status === "processing" ||
+      acceptance.status === "available" ||
+      acceptance.status === "failed"
+        ? acceptance.status
+        : undefined;
+    if (
+      acceptance.message !== undefined &&
+      (expectedMessageState === undefined || acceptance.message.state !== expectedMessageState)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["message", "state"],
+        message: "canonical message state does not match its acceptance status",
       });
     }
 
