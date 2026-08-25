@@ -24,6 +24,16 @@ function json(value: unknown, init: ResponseInit = {}): Response {
   });
 }
 
+function unreadableJson(value: unknown): Response {
+  const response = json(value);
+  Object.defineProperty(response, "text", {
+    value: async () => {
+      throw new TypeError("response stream closed after upstream commit");
+    },
+  });
+  return response;
+}
+
 describe("Discord message helpers", () => {
   it("splits deterministically without losing text or splitting surrogate pairs", () => {
     const content = `${"a".repeat(1_999)}😀${"b".repeat(2_000)}`;
@@ -114,6 +124,77 @@ describe("DiscordRestClient", () => {
       }),
     ).resolves.toEqual({ message, reconciled: true });
     expect(postCount).toBe(1);
+  });
+
+  it("reconciles a message when its successful response body cannot be read", async () => {
+    let committed = false;
+    const message = {
+      id: ids.message,
+      channel_id: ids.thread,
+      content: "translated reply",
+      nonce: "ac-0-fedcba9876543211",
+    };
+    const fakeFetch: typeof fetch = async (input, init) => {
+      const request = new Request(input, init);
+      if (request.method === "GET") {
+        return json(committed ? [message] : []);
+      }
+      committed = true;
+      return unreadableJson(message);
+    };
+    const client = new DiscordRestClient({ botToken: "test-token", fetch: fakeFetch });
+
+    await expect(
+      client.sendMessageReconciled({
+        channelId: ids.thread,
+        content: message.content,
+        nonce: message.nonce,
+      }),
+    ).resolves.toEqual({ message, reconciled: true });
+  });
+
+  it("rejects a malformed successful message before it can be checkpointed", async () => {
+    const fakeFetch: typeof fetch = async () =>
+      json({
+        id: ids.message,
+        channel_id: ids.thread,
+        content: "translated reply",
+      });
+    const client = new DiscordRestClient({ botToken: "test-token", fetch: fakeFetch });
+
+    const error = await client
+      .sendMessage({
+        channelId: ids.thread,
+        content: "translated reply",
+        nonce: "ac-0-fedcba9876543212",
+      })
+      .catch((caught: unknown) => caught);
+    expect(error).toBeInstanceOf(DiscordRestError);
+    expect(error).toMatchObject({ status: 200, retryable: true });
+    expect((error as Error).message).toContain("invalid successful response");
+  });
+
+  it("rejects a nonce reconciliation whose canonical content differs", async () => {
+    const fakeFetch: typeof fetch = async () =>
+      json([
+        {
+          id: ids.message,
+          channel_id: ids.thread,
+          content: "an older projection",
+          nonce: "ac-0-fedcba9876543213",
+        },
+      ]);
+    const client = new DiscordRestClient({ botToken: "test-token", fetch: fakeFetch });
+
+    const error = await client
+      .sendMessageReconciled({
+        channelId: ids.thread,
+        content: "a changed projection",
+        nonce: "ac-0-fedcba9876543213",
+      })
+      .catch((caught: unknown) => caught);
+    expect(error).toBeInstanceOf(DiscordRestError);
+    expect(error).toMatchObject({ retryable: false });
   });
 
   it("surfaces rate-limit timing as retryable Workflow metadata", async () => {
@@ -226,5 +307,113 @@ describe("DiscordRestClient", () => {
         allowed_mentions: { parse: [] },
       },
     });
+  });
+
+  it("reconciles a forum thread when its successful response body cannot be read", async () => {
+    const marker = createDiscordCorrelationMarker("unreadable-forum-response");
+    const starter = {
+      id: ids.thread,
+      channel_id: ids.thread,
+      content: `Reference: ${marker}`,
+    };
+    const thread = { id: ids.thread, type: 11, parent_id: ids.forum };
+    let committed = false;
+    let postCount = 0;
+    const fakeFetch: typeof fetch = async (input, init) => {
+      const request = new Request(input, init);
+      if (request.url.endsWith(`/guilds/${ids.guild}/threads/active`)) {
+        return json({ threads: committed ? [thread] : [] });
+      }
+      if (request.url.includes(`/channels/${ids.forum}/threads/archived/public`)) {
+        return json({ threads: [] });
+      }
+      if (request.url.endsWith(`/channels/${ids.thread}/messages/${ids.thread}`)) {
+        return json(starter);
+      }
+      postCount += 1;
+      committed = true;
+      return unreadableJson({ ...thread, message: starter });
+    };
+    const client = new DiscordRestClient({ botToken: "test-token", fetch: fakeFetch });
+
+    await expect(
+      client.createForumThreadReconciled({
+        guildId: ids.guild,
+        forumChannelId: ids.forum,
+        correlationMarker: marker,
+        name: "Canto support",
+        starterContent: starter.content,
+      }),
+    ).resolves.toEqual({ thread, starterMessage: starter, reconciled: true });
+    expect(postCount).toBe(1);
+  });
+
+  it("rejects a malformed successful forum thread before it can be checkpointed", async () => {
+    const marker = createDiscordCorrelationMarker("malformed-forum-response");
+    const fakeFetch: typeof fetch = async () =>
+      json({
+        id: ids.thread,
+        type: 11,
+        parent_id: ids.forum,
+        message: {
+          id: ids.message,
+          channel_id: ids.thread,
+          content: `Reference: ${marker}`,
+        },
+      });
+    const client = new DiscordRestClient({ botToken: "test-token", fetch: fakeFetch });
+
+    const error = await client
+      .createForumThread({
+        forumChannelId: ids.forum,
+        name: "Canto support",
+        starterContent: `Reference: ${marker}`,
+      })
+      .catch((caught: unknown) => caught);
+    expect(error).toBeInstanceOf(DiscordRestError);
+    expect(error).toMatchObject({ status: 200, retryable: true });
+  });
+
+  it("checks archived threads even when active candidates fill the scan budget", async () => {
+    const marker = createDiscordCorrelationMarker("archived-beyond-active-cap");
+    const activeIds = ["100000000000000005", "100000000000000006"];
+    const archivedId = "100000000000000007";
+    const fakeFetch: typeof fetch = async (input, init) => {
+      const request = new Request(input, init);
+      if (request.url.endsWith(`/guilds/${ids.guild}/threads/active`)) {
+        return json({
+          threads: activeIds.map((id) => ({ id, type: 11, parent_id: ids.forum })),
+        });
+      }
+      if (request.url.includes(`/channels/${ids.forum}/threads/archived/public`)) {
+        return json({
+          threads: [{ id: archivedId, type: 11, parent_id: ids.forum }],
+        });
+      }
+      if (request.url.endsWith(`/channels/${archivedId}/messages/${archivedId}`)) {
+        return json({
+          id: archivedId,
+          channel_id: archivedId,
+          content: `Reference: ${marker}`,
+        });
+      }
+      const activeId = activeIds.find((id) =>
+        request.url.endsWith(`/channels/${id}/messages/${id}`),
+      );
+      if (activeId !== undefined) {
+        return json({ id: activeId, channel_id: activeId, content: "another conversation" });
+      }
+      throw new Error(`Unexpected request: ${request.url}`);
+    };
+    const client = new DiscordRestClient({ botToken: "test-token", fetch: fakeFetch });
+
+    await expect(
+      client.findForumThreadByCorrelationMarker({
+        guildId: ids.guild,
+        forumChannelId: ids.forum,
+        correlationMarker: marker,
+        maximumCandidates: 2,
+      }),
+    ).resolves.toMatchObject({ thread: { id: archivedId } });
   });
 });
