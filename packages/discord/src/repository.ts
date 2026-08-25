@@ -121,6 +121,8 @@ function loadCanonicalAcceptance(
   }
 
   const roleIds = canonicalRoleIds(input.operatorRoleIds);
+  // acceptedAt is a server observation: the first stored value stays canonical,
+  // but a later Workflow reconstruction must not change payload identity.
   const immutablePayloadMatches =
     interaction.integrationId === input.integrationId &&
     interaction.interactionId === input.interactionId &&
@@ -135,11 +137,9 @@ function loadCanonicalAcceptance(
     JSON.stringify(interaction.operatorRoleIds) === JSON.stringify(roleIds) &&
     interaction.referenceInteractionId === null &&
     interaction.normalizedMessage === input.originalEnglishText &&
-    interaction.acceptedAt.getTime() === input.acceptedAt.getTime() &&
     message.id === input.messageId &&
     message.workflowInstanceId === input.workflowInstanceId &&
-    message.originalText === input.originalEnglishText &&
-    message.acceptedAt.getTime() === input.acceptedAt.getTime();
+    message.originalText === input.originalEnglishText;
 
   return {
     kind,
@@ -795,6 +795,7 @@ export async function recordRecoveryInteraction(
   const roleIds = canonicalRoleIds(input.operatorRoleIds);
   return {
     inserted: inserted.length > 0,
+    // Return the first acceptedAt above, but exclude that observation from identity.
     immutablePayloadMatches:
       canonical.commandName === input.commandName &&
       canonical.threadId === input.threadId &&
@@ -804,8 +805,7 @@ export async function recordRecoveryInteraction(
       canonical.operatorUserId === input.operatorUserId &&
       JSON.stringify(canonical.operatorRoleIds) === JSON.stringify(roleIds) &&
       canonical.referenceInteractionId === input.referenceInteractionId &&
-      canonical.normalizedMessage === normalizedMessage &&
-      canonical.acceptedAt.getTime() === input.acceptedAt.getTime(),
+      canonical.normalizedMessage === normalizedMessage,
     interaction: canonical,
   };
 }
