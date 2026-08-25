@@ -12,6 +12,7 @@ import {
   SessionTokenSchema,
   ThreadIdSchema,
   type ApiErrorCode,
+  type ClientMessageId,
   type CreateClientSessionRequestV1,
   type CreateClientSessionResponseV1,
   type CreateThreadRequestV1,
@@ -76,7 +77,7 @@ export interface AgentChatClientErrorOptions {
   readonly status?: number | undefined;
   readonly retryable: boolean;
   readonly requestId?: string | undefined;
-  readonly clientMessageId?: string | undefined;
+  readonly clientMessageId?: ClientMessageId | undefined;
   readonly cause?: unknown;
 }
 
@@ -85,7 +86,7 @@ export class AgentChatClientError extends Error {
   readonly status: number | undefined;
   readonly retryable: boolean;
   readonly requestId: string | undefined;
-  readonly clientMessageId: string | undefined;
+  readonly clientMessageId: ClientMessageId | undefined;
 
   constructor(message: string, options: AgentChatClientErrorOptions) {
     super(message, { cause: options.cause });
@@ -265,12 +266,23 @@ export function createAgentChatClient(options: AgentChatClientOptions): AgentCha
     readonly token?: SessionToken | undefined;
     readonly signal?: AbortSignal | undefined;
   }): Promise<T> {
-    const response = await resolveFetch(options.fetch)(`${baseUrl}${input.path}`, {
-      method: input.method,
-      headers: authorizationHeaders(baseHeaders, input.token),
-      ...(input.body === undefined ? {} : { body: input.body }),
-      ...(input.signal === undefined ? {} : { signal: input.signal }),
-    });
+    const fetchImplementation = resolveFetch(options.fetch);
+    let response: Response;
+    try {
+      response = await fetchImplementation(`${baseUrl}${input.path}`, {
+        method: input.method,
+        headers: authorizationHeaders(baseHeaders, input.token),
+        ...(input.body === undefined ? {} : { body: input.body }),
+        ...(input.signal === undefined ? {} : { signal: input.signal }),
+      });
+    } catch (cause) {
+      if (wasAborted(input.signal)) throw cause;
+      throw new AgentChatClientError("Unable to reach Agent Chat", {
+        code: "unavailable",
+        retryable: true,
+        cause,
+      });
+    }
     const body = await responseJson(response);
 
     if (!response.ok) throw serverError(response, body);
@@ -328,12 +340,13 @@ export function createAgentChatClient(options: AgentChatClientOptions): AgentCha
       // merely the same client_message_id attached to potentially edited text.
       const body = JSON.stringify(immutableInput);
       const path = `/${API_VERSION}/threads/${encodeURIComponent(parsedThreadId)}/messages`;
+      const fetchImplementation = resolveFetch(options.fetch);
       let lastCause: unknown;
 
       for (let attempt = 1; attempt <= acceptanceRetry.attempts; attempt += 1) {
         let response: Response;
         try {
-          response = await resolveFetch(options.fetch)(`${baseUrl}${path}`, {
+          response = await fetchImplementation(`${baseUrl}${path}`, {
             method: "POST",
             headers: authorizationHeaders(baseHeaders, token),
             body,
@@ -383,14 +396,16 @@ export function createAgentChatClient(options: AgentChatClientOptions): AgentCha
           continue;
         }
 
-        if (!response.ok && shouldRetryStatus(response.status)) {
-          lastCause = serverError(response, responseBody);
+        if (!response.ok) {
+          const error = serverError(response, responseBody);
+          if (!shouldRetryStatus(response.status) && !error.retryable) throw error;
+
+          lastCause = error;
           if (attempt === acceptanceRetry.attempts) break;
           await wait(retryDelay(acceptanceRetry, attempt, response), requestOptions?.signal);
           continue;
         }
 
-        if (!response.ok) throw serverError(response, responseBody);
         throw new AgentChatClientError("Agent Chat returned an invalid protocol response", {
           code: "internal_error",
           status: response.status,

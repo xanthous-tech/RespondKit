@@ -102,7 +102,7 @@ describe("Agent Chat API client", () => {
   it("returns the final explicit unknown result for caller reconciliation", async () => {
     const fetch = vi
       .fn<typeof globalThis.fetch>()
-      .mockResolvedValue(acceptedResponse("acceptance_unknown"));
+      .mockImplementation(async () => acceptedResponse("acceptance_unknown"));
     const client = createAgentChatClient({
       baseUrl: "https://chat.example.com",
       fetch,

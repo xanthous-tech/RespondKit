@@ -137,7 +137,9 @@ export const MessageV1Schema = z
     threadId: ThreadIdSchema,
     clientMessageId: ClientMessageIdSchema.optional(),
     direction: MessageDirectionSchema,
-    text: z.string().min(1).max(6_000),
+    // A translated operator reply can expand beyond Discord's 6,000-character
+    // command input even though new customer input is capped below.
+    text: z.string().min(1).max(24_000),
     language: LanguageTagSchema.optional(),
     acceptedAt: z.iso.datetime({ offset: true }),
     state: MessageStateSchema,
@@ -206,6 +208,17 @@ export const MessageAcceptanceV1Schema = z
         code: "custom",
         path: ["message"],
         message: "canonical message does not match the accepted message identity",
+      });
+    }
+
+    if (
+      acceptance.message !== undefined &&
+      acceptance.message.direction !== "customer_to_operator"
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["message", "direction"],
+        message: "a customer acceptance may only include the customer message",
       });
     }
 
