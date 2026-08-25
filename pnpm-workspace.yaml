@@ -8,6 +8,7 @@ catalog:
   "@ai-sdk/google": 4.0.51
   "@cloudflare/vitest-plugin": 1.0.0
   "@msw/cloudflare": 0.0.1
+  "@playwright/test": 1.62.1
   "@tailwindcss/vite": 4.3.3
   "@testing-library/react": 16.3.2
   "@testing-library/jest-dom": 7.0.1
