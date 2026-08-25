@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "d6c0edb9-d86e-4cfb-ac42-160c441a52d8",
+  "id": "fe12987c-674f-41eb-8f51-8433b9946456",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "allowed_origin": {
@@ -47,19 +47,12 @@
       "indexes": {
         "allowed_origin_inbox_origin_uq": {
           "name": "allowed_origin_inbox_origin_uq",
-          "columns": [
-            "workspace_id",
-            "inbox_id",
-            "origin"
-          ],
+          "columns": ["workspace_id", "inbox_id", "origin"],
           "isUnique": true
         },
         "allowed_origin_inbox_idx": {
           "name": "allowed_origin_inbox_idx",
-          "columns": [
-            "workspace_id",
-            "inbox_id"
-          ],
+          "columns": ["workspace_id", "inbox_id"],
           "isUnique": false
         }
       },
@@ -68,14 +61,8 @@
           "name": "allowed_origin_inbox_workspace_fk",
           "tableFrom": "allowed_origin",
           "tableTo": "inbox",
-          "columnsFrom": [
-            "inbox_id",
-            "workspace_id"
-          ],
-          "columnsTo": [
-            "id",
-            "workspace_id"
-          ],
+          "columnsFrom": ["inbox_id", "workspace_id"],
+          "columnsTo": ["id", "workspace_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -155,18 +142,12 @@
       "indexes": {
         "inbox_id_workspace_uq": {
           "name": "inbox_id_workspace_uq",
-          "columns": [
-            "id",
-            "workspace_id"
-          ],
+          "columns": ["id", "workspace_id"],
           "isUnique": true
         },
         "inbox_product_idx": {
           "name": "inbox_product_idx",
-          "columns": [
-            "workspace_id",
-            "product_id"
-          ],
+          "columns": ["workspace_id", "product_id"],
           "isUnique": false
         }
       },
@@ -175,14 +156,8 @@
           "name": "inbox_product_workspace_fk",
           "tableFrom": "inbox",
           "tableTo": "product",
-          "columnsFrom": [
-            "product_id",
-            "workspace_id"
-          ],
-          "columnsTo": [
-            "id",
-            "workspace_id"
-          ],
+          "columnsFrom": ["product_id", "workspace_id"],
+          "columnsTo": ["id", "workspace_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -255,25 +230,17 @@
       "indexes": {
         "product_workspace_slug_uq": {
           "name": "product_workspace_slug_uq",
-          "columns": [
-            "workspace_id",
-            "slug"
-          ],
+          "columns": ["workspace_id", "slug"],
           "isUnique": true
         },
         "product_id_workspace_uq": {
           "name": "product_id_workspace_uq",
-          "columns": [
-            "id",
-            "workspace_id"
-          ],
+          "columns": ["id", "workspace_id"],
           "isUnique": true
         },
         "product_workspace_idx": {
           "name": "product_workspace_idx",
-          "columns": [
-            "workspace_id"
-          ],
+          "columns": ["workspace_id"],
           "isUnique": false
         }
       },
@@ -282,12 +249,8 @@
           "name": "product_workspace_id_workspace_id_fk",
           "tableFrom": "product",
           "tableTo": "workspace",
-          "columnsFrom": [
-            "workspace_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workspace_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -421,38 +384,22 @@
       "indexes": {
         "visitor_id_workspace_inbox_uq": {
           "name": "visitor_id_workspace_inbox_uq",
-          "columns": [
-            "id",
-            "workspace_id",
-            "inbox_id"
-          ],
+          "columns": ["id", "workspace_id", "inbox_id"],
           "isUnique": true
         },
         "visitor_installation_inbox_uq": {
           "name": "visitor_installation_inbox_uq",
-          "columns": [
-            "workspace_id",
-            "inbox_id",
-            "installation_id"
-          ],
+          "columns": ["workspace_id", "inbox_id", "installation_id"],
           "isUnique": true
         },
-        "visitor_external_user_inbox_uq": {
-          "name": "visitor_external_user_inbox_uq",
-          "columns": [
-            "workspace_id",
-            "inbox_id",
-            "external_user_id"
-          ],
-          "isUnique": true
+        "visitor_external_user_inbox_idx": {
+          "name": "visitor_external_user_inbox_idx",
+          "columns": ["workspace_id", "inbox_id", "external_user_id"],
+          "isUnique": false
         },
         "visitor_inbox_last_seen_idx": {
           "name": "visitor_inbox_last_seen_idx",
-          "columns": [
-            "workspace_id",
-            "inbox_id",
-            "last_seen_at"
-          ],
+          "columns": ["workspace_id", "inbox_id", "last_seen_at"],
           "isUnique": false
         }
       },
@@ -461,14 +408,8 @@
           "name": "visitor_inbox_workspace_fk",
           "tableFrom": "visitor",
           "tableTo": "inbox",
-          "columnsFrom": [
-            "inbox_id",
-            "workspace_id"
-          ],
-          "columnsTo": [
-            "id",
-            "workspace_id"
-          ],
+          "columnsFrom": ["inbox_id", "workspace_id"],
+          "columnsTo": ["id", "workspace_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -566,9 +507,7 @@
       "indexes": {
         "workspace_slug_uq": {
           "name": "workspace_slug_uq",
-          "columns": [
-            "slug"
-          ],
+          "columns": ["slug"],
           "isUnique": true
         }
       },
@@ -587,6 +526,102 @@
         "workspace_status_ck": {
           "name": "workspace_status_ck",
           "value": "\"workspace\".\"status\" in ('active', 'disabled')"
+        }
+      }
+    },
+    "customer_transcript_entry": {
+      "name": "customer_transcript_entry",
+      "columns": {
+        "row_id": {
+          "name": "row_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "inbox_id": {
+          "name": "inbox_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "thread_id": {
+          "name": "thread_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "message_id": {
+          "name": "message_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "processing_generation": {
+          "name": "processing_generation",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "event_kind": {
+          "name": "event_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "event_at": {
+          "name": "event_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "customer_transcript_entry_revision_uq": {
+          "name": "customer_transcript_entry_revision_uq",
+          "columns": ["message_id", "processing_generation", "event_kind"],
+          "isUnique": true
+        },
+        "customer_transcript_entry_thread_cursor_idx": {
+          "name": "customer_transcript_entry_thread_cursor_idx",
+          "columns": ["workspace_id", "inbox_id", "thread_id", "row_id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "customer_transcript_entry_message_scope_fk": {
+          "name": "customer_transcript_entry_message_scope_fk",
+          "tableFrom": "customer_transcript_entry",
+          "tableTo": "message",
+          "columnsFrom": ["message_id", "workspace_id", "inbox_id", "thread_id"],
+          "columnsTo": ["id", "workspace_id", "inbox_id", "thread_id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "customer_transcript_entry_generation_ck": {
+          "name": "customer_transcript_entry_generation_ck",
+          "value": "\"customer_transcript_entry\".\"processing_generation\" >= 1"
+        },
+        "customer_transcript_entry_kind_ck": {
+          "name": "customer_transcript_entry_kind_ck",
+          "value": "\"customer_transcript_entry\".\"event_kind\" in ('processing', 'available', 'failed')"
         }
       }
     },
@@ -678,6 +713,22 @@
           "autoincrement": false,
           "default": false
         },
+        "mixed_language": {
+          "name": "mixed_language",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "needs_review": {
+          "name": "needs_review",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "integer",
@@ -690,20 +741,12 @@
       "indexes": {
         "message_translation_identity_uq": {
           "name": "message_translation_identity_uq",
-          "columns": [
-            "message_id",
-            "target_language",
-            "prompt_version"
-          ],
+          "columns": ["message_id", "target_language", "prompt_version"],
           "isUnique": true
         },
         "message_translation_message_idx": {
           "name": "message_translation_message_idx",
-          "columns": [
-            "workspace_id",
-            "thread_id",
-            "message_id"
-          ],
+          "columns": ["workspace_id", "thread_id", "message_id"],
           "isUnique": false
         }
       },
@@ -712,18 +755,8 @@
           "name": "message_translation_message_scope_fk",
           "tableFrom": "message_translation",
           "tableTo": "message",
-          "columnsFrom": [
-            "message_id",
-            "workspace_id",
-            "inbox_id",
-            "thread_id"
-          ],
-          "columnsTo": [
-            "id",
-            "workspace_id",
-            "inbox_id",
-            "thread_id"
-          ],
+          "columnsFrom": ["message_id", "workspace_id", "inbox_id", "thread_id"],
+          "columnsTo": ["id", "workspace_id", "inbox_id", "thread_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -741,7 +774,7 @@
         },
         "message_translation_text_length_ck": {
           "name": "message_translation_text_length_ck",
-          "value": "length(\"message_translation\".\"translated_text\") between 1 and 6000"
+          "value": "length(\"message_translation\".\"translated_text\") between 1 and 24000"
         },
         "message_translation_prompt_version_length_ck": {
           "name": "message_translation_prompt_version_length_ck",
@@ -932,63 +965,37 @@
       "indexes": {
         "message_id_uq": {
           "name": "message_id_uq",
-          "columns": [
-            "id"
-          ],
+          "columns": ["id"],
           "isUnique": true
         },
         "message_workflow_instance_uq": {
           "name": "message_workflow_instance_uq",
-          "columns": [
-            "workflow_instance_id"
-          ],
+          "columns": ["workflow_instance_id"],
           "isUnique": true
         },
         "message_thread_client_id_uq": {
           "name": "message_thread_client_id_uq",
-          "columns": [
-            "workspace_id",
-            "thread_id",
-            "client_message_id"
-          ],
+          "columns": ["workspace_id", "thread_id", "client_message_id"],
           "isUnique": true
         },
         "message_id_scope_uq": {
           "name": "message_id_scope_uq",
-          "columns": [
-            "id",
-            "workspace_id",
-            "inbox_id",
-            "thread_id"
-          ],
+          "columns": ["id", "workspace_id", "inbox_id", "thread_id"],
           "isUnique": true
         },
         "message_thread_cursor_idx": {
           "name": "message_thread_cursor_idx",
-          "columns": [
-            "workspace_id",
-            "thread_id",
-            "row_id"
-          ],
+          "columns": ["workspace_id", "thread_id", "row_id"],
           "isUnique": false
         },
         "message_thread_display_idx": {
           "name": "message_thread_display_idx",
-          "columns": [
-            "workspace_id",
-            "thread_id",
-            "accepted_at",
-            "id"
-          ],
+          "columns": ["workspace_id", "thread_id", "accepted_at", "id"],
           "isUnique": false
         },
         "message_processing_idx": {
           "name": "message_processing_idx",
-          "columns": [
-            "workspace_id",
-            "processing_status",
-            "updated_at"
-          ],
+          "columns": ["workspace_id", "processing_status", "updated_at"],
           "isUnique": false
         }
       },
@@ -997,16 +1004,8 @@
           "name": "message_thread_scope_fk",
           "tableFrom": "message",
           "tableTo": "thread",
-          "columnsFrom": [
-            "thread_id",
-            "workspace_id",
-            "inbox_id"
-          ],
-          "columnsTo": [
-            "id",
-            "workspace_id",
-            "inbox_id"
-          ],
+          "columnsFrom": ["thread_id", "workspace_id", "inbox_id"],
+          "columnsTo": ["id", "workspace_id", "inbox_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1024,11 +1023,11 @@
         },
         "message_customer_text_length_ck": {
           "name": "message_customer_text_length_ck",
-          "value": "\"message\".\"customer_visible_text\" is null or length(\"message\".\"customer_visible_text\") between 1 and 6000"
+          "value": "\"message\".\"customer_visible_text\" is null or length(\"message\".\"customer_visible_text\") between 1 and 24000"
         },
         "message_operator_text_length_ck": {
           "name": "message_operator_text_length_ck",
-          "value": "\"message\".\"operator_visible_text\" is null or length(\"message\".\"operator_visible_text\") between 1 and 6000"
+          "value": "\"message\".\"operator_visible_text\" is null or length(\"message\".\"operator_visible_text\") between 1 and 24000"
         },
         "message_original_language_length_ck": {
           "name": "message_original_language_length_ck",
@@ -1171,40 +1170,22 @@
       "indexes": {
         "thread_id_workspace_inbox_uq": {
           "name": "thread_id_workspace_inbox_uq",
-          "columns": [
-            "id",
-            "workspace_id",
-            "inbox_id"
-          ],
+          "columns": ["id", "workspace_id", "inbox_id"],
           "isUnique": true
         },
         "thread_client_id_visitor_uq": {
           "name": "thread_client_id_visitor_uq",
-          "columns": [
-            "workspace_id",
-            "inbox_id",
-            "visitor_id",
-            "client_thread_id"
-          ],
+          "columns": ["workspace_id", "inbox_id", "visitor_id", "client_thread_id"],
           "isUnique": true
         },
         "thread_visitor_activity_idx": {
           "name": "thread_visitor_activity_idx",
-          "columns": [
-            "workspace_id",
-            "inbox_id",
-            "visitor_id",
-            "last_activity_at"
-          ],
+          "columns": ["workspace_id", "inbox_id", "visitor_id", "last_activity_at"],
           "isUnique": false
         },
         "thread_inbox_activity_idx": {
           "name": "thread_inbox_activity_idx",
-          "columns": [
-            "workspace_id",
-            "inbox_id",
-            "last_activity_at"
-          ],
+          "columns": ["workspace_id", "inbox_id", "last_activity_at"],
           "isUnique": false
         }
       },
@@ -1213,14 +1194,8 @@
           "name": "thread_inbox_workspace_fk",
           "tableFrom": "thread",
           "tableTo": "inbox",
-          "columnsFrom": [
-            "inbox_id",
-            "workspace_id"
-          ],
-          "columnsTo": [
-            "id",
-            "workspace_id"
-          ],
+          "columnsFrom": ["inbox_id", "workspace_id"],
+          "columnsTo": ["id", "workspace_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1228,16 +1203,8 @@
           "name": "thread_visitor_scope_fk",
           "tableFrom": "thread",
           "tableTo": "visitor",
-          "columnsFrom": [
-            "visitor_id",
-            "workspace_id",
-            "inbox_id"
-          ],
-          "columnsTo": [
-            "id",
-            "workspace_id",
-            "inbox_id"
-          ],
+          "columnsFrom": ["visitor_id", "workspace_id", "inbox_id"],
+          "columnsTo": ["id", "workspace_id", "inbox_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1324,36 +1291,22 @@
       "indexes": {
         "discord_integration_inbox_uq": {
           "name": "discord_integration_inbox_uq",
-          "columns": [
-            "workspace_id",
-            "inbox_id"
-          ],
+          "columns": ["workspace_id", "inbox_id"],
           "isUnique": true
         },
         "discord_integration_destination_uq": {
           "name": "discord_integration_destination_uq",
-          "columns": [
-            "application_id",
-            "guild_id",
-            "forum_channel_id"
-          ],
+          "columns": ["application_id", "guild_id", "forum_channel_id"],
           "isUnique": true
         },
         "discord_integration_id_workspace_uq": {
           "name": "discord_integration_id_workspace_uq",
-          "columns": [
-            "id",
-            "workspace_id"
-          ],
+          "columns": ["id", "workspace_id"],
           "isUnique": true
         },
         "discord_integration_id_scope_uq": {
           "name": "discord_integration_id_scope_uq",
-          "columns": [
-            "id",
-            "workspace_id",
-            "inbox_id"
-          ],
+          "columns": ["id", "workspace_id", "inbox_id"],
           "isUnique": true
         }
       },
@@ -1362,14 +1315,8 @@
           "name": "discord_integration_inbox_scope_fk",
           "tableFrom": "discord_integration",
           "tableTo": "inbox",
-          "columnsFrom": [
-            "inbox_id",
-            "workspace_id"
-          ],
-          "columnsTo": [
-            "id",
-            "workspace_id"
-          ],
+          "columnsFrom": ["inbox_id", "workspace_id"],
+          "columnsTo": ["id", "workspace_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1512,18 +1459,12 @@
       "indexes": {
         "discord_interaction_message_uq": {
           "name": "discord_interaction_message_uq",
-          "columns": [
-            "message_id"
-          ],
+          "columns": ["message_id"],
           "isUnique": true
         },
         "discord_interaction_thread_idx": {
           "name": "discord_interaction_thread_idx",
-          "columns": [
-            "workspace_id",
-            "thread_id",
-            "accepted_at"
-          ],
+          "columns": ["workspace_id", "thread_id", "accepted_at"],
           "isUnique": false
         }
       },
@@ -1532,16 +1473,8 @@
           "name": "discord_interaction_integration_scope_fk",
           "tableFrom": "discord_interaction",
           "tableTo": "discord_integration",
-          "columnsFrom": [
-            "integration_id",
-            "workspace_id",
-            "inbox_id"
-          ],
-          "columnsTo": [
-            "id",
-            "workspace_id",
-            "inbox_id"
-          ],
+          "columnsFrom": ["integration_id", "workspace_id", "inbox_id"],
+          "columnsTo": ["id", "workspace_id", "inbox_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1549,16 +1482,8 @@
           "name": "discord_interaction_thread_scope_fk",
           "tableFrom": "discord_interaction",
           "tableTo": "thread",
-          "columnsFrom": [
-            "thread_id",
-            "workspace_id",
-            "inbox_id"
-          ],
-          "columnsTo": [
-            "id",
-            "workspace_id",
-            "inbox_id"
-          ],
+          "columnsFrom": ["thread_id", "workspace_id", "inbox_id"],
+          "columnsTo": ["id", "workspace_id", "inbox_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1587,28 +1512,15 @@
           "name": "discord_interaction_message_scope_fk",
           "tableFrom": "discord_interaction",
           "tableTo": "message",
-          "columnsFrom": [
-            "message_id",
-            "workspace_id",
-            "inbox_id",
-            "thread_id"
-          ],
-          "columnsTo": [
-            "id",
-            "workspace_id",
-            "inbox_id",
-            "thread_id"
-          ],
+          "columnsFrom": ["message_id", "workspace_id", "inbox_id", "thread_id"],
+          "columnsTo": ["id", "workspace_id", "inbox_id", "thread_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
         "discord_interaction_pk": {
-          "columns": [
-            "integration_id",
-            "interaction_id"
-          ],
+          "columns": ["integration_id", "interaction_id"],
           "name": "discord_interaction_pk"
         }
       },
@@ -1759,28 +1671,17 @@
       "indexes": {
         "discord_message_nonce_uq": {
           "name": "discord_message_nonce_uq",
-          "columns": [
-            "integration_id",
-            "discord_thread_id",
-            "nonce"
-          ],
+          "columns": ["integration_id", "discord_thread_id", "nonce"],
           "isUnique": true
         },
         "discord_message_external_uq": {
           "name": "discord_message_external_uq",
-          "columns": [
-            "integration_id",
-            "discord_message_id"
-          ],
+          "columns": ["integration_id", "discord_message_id"],
           "isUnique": true
         },
         "discord_message_message_idx": {
           "name": "discord_message_message_idx",
-          "columns": [
-            "workspace_id",
-            "thread_id",
-            "message_id"
-          ],
+          "columns": ["workspace_id", "thread_id", "message_id"],
           "isUnique": false
         }
       },
@@ -1789,18 +1690,8 @@
           "name": "discord_message_message_scope_fk",
           "tableFrom": "discord_message",
           "tableTo": "message",
-          "columnsFrom": [
-            "message_id",
-            "workspace_id",
-            "inbox_id",
-            "thread_id"
-          ],
-          "columnsTo": [
-            "id",
-            "workspace_id",
-            "inbox_id",
-            "thread_id"
-          ],
+          "columnsFrom": ["message_id", "workspace_id", "inbox_id", "thread_id"],
+          "columnsTo": ["id", "workspace_id", "inbox_id", "thread_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1828,11 +1719,7 @@
       },
       "compositePrimaryKeys": {
         "discord_message_pk": {
-          "columns": [
-            "message_id",
-            "projection_kind",
-            "chunk_index"
-          ],
+          "columns": ["message_id", "projection_kind", "chunk_index"],
           "name": "discord_message_pk"
         }
       },
@@ -1919,10 +1806,7 @@
       "indexes": {
         "discord_operator_allowlist_workspace_idx": {
           "name": "discord_operator_allowlist_workspace_idx",
-          "columns": [
-            "workspace_id",
-            "integration_id"
-          ],
+          "columns": ["workspace_id", "integration_id"],
           "isUnique": false
         }
       },
@@ -1931,25 +1815,15 @@
           "name": "discord_operator_allowlist_integration_fk",
           "tableFrom": "discord_operator_allowlist",
           "tableTo": "discord_integration",
-          "columnsFrom": [
-            "integration_id",
-            "workspace_id"
-          ],
-          "columnsTo": [
-            "id",
-            "workspace_id"
-          ],
+          "columnsFrom": ["integration_id", "workspace_id"],
+          "columnsTo": ["id", "workspace_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
         "discord_operator_allowlist_pk": {
-          "columns": [
-            "integration_id",
-            "principal_type",
-            "principal_id"
-          ],
+          "columns": ["integration_id", "principal_type", "principal_id"],
           "name": "discord_operator_allowlist_pk"
         }
       },
@@ -2052,12 +1926,7 @@
       "indexes": {
         "discord_thread_scope_uq": {
           "name": "discord_thread_scope_uq",
-          "columns": [
-            "thread_id",
-            "workspace_id",
-            "inbox_id",
-            "integration_id"
-          ],
+          "columns": ["thread_id", "workspace_id", "inbox_id", "integration_id"],
           "isUnique": true
         },
         "discord_thread_ready_scope_uq": {
@@ -2073,26 +1942,17 @@
         },
         "discord_thread_external_uq": {
           "name": "discord_thread_external_uq",
-          "columns": [
-            "integration_id",
-            "discord_thread_id"
-          ],
+          "columns": ["integration_id", "discord_thread_id"],
           "isUnique": true
         },
         "discord_thread_marker_uq": {
           "name": "discord_thread_marker_uq",
-          "columns": [
-            "integration_id",
-            "correlation_marker"
-          ],
+          "columns": ["integration_id", "correlation_marker"],
           "isUnique": true
         },
         "discord_thread_claim_idx": {
           "name": "discord_thread_claim_idx",
-          "columns": [
-            "state",
-            "claim_expires_at"
-          ],
+          "columns": ["state", "claim_expires_at"],
           "isUnique": false
         }
       },
@@ -2101,16 +1961,8 @@
           "name": "discord_thread_conversation_scope_fk",
           "tableFrom": "discord_thread",
           "tableTo": "thread",
-          "columnsFrom": [
-            "thread_id",
-            "workspace_id",
-            "inbox_id"
-          ],
-          "columnsTo": [
-            "id",
-            "workspace_id",
-            "inbox_id"
-          ],
+          "columnsFrom": ["thread_id", "workspace_id", "inbox_id"],
+          "columnsTo": ["id", "workspace_id", "inbox_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2118,16 +1970,8 @@
           "name": "discord_thread_integration_scope_fk",
           "tableFrom": "discord_thread",
           "tableTo": "discord_integration",
-          "columnsFrom": [
-            "integration_id",
-            "workspace_id",
-            "inbox_id"
-          ],
-          "columnsTo": [
-            "id",
-            "workspace_id",
-            "inbox_id"
-          ],
+          "columnsFrom": ["integration_id", "workspace_id", "inbox_id"],
+          "columnsTo": ["id", "workspace_id", "inbox_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }

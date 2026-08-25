@@ -72,7 +72,7 @@ CREATE TABLE `visitor` (
 --> statement-breakpoint
 CREATE UNIQUE INDEX `visitor_id_workspace_inbox_uq` ON `visitor` (`id`,`workspace_id`,`inbox_id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `visitor_installation_inbox_uq` ON `visitor` (`workspace_id`,`inbox_id`,`installation_id`);--> statement-breakpoint
-CREATE UNIQUE INDEX `visitor_external_user_inbox_uq` ON `visitor` (`workspace_id`,`inbox_id`,`external_user_id`);--> statement-breakpoint
+CREATE INDEX `visitor_external_user_inbox_idx` ON `visitor` (`workspace_id`,`inbox_id`,`external_user_id`);--> statement-breakpoint
 CREATE INDEX `visitor_inbox_last_seen_idx` ON `visitor` (`workspace_id`,`inbox_id`,`last_seen_at`);--> statement-breakpoint
 CREATE TABLE `workspace` (
 	`id` text PRIMARY KEY NOT NULL,
@@ -87,6 +87,22 @@ CREATE TABLE `workspace` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `workspace_slug_uq` ON `workspace` (`slug`);--> statement-breakpoint
+CREATE TABLE `customer_transcript_entry` (
+	`row_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`workspace_id` text NOT NULL,
+	`inbox_id` text NOT NULL,
+	`thread_id` text NOT NULL,
+	`message_id` text NOT NULL,
+	`processing_generation` integer NOT NULL,
+	`event_kind` text NOT NULL,
+	`event_at` integer NOT NULL,
+	FOREIGN KEY (`message_id`,`workspace_id`,`inbox_id`,`thread_id`) REFERENCES `message`(`id`,`workspace_id`,`inbox_id`,`thread_id`) ON UPDATE no action ON DELETE cascade,
+	CONSTRAINT "customer_transcript_entry_generation_ck" CHECK("customer_transcript_entry"."processing_generation" >= 1),
+	CONSTRAINT "customer_transcript_entry_kind_ck" CHECK("customer_transcript_entry"."event_kind" in ('processing', 'available', 'failed'))
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `customer_transcript_entry_revision_uq` ON `customer_transcript_entry` (`message_id`,`processing_generation`,`event_kind`);--> statement-breakpoint
+CREATE INDEX `customer_transcript_entry_thread_cursor_idx` ON `customer_transcript_entry` (`workspace_id`,`inbox_id`,`thread_id`,`row_id`);--> statement-breakpoint
 CREATE TABLE `message_translation` (
 	`id` text PRIMARY KEY NOT NULL,
 	`workspace_id` text NOT NULL,
@@ -100,11 +116,13 @@ CREATE TABLE `message_translation` (
 	`provider` text NOT NULL,
 	`model` text NOT NULL,
 	`is_pass_through` integer DEFAULT false NOT NULL,
+	`mixed_language` integer DEFAULT false NOT NULL,
+	`needs_review` integer DEFAULT false NOT NULL,
 	`created_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
 	FOREIGN KEY (`message_id`,`workspace_id`,`inbox_id`,`thread_id`) REFERENCES `message`(`id`,`workspace_id`,`inbox_id`,`thread_id`) ON UPDATE no action ON DELETE cascade,
 	CONSTRAINT "message_translation_source_language_length_ck" CHECK(length("message_translation"."source_language") between 2 and 35),
 	CONSTRAINT "message_translation_target_language_length_ck" CHECK(length("message_translation"."target_language") between 2 and 35),
-	CONSTRAINT "message_translation_text_length_ck" CHECK(length("message_translation"."translated_text") between 1 and 6000),
+	CONSTRAINT "message_translation_text_length_ck" CHECK(length("message_translation"."translated_text") between 1 and 24000),
 	CONSTRAINT "message_translation_prompt_version_length_ck" CHECK(length("message_translation"."prompt_version") between 1 and 80),
 	CONSTRAINT "message_translation_provider_length_ck" CHECK(length("message_translation"."provider") between 1 and 80),
 	CONSTRAINT "message_translation_model_length_ck" CHECK(length("message_translation"."model") between 1 and 160)
@@ -139,8 +157,8 @@ CREATE TABLE `message` (
 	FOREIGN KEY (`thread_id`,`workspace_id`,`inbox_id`) REFERENCES `thread`(`id`,`workspace_id`,`inbox_id`) ON UPDATE no action ON DELETE cascade,
 	CONSTRAINT "message_direction_ck" CHECK("message"."direction" in ('customer_to_operator', 'operator_to_customer')),
 	CONSTRAINT "message_original_text_length_ck" CHECK(length("message"."original_text") between 1 and 6000),
-	CONSTRAINT "message_customer_text_length_ck" CHECK("message"."customer_visible_text" is null or length("message"."customer_visible_text") between 1 and 6000),
-	CONSTRAINT "message_operator_text_length_ck" CHECK("message"."operator_visible_text" is null or length("message"."operator_visible_text") between 1 and 6000),
+	CONSTRAINT "message_customer_text_length_ck" CHECK("message"."customer_visible_text" is null or length("message"."customer_visible_text") between 1 and 24000),
+	CONSTRAINT "message_operator_text_length_ck" CHECK("message"."operator_visible_text" is null or length("message"."operator_visible_text") between 1 and 24000),
 	CONSTRAINT "message_original_language_length_ck" CHECK("message"."original_language" is null or length("message"."original_language") between 2 and 35),
 	CONSTRAINT "message_customer_language_length_ck" CHECK("message"."customer_visible_language" is null or length("message"."customer_visible_language") between 2 and 35),
 	CONSTRAINT "message_generation_ck" CHECK("message"."processing_generation" >= 1),
