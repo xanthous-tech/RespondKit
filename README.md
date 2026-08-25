@@ -90,6 +90,8 @@ Customer-supplied identity and metadata are advisory context in this MVP, never 
 
 The package uses shadcn primitives with Tailwind v4 utilities namespaced as `ac:` and does not import Tailwind preflight, so it can coexist with the host product's Tailwind/shadcn theme.
 
+This release is intended for a monitored, low-volume Canto pilot. Discord ambiguity recovery currently inspects the newest 100 messages and at most 50 active plus 50 archived forum threads. A retry delayed until the original projection has moved beyond that window can duplicate a Discord projection; production-scale use needs paginated reconciliation to a persisted boundary and a canonical content digest.
+
 ## Credential-backed validation still required
 
 The implementation and automated tests are key-free. Before a real Canto pilot, provision separate development credentials for:
