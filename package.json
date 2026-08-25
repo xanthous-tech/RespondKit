@@ -12,8 +12,8 @@
     "dev:api": "vp -C apps/api run dev",
     "db:generate": "vp -C apps/api run db:generate",
     "db:migrate:local": "vp -C apps/api run db:migrate:local",
-    "config:apply": "vp -C apps/api run config:apply",
-    "discord:commands:apply": "vp -C apps/api run discord:commands:apply"
+    "config:apply": "vp -C apps/api exec tsx scripts/config-apply.ts",
+    "discord:commands:apply": "vp -C apps/api exec tsx scripts/discord-register.ts"
   },
   "devDependencies": {
     "typescript": "catalog:",
