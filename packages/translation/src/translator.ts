@@ -6,14 +6,19 @@ import { classifyTranslationError, TranslationError } from "./errors";
 import { maskProtectedText, restoreProtectedText } from "./masking";
 
 export const TRANSLATION_PROMPT_VERSION = "canto-support-v1";
+export const MAX_TRANSLATED_TEXT_LENGTH = 24_000;
 
 export const translationOutputSchema = z.object({
-  sourceLanguage: z.string(),
-  targetLanguage: z.string(),
-  translatedText: z.string(),
+  sourceLanguage: z.string().min(2).max(35),
+  targetLanguage: z.string().min(2).max(35),
+  translatedText: z
+    .string()
+    .min(1)
+    .max(MAX_TRANSLATED_TEXT_LENGTH)
+    .refine((text) => text.trim().length > 0, "translated text cannot be blank"),
   mixedLanguage: z.boolean(),
   needsReview: z.boolean(),
-  ambiguityNotes: z.array(z.string()),
+  ambiguityNotes: z.array(z.string().min(1).max(500)).max(8),
 });
 
 export interface TranslationContextTurn {
@@ -254,6 +259,15 @@ export function createTranslator(options: TranslatorOptions): Translator {
         );
         validateModelLanguage(output.targetLanguage, "targetLanguage", targetLanguage);
         const translatedText = restoreProtectedText(output.translatedText, masked.fragments);
+        if (
+          translatedText.trim().length === 0 ||
+          translatedText.length > MAX_TRANSLATED_TEXT_LENGTH
+        ) {
+          throw new TranslationError("The model returned an invalid translatedText", {
+            code: "invalid_output",
+            retryable: true,
+          });
+        }
 
         return {
           ambiguityNotes: output.ambiguityNotes,

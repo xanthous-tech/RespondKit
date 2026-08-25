@@ -266,6 +266,30 @@ describe("translator", () => {
       retryable: true,
     });
   });
+
+  it.each(["   ", "x".repeat(24_001)])(
+    "rejects an invalid translated text length as retryable output",
+    async (translatedText) => {
+      const model = modelWithOutput({
+        ambiguityNotes: [],
+        mixedLanguage: false,
+        needsReview: false,
+        sourceLanguage: "th",
+        targetLanguage: "en",
+        translatedText,
+      });
+
+      await expect(
+        createTranslator({ model }).translate({
+          targetLanguage: "en",
+          text: "สวัสดี",
+        }),
+      ).rejects.toMatchObject({
+        code: "invalid_output",
+        retryable: true,
+      });
+    },
+  );
 });
 
 describe("failure classification", () => {
