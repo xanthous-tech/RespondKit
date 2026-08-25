@@ -1,5 +1,5 @@
 import type { InboxId, InstallationId, VisitorId, WorkspaceId } from "@agent-chat/protocol";
-import { and, eq, or } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 
 import type { VisitorContext } from "./config";
@@ -200,7 +200,7 @@ export async function upsertVisitor(
   // Client-supplied user IDs are advisory until a product backend signs them.
   // Only the opaque browser installation (and its deterministic visitor ID)
   // may resume an anonymous transcript.
-  const identityMatch = or(
+  const canonicalIdentityMatch = and(
     eq(visitors.id, input.id),
     eq(visitors.installationId, input.installationId),
   );
@@ -233,7 +233,7 @@ export async function upsertVisitor(
         and(
           eq(visitors.workspaceId, input.workspaceId),
           eq(visitors.inboxId, input.inboxId),
-          identityMatch,
+          canonicalIdentityMatch,
         ),
       ),
   ]);
@@ -245,12 +245,12 @@ export async function upsertVisitor(
       and(
         eq(visitors.workspaceId, input.workspaceId),
         eq(visitors.inboxId, input.inboxId),
-        identityMatch,
+        eq(visitors.installationId, input.installationId),
       ),
     )
     .limit(1);
 
-  if (!visitor) {
+  if (!visitor || visitor.id !== input.id) {
     throw new VisitorIdentityConflictError(input.id);
   }
 
