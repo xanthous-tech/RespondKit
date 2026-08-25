@@ -189,11 +189,11 @@ export const messages = sqliteTable(
     check("message_original_text_length_ck", sql`length(${table.originalText}) between 1 and 6000`),
     check(
       "message_customer_text_length_ck",
-      sql`${table.customerVisibleText} is null or length(${table.customerVisibleText}) between 1 and 6000`,
+      sql`${table.customerVisibleText} is null or length(${table.customerVisibleText}) between 1 and 24000`,
     ),
     check(
       "message_operator_text_length_ck",
-      sql`${table.operatorVisibleText} is null or length(${table.operatorVisibleText}) between 1 and 6000`,
+      sql`${table.operatorVisibleText} is null or length(${table.operatorVisibleText}) between 1 and 24000`,
     ),
     check(
       "message_original_language_length_ck",
@@ -300,6 +300,8 @@ export const messageTranslations = sqliteTable(
     provider: text("provider").notNull(),
     model: text("model").notNull(),
     isPassThrough: integer("is_pass_through", { mode: "boolean" }).notNull().default(false),
+    mixedLanguage: integer("mixed_language", { mode: "boolean" }).notNull().default(false),
+    needsReview: integer("needs_review", { mode: "boolean" }).notNull().default(false),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().default(nowInMilliseconds),
   },
   (table) => [
@@ -324,7 +326,7 @@ export const messageTranslations = sqliteTable(
     ),
     check(
       "message_translation_text_length_ck",
-      sql`length(${table.translatedText}) between 1 and 6000`,
+      sql`length(${table.translatedText}) between 1 and 24000`,
     ),
     check(
       "message_translation_prompt_version_length_ck",

@@ -481,6 +481,8 @@ export interface StoreTranslationInput {
   readonly provider: string;
   readonly model: string;
   readonly isPassThrough: boolean;
+  readonly mixedLanguage: boolean;
+  readonly needsReview: boolean;
   readonly translatedAt: Date;
 }
 
@@ -500,6 +502,8 @@ function prepareTranslationInsert(db: DrizzleD1Database, input: StoreTranslation
       provider: input.provider,
       model: input.model,
       isPassThrough: input.isPassThrough,
+      mixedLanguage: input.mixedLanguage,
+      needsReview: input.needsReview,
       createdAt: input.translatedAt,
     })
     .onConflictDoNothing();
@@ -531,6 +535,14 @@ export async function storeCustomerTranslation(
     input,
     messageTranslations.sourceLanguage,
   );
+  const canonicalNeedsReview = sql<number>`coalesce((
+    select ${messageTranslations.needsReview}
+    from ${messageTranslations}
+    where ${messageTranslations.messageId} = ${input.messageId}
+      and ${messageTranslations.targetLanguage} = ${input.targetLanguage}
+      and ${messageTranslations.promptVersion} = ${input.promptVersion}
+    limit 1
+  ), 1)`;
   const canonicalAcceptedAt = sql<number>`(
     select ${messages.acceptedAt}
     from ${messages}
@@ -560,14 +572,16 @@ export async function storeCustomerTranslation(
       .update(threads)
       .set({
         customerLanguage: sql`case
-          when ${threads.customerLanguageUpdatedAt} is null
-            or ${threads.customerLanguageUpdatedAt} <= ${canonicalAcceptedAt}
+          when not ${canonicalNeedsReview}
+            and (${threads.customerLanguageUpdatedAt} is null
+              or ${threads.customerLanguageUpdatedAt} <= ${canonicalAcceptedAt})
           then ${canonicalSourceLanguage}
           else ${threads.customerLanguage}
         end`,
         customerLanguageUpdatedAt: sql`case
-          when ${threads.customerLanguageUpdatedAt} is null
-            or ${threads.customerLanguageUpdatedAt} <= ${canonicalAcceptedAt}
+          when not ${canonicalNeedsReview}
+            and (${threads.customerLanguageUpdatedAt} is null
+              or ${threads.customerLanguageUpdatedAt} <= ${canonicalAcceptedAt})
           then ${canonicalAcceptedAt}
           else ${threads.customerLanguageUpdatedAt}
         end`,
@@ -963,6 +977,10 @@ export async function loadEnglishTranslationContext(
         eq(messages.inboxId, input.inboxId),
         eq(messages.threadId, input.threadId),
         sql`${messages.operatorVisibleText} is not null`,
+        or(
+          eq(messages.direction, "customer_to_operator"),
+          eq(messages.customerAvailability, "available"),
+        ),
         sql`${messages.acceptedAt} < ${input.before.getTime()}`,
       ),
     )
