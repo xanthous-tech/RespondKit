@@ -1,12 +1,12 @@
 # Agent Chat base architecture v1
 
-Status: Workflow-first proposal for final review; no implementation started
+Status: Implemented MVP foundation; external Gemini/Discord soak testing pending
 Last updated: 2026-08-25
 Scope: pnpm/TypeScript monorepo, React customer widget, D1 chat storage, Cloudflare Workflows, Gemini translation, and Discord as the complete operator interface
 
-## Decisions requested
+## Implemented decisions
 
-This is the final candidate architecture before implementation.
+This is the implementation architecture for the first Canto pilot.
 
 1. Discord is the only operator UI. Operators reply with a guild-scoped `/reply message:<English text>` command inside the mapped support thread. Recovery-only `/status reference:<interaction ID>` and `/retry reference:<interaction ID> message:<original English text>` resolve rare ambiguous acceptances using the original idempotency key. There is no Better Auth dependency, magic-link flow, operator web app, or authenticated admin API.
 2. Workspace, product, inbox, origin, and Discord-channel configuration live in D1 and are applied by a local Wrangler-authenticated bootstrap command.
@@ -143,7 +143,7 @@ Each accepted message is already a small durable state machine: persist, transla
 - Later D1 steps store translations and business delivery state. There are no job leases, next-attempt timestamps, Queue acknowledgements, or DLQ rows. A narrow expiring compare-and-set claim exists only to ensure concurrent messages cannot both create the same Discord forum thread.
 - A successful step result is checkpointed, but a step attempt may repeat before that checkpoint is recorded. Gemini, D1, and Discord operations therefore remain idempotent and reconcilable; Workflows do not make external effects exactly once. See [Workflow rules](https://developers.cloudflare.com/workflows/build/rules-of-workflows/).
 - The Workflow wraps its normal graph in `try/catch`. After exhausted retries, stable failure steps record the stage-specific D1 state and attempt a best-effort Discord audit, then rethrow the original error so the instance remains `errored` and observable. Workflow history remains the operational retry trace rather than becoming the customer transcript.
-- Every message has an opaque public ID and a D1 `INTEGER PRIMARY KEY AUTOINCREMENT` cursor. The widget pages by `(thread_id, row_id)` and polls every two seconds only while visible.
+- Every message has an opaque public ID, and every customer-observable state revision has a D1 `INTEGER PRIMARY KEY AUTOINCREMENT` cursor. The widget pages transcript events by `(thread_id, row_id)` and polls every two seconds only while visible.
 - Discord operator input is an ordinary signed HTTP request. There is no long-lived socket, presence, sequence, or ephemeral shared state.
 
 An ordinary message uses roughly six to nine billable steps—the first message pays the extra forum-claim/create/finalize steps—plus a step for each additional Discord chunk. The current Workers Paid allowance includes 500,000 Workflow steps per month, and Free includes 3,000 per day; Gemini and Discord costs are separate. Waiting and retry delays do not consume CPU. See [Workflow pricing](https://developers.cloudflare.com/workflows/reference/pricing/) and [limits](https://developers.cloudflare.com/workflows/reference/limits/).
@@ -206,7 +206,7 @@ agent-chat/
       src/rest.ts                   thread/message REST adapter
       src/schema.ts                 integration and external-ID mappings
       src/index.ts
-  config/
+  apps/api/config/
     workspaces.example.json         non-secret topology template
   docs/
   package.json
@@ -243,7 +243,7 @@ Only application packages expose `build`:
 
 - `apps/widget` bundles a tiny page that mounts the real widget for development and E2E testing. It is not a dashboard and is not on Canto's production request path.
 - `apps/api` lets Wrangler bundle the HTTP Worker and named `MessageWorkflow` entrypoint together.
-- Feature packages expose `typecheck` and `test`, but no `build`, `dist`, or generated JavaScript.
+- Feature packages are checked and tested directly by Vite+ from the workspace root, with no `build`, `dist`, or generated JavaScript.
 - Canto consumes the publishable source packages (`protocol`, `api-client`, and `react`) and compiles them in its own Vite build.
 - The root, both apps, and the server-only `workspaces`, `conversations`, `translation`, and `discord` packages are `private: true`. Only `protocol`, `api-client`, and `react` are publishable.
 
@@ -280,7 +280,7 @@ Private app/server edges use `workspace:*`. The publishable client chain uses `w
   "name": "@agent-chat/react",
   "version": "0.1.0",
   "type": "module",
-  "files": ["src"],
+  "files": ["src/components", "src/lib", "src/widget", "src/index.ts", "src/styles.css"],
   "exports": {
     ".": {
       "types": "./src/index.ts",
@@ -294,10 +294,7 @@ Private app/server edges use `workspace:*`. The publishable client chain uses `w
   "peerDependencies": {
     "react": ">=18"
   },
-  "scripts": {
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run"
-  }
+  "scripts": { "test": "vp test" }
 }
 ```
 
@@ -334,6 +331,7 @@ erDiagram
   INBOX ||--o{ VISITOR : serves
   VISITOR ||--o{ THREAD : opens
   THREAD ||--o{ MESSAGE : contains
+  MESSAGE ||--o{ CUSTOMER_TRANSCRIPT_ENTRY : revises
   MESSAGE ||--o{ MESSAGE_TRANSLATION : derives
   THREAD ||--o| DISCORD_THREAD : projects
   MESSAGE ||--o{ DISCORD_MESSAGE : maps
@@ -346,11 +344,11 @@ Key constraints:
 - There are no user, session, account, verification, or workspace-membership tables in v1.
 - Every product-owned row carries `workspace_id` directly or through an enforced composite relation. Worker queries never infer a workspace from untrusted client input.
 - An inbox has an opaque public installation ID, allowed origins, and one Discord forum destination.
-- Visitors store the app-supplied external user ID, email, PostHog distinct ID, locale, and bounded metadata. IP-derived region and user agent are observational context, not authentication.
+- Visitors store the app-supplied external user ID, email, PostHog distinct ID, locale, and bounded metadata. External user IDs are deliberately non-unique; only the opaque, inbox-scoped installation identity resumes an anonymous transcript. IP-derived region and user agent are observational context, not authentication.
 - Client-supplied identity/context is advisory unless Canto later signs it server-side.
-- `message.row_id` is the committed internal cursor; `message.id` is a public opaque ID.
+- `customer_transcript_entry.row_id` is the committed internal cursor; `message.id` is a public opaque ID.
 - Each message stores its deterministic `workflow_instance_id`, direction, processing generation/status, and a bounded terminal failure code. Workflow history is temporary operational state, not transcript storage.
-- The API stamps `accepted_at` and the stable message ID before Workflow creation. `message.row_id` is only the incremental polling cursor; clients merge new rows and display by `(accepted_at, message.id)`, so concurrent Workflow starts cannot reorder the transcript. Thread activity updates use the maximum accepted timestamp rather than last-writer-wins.
+- The API stamps `accepted_at` and the stable message ID before Workflow creation. That server observation time is not part of immutable replay equality; duplicates return the first canonical timestamp. Each customer-observable `processing`, `available`, or `failed` transition appends an idempotent transcript revision keyed by `(message_id, processing_generation, event_kind)`. Clients page by revision `row_id`, merge repeated message IDs, and display by `(accepted_at, message.id)`, so both ordering and later state changes survive cursor advancement. Thread activity updates use the maximum canonical accepted timestamp rather than last-writer-wins.
 - Unique `(thread_id, client_message_id)` deduplicates widget retries.
 - Unique `(discord_integration_id, interaction_id)` deduplicates Discord interaction retries.
 - Operator message and Workflow IDs derive from the interaction ID; conflict-safe inserts return the already accepted result on Discord retries and after Workflow retention expires.
@@ -427,12 +425,12 @@ sequenceDiagram
       WF->>Discord: 6. create or reconcile forum thread if claim owner
       WF->>D1: 7. finalize thread mapping
       WF->>Discord: 8. bot REST post with nonce + reconciliation
-      WF->>D1: 9. store message mapping and projected status
+      WF->>D1: 9. store message mapping, projected status, and customer revision
     and Widget polling independently
       loop While the panel is visible
         Widget->>API: cursor poll
         API->>D1: load canonical messages
-        API-->>Widget: merge originals and processing state
+        API-->>Widget: merge transcript revisions by message ID
       end
     end
   end
@@ -507,7 +505,7 @@ sequenceDiagram
       loop While the panel is visible
         Widget->>API: cursor poll
         API->>D1: load messages after cursor
-        API-->>Widget: localized operator replies available so far
+        API-->>Widget: localized operator replies and message-state revisions
       end
     end
   end
@@ -541,20 +539,14 @@ There is no Queue consumer, scheduled handler, bespoke/admin operator API, or pu
 - Package unit tests run TypeScript directly with Vitest; no package build step.
 - React uses Testing Library/jsdom, plus `apps/widget` for browser and CORS E2E tests.
 - Translation fixtures cover Thai, Burmese Unicode, likely Zawgyi, protected URLs/code, ambiguous short messages, and failure behavior.
-- API integration tests use Cloudflare's Vitest integration with real D1 migrations and Workflow introspection. Tests can await steps/status, suppress retry delays, and force step errors/timeouts. See [Cloudflare's Workflow test APIs](https://developers.cloudflare.com/workers/testing/vitest-integration/test-apis/).
+- API integration tests use Cloudflare's Vitest integration with the real checked-in D1 migration and local Workflow bindings. Tests cover the HTTP acceptance boundary, Workflow creation/replay, translation/projection paths, cursor revisions, and failure state without external credentials. See [Cloudflare's Workflow test APIs](https://developers.cloudflare.com/workers/testing/vitest-integration/test-apis/).
 - Discord interaction tests cover raw-body signature rejection, signed `PING`, command parsing, guild/thread mapping, user/role authorization, duplicate interaction IDs, ambiguous acceptance reconciliation, retained stage-specific failures, Pending-reference `/status`, same-ID `/retry`, rejection after customer availability, and the three-second acknowledgement budget from request arrival.
 - Discord REST contract tests cover rate limits, ambiguous success, deterministic nonce/correlation reconciliation, and visible receipt failure behavior.
 - Workflow tests cover `createBatch`'s empty duplicate result plus status lookup, first-step D1 idempotency, immutable duplicate payloads, replay after instance retention, failure-generation restart, HTTP-status retry classification, outgoing fail-closed behavior, concurrent forum claims/expiry, Discord nonce/correlation reconciliation, audit-only failure, catch/rethrow terminal state, and final D1 state.
 - CI runs package typechecks/tests, both app builds, and `wrangler deploy --dry-run`.
 
-## Proposed implementation sequence after approval
+## Implementation status
 
-1. Scaffold pnpm, shared TypeScript/tooling, the source package manifests, `apps/widget`, and `apps/api`.
-2. Add the `MessageWorkflow` export/binding and one local Workflow smoke test, then add feature-owned Drizzle schemas, reviewed D1 migrations, and the local workspace bootstrap command.
-3. Add customer-session/thread/message APIs and the React widget with optimistic append, deterministic Workflow acceptance, and cursor polling.
-4. Implement the first D1 persistence step, Gemini translation steps, result persistence, retry policy, and terminal failure state.
-5. Add Discord REST projection, register `/reply` plus recovery-only `/status` and `/retry`, and implement signed interaction ingress, whole-request deadline handling, deterministic Workflow acceptance, same-ID recovery, reconciliation, and stage-specific Available/Failed audit receipts.
-6. Pack `protocol`, `api-client`, and `react`; verify included source/CSS and rewritten dependency ranges, then publish pinned versions to the selected registry.
-7. Install `@agent-chat/react` in Canto and integrate it behind a Crisp rollback switch.
+The monorepo, source packages, API/Workflow composition, D1 model and migration, setup scripts, interaction-only Discord connector, Gemini adapter, and responsive React widget are implemented. Key-free unit, D1/Workflow integration, build, pack, and desktop/mobile browser tests form the automated gate.
 
-Implementation should begin after review accepts Workflow-first asynchronous persistence, interaction-only Discord replies, no Queues/Cron/Durable Objects, D1 polling, Discord-only operations, and the source-only package boundary.
+The remaining pilot work requires separately provisioned development credentials: apply the real Canto/Discord topology, register the guild commands, run Thai and Burmese messages through Gemini and Discord, validate an English `/reply` back to each customer language, then integrate `@agent-chat/react` into Canto behind a Crisp rollback switch. Attachments remain the first follow-on slice after this real-language soak test.
