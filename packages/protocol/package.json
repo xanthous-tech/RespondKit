@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "description": "Versioned public protocol for Agent Chat customer clients",
   "files": [
-    "src"
+    "src/customer.ts",
+    "src/errors.ts",
+    "src/ids.ts",
+    "src/index.ts"
   ],
   "type": "module",
   "sideEffects": false,

@@ -2,12 +2,19 @@
   "name": "@agent-chat/react",
   "version": "0.1.0",
   "files": [
-    "src"
+    "src/components",
+    "src/lib",
+    "src/widget/agent-chat-widget.tsx",
+    "src/widget/message-composer.tsx",
+    "src/widget/message-list.tsx",
+    "src/widget/types.ts",
+    "src/widget/use-agent-chat.ts",
+    "src/index.ts",
+    "src/styles.css"
   ],
   "type": "module",
   "imports": {
     "#components/*": "./src/components/*.tsx",
-    "#hooks/*": "./src/hooks/*.ts",
     "#lib/*": "./src/lib/*.ts"
   },
   "exports": {

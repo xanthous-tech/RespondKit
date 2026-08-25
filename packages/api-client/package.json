@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "description": "SSR-safe typed Agent Chat customer API client",
   "files": [
-    "src"
+    "src/client.ts",
+    "src/index.ts"
   ],
   "type": "module",
   "sideEffects": false,
