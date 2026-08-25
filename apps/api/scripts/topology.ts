@@ -35,6 +35,7 @@ export const topologyConfigurationSchema = z
     const inboxIds = new Set<string>();
     const integrationIds = new Set<string>();
     const discordDestinations = new Set<string>();
+    let discordApplicationId: string | undefined;
 
     for (const [workspaceIndex, workspace] of configuration.workspaces.entries()) {
       addUniqueIssue(context, workspaceIds, workspace.id, ["workspaces", workspaceIndex, "id"]);
@@ -74,6 +75,18 @@ export const topologyConfigurationSchema = z
 
           addUniqueIssue(context, inboxIds, inbox.id, [...path, "id"]);
           addUniqueIssue(context, integrationIds, inbox.discord.id, [...path, "discord", "id"]);
+
+          if (discordApplicationId === undefined) {
+            discordApplicationId = inbox.discord.applicationId;
+          } else if (discordApplicationId !== inbox.discord.applicationId) {
+            context.addIssue({
+              code: "custom",
+              message:
+                "All Discord integrations in one API deployment must use the same application ID",
+              path: [...path, "discord", "applicationId"],
+            });
+          }
+
           addUniqueIssue(
             context,
             discordDestinations,

@@ -13,7 +13,6 @@ const defaultConfigPath = resolve(apiDirectory, "config/workspaces.local.json");
 const discordApiBaseUrl = "https://discord.com/api/v10";
 
 interface RegisterOptions {
-  readonly applicationId: string | undefined;
   readonly configPath: string;
   readonly dryRun: boolean;
 }
@@ -21,7 +20,6 @@ interface RegisterOptions {
 function parseOptions(): RegisterOptions {
   const { values } = parseArgs({
     options: {
-      application: { type: "string" },
       config: { type: "string", short: "c" },
       "dry-run": { type: "boolean", default: false },
       help: { type: "boolean", short: "h", default: false },
@@ -35,7 +33,6 @@ function parseOptions(): RegisterOptions {
   }
 
   return {
-    applicationId: values.application,
     configPath: resolve(values.config ?? defaultConfigPath),
     dryRun: values["dry-run"],
   };
@@ -49,7 +46,6 @@ Usage:
 
 Options:
   -c, --config <path>       Topology JSON (default: config/workspaces.local.json)
-      --application <id>    Select one application when config contains more than one
       --dry-run             Validate and print requests without contacting Discord
   -h, --help                Show this help
 
@@ -86,23 +82,7 @@ async function registerGuildCommands(
 async function main(): Promise<void> {
   const options = parseOptions();
   const configuration = await loadTopologyConfiguration(options.configPath);
-  const allTargets = collectDiscordCommandTargets(configuration);
-  const applicationIds = [...new Set(allTargets.map((target) => target.applicationId))];
-
-  if (applicationIds.length > 1 && options.applicationId === undefined) {
-    throw new Error(
-      `The topology contains ${applicationIds.length} Discord applications. Pass --application <id> for the bot token being used.`,
-    );
-  }
-
-  const selectedApplicationId = options.applicationId ?? applicationIds[0];
-  const targets = allTargets.filter((target) => target.applicationId === selectedApplicationId);
-
-  if (targets.length === 0) {
-    throw new Error(
-      `No Discord command targets use application ${selectedApplicationId ?? "<none>"}`,
-    );
-  }
+  const targets = collectDiscordCommandTargets(configuration);
 
   if (options.dryRun) {
     console.log(
