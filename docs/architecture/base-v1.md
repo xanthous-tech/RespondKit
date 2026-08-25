@@ -1,18 +1,19 @@
 # Agent Chat base architecture v1
 
-Status: final proposal for review; no implementation started
+Status: Workflow-first proposal for final review; no implementation started
 Last updated: 2026-08-25
-Scope: pnpm/TypeScript monorepo, React customer widget, D1 chat storage, Gemini translation, and Discord as the complete operator interface
+Scope: pnpm/TypeScript monorepo, React customer widget, D1 chat storage, Cloudflare Workflows, Gemini translation, and Discord as the complete operator interface
 
 ## Decisions requested
 
 This is the final candidate architecture before implementation.
 
-1. Discord is the only operator UI. Operators reply with a guild-scoped `/reply message:<English text>` command inside the mapped support thread. There is no Better Auth dependency, magic-link flow, operator web app, or authenticated admin API.
+1. Discord is the only operator UI. Operators reply with a guild-scoped `/reply message:<English text>` command inside the mapped support thread. Recovery-only `/status reference:<interaction ID>` and `/retry reference:<interaction ID> message:<original English text>` resolve rare ambiguous acceptances using the original idempotency key. There is no Better Auth dependency, magic-link flow, operator web app, or authenticated admin API.
 2. Workspace, product, inbox, origin, and Discord-channel configuration live in D1 and are applied by a local Wrangler-authenticated bootstrap command.
-3. D1 is the canonical store. The customer widget uses optimistic updates plus a two-second cursor poll; there is no per-thread Durable Object or customer WebSocket.
-4. V1 has no Durable Objects. Discord sends signed command interactions to the HTTP Worker, while outgoing forum/thread/message operations use Discord REST.
-5. `apps/web` is only a widget playground and E2E host. Canto imports `@agent-chat/react` directly. Only `apps/web` and `apps/api` build; functional packages export TypeScript source.
+3. Cloudflare Workflow creation is the durable acceptance boundary for messages. The API validates ingress and awaits an idempotent, deterministic `createBatch([one])` call before returning `202 Accepted` to the widget or `Queued` to Discord. The Workflow's first step idempotently writes the canonical message to D1.
+4. D1 is the canonical transcript and product store after that first Workflow step. The customer widget uses optimistic updates plus a two-second cursor poll; there is no per-thread Durable Object or customer WebSocket.
+5. V1 has no Queues, dead-letter queue, scheduled recovery job, transactional outbox, or Durable Object. Workflow supplies durable checkpoints and retries. Discord sends signed command interactions to the HTTP Worker, while outgoing forum/thread/message operations use Discord REST.
+6. `apps/widget` is only a widget playground and E2E host. Canto imports `@agent-chat/react` directly. Only `apps/widget` and `apps/api` build; functional packages export TypeScript source.
 
 ## Runtime architecture
 
@@ -27,35 +28,45 @@ flowchart LR
   end
 
   subgraph ApiApp[apps/api — one Wrangler bundle]
-    HTTP[Hono HTTP API<br/>widget + signed interactions]
-    Jobs[Queue consumers +<br/>scheduled outbox re-driver]
+    HTTP[Hono HTTP API<br/>validate + accept ingress]
+    MessageWorkflow[[MessageWorkflow<br/>one instance per message]]
   end
 
-  subgraph Cloudflare[Managed data and delivery]
+  subgraph Cloudflare[Managed durable state]
     D1[(D1 canonical database)]
-    Queues[[Cloudflare work queues + DLQ]]
+    WorkflowState[(Workflow checkpoints<br/>retries + instance history)]
   end
 
   Discord[Discord forum channel<br/>one post per support thread]
   Gemini[Gemini 3.1 Flash-Lite]
 
   Bootstrap -->|non-secret workspace topology| D1
-  Widget -->|append + cursor poll| HTTP
+  Widget -->|session + thread| HTTP
+  Widget -->|send immutable ingress envelope| HTTP
   Discord -->|signed POST /reply interaction| HTTP
-  HTTP -.->|after D1 commit: queued acknowledgement| Discord
-  HTTP -->|transactional batch| D1
-  HTTP -.->|waitUntil fast path| Queues
-  Queues --> Jobs
-  Jobs <-->|load state; commit result + next outbox| D1
-  Jobs -->|CAS-claim pending or expired outbox| D1
-  Jobs -.->|re-publish outbox reference| Queues
-  Jobs <-->|context-aware translation| Gemini
-  Jobs -->|create thread; post messages + receipts via REST| Discord
+  HTTP -->|configuration + authorization reads| D1
+  HTTP -->|await deterministic createBatch of one| MessageWorkflow
+  HTTP -.->|202 Accepted after creation| Widget
+  HTTP -.->|type 4 Queued after creation<br/>or Pending + status ref at cutoff| Discord
+  MessageWorkflow <-->|checkpoint step state| WorkflowState
+  MessageWorkflow -->|step 1: idempotent ingress upsert| D1
+  MessageWorkflow <-->|context + results + business status| D1
+  MessageWorkflow <-->|context-aware translation| Gemini
+  MessageWorkflow -->|English customer projection via REST| Discord
+  MessageWorkflow -->|Available audit via REST| Discord
+  MessageWorkflow -.->|best-effort Failed audit via REST| Discord
+  Widget -->|poll customer-visible messages| HTTP
 ```
 
-The entire runtime is one stateless Worker bundle plus managed D1 and Queues. On the normal interaction path, the handler performs only signature verification, authorization, and one small D1 batch before acknowledging Discord; translation and Discord REST delivery stay off its three-second response path.
+The entire runtime is one Worker bundle plus managed D1 and Workflow state. `MessageWorkflow` is a named Worker entrypoint exported from `apps/api`; it is not a third deployed app or separately built package. The HTTP handler validates an immutable ingress envelope, derives stable IDs, awaits a single-item `createBatch`, and then acknowledges acceptance. Translation, canonical message insertion, and Discord REST delivery remain outside the request path.
 
-`DISCORD_BOT_TOKEN`, `GEMINI_API_KEY`, and the widget-token signing key are Worker secrets. `DISCORD_APPLICATION_ID` and `DISCORD_PUBLIC_KEY` are non-secret Worker configuration used to validate interactions. The bootstrap command never writes secrets into D1.
+Workflow creation, rather than D1 insertion, is intentionally the acceptance point. The accepted envelope is durable in Workflow state until its first step persists it. This removes the impossible-to-close dual-write gap that would exist if the handler committed D1 and then separately attempted to create a Workflow. D1 becomes authoritative as soon as step 1 completes, normally moments later; until then the widget retains its optimistic item.
+
+Use the batch API even for one instance because [`createBatch`](https://developers.cloudflare.com/workflows/build/workers-api/) treats an existing instance ID as an idempotent skip, whereas `create()` throws on a duplicate. A new single-item call returns `[instance]`; a retained duplicate is skipped and returns `[]`, so the handler calls `get(id).status()` and reconciles it with D1 business/mapping state before describing the prior result. `queued`, `running`, or `waiting` remain accepted. `complete`, `errored`, or `terminated` never determine customer-facing wording alone: for example, `customer_available / audit_failed` means “Already available; Discord audit failed,” while a recorded pre-availability failure means “Not made available.” An errored/terminated instance with no D1 row is “Ingress failed.” This prevents an audit-only error from inviting a duplicate resend.
+
+Customer instance IDs are a bounded hash of workspace, thread, and `client_message_id`; operator instance IDs derive from the Discord application and interaction ID. Each batch item uses `retention: { successRetention: "1 day", errorRetention: "3 days" }`. Workflow retention is not permanent deduplication, so D1 unique constraints remain authoritative after instance history expires. A `client_message_id` identifies one immutable payload: the first accepted payload wins, and the SDK never reuses that ID for edited text.
+
+`DISCORD_BOT_TOKEN`, `GEMINI_API_KEY`, and the widget-token signing key are Worker secrets. `DISCORD_APPLICATION_ID` and `DISCORD_PUBLIC_KEY` are non-secret Worker configuration used to validate interactions. The bootstrap command never writes secrets into D1. Workflow parameters contain bounded text/context and future R2 object keys, never attachment bytes; both parameters and non-streaming step results stay below Cloudflare's 1 MiB limit.
 
 ## Discord: REST projection and signed HTTP interactions
 
@@ -103,14 +114,19 @@ For a forum post, the interaction's `channel_id` is the Discord thread ID. The h
 
 The HTTP path is:
 
-1. Require `X-Signature-Ed25519` and `X-Signature-Timestamp`. Before JSON parsing, verify the hex-decoded signature against the exact UTF-8 bytes of `timestamp + unmodifiedRawBody`; missing, malformed, invalid, or requests outside a bounded freshness window (five minutes by default) return 401.
+1. Start the three-second deadline timer as soon as the request arrives. Require `X-Signature-Ed25519` and `X-Signature-Timestamp`. Before JSON parsing, verify the hex-decoded signature against the exact UTF-8 bytes of `timestamp + unmodifiedRawBody`; missing, malformed, invalid, or requests outside a bounded freshness window (five minutes by default) return 401.
 2. Answer Discord's signed `PING` with `PONG`.
-3. Parse and authorize `/reply`, then atomically insert the interaction receipt, English operator message, thread activity, and translation outbox event in D1. Message and event IDs derive deterministically from the interaction ID; a conflict loads the previously accepted result rather than reporting a false failure.
-4. After the D1 commit, return an ephemeral type-4 (`flags: 64`) “Queued” response within Discord's three-second deadline. A failed commit returns an ephemeral failure instead of claiming success. Target a two-second p99; do not call Gemini, Discord REST, or a Queue consumer on this synchronous path.
-5. Use `ctx.waitUntil` only to publish the already-committed outbox reference, with explicit error logging. A one-minute scheduled scan republishes pending events or events whose publishing lease expired.
-6. After the translated reply is durable and available in customer chat, post a bot-authored “Available in chat” audit receipt containing the normalized English reply back into the Discord thread through REST.
+3. Parse and authorize `/reply` against the stored application, guild, forum, thread, and operator allowlist. Normalize the command into an immutable operator-ingress envelope. The message ID and Workflow ID derive deterministically from the Discord interaction ID.
+4. Await `MESSAGE_WORKFLOW.createBatch([{ id, params: envelope, retention }])`. A Discord retry with the same interaction ID targets the same instance. If the result is empty, load that retained instance's status. If the create response is ambiguous, repeat the idempotent call and reconcile that same ID before inviting another `/reply`; a new Discord interaction would have a new ID and could otherwise duplicate a reply whose first acceptance actually succeeded. No D1 message write, Gemini request, or outbound Discord REST call happens on this synchronous path.
+5. Only after a new or existing actively processing instance is confirmed, return an ephemeral type-4 (`flags: 64`) “Queued” response within Discord's three-second deadline. Here, Queued means durably accepted for processing—not translated, available to the customer, delivered, or read. A retained terminal instance is worded from D1 state: Already available, Not made available, Audit failed, or Ingress failed.
+6. The Workflow's first step idempotently inserts the interaction receipt, English operator message, and thread activity in one D1 batch. Permanent D1 uniqueness on the interaction and message IDs prevents a replay after Workflow retention expires.
+7. After translation is durable and the reply is customer-visible, post a shared bot-authored “Available in chat” audit containing the exact customer-facing text. A pre-availability terminal failure records that the reply was not made available and attempts a best-effort shared failure audit; an audit-only failure never changes customer availability.
 
-The normal inline acknowledgement does not retain Discord's 15-minute interaction token. As a deadline fallback, if the already-started D1 batch has not settled by an internal cutoff below three seconds, return an ephemeral type-5 defer and attach the idempotent batch, best-effort Queue publish, and response edit to [`ctx.waitUntil`](https://developers.cloudflare.com/workers/runtime-apis/context/#waituntil). The short-lived continuation edits the original response to Queued or Failed; the token is never written to D1 or Queues. Richer asynchronous progress would require explicit short-lived sensitive-token handling.
+The cutoff covers signature verification, D1 authorization, duplicate-status reconciliation, and Workflow creation—not just the final binding call. Once a signature is valid, if any of those operations remains unresolved at the internal cutoff, return an ephemeral type-4 “Acceptance pending — do not resend yet” response containing the original Discord interaction ID as a stable status reference. The in-flight work may continue under [`ctx.waitUntil`](https://developers.cloudflare.com/workers/runtime-apis/context/#waituntil) and best-effort edit that response, but this continuation is not a second durable handoff. The token is held only by that continuation and is never written to D1 or Workflow parameters.
+
+Register two recovery-only guild-scoped commands. `/status reference:<interaction ID>` revalidates the current application/guild/thread/operator, derives the original Workflow ID, reads its status plus D1 business/mapping state, and reports Processing, Already available, Audit failed, Not made available, or Not found. It never advises a fresh `/reply`, because that would have a new interaction ID and could race a late original acceptance.
+
+`/retry reference:<interaction ID> message:<original English text>` derives the same original Workflow/message IDs. If the original instance is retained and errored, it restarts that instance only when D1 proves the reply is not customer-visible. If the instance is absent, it calls `createBatch` with the original ID and supplied immutable payload; if the original creation appears concurrently, one ID still admits only the first payload. If D1 says the reply is already available, retry is rejected with that exact status. Thus a lost continuation has a Discord-only recovery path without a Queue, outbox, timing assumption, or duplicate customer reply.
 
 Discord message content is limited to 2,000 characters even though the command string option permits 6,000. Audit projection therefore uses deterministic chunks of at most 2,000 characters, each with its own deterministic nonce of at most 25 characters. Every forum starter, translated customer message, and audit receipt containing user-derived text sets `allowed_mentions: { parse: [] }`.
 
@@ -118,18 +134,19 @@ See Discord's [interaction overview](https://docs.discord.com/developers/interac
 
 Ordinary typed Discord messages, `@bot` mentions, edits, deletes, reactions, and manually created forum posts are deliberately not input surfaces in v1. Without a Gateway they are not observed or ingested by Agent Chat. A future `/note` command, Reply button, or modal still works through the same HTTP interaction endpoint and does not require a socket.
 
-## Why v1 has no Durable Objects
+## Why Workflow, and why no Queues or Durable Objects
 
-D1 and Queues cover every current persistence and coordination need:
+Each accepted message is already a small durable state machine: persist, translate, project, and finalize. [Cloudflare Workflows](https://developers.cloudflare.com/workflows/) supplies checkpointed steps, persisted results, retries, timeouts, instance status, and manual restart directly, so v1 does not reproduce those mechanics in D1.
 
-- `D1Database.batch()` atomically writes a message, thread activity, interaction receipt, and outbox event. See [D1 batch](https://developers.cloudflare.com/d1/worker-api/d1-database/#batch).
+- The API awaits deterministic Workflow creation before claiming acceptance. There is no D1-to-Workflow dual write and therefore no launch outbox or scheduled re-driver.
+- The first Workflow step uses `D1Database.batch()` to insert the original message plus thread/interaction state atomically. See [D1 batch](https://developers.cloudflare.com/d1/worker-api/d1-database/#batch).
+- Later D1 steps store translations and business delivery state. There are no job leases, next-attempt timestamps, Queue acknowledgements, or DLQ rows. A narrow expiring compare-and-set claim exists only to ensure concurrent messages cannot both create the same Discord forum thread.
+- A successful step result is checkpointed, but a step attempt may repeat before that checkpoint is recorded. Gemini, D1, and Discord operations therefore remain idempotent and reconcilable; Workflows do not make external effects exactly once. See [Workflow rules](https://developers.cloudflare.com/workflows/build/rules-of-workflows/).
+- The Workflow wraps its normal graph in `try/catch`. After exhausted retries, stable failure steps record the stage-specific D1 state and attempt a best-effort Discord audit, then rethrow the original error so the instance remains `errored` and observable. Workflow history remains the operational retry trace rather than becoming the customer transcript.
 - Every message has an opaque public ID and a D1 `INTEGER PRIMARY KEY AUTOINCREMENT` cursor. The widget pages by `(thread_id, row_id)` and polls every two seconds only while visible.
-- Queues are at-least-once and unordered. Deterministic event IDs and unique constraints make consumers idempotent; Queue delivery never defines chat order. See [Queue delivery guarantees](https://developers.cloudflare.com/queues/reference/delivery-guarantees/).
-- Every consumer transaction stores its result and the next-stage outbox event together; translation, Discord projection, customer-ready state, and audit projection have no store-then-enqueue gap.
-- Outbox state is monotonic: `pending -> publishing(lease) -> published -> completed | dead`. All transitions are conditional. Consumers may complete a `publishing` or `published` event, while a late publisher can mark `published` only if its lease still matches, so it cannot regress `completed`.
-- The scheduled outbox re-driver is stateless. It claims pending or expired publishing leases with a D1 compare-and-set and republishes references; crash-after-accept duplicates are safe.
-- Exhausted Queue retries go to a dead-letter queue whose consumer records the final attempt and conditionally marks the event `dead`. Manual retry can explicitly return it to `pending`.
 - Discord operator input is an ordinary signed HTTP request. There is no long-lived socket, presence, sequence, or ephemeral shared state.
+
+An ordinary message uses roughly six to nine billable steps—the first message pays the extra forum-claim/create/finalize steps—plus a step for each additional Discord chunk. The current Workers Paid allowance includes 500,000 Workflow steps per month, and Free includes 3,000 per day; Gemini and Discord costs are separate. Waiting and retry delays do not consume CPU. See [Workflow pricing](https://developers.cloudflare.com/workflows/reference/pricing/) and [limits](https://developers.cloudflare.com/workflows/reference/limits/).
 
 Do not enable D1 read replication initially. If it is enabled later, use D1 Sessions/bookmarks to preserve sequential consistency. See [D1 read replication](https://developers.cloudflare.com/d1/best-practices/read-replication/).
 
@@ -150,20 +167,21 @@ D1 remains canonical even if a later DO provides coordination or realtime fanout
 ```text
 agent-chat/
   apps/
-    web/                            Vite widget playground and browser/E2E host
+    widget/                         Vite widget playground and browser/E2E host
       src/main.tsx                  mounts the real @agent-chat/react package
       vite.config.ts
       package.json
     api/                            sole deployed Worker application
-      src/index.ts                  fetch + queue + scheduled entrypoint
+      src/index.ts                  default fetch + named MessageWorkflow export
       src/http.ts                   Hono route composition
       src/db.ts                     drizzle(env.DB)
-      src/queue.ts                  work-queue/DLQ dispatch and orchestration
-      src/scheduled.ts              outbox recovery and retention
+      src/workflows/message.ts      WorkflowEntrypoint orchestration
       scripts/config-apply.ts       validates config and drives Wrangler D1
       scripts/discord-register.ts   registers guild application commands
       migrations/                   one reviewed D1 SQL ledger
       drizzle.config.ts
+      vitest.config.ts
+      worker-configuration.d.ts     generated Worker binding types
       wrangler.jsonc
       package.json
   packages/
@@ -177,7 +195,7 @@ agent-chat/
     workspaces/                     workspace/product/inbox/origin component
       src/schema.ts
       src/index.ts
-    conversations/                  visitor/thread/message/translation/outbox
+    conversations/                  visitor/thread/message/translation/status
       src/schema.ts
       src/index.ts
     translation/                    Gemini adapter, masking, prompt validation
@@ -199,14 +217,32 @@ agent-chat/
 
 Each directory under `packages/` has its own `package.json`, `tsconfig.json`, colocated tests, and public `src/index.ts`; repeated files are omitted from the tree for readability.
 
-There is no `packages/auth`. There is also no generic `packages/database`: `apps/api` owns `drizzle(env.DB)`, Drizzle configuration, and the checked-in D1 migration ledger. Each persisted functional package owns its `schema.ts` and queries; the API's Drizzle config includes those schema paths. The transactional outbox is part of `conversations`, because message mutation and event creation must be one feature-owned D1 batch rather than a transaction leaked into the composition root.
+There is no `packages/auth`, generic `packages/database`, or `packages/workflow`. `apps/api` owns `drizzle(env.DB)`, Drizzle configuration, the checked-in D1 migration ledger, and the Cloudflare-specific Workflow entrypoint. Each persisted functional package owns its `schema.ts` and queries; the API's Drizzle config includes those schema paths. Workflow orchestration is application composition, not a reusable domain component.
 
-`conversations` wholly owns customer-message append transactions. For the cross-feature operator path, `discord.acceptReply(db, input)` owns the transaction: it combines its interaction-receipt statement with message/outbox statements prepared by `conversations`, then executes one D1 batch. `apps/api` calls the service but never assembles persistence statements.
+`conversations.acceptCustomerIngress(db, input)` owns the idempotent first-step transaction for customer messages. For the cross-feature operator path, `discord.acceptReplyIngress(db, input)` owns the transaction: it combines its interaction-receipt statement with message/activity statements prepared by `conversations`, then executes one D1 batch. `apps/api` calls these services from named Workflow steps but never assembles feature persistence statements.
+
+Workflow parameter schemas stay private to `apps/api`: they are internal immutable ingress envelopes, not public protocol. No feature package imports `cloudflare:workers`, `WorkflowEntrypoint`, the generated `Env`, or the `MESSAGE_WORKFLOW` binding. Every D1 or network side effect runs inside a stable named `step.do`; code outside steps only validates parameters and chooses the direction branch because it may replay.
+
+The API's `wrangler.jsonc` has one same-script Workflow binding and no Queue consumer or scheduled trigger:
+
+```jsonc
+{
+  "workflows": [
+    {
+      "name": "agent-chat-message",
+      "binding": "MESSAGE_WORKFLOW",
+      "class_name": "MessageWorkflow"
+    }
+  ]
+}
+```
+
+`src/index.ts` provides the default HTTP Worker export and re-exports the `MessageWorkflow` class by that exact name. Running `wrangler types` generates `worker-configuration.d.ts` from this configuration.
 
 Only application packages expose `build`:
 
-- `apps/web` bundles a tiny page that mounts the real widget for development and E2E testing. It is not a dashboard and is not on Canto's production request path.
-- `apps/api` lets Wrangler bundle the HTTP, Queue, and scheduled handlers together.
+- `apps/widget` bundles a tiny page that mounts the real widget for development and E2E testing. It is not a dashboard and is not on Canto's production request path.
+- `apps/api` lets Wrangler bundle the HTTP Worker and named `MessageWorkflow` entrypoint together.
 - Feature packages expose `typecheck` and `test`, but no `build`, `dist`, or generated JavaScript.
 - Canto consumes the publishable source packages (`protocol`, `api-client`, and `react`) and compiles them in its own Vite build.
 - The root, both apps, and the server-only `workspaces`, `conversations`, `translation`, and `discord` packages are `private: true`. Only `protocol`, `api-client`, and `react` are publishable.
@@ -227,7 +263,7 @@ flowchart BT
   DiscordPkg --> Workspaces
   DiscordPkg --> Protocol
 
-  WebApp[apps/web] --> ReactPkg
+  WidgetApp[apps/widget] --> ReactPkg
   ApiApp[apps/api] --> Protocol
   ApiApp --> Workspaces
   ApiApp --> Conversations
@@ -235,7 +271,7 @@ flowchart BT
   ApiApp --> DiscordPkg
 ```
 
-`apps/api` is the composition root. Translation and Discord adapters do not orchestrate each other. Queue handlers invoke packages in the required order, keeping feature dependencies acyclic and independently testable.
+`apps/api` is the composition root. Translation and Discord adapters do not orchestrate or import each other. `MessageWorkflow` invokes them in order, keeping feature dependencies acyclic and independently testable.
 
 Private app/server edges use `workspace:*`. The publishable client chain uses `workspace:^` so pnpm rewrites it to caret semver ranges when packed. Public packages include their source so Canto can consume them outside this monorepo. An abridged but dependency-complete React manifest is:
 
@@ -303,8 +339,6 @@ erDiagram
   MESSAGE ||--o{ DISCORD_MESSAGE : maps
   MESSAGE ||--o| DISCORD_INTERACTION : originates_from
   DISCORD_INTEGRATION ||--o{ DISCORD_INTERACTION : accepts
-  WORKSPACE ||--o{ OUTBOX_EVENT : emits
-  OUTBOX_EVENT ||--o{ DELIVERY_ATTEMPT : records
 ```
 
 Key constraints:
@@ -315,41 +349,175 @@ Key constraints:
 - Visitors store the app-supplied external user ID, email, PostHog distinct ID, locale, and bounded metadata. IP-derived region and user agent are observational context, not authentication.
 - Client-supplied identity/context is advisory unless Canto later signs it server-side.
 - `message.row_id` is the committed internal cursor; `message.id` is a public opaque ID.
+- Each message stores its deterministic `workflow_instance_id`, direction, processing generation/status, and a bounded terminal failure code. Workflow history is temporary operational state, not transcript storage.
+- The API stamps `accepted_at` and the stable message ID before Workflow creation. `message.row_id` is only the incremental polling cursor; clients merge new rows and display by `(accepted_at, message.id)`, so concurrent Workflow starts cannot reorder the transcript. Thread activity updates use the maximum accepted timestamp rather than last-writer-wins.
 - Unique `(thread_id, client_message_id)` deduplicates widget retries.
 - Unique `(discord_integration_id, interaction_id)` deduplicates Discord interaction retries.
-- Operator message and initial outbox IDs derive from the interaction ID; conflict-safe inserts return the already accepted result on Discord retries.
+- Operator message and Workflow IDs derive from the interaction ID; conflict-safe inserts return the already accepted result on Discord retries and after Workflow retention expires.
 - Discord interaction receipts retain the application, guild, thread, operator, command, and normalized option values, but never the short-lived interaction token.
-- Discord message mappings remain for bot-authored REST projection and ambiguous-response reconciliation.
+- The unique `DISCORD_THREAD.thread_id` row doubles as the forum-creation claim. Its state is `claiming | ready`; `claim_owner`, `claim_expires_at`, and a deterministic correlation marker let one Workflow create/reconcile the forum post while concurrent instances retry the D1 compare-and-set. The owner renews before each bounded create attempt, and finalization stores the Discord thread ID only when the owner still matches. If an owner dies after Discord accepted the create, the next owner waits for expiry and reconciles the marker before creating anything.
+- Discord message mappings retain deterministic nonce/correlation data, external IDs, and final projection status for ambiguous-response reconciliation.
 - Unique `(message_id, target_language, prompt_version)` deduplicates translations.
-- Outbox events have deterministic IDs and conditional states `pending | publishing | published | completed | dead`; publishing rows carry attempt and lease metadata.
 - The Discord bot token and Gemini key never appear in these tables.
 
-## Message flows
+## Message Workflow contract
+
+There is one `MessageWorkflow` class and one instance per customer message or operator reply. Its parameters are a private discriminated union:
+
+- `customer_to_operator`: stable workspace/inbox/thread/message IDs, `client_message_id`, server-stamped acceptance time, original text, locale hint, and bounded provenance-labelled context;
+- `operator_to_customer`: the same routing IDs and acceptance time plus Discord interaction/application/guild/thread/operator IDs and the normalized English command text.
+
+The HTTP API validates authentication, Origin, routing, field sizes, and Discord authorization before creating an instance. Attachments are out of v1; a future envelope carries only finalized R2 object keys, never bytes. Step names and input values are deterministic so a restart follows the same graph. A duplicate widget request never echoes a newly supplied body as though it were canonical: it returns the stored message when available, or only the stable ID plus `already_accepted` while the first immutable payload is still in flight. An ambiguous widget acceptance returns `acceptance_unknown`; the SDK automatically repeats the same immutable request and `client_message_id`, never a new message ID.
+
+Every network or D1 side effect occurs inside a named `step.do`. Successful step results are checkpointed. Because an attempt may still repeat before its success checkpoint, each step uses D1 upserts/unique keys or Discord reconciliation rather than assuming exactly-once execution. Adapters inspect HTTP responses and throw on retryable timeouts, `408`, `429`, and `5xx`; a resolved `fetch` alone does not trigger Workflow retry. Discord retries honor its bucket/global headers and `retry_after`, while other transient failures use bounded exponential backoff. Invalid input and permanent authorization/configuration failures throw `NonRetryableError` from inside the step. See [retry configuration](https://developers.cloudflare.com/workflows/build/sleeping-and-retrying/) and [Discord rate limits](https://docs.discord.com/developers/topics/rate-limits).
+
+The first D1 step returns whether it inserted, resumed, or found a successfully terminal message. A newly recreated instance after Workflow retention expires exits immediately only when D1 says processing already succeeded. A manual restart of an errored retained instance may reopen `failed -> retrying` under an incremented processing generation; it replays idempotent steps and never mistakes a prior failure for success.
+
+The normal graph is wrapped in a top-level `try/catch`. Its catch path runs stable `record-terminal-failure` and best-effort `post-failure-audit` steps, then rethrows the original error. If the failure audit itself cannot reach Discord, the D1 failure remains authoritative and the Workflow still ends errored. Failure is stage-specific: an operator reply that already became customer-visible remains `available` if only its Discord audit fails; it is not marked unsent or offered for resend.
+
+Workflow instances are not serialized per support thread. The forum-creation claim prevents duplicate Discord threads, and accepted timestamps keep the transcript display deterministic, but v1 accepts that nearly simultaneous customer messages may be translated or projected to Discord in execution order and that one translation context may not yet contain another in-flight message. Strict cross-instance processing order would be a concrete reason to add a per-thread coordinator later.
+
+### Step summary
+
+| Stage | Customer to operator | Operator to customer | Durable result |
+| --- | --- | --- | --- |
+| Accept | Validate widget session/origin; create or reconcile deterministic instance | Verify signature/mapping/operator; create or reconcile deterministic instance | Non-failed Workflow instance is confirmed before HTTP acceptance |
+| Persist ingress | Upsert original customer message and activity | Upsert interaction receipt, English reply, and activity | Original immutable message exists in D1 |
+| Build context | Load bounded recent visible turns and language state | Load bounded recent visible turns and persisted customer language | Stable translation input is checkpointed |
+| Translate | Gemini to English, or validated English pass-through | Gemini from English to customer language, or validated pass-through | Schema-validated translation result is checkpointed |
+| Publish result | Store English translation | Store translation and atomically make reply customer-visible | Translation/business state exists in D1 |
+| Project | Claim/find/create/finalize Discord thread, then post translated customer message | Post shared Available audit with exact customer-facing text | Discord IDs/status are reconciled into D1 |
+| Finalize/fail | Mark projected; on failure record the stage and attempt a best-effort Discord audit | Preserve customer availability separately from audit status; pre-publish failure stays closed | Terminal business status exists in D1; Workflow rethrows terminal errors |
 
 ### Customer to Discord
 
-1. Canto supplies product context to the widget; the widget exchanges its public installation ID and allowed Origin for a short-lived, inbox-bound customer token.
-2. The widget posts original text with that token and a `client_message_id`.
-3. One D1 batch inserts the message, advances thread activity, and inserts a translation outbox event.
-4. The API returns the committed message immediately. `waitUntil` publishes a reference to a Queue; a scheduled re-driver catches any stranded outbox row.
-5. The translation consumer reloads bounded thread context, calls Gemini, and validates protected URLs/code/identifiers. One D1 batch stores the English variant and its Discord-delivery outbox event.
-6. The Discord consumer creates or locates the mapped forum thread and posts the translated English message through REST. Normal message sends use a deterministic Discord `nonce` with `enforce_nonce: true`; ambiguous responses are reconciled before retry.
-7. Forum-thread creation has no equivalent nonce guarantee, so the starter message carries a deterministic correlation marker. A delivery lease plus recent-thread reconciliation finds a success whose HTTP response was lost before creating another post.
-8. The widget cursor poll observes resulting delivery state.
+```mermaid
+sequenceDiagram
+  autonumber
+  participant Widget as React widget
+  participant API as Hono API
+  participant WF as MessageWorkflow
+  participant D1 as D1
+  participant Gemini as Gemini
+  participant Discord as Discord REST
+
+  Widget->>API: POST original text + client_message_id
+  API->>D1: Validate token, inbox, thread, Origin
+  API->>WF: await createBatch with deterministic customer ID
+  WF-->>API: [instance] if created; [] if duplicate skipped
+  opt Duplicate was skipped
+    API->>WF: get(instance ID).status()
+    WF-->>API: Existing status
+    API->>D1: Reconcile business and Discord mapping state
+    D1-->>API: Canonical stage-specific result if present
+  end
+  alt Non-failed acceptance confirmed
+    API-->>Widget: 202 Accepted + stable message ID
+  else Prior terminal state or still unknown
+    API-->>Widget: Canonical stage result or acceptance_unknown
+  end
+  opt Workflow acceptance is or later becomes confirmed
+    Note over API,WF: A created Workflow may begin before the HTTP response
+    par Workflow processing
+      WF->>D1: 1. persist-customer-ingress (idempotent batch)
+      WF->>D1: 2. load-translation-context
+      WF->>Gemini: 3. translate-to-english
+      WF->>D1: 4. store-english-translation
+      WF->>D1: 5. claim-or-load Discord thread mapping
+      WF->>Discord: 6. create or reconcile forum thread if claim owner
+      WF->>D1: 7. finalize thread mapping
+      WF->>Discord: 8. bot REST post with nonce + reconciliation
+      WF->>D1: 9. store message mapping and projected status
+    and Widget polling independently
+      loop While the panel is visible
+        Widget->>API: cursor poll
+        API->>D1: load canonical messages
+        API-->>Widget: merge originals and processing state
+      end
+    end
+  end
+```
+
+The forum starter is a context summary with a deterministic correlation marker; actual customer messages are separate Discord messages. This keeps one message-to-message mapping even for the first turn. Ordinary message sends use a deterministic Discord `nonce` with `enforce_nonce: true`. Thread creation has no equivalent nonce guarantee, so the ensure step searches recent threads for its correlation marker before retrying creation.
+
+If translation or projection exhausts retries, the catch path records a terminal state in D1, then best-effort ensures/locates the Discord thread and posts the original plus a shared “Processing failed — retry needed” audit. It rethrows the original error so the Workflow is observably errored. It never discards or overwrites the customer's original text.
 
 ### Discord to customer
 
-1. Simon invokes `/reply message:<English text>` inside the mapped Discord thread.
-2. The HTTP Worker verifies the raw-body Ed25519 signature, application/guild/thread mapping, forum parent, and configured operator user/roles.
-3. One D1 batch idempotently inserts the interaction receipt, English operator message, thread activity, and translation outbox event keyed by the Discord interaction ID.
-4. The endpoint returns an ephemeral “Queued” response within three seconds, then `waitUntil` attempts Queue publication; the scheduled outbox scan is the durable fallback.
-5. Gemini translates the reply to the thread's persisted customer language. One D1 batch stores the translation, marks it available in customer chat, and inserts the Discord-audit outbox event.
-6. The open widget discovers the reply on its next cursor poll.
-7. The Discord audit consumer posts a bot-authored “Available in chat” receipt containing the normalized English reply in the thread through REST, chunked if necessary and using deterministic short nonces plus reconciliation on ambiguous responses.
+```mermaid
+sequenceDiagram
+  autonumber
+  participant Simon as Simon in Discord
+  participant Discord as Discord
+  participant API as Signed interaction API
+  participant WF as MessageWorkflow
+  participant D1 as D1
+  participant Gemini as Gemini
+  participant Widget as React widget
+
+  Simon->>Discord: Invoke /reply with English text
+  Discord->>API: Signed interaction POST
+  API->>D1: Validate mapping and operator allowlist
+  API->>WF: await createBatch with deterministic interaction ID
+  WF-->>API: [instance] if created; [] if duplicate skipped
+  opt Duplicate was skipped
+    API->>WF: get(instance ID).status()
+    WF-->>API: Existing status
+    API->>D1: Reconcile availability and Discord mapping state
+    D1-->>API: Canonical stage-specific result if present
+  end
+  alt Acceptance confirmed before cutoff
+    API-->>Discord: HTTP 200 type 4 ephemeral Queued
+    Discord-->>Simon: Render Queued
+  else Known terminal instance
+    API-->>Discord: HTTP 200 type 4 with stage-specific result
+    Discord-->>Simon: Render Available, Audit failed, or Not available
+  else Acceptance unresolved at cutoff
+    API-->>Discord: HTTP 200 type 4 Pending + interaction ID reference
+    Discord-->>Simon: Render Pending; do not resend yet
+    Note over API,Discord: Best-effort continuation may reconcile and PATCH the response
+  end
+  opt Pending response needs recovery
+    Simon->>Discord: Invoke /status with interaction ID
+    Discord->>API: Signed status interaction
+    API->>WF: get(instance ID).status() if present
+    API->>D1: Reconcile canonical business state
+    API-->>Discord: Processing, Available, Failed, or Not found
+    Discord-->>Simon: Render stage-specific status
+    opt Same-reference retry is needed
+      Simon->>Discord: Invoke /retry with reference + original English
+      Discord->>API: Signed retry interaction
+      API->>D1: Revalidate not already customer-visible
+      API->>WF: Create or restart the original Workflow ID
+      API-->>Discord: Queued or Already available
+      Discord-->>Simon: Render retry result
+    end
+  end
+  opt Workflow acceptance is or later becomes confirmed
+    Note over API,WF: A created Workflow may begin before the interaction response
+    par Workflow processing
+      WF->>D1: 1. persist-operator-ingress (idempotent batch)
+      WF->>D1: 2. load-language-and-context
+      WF->>Gemini: 3. translate-to-customer-language
+      WF->>D1: 4. publish-customer-visible-reply
+      WF->>Discord: 5. bot REST Available audit with exact localized text
+      Discord-->>Simon: Render shared Available audit
+      WF->>D1: 6. mark-audit-projected
+    and Widget polling independently
+      loop While the panel is visible
+        Widget->>API: cursor poll
+        API->>D1: load messages after cursor
+        API-->>Widget: localized operator replies available so far
+      end
+    end
+  end
+```
+
+The D1 publish step atomically stores the translation and makes the reply visible to the customer. Outgoing translation fails closed: if translation exhausts retries before that step, the English reply is not exposed to a non-English customer. The failure path records the error and attempts a shared “Failed — reply was not made available in chat” audit. If only the later Discord audit fails, D1 remains `customer_available / audit_failed`; the customer-visible reply is not marked failed and Simon is not told to resend it. “Available in chat” means queryable by the widget, not fetched or read by the customer.
 
 Ordinary messages typed into the Discord thread are not observed or ingested in v1.
 
-Queue payloads are references or bounded normalized events, never the authority. Consumers acknowledge only after resulting D1 state is durable.
+The normal path is six to nine steps. Discord content over 2,000 characters adds one deterministic post step per chunk. Successful instances retain one day of Workflow history; errored instances retain three days for inspection and manual restart. Permanent transcript, translation, mapping, and terminal status always live in D1.
 
 ## API surface
 
@@ -358,36 +526,35 @@ Customer widget:
 - `POST /v1/client/sessions`
 - `POST /v1/threads`
 - `GET /v1/threads/{threadId}/messages?after={cursor}`
-- `POST /v1/threads/{threadId}/messages`
+- `POST /v1/threads/{threadId}/messages` — validates and reconciles deterministic Workflow creation; normally returns `202 Accepted`, while ambiguous/prior terminal outcomes return the same stable message ID with a stage-specific status
 
 Discord/runtime:
 
-- `POST /v1/discord/interactions` — signed `PING`, `/reply`, and later `/note`/button/modal ingress
-- work-queue and dead-letter consumers selected by queue/event type inside `apps/api`
-- one-minute scheduled outbox re-driver and retention cleanup
+- `POST /v1/discord/interactions` — signed `PING`, `/reply`, recovery-only `/status` and `/retry`, and later `/note`/button/modal ingress
+- named `MessageWorkflow` entrypoint bound as `MESSAGE_WORKFLOW` inside the same Worker script
 - local `pnpm discord:commands:apply` command registration script
 
-There is no bespoke/admin operator API. The publicly reachable Discord interaction endpoint accepts operator input only after Discord signature verification and configured guild/thread/user-or-role authorization. Workspace configuration happens through the local bootstrap command.
+There is no Queue consumer, scheduled handler, bespoke/admin operator API, or public Workflow-start endpoint. The publicly reachable Discord interaction endpoint accepts operator input only after Discord signature verification and configured guild/thread/user-or-role authorization. Workspace configuration happens through the local bootstrap command.
 
 ## Testing boundary
 
 - Package unit tests run TypeScript directly with Vitest; no package build step.
-- React uses Testing Library/jsdom, plus `apps/web` for browser and CORS E2E tests.
+- React uses Testing Library/jsdom, plus `apps/widget` for browser and CORS E2E tests.
 - Translation fixtures cover Thai, Burmese Unicode, likely Zawgyi, protected URLs/code, ambiguous short messages, and failure behavior.
-- API integration tests use Cloudflare's Vitest integration/plugin with real D1 migrations and Queue handlers. See [Cloudflare's Vitest integration](https://developers.cloudflare.com/workers/testing/vitest-integration/test-apis/).
-- Discord interaction tests cover raw-body signature rejection, signed `PING`, command parsing, guild/thread mapping, user/role authorization, duplicate interaction IDs, and the three-second acknowledgement budget.
+- API integration tests use Cloudflare's Vitest integration with real D1 migrations and Workflow introspection. Tests can await steps/status, suppress retry delays, and force step errors/timeouts. See [Cloudflare's Workflow test APIs](https://developers.cloudflare.com/workers/testing/vitest-integration/test-apis/).
+- Discord interaction tests cover raw-body signature rejection, signed `PING`, command parsing, guild/thread mapping, user/role authorization, duplicate interaction IDs, ambiguous acceptance reconciliation, retained stage-specific failures, Pending-reference `/status`, same-ID `/retry`, rejection after customer availability, and the three-second acknowledgement budget from request arrival.
 - Discord REST contract tests cover rate limits, ambiguous success, deterministic nonce/correlation reconciliation, and visible receipt failure behavior.
-- Outbox tests force publisher/consumer races, expired leases, duplicate Queue delivery, next-stage atomicity, and dead-letter exhaustion without state regression.
+- Workflow tests cover `createBatch`'s empty duplicate result plus status lookup, first-step D1 idempotency, immutable duplicate payloads, replay after instance retention, failure-generation restart, HTTP-status retry classification, outgoing fail-closed behavior, concurrent forum claims/expiry, Discord nonce/correlation reconciliation, audit-only failure, catch/rethrow terminal state, and final D1 state.
 - CI runs package typechecks/tests, both app builds, and `wrangler deploy --dry-run`.
 
 ## Proposed implementation sequence after approval
 
-1. Scaffold pnpm, shared TypeScript/tooling, the source package manifests, `apps/web`, and `apps/api`.
-2. Add feature-owned Drizzle schemas, reviewed D1 migrations, and the local workspace bootstrap command.
-3. Add customer-session/thread/message APIs and the React widget with optimistic append and cursor polling.
-4. Add the transactional outbox, Queue consumers, and Gemini translation.
-5. Add Discord REST projection, register `/reply`, and implement signed interaction ingress, authorization, idempotency, and audit receipts.
+1. Scaffold pnpm, shared TypeScript/tooling, the source package manifests, `apps/widget`, and `apps/api`.
+2. Add the `MessageWorkflow` export/binding and one local Workflow smoke test, then add feature-owned Drizzle schemas, reviewed D1 migrations, and the local workspace bootstrap command.
+3. Add customer-session/thread/message APIs and the React widget with optimistic append, deterministic Workflow acceptance, and cursor polling.
+4. Implement the first D1 persistence step, Gemini translation steps, result persistence, retry policy, and terminal failure state.
+5. Add Discord REST projection, register `/reply` plus recovery-only `/status` and `/retry`, and implement signed interaction ingress, whole-request deadline handling, deterministic Workflow acceptance, same-ID recovery, reconciliation, and stage-specific Available/Failed audit receipts.
 6. Pack `protocol`, `api-client`, and `react`; verify included source/CSS and rewritten dependency ranges, then publish pinned versions to the selected registry.
 7. Install `@agent-chat/react` in Canto and integrate it behind a Crisp rollback switch.
 
-Implementation should begin after review accepts interaction-only Discord replies, no Durable Objects, D1 polling, Discord-only operations, and the source-only package boundary.
+Implementation should begin after review accepts Workflow-first asynchronous persistence, interaction-only Discord replies, no Queues/Cron/Durable Objects, D1 polling, Discord-only operations, and the source-only package boundary.

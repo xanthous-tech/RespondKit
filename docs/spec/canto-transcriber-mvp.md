@@ -1,8 +1,10 @@
 # Canto Transcriber support base
 
-Status: accepted MVP scope after product-owner decisions  
-Last updated: 2026-08-25  
+Status: superseded for implementation by [Agent Chat base architecture v1](../architecture/base-v1.md); retained as the earlier Durable Object/Gateway design
+Last updated: 2026-08-25
 First integration: `canto-transcriber` web
+
+> The current reviewed candidate uses Discord `/reply` interactions, D1 polling, and one Cloudflare `MessageWorkflow` per message. It has no Discord Gateway, Durable Object, Queue, Cron, or transactional outbox. Use the linked architecture as the implementation source of truth.
 
 ## Outcome
 
