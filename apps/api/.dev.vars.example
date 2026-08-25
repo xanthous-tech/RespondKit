@@ -1,0 +1,7 @@
+# External provider credentials are intentionally absent from local development.
+# Add separately provisioned development credentials only when running live tests.
+GEMINI_API_KEY=
+DISCORD_BOT_TOKEN=
+DISCORD_APPLICATION_ID=
+DISCORD_PUBLIC_KEY=
+SESSION_SIGNING_KEY=

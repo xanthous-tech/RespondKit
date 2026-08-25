@@ -1,0 +1,34 @@
+{
+  "workspaces": [
+    {
+      "id": "workspace_canto",
+      "slug": "canto-transcriber",
+      "name": "Canto Transcriber",
+      "products": [
+        {
+          "id": "product_canto",
+          "slug": "canto-transcriber",
+          "name": "Canto Transcriber",
+          "inboxes": [
+            {
+              "id": "inbox_canto_public",
+              "name": "Customer support",
+              "defaultLocale": "en",
+              "allowedOrigins": ["http://localhost:5173", "https://canto-transcriber.example.com"],
+              "discord": {
+                "id": "discord_canto",
+                "applicationId": "111111111111111111",
+                "guildId": "222222222222222222",
+                "forumChannelId": "333333333333333333",
+                "operators": {
+                  "userIds": ["444444444444444444"],
+                  "roleIds": []
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

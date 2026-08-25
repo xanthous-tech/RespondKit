@@ -1,0 +1,2171 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "d6c0edb9-d86e-4cfb-ac42-160c441a52d8",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "allowed_origin": {
+      "name": "allowed_origin",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "inbox_id": {
+          "name": "inbox_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "origin": {
+          "name": "origin",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        }
+      },
+      "indexes": {
+        "allowed_origin_inbox_origin_uq": {
+          "name": "allowed_origin_inbox_origin_uq",
+          "columns": [
+            "workspace_id",
+            "inbox_id",
+            "origin"
+          ],
+          "isUnique": true
+        },
+        "allowed_origin_inbox_idx": {
+          "name": "allowed_origin_inbox_idx",
+          "columns": [
+            "workspace_id",
+            "inbox_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "allowed_origin_inbox_workspace_fk": {
+          "name": "allowed_origin_inbox_workspace_fk",
+          "tableFrom": "allowed_origin",
+          "tableTo": "inbox",
+          "columnsFrom": [
+            "inbox_id",
+            "workspace_id"
+          ],
+          "columnsTo": [
+            "id",
+            "workspace_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "allowed_origin_origin_length_ck": {
+          "name": "allowed_origin_origin_length_ck",
+          "value": "length(\"allowed_origin\".\"origin\") between 8 and 2048"
+        }
+      }
+    },
+    "inbox": {
+      "name": "inbox",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "product_id": {
+          "name": "product_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'active'"
+        },
+        "default_locale": {
+          "name": "default_locale",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        }
+      },
+      "indexes": {
+        "inbox_id_workspace_uq": {
+          "name": "inbox_id_workspace_uq",
+          "columns": [
+            "id",
+            "workspace_id"
+          ],
+          "isUnique": true
+        },
+        "inbox_product_idx": {
+          "name": "inbox_product_idx",
+          "columns": [
+            "workspace_id",
+            "product_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "inbox_product_workspace_fk": {
+          "name": "inbox_product_workspace_fk",
+          "tableFrom": "inbox",
+          "tableTo": "product",
+          "columnsFrom": [
+            "product_id",
+            "workspace_id"
+          ],
+          "columnsTo": [
+            "id",
+            "workspace_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "inbox_name_length_ck": {
+          "name": "inbox_name_length_ck",
+          "value": "length(\"inbox\".\"name\") between 1 and 160"
+        },
+        "inbox_status_ck": {
+          "name": "inbox_status_ck",
+          "value": "\"inbox\".\"status\" in ('active', 'disabled')"
+        },
+        "inbox_default_locale_length_ck": {
+          "name": "inbox_default_locale_length_ck",
+          "value": "\"inbox\".\"default_locale\" is null or length(\"inbox\".\"default_locale\") between 2 and 35"
+        }
+      }
+    },
+    "product": {
+      "name": "product",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        }
+      },
+      "indexes": {
+        "product_workspace_slug_uq": {
+          "name": "product_workspace_slug_uq",
+          "columns": [
+            "workspace_id",
+            "slug"
+          ],
+          "isUnique": true
+        },
+        "product_id_workspace_uq": {
+          "name": "product_id_workspace_uq",
+          "columns": [
+            "id",
+            "workspace_id"
+          ],
+          "isUnique": true
+        },
+        "product_workspace_idx": {
+          "name": "product_workspace_idx",
+          "columns": [
+            "workspace_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "product_workspace_id_workspace_id_fk": {
+          "name": "product_workspace_id_workspace_id_fk",
+          "tableFrom": "product",
+          "tableTo": "workspace",
+          "columnsFrom": [
+            "workspace_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "product_slug_length_ck": {
+          "name": "product_slug_length_ck",
+          "value": "length(\"product\".\"slug\") between 1 and 80"
+        },
+        "product_name_length_ck": {
+          "name": "product_name_length_ck",
+          "value": "length(\"product\".\"name\") between 1 and 160"
+        }
+      }
+    },
+    "visitor": {
+      "name": "visitor",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "inbox_id": {
+          "name": "inbox_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "installation_id": {
+          "name": "installation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "external_user_id": {
+          "name": "external_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "posthog_distinct_id": {
+          "name": "posthog_distinct_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "locale": {
+          "name": "locale",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "timezone": {
+          "name": "timezone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "region": {
+          "name": "region",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "user_agent": {
+          "name": "user_agent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'{}'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        },
+        "last_seen_at": {
+          "name": "last_seen_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        }
+      },
+      "indexes": {
+        "visitor_id_workspace_inbox_uq": {
+          "name": "visitor_id_workspace_inbox_uq",
+          "columns": [
+            "id",
+            "workspace_id",
+            "inbox_id"
+          ],
+          "isUnique": true
+        },
+        "visitor_installation_inbox_uq": {
+          "name": "visitor_installation_inbox_uq",
+          "columns": [
+            "workspace_id",
+            "inbox_id",
+            "installation_id"
+          ],
+          "isUnique": true
+        },
+        "visitor_external_user_inbox_uq": {
+          "name": "visitor_external_user_inbox_uq",
+          "columns": [
+            "workspace_id",
+            "inbox_id",
+            "external_user_id"
+          ],
+          "isUnique": true
+        },
+        "visitor_inbox_last_seen_idx": {
+          "name": "visitor_inbox_last_seen_idx",
+          "columns": [
+            "workspace_id",
+            "inbox_id",
+            "last_seen_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "visitor_inbox_workspace_fk": {
+          "name": "visitor_inbox_workspace_fk",
+          "tableFrom": "visitor",
+          "tableTo": "inbox",
+          "columnsFrom": [
+            "inbox_id",
+            "workspace_id"
+          ],
+          "columnsTo": [
+            "id",
+            "workspace_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "visitor_installation_id_length_ck": {
+          "name": "visitor_installation_id_length_ck",
+          "value": "length(\"visitor\".\"installation_id\") between 1 and 128"
+        },
+        "visitor_external_user_id_length_ck": {
+          "name": "visitor_external_user_id_length_ck",
+          "value": "\"visitor\".\"external_user_id\" is null or length(\"visitor\".\"external_user_id\") between 1 and 512"
+        },
+        "visitor_email_length_ck": {
+          "name": "visitor_email_length_ck",
+          "value": "\"visitor\".\"email\" is null or length(\"visitor\".\"email\") between 3 and 320"
+        },
+        "visitor_posthog_id_length_ck": {
+          "name": "visitor_posthog_id_length_ck",
+          "value": "\"visitor\".\"posthog_distinct_id\" is null or length(\"visitor\".\"posthog_distinct_id\") between 1 and 512"
+        },
+        "visitor_locale_length_ck": {
+          "name": "visitor_locale_length_ck",
+          "value": "\"visitor\".\"locale\" is null or length(\"visitor\".\"locale\") between 2 and 35"
+        },
+        "visitor_timezone_length_ck": {
+          "name": "visitor_timezone_length_ck",
+          "value": "\"visitor\".\"timezone\" is null or length(\"visitor\".\"timezone\") between 1 and 64"
+        },
+        "visitor_region_length_ck": {
+          "name": "visitor_region_length_ck",
+          "value": "\"visitor\".\"region\" is null or length(\"visitor\".\"region\") between 2 and 80"
+        },
+        "visitor_user_agent_length_ck": {
+          "name": "visitor_user_agent_length_ck",
+          "value": "\"visitor\".\"user_agent\" is null or length(\"visitor\".\"user_agent\") between 1 and 1024"
+        },
+        "visitor_metadata_length_ck": {
+          "name": "visitor_metadata_length_ck",
+          "value": "length(\"visitor\".\"metadata\") <= 16384"
+        }
+      }
+    },
+    "workspace": {
+      "name": "workspace",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'active'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        }
+      },
+      "indexes": {
+        "workspace_slug_uq": {
+          "name": "workspace_slug_uq",
+          "columns": [
+            "slug"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "workspace_slug_length_ck": {
+          "name": "workspace_slug_length_ck",
+          "value": "length(\"workspace\".\"slug\") between 1 and 80"
+        },
+        "workspace_name_length_ck": {
+          "name": "workspace_name_length_ck",
+          "value": "length(\"workspace\".\"name\") between 1 and 160"
+        },
+        "workspace_status_ck": {
+          "name": "workspace_status_ck",
+          "value": "\"workspace\".\"status\" in ('active', 'disabled')"
+        }
+      }
+    },
+    "message_translation": {
+      "name": "message_translation",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "inbox_id": {
+          "name": "inbox_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "thread_id": {
+          "name": "thread_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "message_id": {
+          "name": "message_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_language": {
+          "name": "source_language",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "target_language": {
+          "name": "target_language",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "translated_text": {
+          "name": "translated_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "prompt_version": {
+          "name": "prompt_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "provider": {
+          "name": "provider",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "model": {
+          "name": "model",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "is_pass_through": {
+          "name": "is_pass_through",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        }
+      },
+      "indexes": {
+        "message_translation_identity_uq": {
+          "name": "message_translation_identity_uq",
+          "columns": [
+            "message_id",
+            "target_language",
+            "prompt_version"
+          ],
+          "isUnique": true
+        },
+        "message_translation_message_idx": {
+          "name": "message_translation_message_idx",
+          "columns": [
+            "workspace_id",
+            "thread_id",
+            "message_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "message_translation_message_scope_fk": {
+          "name": "message_translation_message_scope_fk",
+          "tableFrom": "message_translation",
+          "tableTo": "message",
+          "columnsFrom": [
+            "message_id",
+            "workspace_id",
+            "inbox_id",
+            "thread_id"
+          ],
+          "columnsTo": [
+            "id",
+            "workspace_id",
+            "inbox_id",
+            "thread_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "message_translation_source_language_length_ck": {
+          "name": "message_translation_source_language_length_ck",
+          "value": "length(\"message_translation\".\"source_language\") between 2 and 35"
+        },
+        "message_translation_target_language_length_ck": {
+          "name": "message_translation_target_language_length_ck",
+          "value": "length(\"message_translation\".\"target_language\") between 2 and 35"
+        },
+        "message_translation_text_length_ck": {
+          "name": "message_translation_text_length_ck",
+          "value": "length(\"message_translation\".\"translated_text\") between 1 and 6000"
+        },
+        "message_translation_prompt_version_length_ck": {
+          "name": "message_translation_prompt_version_length_ck",
+          "value": "length(\"message_translation\".\"prompt_version\") between 1 and 80"
+        },
+        "message_translation_provider_length_ck": {
+          "name": "message_translation_provider_length_ck",
+          "value": "length(\"message_translation\".\"provider\") between 1 and 80"
+        },
+        "message_translation_model_length_ck": {
+          "name": "message_translation_model_length_ck",
+          "value": "length(\"message_translation\".\"model\") between 1 and 160"
+        }
+      }
+    },
+    "message": {
+      "name": "message",
+      "columns": {
+        "row_id": {
+          "name": "row_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "inbox_id": {
+          "name": "inbox_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "thread_id": {
+          "name": "thread_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "client_message_id": {
+          "name": "client_message_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "workflow_instance_id": {
+          "name": "workflow_instance_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "direction": {
+          "name": "direction",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "original_text": {
+          "name": "original_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "original_language": {
+          "name": "original_language",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "customer_visible_text": {
+          "name": "customer_visible_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "customer_visible_language": {
+          "name": "customer_visible_language",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "operator_visible_text": {
+          "name": "operator_visible_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "accepted_at": {
+          "name": "accepted_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "processing_generation": {
+          "name": "processing_generation",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        },
+        "processing_status": {
+          "name": "processing_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'processing'"
+        },
+        "customer_availability": {
+          "name": "customer_availability",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'pending'"
+        },
+        "operator_projection_status": {
+          "name": "operator_projection_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'not_applicable'"
+        },
+        "discord_audit_status": {
+          "name": "discord_audit_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'not_applicable'"
+        },
+        "failure_stage": {
+          "name": "failure_stage",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "failure_code": {
+          "name": "failure_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        }
+      },
+      "indexes": {
+        "message_id_uq": {
+          "name": "message_id_uq",
+          "columns": [
+            "id"
+          ],
+          "isUnique": true
+        },
+        "message_workflow_instance_uq": {
+          "name": "message_workflow_instance_uq",
+          "columns": [
+            "workflow_instance_id"
+          ],
+          "isUnique": true
+        },
+        "message_thread_client_id_uq": {
+          "name": "message_thread_client_id_uq",
+          "columns": [
+            "workspace_id",
+            "thread_id",
+            "client_message_id"
+          ],
+          "isUnique": true
+        },
+        "message_id_scope_uq": {
+          "name": "message_id_scope_uq",
+          "columns": [
+            "id",
+            "workspace_id",
+            "inbox_id",
+            "thread_id"
+          ],
+          "isUnique": true
+        },
+        "message_thread_cursor_idx": {
+          "name": "message_thread_cursor_idx",
+          "columns": [
+            "workspace_id",
+            "thread_id",
+            "row_id"
+          ],
+          "isUnique": false
+        },
+        "message_thread_display_idx": {
+          "name": "message_thread_display_idx",
+          "columns": [
+            "workspace_id",
+            "thread_id",
+            "accepted_at",
+            "id"
+          ],
+          "isUnique": false
+        },
+        "message_processing_idx": {
+          "name": "message_processing_idx",
+          "columns": [
+            "workspace_id",
+            "processing_status",
+            "updated_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "message_thread_scope_fk": {
+          "name": "message_thread_scope_fk",
+          "tableFrom": "message",
+          "tableTo": "thread",
+          "columnsFrom": [
+            "thread_id",
+            "workspace_id",
+            "inbox_id"
+          ],
+          "columnsTo": [
+            "id",
+            "workspace_id",
+            "inbox_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "message_direction_ck": {
+          "name": "message_direction_ck",
+          "value": "\"message\".\"direction\" in ('customer_to_operator', 'operator_to_customer')"
+        },
+        "message_original_text_length_ck": {
+          "name": "message_original_text_length_ck",
+          "value": "length(\"message\".\"original_text\") between 1 and 6000"
+        },
+        "message_customer_text_length_ck": {
+          "name": "message_customer_text_length_ck",
+          "value": "\"message\".\"customer_visible_text\" is null or length(\"message\".\"customer_visible_text\") between 1 and 6000"
+        },
+        "message_operator_text_length_ck": {
+          "name": "message_operator_text_length_ck",
+          "value": "\"message\".\"operator_visible_text\" is null or length(\"message\".\"operator_visible_text\") between 1 and 6000"
+        },
+        "message_original_language_length_ck": {
+          "name": "message_original_language_length_ck",
+          "value": "\"message\".\"original_language\" is null or length(\"message\".\"original_language\") between 2 and 35"
+        },
+        "message_customer_language_length_ck": {
+          "name": "message_customer_language_length_ck",
+          "value": "\"message\".\"customer_visible_language\" is null or length(\"message\".\"customer_visible_language\") between 2 and 35"
+        },
+        "message_generation_ck": {
+          "name": "message_generation_ck",
+          "value": "\"message\".\"processing_generation\" >= 1"
+        },
+        "message_processing_status_ck": {
+          "name": "message_processing_status_ck",
+          "value": "\"message\".\"processing_status\" in ('processing', 'retrying', 'succeeded', 'failed')"
+        },
+        "message_customer_availability_ck": {
+          "name": "message_customer_availability_ck",
+          "value": "\"message\".\"customer_availability\" in ('pending', 'available', 'not_available')"
+        },
+        "message_operator_projection_status_ck": {
+          "name": "message_operator_projection_status_ck",
+          "value": "\"message\".\"operator_projection_status\" in ('pending', 'projected', 'failed', 'not_applicable')"
+        },
+        "message_discord_audit_status_ck": {
+          "name": "message_discord_audit_status_ck",
+          "value": "\"message\".\"discord_audit_status\" in ('pending', 'projected', 'failed', 'not_applicable')"
+        },
+        "message_failure_stage_ck": {
+          "name": "message_failure_stage_ck",
+          "value": "\"message\".\"failure_stage\" is null or \"message\".\"failure_stage\" in ('ingress', 'translation', 'publish', 'discord_thread', 'discord_projection', 'discord_audit')"
+        },
+        "message_failure_code_length_ck": {
+          "name": "message_failure_code_length_ck",
+          "value": "\"message\".\"failure_code\" is null or length(\"message\".\"failure_code\") between 1 and 128"
+        },
+        "message_client_id_direction_ck": {
+          "name": "message_client_id_direction_ck",
+          "value": "(\"message\".\"direction\" = 'customer_to_operator' and \"message\".\"client_message_id\" is not null)\n        or (\"message\".\"direction\" = 'operator_to_customer' and \"message\".\"client_message_id\" is null)"
+        },
+        "message_initial_visibility_ck": {
+          "name": "message_initial_visibility_ck",
+          "value": "\"message\".\"direction\" != 'customer_to_operator' or \"message\".\"customer_visible_text\" is not null"
+        }
+      }
+    },
+    "thread": {
+      "name": "thread",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "inbox_id": {
+          "name": "inbox_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "visitor_id": {
+          "name": "visitor_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "client_thread_id": {
+          "name": "client_thread_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'open'"
+        },
+        "customer_language": {
+          "name": "customer_language",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "customer_language_updated_at": {
+          "name": "customer_language_updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        },
+        "last_activity_at": {
+          "name": "last_activity_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        },
+        "closed_at": {
+          "name": "closed_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "thread_id_workspace_inbox_uq": {
+          "name": "thread_id_workspace_inbox_uq",
+          "columns": [
+            "id",
+            "workspace_id",
+            "inbox_id"
+          ],
+          "isUnique": true
+        },
+        "thread_client_id_visitor_uq": {
+          "name": "thread_client_id_visitor_uq",
+          "columns": [
+            "workspace_id",
+            "inbox_id",
+            "visitor_id",
+            "client_thread_id"
+          ],
+          "isUnique": true
+        },
+        "thread_visitor_activity_idx": {
+          "name": "thread_visitor_activity_idx",
+          "columns": [
+            "workspace_id",
+            "inbox_id",
+            "visitor_id",
+            "last_activity_at"
+          ],
+          "isUnique": false
+        },
+        "thread_inbox_activity_idx": {
+          "name": "thread_inbox_activity_idx",
+          "columns": [
+            "workspace_id",
+            "inbox_id",
+            "last_activity_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "thread_inbox_workspace_fk": {
+          "name": "thread_inbox_workspace_fk",
+          "tableFrom": "thread",
+          "tableTo": "inbox",
+          "columnsFrom": [
+            "inbox_id",
+            "workspace_id"
+          ],
+          "columnsTo": [
+            "id",
+            "workspace_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "thread_visitor_scope_fk": {
+          "name": "thread_visitor_scope_fk",
+          "tableFrom": "thread",
+          "tableTo": "visitor",
+          "columnsFrom": [
+            "visitor_id",
+            "workspace_id",
+            "inbox_id"
+          ],
+          "columnsTo": [
+            "id",
+            "workspace_id",
+            "inbox_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "thread_status_ck": {
+          "name": "thread_status_ck",
+          "value": "\"thread\".\"status\" in ('open', 'closed')"
+        },
+        "thread_client_id_length_ck": {
+          "name": "thread_client_id_length_ck",
+          "value": "length(\"thread\".\"client_thread_id\") between 1 and 128"
+        },
+        "thread_customer_language_length_ck": {
+          "name": "thread_customer_language_length_ck",
+          "value": "\"thread\".\"customer_language\" is null or length(\"thread\".\"customer_language\") between 2 and 35"
+        }
+      }
+    },
+    "discord_integration": {
+      "name": "discord_integration",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "inbox_id": {
+          "name": "inbox_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "application_id": {
+          "name": "application_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "guild_id": {
+          "name": "guild_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "forum_channel_id": {
+          "name": "forum_channel_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        }
+      },
+      "indexes": {
+        "discord_integration_inbox_uq": {
+          "name": "discord_integration_inbox_uq",
+          "columns": [
+            "workspace_id",
+            "inbox_id"
+          ],
+          "isUnique": true
+        },
+        "discord_integration_destination_uq": {
+          "name": "discord_integration_destination_uq",
+          "columns": [
+            "application_id",
+            "guild_id",
+            "forum_channel_id"
+          ],
+          "isUnique": true
+        },
+        "discord_integration_id_workspace_uq": {
+          "name": "discord_integration_id_workspace_uq",
+          "columns": [
+            "id",
+            "workspace_id"
+          ],
+          "isUnique": true
+        },
+        "discord_integration_id_scope_uq": {
+          "name": "discord_integration_id_scope_uq",
+          "columns": [
+            "id",
+            "workspace_id",
+            "inbox_id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "discord_integration_inbox_scope_fk": {
+          "name": "discord_integration_inbox_scope_fk",
+          "tableFrom": "discord_integration",
+          "tableTo": "inbox",
+          "columnsFrom": [
+            "inbox_id",
+            "workspace_id"
+          ],
+          "columnsTo": [
+            "id",
+            "workspace_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "discord_integration_application_id_ck": {
+          "name": "discord_integration_application_id_ck",
+          "value": "length(\"discord_integration\".\"application_id\") between 1 and 32"
+        },
+        "discord_integration_guild_id_ck": {
+          "name": "discord_integration_guild_id_ck",
+          "value": "length(\"discord_integration\".\"guild_id\") between 1 and 32"
+        },
+        "discord_integration_forum_id_ck": {
+          "name": "discord_integration_forum_id_ck",
+          "value": "length(\"discord_integration\".\"forum_channel_id\") between 1 and 32"
+        }
+      }
+    },
+    "discord_interaction": {
+      "name": "discord_interaction",
+      "columns": {
+        "integration_id": {
+          "name": "integration_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "interaction_id": {
+          "name": "interaction_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "inbox_id": {
+          "name": "inbox_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "thread_id": {
+          "name": "thread_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "message_id": {
+          "name": "message_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "application_id": {
+          "name": "application_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "guild_id": {
+          "name": "guild_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "discord_thread_id": {
+          "name": "discord_thread_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "operator_user_id": {
+          "name": "operator_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "operator_role_ids": {
+          "name": "operator_role_ids",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'[]'"
+        },
+        "command_name": {
+          "name": "command_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reference_interaction_id": {
+          "name": "reference_interaction_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "normalized_message": {
+          "name": "normalized_message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "accepted_at": {
+          "name": "accepted_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        }
+      },
+      "indexes": {
+        "discord_interaction_message_uq": {
+          "name": "discord_interaction_message_uq",
+          "columns": [
+            "message_id"
+          ],
+          "isUnique": true
+        },
+        "discord_interaction_thread_idx": {
+          "name": "discord_interaction_thread_idx",
+          "columns": [
+            "workspace_id",
+            "thread_id",
+            "accepted_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "discord_interaction_integration_scope_fk": {
+          "name": "discord_interaction_integration_scope_fk",
+          "tableFrom": "discord_interaction",
+          "tableTo": "discord_integration",
+          "columnsFrom": [
+            "integration_id",
+            "workspace_id",
+            "inbox_id"
+          ],
+          "columnsTo": [
+            "id",
+            "workspace_id",
+            "inbox_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "discord_interaction_thread_scope_fk": {
+          "name": "discord_interaction_thread_scope_fk",
+          "tableFrom": "discord_interaction",
+          "tableTo": "thread",
+          "columnsFrom": [
+            "thread_id",
+            "workspace_id",
+            "inbox_id"
+          ],
+          "columnsTo": [
+            "id",
+            "workspace_id",
+            "inbox_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "discord_interaction_mapping_scope_fk": {
+          "name": "discord_interaction_mapping_scope_fk",
+          "tableFrom": "discord_interaction",
+          "tableTo": "discord_thread",
+          "columnsFrom": [
+            "thread_id",
+            "workspace_id",
+            "inbox_id",
+            "integration_id",
+            "discord_thread_id"
+          ],
+          "columnsTo": [
+            "thread_id",
+            "workspace_id",
+            "inbox_id",
+            "integration_id",
+            "discord_thread_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "discord_interaction_message_scope_fk": {
+          "name": "discord_interaction_message_scope_fk",
+          "tableFrom": "discord_interaction",
+          "tableTo": "message",
+          "columnsFrom": [
+            "message_id",
+            "workspace_id",
+            "inbox_id",
+            "thread_id"
+          ],
+          "columnsTo": [
+            "id",
+            "workspace_id",
+            "inbox_id",
+            "thread_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "discord_interaction_pk": {
+          "columns": [
+            "integration_id",
+            "interaction_id"
+          ],
+          "name": "discord_interaction_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "discord_interaction_command_ck": {
+          "name": "discord_interaction_command_ck",
+          "value": "\"discord_interaction\".\"command_name\" in ('reply', 'status', 'retry')"
+        },
+        "discord_interaction_id_ck": {
+          "name": "discord_interaction_id_ck",
+          "value": "length(\"discord_interaction\".\"interaction_id\") between 1 and 32"
+        },
+        "discord_interaction_external_scope_ck": {
+          "name": "discord_interaction_external_scope_ck",
+          "value": "length(\"discord_interaction\".\"application_id\") between 1 and 32\n        and length(\"discord_interaction\".\"guild_id\") between 1 and 32\n        and length(\"discord_interaction\".\"discord_thread_id\") between 1 and 32\n        and length(\"discord_interaction\".\"operator_user_id\") between 1 and 32"
+        },
+        "discord_interaction_reference_ck": {
+          "name": "discord_interaction_reference_ck",
+          "value": "\"discord_interaction\".\"reference_interaction_id\" is null or length(\"discord_interaction\".\"reference_interaction_id\") between 1 and 32"
+        },
+        "discord_interaction_message_text_ck": {
+          "name": "discord_interaction_message_text_ck",
+          "value": "\"discord_interaction\".\"normalized_message\" is null or length(\"discord_interaction\".\"normalized_message\") between 1 and 6000"
+        },
+        "discord_interaction_options_shape_ck": {
+          "name": "discord_interaction_options_shape_ck",
+          "value": "(\n          \"discord_interaction\".\"command_name\" = 'reply'\n          and \"discord_interaction\".\"reference_interaction_id\" is null\n          and \"discord_interaction\".\"normalized_message\" is not null\n          and \"discord_interaction\".\"message_id\" is not null\n        ) or (\n          \"discord_interaction\".\"command_name\" = 'status'\n          and \"discord_interaction\".\"reference_interaction_id\" is not null\n          and \"discord_interaction\".\"normalized_message\" is null\n          and \"discord_interaction\".\"message_id\" is null\n        ) or (\n          \"discord_interaction\".\"command_name\" = 'retry'\n          and \"discord_interaction\".\"reference_interaction_id\" is not null\n          and \"discord_interaction\".\"normalized_message\" is not null\n          and \"discord_interaction\".\"message_id\" is null\n        )"
+        },
+        "discord_interaction_roles_json_ck": {
+          "name": "discord_interaction_roles_json_ck",
+          "value": "json_valid(\"discord_interaction\".\"operator_role_ids\")"
+        }
+      }
+    },
+    "discord_message": {
+      "name": "discord_message",
+      "columns": {
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "inbox_id": {
+          "name": "inbox_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "thread_id": {
+          "name": "thread_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "message_id": {
+          "name": "message_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "integration_id": {
+          "name": "integration_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "projection_kind": {
+          "name": "projection_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "chunk_index": {
+          "name": "chunk_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "nonce": {
+          "name": "nonce",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "correlation_marker": {
+          "name": "correlation_marker",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "discord_thread_id": {
+          "name": "discord_thread_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "discord_message_id": {
+          "name": "discord_message_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'pending'"
+        },
+        "last_error_code": {
+          "name": "last_error_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        }
+      },
+      "indexes": {
+        "discord_message_nonce_uq": {
+          "name": "discord_message_nonce_uq",
+          "columns": [
+            "integration_id",
+            "discord_thread_id",
+            "nonce"
+          ],
+          "isUnique": true
+        },
+        "discord_message_external_uq": {
+          "name": "discord_message_external_uq",
+          "columns": [
+            "integration_id",
+            "discord_message_id"
+          ],
+          "isUnique": true
+        },
+        "discord_message_message_idx": {
+          "name": "discord_message_message_idx",
+          "columns": [
+            "workspace_id",
+            "thread_id",
+            "message_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "discord_message_message_scope_fk": {
+          "name": "discord_message_message_scope_fk",
+          "tableFrom": "discord_message",
+          "tableTo": "message",
+          "columnsFrom": [
+            "message_id",
+            "workspace_id",
+            "inbox_id",
+            "thread_id"
+          ],
+          "columnsTo": [
+            "id",
+            "workspace_id",
+            "inbox_id",
+            "thread_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "discord_message_thread_scope_fk": {
+          "name": "discord_message_thread_scope_fk",
+          "tableFrom": "discord_message",
+          "tableTo": "discord_thread",
+          "columnsFrom": [
+            "thread_id",
+            "workspace_id",
+            "inbox_id",
+            "integration_id",
+            "discord_thread_id"
+          ],
+          "columnsTo": [
+            "thread_id",
+            "workspace_id",
+            "inbox_id",
+            "integration_id",
+            "discord_thread_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "discord_message_pk": {
+          "columns": [
+            "message_id",
+            "projection_kind",
+            "chunk_index"
+          ],
+          "name": "discord_message_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "discord_message_chunk_index_ck": {
+          "name": "discord_message_chunk_index_ck",
+          "value": "\"discord_message\".\"chunk_index\" >= 0"
+        },
+        "discord_message_projection_kind_ck": {
+          "name": "discord_message_projection_kind_ck",
+          "value": "\"discord_message\".\"projection_kind\" in ('customer_projection', 'available_audit', 'failure_audit')"
+        },
+        "discord_message_status_ck": {
+          "name": "discord_message_status_ck",
+          "value": "\"discord_message\".\"status\" in ('pending', 'sent', 'failed')"
+        },
+        "discord_message_nonce_ck": {
+          "name": "discord_message_nonce_ck",
+          "value": "length(\"discord_message\".\"nonce\") between 1 and 25"
+        },
+        "discord_message_marker_ck": {
+          "name": "discord_message_marker_ck",
+          "value": "length(\"discord_message\".\"correlation_marker\") between 1 and 128"
+        },
+        "discord_message_thread_id_ck": {
+          "name": "discord_message_thread_id_ck",
+          "value": "length(\"discord_message\".\"discord_thread_id\") between 1 and 32"
+        },
+        "discord_message_external_id_ck": {
+          "name": "discord_message_external_id_ck",
+          "value": "\"discord_message\".\"discord_message_id\" is null or length(\"discord_message\".\"discord_message_id\") between 1 and 32"
+        },
+        "discord_message_sent_shape_ck": {
+          "name": "discord_message_sent_shape_ck",
+          "value": "\"discord_message\".\"status\" != 'sent' or \"discord_message\".\"discord_message_id\" is not null"
+        },
+        "discord_message_error_code_ck": {
+          "name": "discord_message_error_code_ck",
+          "value": "\"discord_message\".\"last_error_code\" is null or length(\"discord_message\".\"last_error_code\") between 1 and 128"
+        }
+      }
+    },
+    "discord_operator_allowlist": {
+      "name": "discord_operator_allowlist",
+      "columns": {
+        "integration_id": {
+          "name": "integration_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "principal_type": {
+          "name": "principal_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "principal_id": {
+          "name": "principal_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        }
+      },
+      "indexes": {
+        "discord_operator_allowlist_workspace_idx": {
+          "name": "discord_operator_allowlist_workspace_idx",
+          "columns": [
+            "workspace_id",
+            "integration_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "discord_operator_allowlist_integration_fk": {
+          "name": "discord_operator_allowlist_integration_fk",
+          "tableFrom": "discord_operator_allowlist",
+          "tableTo": "discord_integration",
+          "columnsFrom": [
+            "integration_id",
+            "workspace_id"
+          ],
+          "columnsTo": [
+            "id",
+            "workspace_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "discord_operator_allowlist_pk": {
+          "columns": [
+            "integration_id",
+            "principal_type",
+            "principal_id"
+          ],
+          "name": "discord_operator_allowlist_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "discord_operator_allowlist_type_ck": {
+          "name": "discord_operator_allowlist_type_ck",
+          "value": "\"discord_operator_allowlist\".\"principal_type\" in ('user', 'role')"
+        },
+        "discord_operator_allowlist_principal_id_ck": {
+          "name": "discord_operator_allowlist_principal_id_ck",
+          "value": "length(\"discord_operator_allowlist\".\"principal_id\") between 1 and 32"
+        }
+      }
+    },
+    "discord_thread": {
+      "name": "discord_thread",
+      "columns": {
+        "thread_id": {
+          "name": "thread_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "inbox_id": {
+          "name": "inbox_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "integration_id": {
+          "name": "integration_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "discord_thread_id": {
+          "name": "discord_thread_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "state": {
+          "name": "state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'claiming'"
+        },
+        "claim_owner": {
+          "name": "claim_owner",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "claim_expires_at": {
+          "name": "claim_expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "correlation_marker": {
+          "name": "correlation_marker",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        }
+      },
+      "indexes": {
+        "discord_thread_scope_uq": {
+          "name": "discord_thread_scope_uq",
+          "columns": [
+            "thread_id",
+            "workspace_id",
+            "inbox_id",
+            "integration_id"
+          ],
+          "isUnique": true
+        },
+        "discord_thread_ready_scope_uq": {
+          "name": "discord_thread_ready_scope_uq",
+          "columns": [
+            "thread_id",
+            "workspace_id",
+            "inbox_id",
+            "integration_id",
+            "discord_thread_id"
+          ],
+          "isUnique": true
+        },
+        "discord_thread_external_uq": {
+          "name": "discord_thread_external_uq",
+          "columns": [
+            "integration_id",
+            "discord_thread_id"
+          ],
+          "isUnique": true
+        },
+        "discord_thread_marker_uq": {
+          "name": "discord_thread_marker_uq",
+          "columns": [
+            "integration_id",
+            "correlation_marker"
+          ],
+          "isUnique": true
+        },
+        "discord_thread_claim_idx": {
+          "name": "discord_thread_claim_idx",
+          "columns": [
+            "state",
+            "claim_expires_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "discord_thread_conversation_scope_fk": {
+          "name": "discord_thread_conversation_scope_fk",
+          "tableFrom": "discord_thread",
+          "tableTo": "thread",
+          "columnsFrom": [
+            "thread_id",
+            "workspace_id",
+            "inbox_id"
+          ],
+          "columnsTo": [
+            "id",
+            "workspace_id",
+            "inbox_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "discord_thread_integration_scope_fk": {
+          "name": "discord_thread_integration_scope_fk",
+          "tableFrom": "discord_thread",
+          "tableTo": "discord_integration",
+          "columnsFrom": [
+            "integration_id",
+            "workspace_id",
+            "inbox_id"
+          ],
+          "columnsTo": [
+            "id",
+            "workspace_id",
+            "inbox_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "discord_thread_state_ck": {
+          "name": "discord_thread_state_ck",
+          "value": "\"discord_thread\".\"state\" in ('claiming', 'ready')"
+        },
+        "discord_thread_claim_shape_ck": {
+          "name": "discord_thread_claim_shape_ck",
+          "value": "(\n          \"discord_thread\".\"state\" = 'claiming'\n          and \"discord_thread\".\"discord_thread_id\" is null\n          and \"discord_thread\".\"claim_owner\" is not null\n          and \"discord_thread\".\"claim_expires_at\" is not null\n        ) or (\n          \"discord_thread\".\"state\" = 'ready'\n          and \"discord_thread\".\"discord_thread_id\" is not null\n          and \"discord_thread\".\"claim_owner\" is null\n          and \"discord_thread\".\"claim_expires_at\" is null\n        )"
+        },
+        "discord_thread_external_id_ck": {
+          "name": "discord_thread_external_id_ck",
+          "value": "\"discord_thread\".\"discord_thread_id\" is null or length(\"discord_thread\".\"discord_thread_id\") between 1 and 32"
+        },
+        "discord_thread_claim_owner_ck": {
+          "name": "discord_thread_claim_owner_ck",
+          "value": "\"discord_thread\".\"claim_owner\" is null or length(\"discord_thread\".\"claim_owner\") between 1 and 128"
+        },
+        "discord_thread_marker_ck": {
+          "name": "discord_thread_marker_ck",
+          "value": "length(\"discord_thread\".\"correlation_marker\") between 1 and 128"
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}
