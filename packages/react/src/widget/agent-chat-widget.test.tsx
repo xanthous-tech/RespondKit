@@ -40,10 +40,13 @@ function createApiFetch() {
     }
 
     if (url.pathname === "/v1/threads") {
+      const request = JSON.parse(requestBody(init?.body)) as {
+        clientThreadId: string;
+      };
       return json({
         thread: {
           id: "thread_test",
-          clientThreadId: "cthread_test",
+          clientThreadId: request.clientThreadId,
           state: "open",
           createdAt: "2026-08-25T10:00:00.000Z",
           updatedAt: "2026-08-25T10:00:00.000Z",

@@ -52,6 +52,9 @@ function storageValue(key: string, create: () => string) {
 
 async function identityStorageScope(userId: string | undefined) {
   if (userId === undefined) return "anonymous";
+  if (globalThis.crypto?.subtle === undefined) {
+    throw new Error("Support chat requires a secure browser context.");
+  }
 
   const digest = await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(userId));
   return `user-${[...new Uint8Array(digest)]
@@ -177,14 +180,17 @@ export function useAgentChat({ apiBaseUrl, context, fetch, open }: UseAgentChatI
     cursorRef.current = INITIAL_CURSOR;
 
     async function bootstrap() {
-      const currentContext = contextRef.current;
-      const identityScope = await identityStorageScope(currentContext.userId);
-      if (!active) return;
-      const storagePrefix = `agent-chat:${currentContext.inboxId}:${identityScope}`;
-      const installationId = storageValue(`${storagePrefix}:installation-id`, createInstallationId);
-      const clientThreadId = storageValue(`${storagePrefix}:thread-id`, createClientThreadId);
-
       try {
+        const currentContext = contextRef.current;
+        const identityScope = await identityStorageScope(currentContext.userId);
+        if (!active) return;
+        const storagePrefix = `agent-chat:${currentContext.inboxId}:${identityScope}`;
+        const installationId = storageValue(
+          `${storagePrefix}:installation-id`,
+          createInstallationId,
+        );
+        const clientThreadId = storageValue(`${storagePrefix}:thread-id`, createClientThreadId);
+
         setBootstrapState("creating_session");
         const sessionResponse = await client.createSession(
           {
