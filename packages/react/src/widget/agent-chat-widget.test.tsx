@@ -175,4 +175,130 @@ describe("AgentChatWidget", () => {
     expect(body.clientMessageId).toMatch(/^cmsg_/);
     expect(body.text).toBe("composing\nHello");
   });
+
+  it("isolates persisted installation and thread IDs when the host account changes", async () => {
+    const apiFetch = createApiFetch();
+    vi.stubGlobal("fetch", apiFetch);
+
+    const { rerender } = render(
+      <AgentChatWidget
+        apiBaseUrl="https://support.test"
+        context={{ inboxId: "inbox_test", userId: "user_one" }}
+        initiallyOpen
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        apiFetch.mock.calls.filter(([input]) => requestUrl(input).includes("/v1/client/sessions")),
+      ).toHaveLength(1);
+    });
+
+    rerender(
+      <AgentChatWidget
+        apiBaseUrl="https://support.test"
+        context={{ inboxId: "inbox_test", userId: "user_two" }}
+        initiallyOpen
+      />,
+    );
+
+    const sessionRequests = await waitFor(() => {
+      const requests = apiFetch.mock.calls.filter(([input]) =>
+        requestUrl(input).includes("/v1/client/sessions"),
+      );
+      expect(requests).toHaveLength(2);
+      return requests;
+    });
+    const installationIds = sessionRequests.map(([, init]) => {
+      const body = JSON.parse(requestBody(init?.body)) as { installationId: string };
+      return body.installationId;
+    });
+
+    expect(new Set(installationIds)).toHaveProperty("size", 2);
+
+    const threadRequests = await waitFor(() => {
+      const requests = apiFetch.mock.calls.filter(
+        ([input, init]) => requestUrl(input).endsWith("/v1/threads") && init?.method === "POST",
+      );
+      expect(requests).toHaveLength(2);
+      return requests;
+    });
+    const clientThreadIds = threadRequests.map(([, init]) => {
+      const body = JSON.parse(requestBody(init?.body)) as { clientThreadId: string };
+      return body.clientThreadId;
+    });
+
+    expect(new Set(clientThreadIds)).toHaveProperty("size", 2);
+  });
+
+  it("ignores an in-flight send result after the host account changes", async () => {
+    let resolveSend!: (response: Response) => void;
+    const deferredSend = new Promise<Response>((resolve) => {
+      resolveSend = resolve;
+    });
+    const baseFetch = createApiFetch();
+    const apiFetch = vi.fn<typeof fetch>(async (input, init) => {
+      const url = new URL(requestUrl(input));
+      if (url.pathname.endsWith("/messages") && init?.method === "POST") {
+        return deferredSend;
+      }
+      return baseFetch(input, init);
+    });
+    vi.stubGlobal("fetch", apiFetch);
+    const user = userEvent.setup();
+
+    const { rerender } = render(
+      <AgentChatWidget
+        apiBaseUrl="https://support.test"
+        context={{ inboxId: "inbox_test", userId: "user_one" }}
+        initiallyOpen
+      />,
+    );
+
+    const composer = await screen.findByRole("textbox", { name: "Message" });
+    await waitFor(() => expect(composer).toBeEnabled());
+    await user.type(composer, "Message from the old account{Enter}");
+    expect(await screen.findByText("Message from the old account")).toBeVisible();
+
+    rerender(
+      <AgentChatWidget
+        apiBaseUrl="https://support.test"
+        context={{ inboxId: "inbox_test", userId: "user_two" }}
+        initiallyOpen
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        apiFetch.mock.calls.filter(([input]) => requestUrl(input).includes("/v1/client/sessions")),
+      ).toHaveLength(2);
+    });
+    expect(screen.queryByText("Message from the old account")).not.toBeInTheDocument();
+
+    resolveSend(
+      json(
+        {
+          acceptance: {
+            messageId: "message_old_account",
+            clientMessageId: "cmsg_old_account",
+            status: "accepted",
+            message: {
+              id: "message_old_account",
+              threadId: "thread_test",
+              clientMessageId: "cmsg_old_account",
+              direction: "customer_to_operator",
+              text: "Message from the old account",
+              language: "en",
+              acceptedAt: "2026-08-25T10:01:00.000Z",
+              state: "processing",
+            },
+          },
+        },
+        { status: 202 },
+      ),
+    );
+
+    await waitFor(() => expect(screen.getByText("How can I help?")).toBeVisible());
+    expect(screen.queryByText("Message from the old account")).not.toBeInTheDocument();
+  });
 });

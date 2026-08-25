@@ -50,6 +50,16 @@ function storageValue(key: string, create: () => string) {
   }
 }
 
+async function identityStorageScope(userId: string | undefined) {
+  if (userId === undefined) return "anonymous";
+
+  const digest = await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(userId));
+  return `user-${[...new Uint8Array(digest)]
+    .slice(0, 16)
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("")}`;
+}
+
 function contextPayload(context: AgentChatContext) {
   const metadata = {
     ...context.metadata,
@@ -133,7 +143,9 @@ export function useAgentChat({ apiBaseUrl, context, fetch, open }: UseAgentChatI
   const contextKey = JSON.stringify(context);
   const contextRef = useRef(context);
   contextRef.current = context;
+  const identityEpochRef = useRef(0);
 
+  const [activeContextKey, setActiveContextKey] = useState(contextKey);
   const [bootstrapState, setBootstrapState] = useState<BootstrapState>("idle");
   const [transcriptState, setTranscriptState] = useState<TranscriptState>("idle");
   const [bootstrapError, setBootstrapError] = useState<string>();
@@ -149,15 +161,26 @@ export function useAgentChat({ apiBaseUrl, context, fetch, open }: UseAgentChatI
   useEffect(() => {
     if (!open) return;
 
+    identityEpochRef.current += 1;
     const abortController = new AbortController();
     let active = true;
 
-    async function bootstrap() {
-      setBootstrapError(undefined);
-      setBootstrapState("resolving_context");
+    setActiveContextKey(contextKey);
+    setBootstrapError(undefined);
+    setBootstrapState("resolving_context");
+    setPollError(undefined);
+    setTranscriptState("idle");
+    setSession(undefined);
+    setThread(undefined);
+    setServerMessages([]);
+    setPendingMessages(new Map<string, PendingMessage>());
+    cursorRef.current = INITIAL_CURSOR;
 
+    async function bootstrap() {
       const currentContext = contextRef.current;
-      const storagePrefix = `agent-chat:${currentContext.inboxId}`;
+      const identityScope = await identityStorageScope(currentContext.userId);
+      if (!active) return;
+      const storagePrefix = `agent-chat:${currentContext.inboxId}:${identityScope}`;
       const installationId = storageValue(`${storagePrefix}:installation-id`, createInstallationId);
       const clientThreadId = storageValue(`${storagePrefix}:thread-id`, createClientThreadId);
 
@@ -274,6 +297,7 @@ export function useAgentChat({ apiBaseUrl, context, fetch, open }: UseAgentChatI
   const submitPending = useCallback(
     async (pending: PendingMessage) => {
       if (session === undefined || thread === undefined) return;
+      const identityEpoch = identityEpochRef.current;
 
       setPendingMessages((current) => {
         const next = new Map(current);
@@ -289,6 +313,7 @@ export function useAgentChat({ apiBaseUrl, context, fetch, open }: UseAgentChatI
           clientMessageId: pending.clientMessageId,
           text: pending.text,
         });
+        if (identityEpochRef.current !== identityEpoch) return;
         if (response.acceptance.message !== undefined) {
           mergeMessages([response.acceptance.message]);
         }
@@ -301,6 +326,7 @@ export function useAgentChat({ apiBaseUrl, context, fetch, open }: UseAgentChatI
           return next;
         });
       } catch (error) {
+        if (identityEpochRef.current !== identityEpoch) return;
         const acceptanceUnknown =
           error instanceof AgentChatClientError && error.code === "acceptance_unknown";
         setPendingMessages((current) => {
@@ -339,13 +365,15 @@ export function useAgentChat({ apiBaseUrl, context, fetch, open }: UseAgentChatI
     [pendingMessages, submitPending],
   );
 
+  const contextMatches = activeContextKey === contextKey;
+
   return {
-    bootstrapError,
-    bootstrapState,
-    messages: displayMessages(serverMessages, pendingMessages),
-    pollError,
+    bootstrapError: contextMatches ? bootstrapError : undefined,
+    bootstrapState: contextMatches ? bootstrapState : "resolving_context",
+    messages: contextMatches ? displayMessages(serverMessages, pendingMessages) : [],
+    pollError: contextMatches ? pollError : undefined,
     retryMessage,
     sendMessage,
-    transcriptState,
+    transcriptState: contextMatches ? transcriptState : "idle",
   };
 }

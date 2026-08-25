@@ -103,27 +103,27 @@ export function MessageList({
 
   if (transcriptState === "loading" && messages.length === 0) {
     return (
-      <div className="flex flex-1 flex-col gap-4 p-4" aria-label="Loading messages">
-        <Skeleton className="h-14 w-3/4 self-end" />
-        <Skeleton className="h-20 w-4/5" />
-        <Skeleton className="h-12 w-2/3 self-end" />
+      <div className="ac:flex ac:flex-1 ac:flex-col ac:gap-4 ac:p-4" aria-label="Loading messages">
+        <Skeleton className="ac:h-14 ac:w-3/4 ac:self-end" />
+        <Skeleton className="ac:h-20 ac:w-4/5" />
+        <Skeleton className="ac:h-12 ac:w-2/3 ac:self-end" />
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-0 flex-1">
-      <ScrollArea className="h-full" viewportRef={viewportRef} onScrollCapture={handleScroll}>
+    <div className="ac:relative ac:min-h-0 ac:flex-1">
+      <ScrollArea className="ac:h-full" viewportRef={viewportRef} onScrollCapture={handleScroll}>
         <div
-          className="flex min-h-full flex-col justify-end gap-3 px-4 py-5"
+          className="ac:flex ac:min-h-full ac:flex-col ac:justify-end ac:gap-3 ac:px-4 ac:py-5"
           role="log"
           aria-live="polite"
           aria-relevant="additions text"
         >
           {messages.length === 0 ? (
-            <div className="my-auto flex flex-col gap-1 py-16 text-center">
-              <p className="text-sm font-medium text-foreground">How can we help?</p>
-              <p className="text-sm text-muted-foreground">
+            <div className="ac:my-auto ac:flex ac:flex-col ac:gap-1 ac:py-16 ac:text-center">
+              <p className="ac:text-sm ac:font-medium ac:text-foreground">How can we help?</p>
+              <p className="ac:text-sm ac:text-muted-foreground">
                 Send a message and keep this page open for a quick reply.
               </p>
             </div>
@@ -139,9 +139,9 @@ export function MessageList({
             const status = customer ? deliveryLabel(message) : undefined;
 
             return (
-              <div className="contents" key={message.key}>
+              <div className="ac:contents" key={message.key}>
                 {showDate ? (
-                  <p className="py-2 text-center text-xs text-muted-foreground">
+                  <p className="ac:py-2 ac:text-center ac:text-xs ac:text-muted-foreground">
                     {formatter(dateFormatters, displayLocale, {
                       dateStyle: "medium",
                     }).format(date)}
@@ -149,22 +149,22 @@ export function MessageList({
                 ) : null}
                 <article
                   className={cn(
-                    "flex max-w-[84%] flex-col gap-1",
-                    customer ? "self-end items-end" : "self-start items-start",
+                    "ac:flex ac:max-w-[84%] ac:flex-col ac:gap-1",
+                    customer ? "ac:self-end ac:items-end" : "ac:self-start ac:items-start",
                   )}
                 >
                   <p
                     className={cn(
-                      "m-0 whitespace-pre-wrap break-words rounded-xl px-3 py-2.5 text-sm leading-relaxed",
+                      "ac:m-0 ac:whitespace-pre-wrap ac:break-words ac:rounded-xl ac:px-3 ac:py-2.5 ac:text-sm ac:leading-relaxed",
                       customer
-                        ? "rounded-br-sm bg-primary/10 text-foreground"
-                        : "rounded-bl-sm bg-muted text-foreground",
-                      failed && "bg-destructive/10 text-destructive",
+                        ? "ac:rounded-br-sm ac:bg-primary/10 ac:text-foreground"
+                        : "ac:rounded-bl-sm ac:bg-muted ac:text-foreground",
+                      failed && "ac:bg-destructive/10 ac:text-destructive",
                     )}
                   >
                     {message.text}
                   </p>
-                  <div className="flex min-h-5 items-center gap-2 px-1 text-xs text-muted-foreground">
+                  <div className="ac:flex ac:min-h-5 ac:items-center ac:gap-2 ac:px-1 ac:text-xs ac:text-muted-foreground">
                     <time dateTime={message.acceptedAt}>
                       {formatter(timeFormatters, displayLocale, {
                         hour: "numeric",
@@ -176,7 +176,7 @@ export function MessageList({
                       <Button
                         variant="link"
                         size="xs"
-                        className="h-auto px-0 text-destructive"
+                        className="ac:h-auto ac:px-0 ac:text-destructive"
                         onClick={() => onRetry(message.clientMessageId!)}
                       >
                         <AlertCircleIcon data-icon="inline-start" />
@@ -195,7 +195,7 @@ export function MessageList({
         <Button
           variant="outline"
           size="sm"
-          className="absolute right-4 bottom-3 rounded-full bg-background shadow-sm"
+          className="ac:absolute ac:right-4 ac:bottom-3 ac:rounded-full ac:bg-background ac:shadow-sm"
           onClick={scrollToLatest}
           aria-label={`Show ${unseenCount} new ${unseenCount === 1 ? "message" : "messages"}`}
         >

@@ -38,13 +38,13 @@ function TooltipContent({
         data-slot="tooltip-content"
         sideOffset={sideOffset}
         className={cn(
-          "z-50 inline-flex w-fit max-w-xs origin-(--radix-tooltip-content-transform-origin) items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs text-background has-data-[slot=kbd]:pr-1.5 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 **:data-[slot=kbd]:relative **:data-[slot=kbd]:isolate **:data-[slot=kbd]:z-50 **:data-[slot=kbd]:rounded-sm data-[state=delayed-open]:animate-in data-[state=delayed-open]:fade-in-0 data-[state=delayed-open]:zoom-in-95 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "ac:z-50 ac:inline-flex ac:w-fit ac:max-w-xs ac:origin-(--radix-tooltip-content-transform-origin) ac:items-center ac:gap-1.5 ac:rounded-md ac:bg-foreground ac:px-3 ac:py-1.5 ac:text-xs ac:text-background ac:has-data-[slot=kbd]:pr-1.5 ac:**:data-[slot=kbd]:relative ac:**:data-[slot=kbd]:isolate ac:**:data-[slot=kbd]:z-50 ac:**:data-[slot=kbd]:rounded-sm",
           className,
         )}
         {...props}
       >
         {children}
-        <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] bg-foreground fill-foreground" />
+        <TooltipPrimitive.Arrow className="ac:z-50 ac:size-2.5 ac:translate-y-[calc(-50%_-_2px)] ac:rotate-45 ac:rounded-[2px] ac:bg-foreground ac:fill-foreground" />
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>
   );

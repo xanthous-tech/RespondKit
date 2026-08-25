@@ -63,19 +63,19 @@ export function AgentChatWidget({
 
   return (
     <TooltipProvider>
-      <div className="agent-chat-root fixed right-4 bottom-4 z-[2147483000]">
+      <div className="agent-chat-root ac:fixed ac:right-4 ac:bottom-4 ac:z-[2147483000]">
         {open ? (
           <section
-            className="fixed right-4 bottom-20 flex h-[min(590px,calc(100dvh-6rem))] w-[min(390px,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border border-border bg-background shadow-xl max-sm:inset-0 max-sm:h-[100dvh] max-sm:w-screen max-sm:rounded-none max-sm:border-0"
+            className="ac:fixed ac:right-4 ac:bottom-20 ac:flex ac:h-[min(590px,calc(100dvh-6rem))] ac:w-[min(390px,calc(100vw-2rem))] ac:flex-col ac:overflow-hidden ac:rounded-xl ac:border ac:border-border ac:bg-background ac:shadow-xl ac:max-sm:inset-0 ac:max-sm:h-[100dvh] ac:max-sm:w-screen ac:max-sm:rounded-none ac:max-sm:border-0"
             role="dialog"
             aria-labelledby={titleId}
           >
-            <header className="flex min-h-16 items-center gap-3 border-b border-border px-4 py-3">
-              <div className="min-w-0 flex-1">
-                <h2 id={titleId} className="m-0 truncate text-base font-semibold">
+            <header className="ac:flex ac:min-h-16 ac:items-center ac:gap-3 ac:border-b ac:border-border ac:px-4 ac:py-3">
+              <div className="ac:min-w-0 ac:flex-1">
+                <h2 id={titleId} className="ac:m-0 ac:truncate ac:text-base ac:font-semibold">
                   {title}
                 </h2>
-                <p className="m-0 text-sm text-muted-foreground">Ask us anything</p>
+                <p className="ac:m-0 ac:text-sm ac:text-muted-foreground">Ask us anything</p>
               </div>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -93,12 +93,12 @@ export function AgentChatWidget({
               </Tooltip>
             </header>
 
-            <p className="m-0 border-b border-border px-4 py-3 text-sm text-muted-foreground">
+            <p className="ac:m-0 ac:border-b ac:border-border ac:px-4 ac:py-3 ac:text-sm ac:text-muted-foreground">
               Messages are translated for our support team.
             </p>
 
             {bootstrapState === "recoverable_error" ? (
-              <div className="p-4">
+              <div className="ac:p-4">
                 <Alert variant="destructive">
                   <AlertCircleIcon />
                   <AlertDescription>
@@ -109,7 +109,7 @@ export function AgentChatWidget({
             ) : (
               <>
                 {pollError === undefined ? null : (
-                  <Alert className="rounded-none border-x-0 border-t-0">
+                  <Alert className="ac:rounded-none ac:border-x-0 ac:border-t-0">
                     <AlertCircleIcon />
                     <AlertDescription>
                       Reconnecting. Your existing messages are still available.
@@ -132,7 +132,7 @@ export function AgentChatWidget({
           <TooltipTrigger asChild>
             <Button
               ref={launcherRef}
-              className={`size-14 rounded-full shadow-lg ${open ? "max-sm:hidden" : ""}`}
+              className={`ac:size-14 ac:rounded-full ac:shadow-lg ${open ? "ac:max-sm:hidden" : ""}`}
               size="icon-lg"
               onClick={() => setOpen(true)}
               aria-expanded={open}

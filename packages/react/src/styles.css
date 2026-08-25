@@ -1,8 +1,7 @@
 @layer theme, base, components, utilities;
 
-@import "tailwindcss/theme.css" layer(theme);
-@import "tw-animate-css";
-@import "tailwindcss/utilities.css" layer(utilities);
+@import "tailwindcss/theme.css" layer(theme) prefix(ac);
+@import "tailwindcss/utilities.css" layer(utilities) prefix(ac);
 @source "./**/*.{ts,tsx}";
 
 @custom-variant dark (&:is(.dark *));

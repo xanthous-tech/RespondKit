@@ -37,8 +37,7 @@
     "lucide-react": "catalog:",
     "radix-ui": "catalog:",
     "tailwind-merge": "catalog:",
-    "tailwindcss": "catalog:",
-    "tw-animate-css": "catalog:"
+    "tailwindcss": "catalog:"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "catalog:",

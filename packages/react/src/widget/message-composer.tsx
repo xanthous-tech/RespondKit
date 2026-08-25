@@ -32,12 +32,12 @@ export function MessageComposer({ disabled, onSend }: MessageComposerProps) {
   return (
     <form
       ref={formRef}
-      className="agent-chat-safe-bottom flex items-end gap-2 border-t border-border bg-background p-3"
+      className="agent-chat-safe-bottom ac:flex ac:items-end ac:gap-2 ac:border-t ac:border-border ac:bg-background ac:p-3"
       onSubmit={submit}
     >
       <Textarea
         aria-label="Message"
-        className="max-h-36 min-h-11 resize-none py-2.5"
+        className="ac:max-h-36 ac:min-h-11 ac:resize-none ac:py-2.5"
         disabled={disabled}
         maxLength={6_000}
         onChange={(event) => setDraft(event.target.value)}
