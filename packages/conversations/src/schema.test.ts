@@ -12,15 +12,27 @@ describe("conversation D1 schema", () => {
     ).toEqual(["thread", "message", "customer_transcript_entry", "message_translation"]);
   });
 
-  it("uses an append-only visibility row as the autoincrement polling cursor", () => {
-    const rowId = getTableConfig(customerTranscriptEntries).columns.find(
-      (column) => column.name === "row_id",
-    );
+  it("uses append-only state revisions as the autoincrement polling cursor", () => {
+    const config = getTableConfig(customerTranscriptEntries);
+    const rowId = config.columns.find((column) => column.name === "row_id");
 
     expect(rowId).toMatchObject({
       primary: true,
       autoIncrement: true,
     });
+    expect(config.columns.map((column) => column.name)).toEqual([
+      "row_id",
+      "workspace_id",
+      "inbox_id",
+      "thread_id",
+      "message_id",
+      "processing_generation",
+      "event_kind",
+      "event_at",
+    ]);
+    expect(config.indexes.map((index) => index.config.name)).toContain(
+      "customer_transcript_entry_revision_uq",
+    );
   });
 
   it("enforces workspace-scoped parent relationships", () => {

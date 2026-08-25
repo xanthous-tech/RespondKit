@@ -240,11 +240,13 @@ export const messages = sqliteTable(
   ],
 );
 
+export const customerTranscriptEventKinds = ["processing", "available", "failed"] as const;
+export type CustomerTranscriptEventKind = (typeof customerTranscriptEventKinds)[number];
+
 /**
- * Append-only customer transcript cursor. Message rows are created before an
- * operator reply is translated, so their insertion order cannot safely act as
- * a visibility cursor. A row is appended here exactly when a message becomes
- * customer-visible.
+ * Append-only customer transcript revisions. Message rows mutate as Workflows
+ * advance, so each customer-observable state transition gets its own cursor.
+ * The composite identity keeps a replay of the same Workflow step idempotent.
  */
 export const customerTranscriptEntries = sqliteTable(
   "customer_transcript_entry",
@@ -254,7 +256,9 @@ export const customerTranscriptEntries = sqliteTable(
     inboxId: text("inbox_id").$type<InboxId>().notNull(),
     threadId: text("thread_id").$type<ThreadId>().notNull(),
     messageId: text("message_id").$type<MessageId>().notNull(),
-    availableAt: integer("available_at", { mode: "timestamp_ms" }).notNull(),
+    processingGeneration: integer("processing_generation").notNull(),
+    eventKind: text("event_kind", { enum: customerTranscriptEventKinds }).notNull(),
+    eventAt: integer("event_at", { mode: "timestamp_ms" }).notNull(),
   },
   (table) => [
     foreignKey({
@@ -262,12 +266,21 @@ export const customerTranscriptEntries = sqliteTable(
       columns: [table.messageId, table.workspaceId, table.inboxId, table.threadId],
       foreignColumns: [messages.id, messages.workspaceId, messages.inboxId, messages.threadId],
     }).onDelete("cascade"),
-    uniqueIndex("customer_transcript_entry_message_uq").on(table.messageId),
+    uniqueIndex("customer_transcript_entry_revision_uq").on(
+      table.messageId,
+      table.processingGeneration,
+      table.eventKind,
+    ),
     index("customer_transcript_entry_thread_cursor_idx").on(
       table.workspaceId,
       table.inboxId,
       table.threadId,
       table.rowId,
+    ),
+    check("customer_transcript_entry_generation_ck", sql`${table.processingGeneration} >= 1`),
+    check(
+      "customer_transcript_entry_kind_ck",
+      sql`${table.eventKind} in ('processing', 'available', 'failed')`,
     ),
   ],
 );

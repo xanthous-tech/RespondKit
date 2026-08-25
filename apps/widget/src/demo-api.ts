@@ -63,10 +63,12 @@ export const demoApiFetch: typeof fetch = async (input, init) => {
   }
 
   if (url.pathname === "/v1/threads") {
+    if (typeof init?.body !== "string") throw new TypeError("Expected a JSON body");
+    const request = JSON.parse(init.body) as { clientThreadId: string };
     return json({
       thread: {
         id: "thread_demo",
-        clientThreadId: "cthread_demo",
+        clientThreadId: request.clientThreadId,
         state: "open",
         createdAt: new Date(baseTime).toISOString(),
         updatedAt: new Date().toISOString(),
@@ -110,7 +112,7 @@ export const demoApiFetch: typeof fetch = async (input, init) => {
         acceptance: {
           messageId: existing?.id ?? message.id,
           clientMessageId: request.clientMessageId,
-          status: existing === undefined ? "accepted" : "already_accepted",
+          status: "available",
           message: existing ?? message,
         },
       },

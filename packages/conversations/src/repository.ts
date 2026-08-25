@@ -11,7 +11,7 @@ import type {
   WorkflowInstanceId,
   WorkspaceId,
 } from "@agent-chat/protocol";
-import { and, asc, desc, eq, gt, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, or, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 
 import { sortMessagesForDisplay, toCustomerMessageState } from "./domain";
@@ -20,6 +20,7 @@ import {
   messageTranslations,
   messages,
   threads,
+  type CustomerTranscriptEventKind,
   type MessageFailureStage,
   type MessageRow,
   type MessageTranslationRow,
@@ -254,11 +255,13 @@ export async function acceptCustomerIngress(
       })
       .onConflictDoNothing()
       .returning({ id: messages.id }),
-    prepareCustomerTranscriptEntryStatement(db, {
+    prepareCustomerTranscriptEventStatement(db, {
       workspaceId: input.workspaceId,
       inboxId: input.inboxId,
       threadId: input.threadId,
       messageId: input.id,
+      generation: 1,
+      eventKind: "processing",
     }),
     prepareThreadActivityStatement(db, input),
   ]);
@@ -281,8 +284,7 @@ export async function acceptCustomerIngress(
 
   const immutablePayloadMatches =
     canonical.workflowInstanceId === input.workflowInstanceId &&
-    canonical.originalText === input.originalText &&
-    canonical.acceptedAt.getTime() === input.acceptedAt.getTime();
+    canonical.originalText === input.originalText;
 
   return {
     kind: inserted.length > 0 ? "inserted" : ingressKindFromMessage(canonical),
@@ -333,13 +335,34 @@ function prepareThreadActivityStatement(
     .where(threadScope(input));
 }
 
-function prepareCustomerTranscriptEntryStatement(
+function customerTranscriptEventPredicate(eventKind: CustomerTranscriptEventKind) {
+  const operatorReplyIsAvailable = and(
+    eq(messages.direction, "operator_to_customer"),
+    eq(messages.customerAvailability, "available"),
+  );
+
+  switch (eventKind) {
+    case "processing":
+      return and(
+        inArray(messages.processingStatus, activeProcessingStatuses),
+        sql`not (${operatorReplyIsAvailable})`,
+      );
+    case "available":
+      return or(eq(messages.processingStatus, "succeeded"), operatorReplyIsAvailable);
+    case "failed":
+      return and(eq(messages.processingStatus, "failed"), sql`not (${operatorReplyIsAvailable})`);
+  }
+}
+
+function prepareCustomerTranscriptEventStatement(
   db: DrizzleD1Database,
   input: {
     readonly workspaceId: WorkspaceId;
     readonly inboxId: InboxId;
     readonly threadId: ThreadId;
     readonly messageId: MessageId;
+    readonly generation: number;
+    readonly eventKind: CustomerTranscriptEventKind;
   },
 ) {
   return db
@@ -352,10 +375,19 @@ function prepareCustomerTranscriptEntryStatement(
           inboxId: messages.inboxId,
           threadId: messages.threadId,
           messageId: messages.id,
-          availableAt: messages.updatedAt,
+          processingGeneration: messages.processingGeneration,
+          eventKind: sql<CustomerTranscriptEventKind>`${input.eventKind}`.as("event_kind"),
+          eventAt: messages.updatedAt,
         })
         .from(messages)
-        .where(and(messageScope(input), eq(messages.customerAvailability, "available"))),
+        .where(
+          and(
+            messageScope(input),
+            eq(messages.processingGeneration, input.generation),
+            sql`${messages.customerVisibleText} is not null`,
+            customerTranscriptEventPredicate(input.eventKind),
+          ),
+        ),
     )
     .onConflictDoNothing();
 }
@@ -596,7 +628,10 @@ export async function publishOperatorReply(
           inArray(messages.processingStatus, activeProcessingStatuses),
         ),
       ),
-    prepareCustomerTranscriptEntryStatement(db, input),
+    prepareCustomerTranscriptEventStatement(db, {
+      ...input,
+      eventKind: "available",
+    }),
   ]);
 
   return requireTranslationResult(
@@ -669,23 +704,29 @@ export async function markCustomerMessageProjected(
   db: DrizzleD1Database,
   input: MessageTransitionInput,
 ): Promise<MessageRow> {
-  await db
-    .update(messages)
-    .set({
-      operatorProjectionStatus: "projected",
-      processingStatus: "succeeded",
-      failureStage: null,
-      failureCode: null,
-      updatedAt: input.transitionedAt,
-    })
-    .where(
-      and(
-        messageScope(input),
-        eq(messages.direction, "customer_to_operator"),
-        eq(messages.processingGeneration, input.generation),
-        inArray(messages.processingStatus, activeProcessingStatuses),
+  await db.batch([
+    db
+      .update(messages)
+      .set({
+        operatorProjectionStatus: "projected",
+        processingStatus: "succeeded",
+        failureStage: null,
+        failureCode: null,
+        updatedAt: input.transitionedAt,
+      })
+      .where(
+        and(
+          messageScope(input),
+          eq(messages.direction, "customer_to_operator"),
+          eq(messages.processingGeneration, input.generation),
+          inArray(messages.processingStatus, activeProcessingStatuses),
+        ),
       ),
-    );
+    prepareCustomerTranscriptEventStatement(db, {
+      ...input,
+      eventKind: "available",
+    }),
+  ]);
 
   const message = await requireMessageGeneration(db, input, "mark as projected");
 
@@ -757,43 +798,49 @@ export async function recordTerminalFailure(
     throw new RangeError("failureCode must contain between 1 and 128 characters");
   }
 
-  await db
-    .update(messages)
-    .set({
-      processingStatus: "failed",
-      customerAvailability: sql`case
-        when ${messages.direction} = 'customer_to_operator'
-          or ${messages.customerAvailability} = 'available'
-        then ${messages.customerAvailability}
-        else 'not_available'
-      end`,
-      operatorProjectionStatus: sql`case
-        when ${messages.direction} = 'customer_to_operator'
-          and ${messages.operatorProjectionStatus} != 'projected'
-        then 'failed'
-        else ${messages.operatorProjectionStatus}
-      end`,
-      discordAuditStatus: sql`case
-        when ${messages.direction} = 'operator_to_customer'
-          and ${messages.customerAvailability} = 'available'
-          and ${input.stage} = 'discord_audit'
-        then 'failed'
-        when ${messages.direction} = 'operator_to_customer'
-          and ${messages.customerAvailability} != 'available'
-        then 'not_applicable'
-        else ${messages.discordAuditStatus}
-      end`,
-      failureStage: input.stage,
-      failureCode: input.failureCode,
-      updatedAt: input.transitionedAt,
-    })
-    .where(
-      and(
-        messageScope(input),
-        eq(messages.processingGeneration, input.generation),
-        inArray(messages.processingStatus, ["processing", "retrying", "failed"]),
+  await db.batch([
+    db
+      .update(messages)
+      .set({
+        processingStatus: "failed",
+        customerAvailability: sql`case
+          when ${messages.direction} = 'customer_to_operator'
+            or ${messages.customerAvailability} = 'available'
+          then ${messages.customerAvailability}
+          else 'not_available'
+        end`,
+        operatorProjectionStatus: sql`case
+          when ${messages.direction} = 'customer_to_operator'
+            and ${messages.operatorProjectionStatus} != 'projected'
+          then 'failed'
+          else ${messages.operatorProjectionStatus}
+        end`,
+        discordAuditStatus: sql`case
+          when ${messages.direction} = 'operator_to_customer'
+            and ${messages.customerAvailability} = 'available'
+            and ${input.stage} = 'discord_audit'
+          then 'failed'
+          when ${messages.direction} = 'operator_to_customer'
+            and ${messages.customerAvailability} != 'available'
+          then 'not_applicable'
+          else ${messages.discordAuditStatus}
+        end`,
+        failureStage: input.stage,
+        failureCode: input.failureCode,
+        updatedAt: input.transitionedAt,
+      })
+      .where(
+        and(
+          messageScope(input),
+          eq(messages.processingGeneration, input.generation),
+          inArray(messages.processingStatus, ["processing", "retrying", "failed"]),
+        ),
       ),
-    );
+    prepareCustomerTranscriptEventStatement(db, {
+      ...input,
+      eventKind: "failed",
+    }),
+  ]);
 
   const message = await requireMessageGeneration(db, input, "record terminal failure");
 
@@ -819,38 +866,51 @@ export async function reopenMessageForRetry(
     ? eq(messages.customerAvailability, "not_available")
     : sql`true`;
 
-  const [message] = await db
-    .update(messages)
-    .set({
-      processingGeneration: sql`${messages.processingGeneration} + 1`,
-      processingStatus: "retrying",
-      customerAvailability: sql`case
-        when ${messages.direction} = 'operator_to_customer' then 'pending'
-        else ${messages.customerAvailability}
-      end`,
-      operatorProjectionStatus: sql`case
-        when ${messages.direction} = 'customer_to_operator' then 'pending'
-        else ${messages.operatorProjectionStatus}
-      end`,
-      discordAuditStatus: sql`case
-        when ${messages.direction} = 'operator_to_customer' then 'pending'
-        else ${messages.discordAuditStatus}
-      end`,
-      failureStage: null,
-      failureCode: null,
-      updatedAt: input.reopenedAt,
-    })
-    .where(
-      and(
-        messageScope(input),
-        eq(messages.processingGeneration, input.generation),
-        eq(messages.processingStatus, "failed"),
-        customerAvailabilityGuard,
-      ),
-    )
-    .returning();
+  const nextGeneration = input.generation + 1;
+  const [reopened] = await db.batch([
+    db
+      .update(messages)
+      .set({
+        processingGeneration: sql`${messages.processingGeneration} + 1`,
+        processingStatus: "retrying",
+        customerAvailability: sql`case
+          when ${messages.direction} = 'operator_to_customer' then 'pending'
+          else ${messages.customerAvailability}
+        end`,
+        operatorProjectionStatus: sql`case
+          when ${messages.direction} = 'customer_to_operator' then 'pending'
+          else ${messages.operatorProjectionStatus}
+        end`,
+        discordAuditStatus: sql`case
+          when ${messages.direction} = 'operator_to_customer' then 'pending'
+          else ${messages.discordAuditStatus}
+        end`,
+        failureStage: null,
+        failureCode: null,
+        updatedAt: input.reopenedAt,
+      })
+      .where(
+        and(
+          messageScope(input),
+          eq(messages.processingGeneration, input.generation),
+          eq(messages.processingStatus, "failed"),
+          customerAvailabilityGuard,
+        ),
+      )
+      .returning(),
+    prepareCustomerTranscriptEventStatement(db, {
+      ...input,
+      generation: nextGeneration,
+      eventKind: "processing",
+    }),
+  ]);
 
-  if (!message) {
+  const message = reopened[0] ?? (await findMessageById(db, input));
+  if (
+    !message ||
+    message.processingGeneration !== nextGeneration ||
+    message.processingStatus !== "retrying"
+  ) {
     throw new MessageStateConflictError(input.messageId, "reopen for retry");
   }
 
@@ -934,6 +994,7 @@ export async function listCustomerMessages(
   const fetched = await db
     .select({
       cursor: customerTranscriptEntries.rowId,
+      eventKind: customerTranscriptEntries.eventKind,
       message: messages,
     })
     .from(customerTranscriptEntries)
@@ -952,7 +1013,6 @@ export async function listCustomerMessages(
         eq(customerTranscriptEntries.inboxId, input.inboxId),
         eq(customerTranscriptEntries.threadId, input.threadId),
         gt(customerTranscriptEntries.rowId, after),
-        eq(messages.customerAvailability, "available"),
       ),
     )
     .orderBy(asc(customerTranscriptEntries.rowId))
@@ -960,7 +1020,10 @@ export async function listCustomerMessages(
 
   const page = fetched.slice(0, limit);
   const nextCursor = String(page.at(-1)?.cursor ?? after) as Cursor;
-  const projected = page.map(({ message }) => toCustomerMessageV1(message));
+  const projected = page.map(({ eventKind, message }) => ({
+    ...toCustomerMessageV1(message),
+    state: eventKind,
+  }));
 
   return {
     threadId: input.threadId,
