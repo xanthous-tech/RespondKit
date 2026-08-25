@@ -171,6 +171,19 @@ describe("Discord interaction parsing and authorization", () => {
     );
   });
 
+  it("rejects a whitespace-only reply while preserving nonblank operator text", () => {
+    expect(() => parseDiscordInteraction(JSON.stringify(replyPayload(" \n\t ")))).toThrowError(
+      DiscordInteractionParseError,
+    );
+
+    const parsed = parseDiscordInteraction(JSON.stringify(replyPayload("  preserve spacing  ")));
+    expect(parsed).toMatchObject({
+      kind: "command",
+      command: "reply",
+      message: "  preserve spacing  ",
+    });
+  });
+
   it("parses signed PING-shaped payloads and exposes safe response helpers", () => {
     const ping = parseDiscordInteraction(
       JSON.stringify({

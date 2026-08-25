@@ -242,7 +242,7 @@ function optionValue(
   maximumLength: number,
 ): string {
   const value = options.get(name)?.value;
-  if (value === undefined || value.length === 0 || value.length > maximumLength) {
+  if (value === undefined || value.trim().length === 0 || value.length > maximumLength) {
     throw new DiscordInteractionParseError(
       "invalid_payload",
       `Discord command option ${name} must contain 1-${maximumLength} characters`,

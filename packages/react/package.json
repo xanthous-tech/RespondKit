@@ -28,7 +28,8 @@
     "access": "public"
   },
   "scripts": {
-    "test": "vp test"
+    "test": "vp test",
+    "typecheck": "vp check --no-fmt --no-lint"
   },
   "dependencies": {
     "@agent-chat/api-client": "workspace:^",
