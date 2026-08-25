@@ -155,6 +155,32 @@ function createFailedMessageApiFetch() {
   });
 }
 
+function createAmbiguousAcceptanceApiFetch() {
+  const baseFetch = createApiFetch();
+  let sendCount = 0;
+
+  return vi.fn<typeof fetch>(async (input, init) => {
+    const url = new URL(requestUrl(input));
+    if (url.pathname === "/v1/threads/thread_test/messages" && init?.method === "POST") {
+      sendCount += 1;
+      const request = JSON.parse(requestBody(init.body)) as {
+        clientMessageId: string;
+      };
+      return json(
+        {
+          acceptance: {
+            messageId: "message_ambiguous",
+            clientMessageId: request.clientMessageId,
+            status: sendCount <= 3 ? "acceptance_unknown" : "accepted",
+          },
+        },
+        { status: sendCount <= 3 ? 200 : 202 },
+      );
+    }
+    return baseFetch(input, init);
+  });
+}
+
 afterEach(() => {
   vi.unstubAllGlobals();
   window.localStorage.clear();
@@ -260,6 +286,43 @@ describe("AgentChatWidget", () => {
       clientMessageId: "cmsg_failed",
       text: "Please retry this message",
     });
+    expect(await screen.findByText("Sending…")).toBeVisible();
+  });
+
+  it("retries ambiguous acceptance with the original immutable message ID", async () => {
+    const apiFetch = createAmbiguousAcceptanceApiFetch();
+    vi.stubGlobal("fetch", apiFetch);
+    const user = userEvent.setup();
+
+    render(
+      <AgentChatWidget
+        apiBaseUrl="https://support.test"
+        context={{ inboxId: "inbox_test", locale: "en" }}
+        initiallyOpen
+      />,
+    );
+
+    const composer = await screen.findByRole("textbox", { name: "Message" });
+    await waitFor(() => expect(composer).toBeEnabled());
+    await user.type(composer, "Keep the same identity{Enter}");
+
+    expect(await screen.findByText("Confirming…")).toBeVisible();
+    await user.click(screen.getByRole("button", { name: /Try again/ }));
+
+    const sends = await waitFor(() => {
+      const requests = apiFetch.mock.calls.filter(
+        ([input, init]) =>
+          requestUrl(input).includes("/v1/threads/thread_test/messages") && init?.method === "POST",
+      );
+      expect(requests).toHaveLength(4);
+      return requests;
+    });
+    const messageIds = sends.map(([, init]) => {
+      const body = JSON.parse(requestBody(init?.body)) as { clientMessageId: string };
+      return body.clientMessageId;
+    });
+
+    expect(new Set(messageIds)).toHaveProperty("size", 1);
     expect(await screen.findByText("Sending…")).toBeVisible();
   });
 
