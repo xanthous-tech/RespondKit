@@ -1,11 +1,10 @@
-import * as React from "react";
+import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cva, type VariantProps } from "class-variance-authority";
-import { Slot } from "radix-ui";
 
 import { cn } from "#lib/utils";
 
 const buttonVariants = cva(
-  "ac:group/button ac:inline-flex ac:shrink-0 ac:items-center ac:justify-center ac:rounded-lg ac:border ac:border-transparent ac:bg-clip-padding ac:text-sm ac:font-medium ac:whitespace-nowrap ac:transition-all ac:outline-none ac:select-none ac:focus-visible:border-ring ac:focus-visible:ring-3 ac:focus-visible:ring-ring/50 ac:active:not-aria-[haspopup]:translate-y-px ac:disabled:pointer-events-none ac:disabled:opacity-50 ac:aria-invalid:border-destructive ac:aria-invalid:ring-3 ac:aria-invalid:ring-destructive/20 ac:dark:aria-invalid:border-destructive/50 ac:dark:aria-invalid:ring-destructive/40 ac:[&_svg]:pointer-events-none ac:[&_svg]:shrink-0 ac:[&_svg:not([class*='size-'])]:size-4",
+  "ac:group/button ac:inline-flex ac:shrink-0 ac:items-center ac:justify-center ac:rounded-lg ac:border ac:border-transparent ac:bg-clip-padding ac:text-sm ac:font-medium ac:whitespace-nowrap ac:transition-all ac:outline-none ac:select-none ac:focus-visible:border-ring ac:focus-visible:ring-3 ac:focus-visible:ring-ring/50 ac:active:not-aria-[haspopup]:translate-y-px ac:disabled:pointer-events-none ac:disabled:opacity-50 ac:aria-invalid:border-destructive ac:aria-invalid:ring-3 ac:aria-invalid:ring-destructive/20 ac:dark:aria-invalid:border-destructive/50 ac:dark:aria-invalid:ring-destructive/40 ac:[&_svg]:pointer-events-none ac:[&_svg]:shrink-0 ac:[&_svg:not([class*=size-])]:size-4",
   {
     variants: {
       variant: {
@@ -23,12 +22,12 @@ const buttonVariants = cva(
       size: {
         default:
           "ac:h-8 ac:gap-1.5 ac:px-2.5 ac:has-data-[icon=inline-end]:pr-2 ac:has-data-[icon=inline-start]:pl-2",
-        xs: "ac:h-6 ac:gap-1 ac:rounded-[min(var(--ac-radius-md),10px)] ac:px-2 ac:text-xs ac:in-data-[slot=button-group]:rounded-lg ac:has-data-[icon=inline-end]:pr-1.5 ac:has-data-[icon=inline-start]:pl-1.5 ac:[&_svg:not([class*='size-'])]:size-3",
-        sm: "ac:h-7 ac:gap-1 ac:rounded-[min(var(--ac-radius-md),12px)] ac:px-2.5 ac:text-[0.8rem] ac:in-data-[slot=button-group]:rounded-lg ac:has-data-[icon=inline-end]:pr-1.5 ac:has-data-[icon=inline-start]:pl-1.5 ac:[&_svg:not([class*='size-'])]:size-3.5",
+        xs: "ac:h-6 ac:gap-1 ac:rounded-[min(var(--ac-radius-md),10px)] ac:px-2 ac:text-xs ac:in-data-[slot=button-group]:rounded-lg ac:has-data-[icon=inline-end]:pr-1.5 ac:has-data-[icon=inline-start]:pl-1.5 ac:[&_svg:not([class*=size-])]:size-3",
+        sm: "ac:h-7 ac:gap-1 ac:rounded-[min(var(--ac-radius-md),12px)] ac:px-2.5 ac:text-[0.8rem] ac:in-data-[slot=button-group]:rounded-lg ac:has-data-[icon=inline-end]:pr-1.5 ac:has-data-[icon=inline-start]:pl-1.5 ac:[&_svg:not([class*=size-])]:size-3.5",
         lg: "ac:h-9 ac:gap-1.5 ac:px-2.5 ac:has-data-[icon=inline-end]:pr-2 ac:has-data-[icon=inline-start]:pl-2",
         icon: "ac:size-8",
         "icon-xs":
-          "ac:size-6 ac:rounded-[min(var(--ac-radius-md),10px)] ac:in-data-[slot=button-group]:rounded-lg ac:[&_svg:not([class*='size-'])]:size-3",
+          "ac:size-6 ac:rounded-[min(var(--ac-radius-md),10px)] ac:in-data-[slot=button-group]:rounded-lg ac:[&_svg:not([class*=size-])]:size-3",
         "icon-sm":
           "ac:size-7 ac:rounded-[min(var(--ac-radius-md),12px)] ac:in-data-[slot=button-group]:rounded-lg",
         "icon-lg": "ac:size-9",
@@ -41,20 +40,14 @@ const buttonVariants = cva(
   },
 );
 
-type ButtonProps = React.ComponentPropsWithoutRef<"button"> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean;
-  };
-
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { className, variant = "default", size = "default", asChild = false, ...props },
-  ref,
-) {
-  const Comp = asChild ? Slot.Root : "button";
-
+function Button({
+  className,
+  variant = "default",
+  size = "default",
+  ...props
+}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
   return (
-    <Comp
-      ref={ref}
+    <ButtonPrimitive
       data-slot="button"
       data-variant={variant}
       data-size={size}
@@ -62,6 +55,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
       {...props}
     />
   );
-});
+}
 
 export { Button, buttonVariants };

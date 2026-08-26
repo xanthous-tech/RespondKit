@@ -78,16 +78,18 @@ export function AgentChatWidget({
                 <p className="ac:m-0 ac:text-sm ac:text-muted-foreground">Ask us anything</p>
               </div>
               <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    ref={closeRef}
-                    variant="ghost"
-                    size="icon-lg"
-                    onClick={close}
-                    aria-label="Close support chat"
-                  >
-                    <XIcon />
-                  </Button>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      ref={closeRef}
+                      variant="ghost"
+                      size="icon-lg"
+                      onClick={close}
+                      aria-label="Close support chat"
+                    />
+                  }
+                >
+                  <XIcon />
                 </TooltipTrigger>
                 <TooltipContent>Close</TooltipContent>
               </Tooltip>
@@ -129,17 +131,19 @@ export function AgentChatWidget({
         ) : null}
 
         <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              ref={launcherRef}
-              className={`ac:size-14 ac:rounded-full ac:shadow-lg ${open ? "ac:max-sm:hidden" : ""}`}
-              size="icon-lg"
-              onClick={() => setOpen(true)}
-              aria-expanded={open}
-              aria-label="Open support chat"
-            >
-              <MessageCircleIcon />
-            </Button>
+          <TooltipTrigger
+            render={
+              <Button
+                ref={launcherRef}
+                className={`ac:size-14 ac:rounded-full ac:shadow-lg ${open ? "ac:max-sm:hidden" : ""}`}
+                size="icon-lg"
+                onClick={() => setOpen(true)}
+                aria-expanded={open}
+                aria-label="Open support chat"
+              />
+            }
+          >
+            <MessageCircleIcon />
           </TooltipTrigger>
           <TooltipContent side="left">Open support chat</TooltipContent>
         </Tooltip>

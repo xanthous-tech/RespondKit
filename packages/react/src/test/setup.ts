@@ -13,4 +13,8 @@ class ResizeObserverMock implements ResizeObserver {
 
 globalThis.ResizeObserver = ResizeObserverMock;
 
+if (Element.prototype.getAnimations === undefined) {
+  Element.prototype.getAnimations = () => [];
+}
+
 afterEach(cleanup);
