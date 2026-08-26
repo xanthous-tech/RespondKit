@@ -1,6 +1,6 @@
-# Agent Chat
+# RespondKit
 
-Agent Chat is a small, multilingual support stack for indie products. The MVP gives customers a React chat widget, translates customer messages to English with Gemini, projects each support thread into a Discord forum post, and translates `/reply` responses back into the customer's language.
+RespondKit is a small, multilingual support stack for indie products. The MVP gives customers a React chat widget, translates customer messages to English with Gemini, projects each support thread into a Discord forum post, and translates `/reply` responses back into the customer's language.
 
 The runtime is one Cloudflare Worker bundle with D1 and Cloudflare Workflows. It deliberately has no control-plane dashboard, Better Auth, Queue, Cron trigger, Durable Object, WebSocket, or Discord Gateway.
 
@@ -63,12 +63,12 @@ Live local API development additionally needs an uncommitted `apps/api/.dev.vars
 The host app needs React 18.2 or newer, Tailwind CSS v4, and `@tailwindcss/vite`. Import the widget and its stylesheet once at the application entry point:
 
 ```tsx
-import { AgentChatWidget } from "@agent-chat/react";
-import "@agent-chat/react/styles.css";
+import { RespondKitWidget } from "@respondkit/react";
+import "@respondkit/react/styles.css";
 
 export function Support() {
   return (
-    <AgentChatWidget
+    <RespondKitWidget
       apiBaseUrl="https://support.example.com"
       title="Canto Support"
       context={{

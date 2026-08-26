@@ -1,6 +1,6 @@
-# Agent Chat v0: broad cross-platform draft
+# RespondKit v0: broad cross-platform draft
 
-Status: superseded for implementation by [Agent Chat base architecture v1](../architecture/base-v1.md); retained as broader follow-on architecture
+Status: superseded for implementation by [RespondKit base architecture v1](../architecture/base-v1.md); retained as broader follow-on architecture
 Last updated: 2026-08-24
 
 > The 2026-08-25 decision narrowed the launch to a React-only Canto Transcriber widget, durable text threads/messages, English-canonical translation, Discord `/reply` interactions, and a small API. Native clients, media, email, AI agents, multi-product support, and the paid-provider bridge are no longer base requirements. Use the linked base architecture for current implementation decisions.
@@ -141,7 +141,7 @@ Queue payloads are reference notifications, not transcripts or attachment bodies
 
 ```json
 {
-  "schema": "agent-chat.event/1",
+  "schema": "respondkit.event/1",
   "event_id": "evt_01...",
   "type": "conversation.customer_message.created",
   "occurred_at": "2026-08-24T00:00:00Z",
@@ -192,15 +192,15 @@ packages/core-ts        auth, cursor synchronization, outbox, typed events
 packages/react          default and headless React UI
 packages/embed          hosted responsive shell
 
-ios/AgentChatCore       public configuration, routes, events, schema models
-ios/AgentChatWebView    WKWebView renderer, bridge, PhotosPicker, uploader
+ios/RespondKitCore       public configuration, routes, events, schema models
+ios/RespondKitWebView    WKWebView renderer, bridge, PhotosPicker, uploader
 
 android/core            public configuration, routes, events, schema models
 android/webview         hardened WebView, bridge, uploader
-android/compose         AgentChat composable wrapper
+android/compose         RespondKit composable wrapper
 ```
 
-Public APIs expose `AgentChatConfiguration`, identity/session methods, route and event types, theming, `reset`, and push-token registration. They do not expose `WKWebView` or Android `WebView`, allowing a future SwiftUI or Compose renderer to replace the implementation without changing the host integration.
+Public APIs expose `RespondKitConfiguration`, identity/session methods, route and event types, theming, `reset`, and push-token registration. They do not expose `WKWebView` or Android `WebView`, allowing a future SwiftUI or Compose renderer to replace the implementation without changing the host integration.
 
 ### Signed customer context
 
@@ -208,7 +208,7 @@ The product backend mints a short-lived bootstrap assertion. A representative pa
 
 ```json
 {
-  "aud": "agent-chat",
+  "aud": "respondkit",
   "sub": "opaque-product-user-id",
   "workspace_id": "workspace-id",
   "product_id": "product-id",
