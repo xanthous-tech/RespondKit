@@ -29,11 +29,12 @@ function TooltipContent({
   return (
     <TooltipPrimitive.Portal>
       <TooltipPrimitive.Positioner
+        data-slot="tooltip-positioner"
         align={align}
         alignOffset={alignOffset}
         side={side}
         sideOffset={sideOffset}
-        className="ac:isolate ac:z-50"
+        className="ac:isolate ac:z-[2147483001]"
       >
         <TooltipPrimitive.Popup
           data-slot="tooltip-content"

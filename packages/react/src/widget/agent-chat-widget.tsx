@@ -1,5 +1,5 @@
 import { AlertCircleIcon, MessageCircleIcon, XIcon } from "lucide-react";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 
 import { Alert, AlertDescription } from "#components/ui/alert";
 import { Button } from "#components/ui/button";
@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "#compo
 
 import { MessageComposer } from "./message-composer";
 import { MessageList } from "./message-list";
+import { agentChatAccentPalette, type AgentChatAccentColor } from "./theme";
 import type { AgentChatContext } from "./types";
 import { useAgentChat } from "./use-agent-chat";
 
@@ -18,6 +19,7 @@ export interface AgentChatWidgetProps {
   readonly fetch?: typeof globalThis.fetch | undefined;
   readonly title?: string | undefined;
   readonly initiallyOpen?: boolean | undefined;
+  readonly accentColor?: AgentChatAccentColor | undefined;
 }
 
 export function AgentChatWidget({
@@ -26,11 +28,12 @@ export function AgentChatWidget({
   fetch,
   title = "Support",
   initiallyOpen = false,
+  accentColor = "indigo",
 }: AgentChatWidgetProps) {
   const [open, setOpen] = useState(initiallyOpen);
   const titleId = useId();
   const launcherRef = useRef<HTMLButtonElement>(null);
-  const closeRef = useRef<HTMLButtonElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
   const {
     bootstrapError,
     bootstrapState,
@@ -43,7 +46,7 @@ export function AgentChatWidget({
 
   useEffect(() => {
     if (!open) return;
-    closeRef.current?.focus();
+    titleRef.current?.focus({ preventScroll: true });
 
     function handleKeyDown(event: globalThis.KeyboardEvent) {
       if (event.key === "Escape") {
@@ -61,9 +64,27 @@ export function AgentChatWidget({
     requestAnimationFrame(() => launcherRef.current?.focus());
   }
 
+  function toggle() {
+    if (open) {
+      close();
+      return;
+    }
+    setOpen(true);
+  }
+
+  const accentValue = agentChatAccentPalette[accentColor];
+  const themeStyle = {
+    "--agent-chat-primary": accentValue,
+    "--agent-chat-ring": accentValue,
+  } as CSSProperties;
+
   return (
     <TooltipProvider>
-      <div className="agent-chat-root ac:fixed ac:right-4 ac:bottom-4 ac:z-[2147483000]">
+      <div
+        className="agent-chat-root ac:fixed ac:right-4 ac:bottom-4 ac:z-[2147483000]"
+        data-accent-color={accentColor}
+        style={themeStyle}
+      >
         {open ? (
           <section
             className="ac:fixed ac:right-4 ac:bottom-20 ac:flex ac:h-[min(590px,calc(100dvh-6rem))] ac:w-[min(390px,calc(100vw-2rem))] ac:flex-col ac:overflow-hidden ac:rounded-xl ac:border ac:border-border ac:bg-background ac:shadow-xl ac:max-sm:inset-0 ac:max-sm:h-[100dvh] ac:max-sm:w-screen ac:max-sm:rounded-none ac:max-sm:border-0"
@@ -72,7 +93,12 @@ export function AgentChatWidget({
           >
             <header className="ac:flex ac:min-h-16 ac:items-center ac:gap-3 ac:border-b ac:border-border ac:px-4 ac:py-3">
               <div className="ac:min-w-0 ac:flex-1">
-                <h2 id={titleId} className="ac:m-0 ac:truncate ac:text-base ac:font-semibold">
+                <h2
+                  ref={titleRef}
+                  id={titleId}
+                  tabIndex={-1}
+                  className="ac:m-0 ac:truncate ac:text-base ac:font-semibold ac:focus:outline-none"
+                >
                   {title}
                 </h2>
                 <p className="ac:m-0 ac:text-sm ac:text-muted-foreground">Ask us anything</p>
@@ -81,7 +107,6 @@ export function AgentChatWidget({
                 <TooltipTrigger
                   render={
                     <Button
-                      ref={closeRef}
                       variant="ghost"
                       size="icon-lg"
                       onClick={close}
@@ -94,10 +119,6 @@ export function AgentChatWidget({
                 <TooltipContent>Close</TooltipContent>
               </Tooltip>
             </header>
-
-            <p className="ac:m-0 ac:border-b ac:border-border ac:px-4 ac:py-3 ac:text-sm ac:text-muted-foreground">
-              Messages are translated for our support team.
-            </p>
 
             {bootstrapState === "recoverable_error" ? (
               <div className="ac:p-4">
@@ -137,15 +158,17 @@ export function AgentChatWidget({
                 ref={launcherRef}
                 className={`ac:size-14 ac:rounded-full ac:shadow-lg ${open ? "ac:max-sm:hidden" : ""}`}
                 size="icon-lg"
-                onClick={() => setOpen(true)}
+                onClick={toggle}
                 aria-expanded={open}
-                aria-label="Open support chat"
+                aria-label={open ? "Close support chat" : "Open support chat"}
               />
             }
           >
-            <MessageCircleIcon />
+            {open ? <XIcon /> : <MessageCircleIcon />}
           </TooltipTrigger>
-          <TooltipContent side="left">Open support chat</TooltipContent>
+          <TooltipContent side="left">
+            {open ? "Close support chat" : "Open support chat"}
+          </TooltipContent>
         </Tooltip>
       </div>
     </TooltipProvider>

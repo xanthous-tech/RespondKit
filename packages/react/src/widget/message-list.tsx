@@ -102,7 +102,7 @@ export function MessageList({
     scrollToBottom(viewport);
   }
 
-  if (transcriptState === "loading" && messages.length === 0) {
+  if ((transcriptState === "idle" || transcriptState === "loading") && messages.length === 0) {
     return (
       <div className="ac:flex ac:flex-1 ac:flex-col ac:gap-4 ac:p-4" aria-label="Loading messages">
         <Skeleton className="ac:h-14 ac:w-3/4 ac:self-end" />
@@ -160,8 +160,8 @@ export function MessageList({
                     className={cn(
                       "ac:m-0 ac:whitespace-pre-wrap ac:break-words ac:rounded-xl ac:px-3 ac:py-2.5 ac:text-sm ac:leading-relaxed",
                       customer
-                        ? "ac:rounded-br-sm ac:bg-primary/10 ac:text-foreground"
-                        : "ac:rounded-bl-sm ac:bg-muted ac:text-foreground",
+                        ? "ac:rounded-br-[4px] ac:bg-primary/10 ac:text-foreground"
+                        : "ac:rounded-bl-[4px] ac:bg-muted ac:text-foreground",
                       failed && "ac:bg-destructive/10 ac:text-destructive",
                     )}
                   >

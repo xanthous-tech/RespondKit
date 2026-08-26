@@ -37,7 +37,7 @@ export function MessageComposer({ disabled, onSend }: MessageComposerProps) {
     >
       <Textarea
         aria-label="Message"
-        className="ac:max-h-36 ac:min-h-11 ac:resize-none ac:py-2.5"
+        className="ac:max-h-36 ac:min-h-11 ac:resize-none ac:py-2.5 ac:leading-5"
         disabled={disabled}
         maxLength={6_000}
         onChange={(event) => setDraft(event.target.value)}
@@ -46,7 +46,13 @@ export function MessageComposer({ disabled, onSend }: MessageComposerProps) {
         rows={1}
         value={draft}
       />
-      <Button type="submit" size="icon-lg" disabled={!canSend} aria-label="Send message">
+      <Button
+        type="submit"
+        size="icon-lg"
+        className="ac:size-11"
+        disabled={!canSend}
+        aria-label="Send message"
+      >
         <SendIcon />
       </Button>
     </form>

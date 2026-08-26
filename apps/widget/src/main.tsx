@@ -1,14 +1,25 @@
 import "@agent-chat/react/styles.css";
 
-import { AgentChatWidget } from "@agent-chat/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import { demoApiFetch } from "./demo-api";
+import { Playground } from "./playground";
 import "./playground.css";
 
 if (import.meta.env.DEV) {
-  void import("react-grab");
+  void import("react-grab").then(({ getGlobalApi, init, setGlobalApi }) => {
+    let api = getGlobalApi();
+    if (api === null) {
+      api = init();
+      setGlobalApi(api);
+    }
+
+    api.setToolbarState({
+      defaultAction: "comment",
+      collapsed: false,
+      enabled: true,
+    });
+  });
 }
 
 const root = document.querySelector("#root");
@@ -19,23 +30,6 @@ if (!root) {
 
 createRoot(root).render(
   <StrictMode>
-    <main className="playground-shell">
-      <section className="playground-copy">
-        <h1>Transcribe Cantonese with confidence.</h1>
-        <p>
-          A neutral host page for exercising the real support widget at desktop and mobile widths.
-        </p>
-      </section>
-      <AgentChatWidget
-        apiBaseUrl={import.meta.env.VITE_AGENT_CHAT_API_URL ?? "https://demo.agent-chat.local"}
-        context={{
-          inboxId: import.meta.env.VITE_AGENT_CHAT_INBOX_ID ?? "inbox_demo",
-          locale: navigator.language,
-          path: window.location.pathname,
-        }}
-        fetch={import.meta.env.VITE_AGENT_CHAT_API_URL === undefined ? demoApiFetch : undefined}
-        title="Canto Support"
-      />
-    </main>
+    <Playground />
   </StrictMode>,
 );

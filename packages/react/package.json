@@ -7,6 +7,7 @@
     "src/widget/agent-chat-widget.tsx",
     "src/widget/message-composer.tsx",
     "src/widget/message-list.tsx",
+    "src/widget/theme.ts",
     "src/widget/types.ts",
     "src/widget/use-agent-chat.ts",
     "src/index.ts",

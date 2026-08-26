@@ -147,6 +147,8 @@ export function useAgentChat({ apiBaseUrl, context, fetch, open }: UseAgentChatI
   const contextRef = useRef(context);
   contextRef.current = context;
   const identityEpochRef = useRef(0);
+  const initializedClientRef = useRef<typeof client | undefined>(undefined);
+  const initializedContextKeyRef = useRef<string | undefined>(undefined);
 
   const [activeContextKey, setActiveContextKey] = useState(contextKey);
   const [bootstrapState, setBootstrapState] = useState<BootstrapState>("idle");
@@ -163,8 +165,16 @@ export function useAgentChat({ apiBaseUrl, context, fetch, open }: UseAgentChatI
 
   useEffect(() => {
     if (!open) return;
+    if (
+      initializedClientRef.current === client &&
+      initializedContextKeyRef.current === contextKey
+    ) {
+      return;
+    }
 
     identityEpochRef.current += 1;
+    initializedClientRef.current = undefined;
+    initializedContextKeyRef.current = undefined;
     const abortController = new AbortController();
     let active = true;
 
@@ -212,6 +222,8 @@ export function useAgentChat({ apiBaseUrl, context, fetch, open }: UseAgentChatI
         if (!active) return;
 
         cursorRef.current = INITIAL_CURSOR;
+        initializedClientRef.current = client;
+        initializedContextKeyRef.current = contextKey;
         setServerMessages([]);
         setThread(threadResponse.thread);
         setBootstrapState("ready");
