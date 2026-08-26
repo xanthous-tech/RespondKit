@@ -7,6 +7,10 @@ import { createRoot } from "react-dom/client";
 import { demoApiFetch } from "./demo-api";
 import "./playground.css";
 
+if (import.meta.env.DEV) {
+  void import("react-grab");
+}
+
 const root = document.querySelector("#root");
 
 if (!root) {

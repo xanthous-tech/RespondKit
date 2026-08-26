@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 test("opens, restores the transcript, and sends a message", async ({ page }, testInfo) => {
   await page.goto("/");
 
+  await expect.poll(() => page.evaluate(() => "__REACT_GRAB__" in window)).toBe(true);
   await expect(
     page.getByRole("heading", { name: "Transcribe Cantonese with confidence." }),
   ).toBeVisible();
