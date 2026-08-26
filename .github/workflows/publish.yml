@@ -1,0 +1,39 @@
+name: Publish npm packages
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: voidzero-dev/setup-vp@v1.18.0
+        with:
+          node-version: "24"
+          cache: true
+
+      - run: vp install --frozen-lockfile
+      - run: vp run ready
+      - run: vp run build:npm
+      - run: vp run check:npm
+      - run: vp exec tsx scripts/validate-npm-release.ts "${{ github.event.release.tag_name }}"
+      - run: vp run pack:npm
+
+      - name: Publish @respondkit/protocol
+        working-directory: /tmp
+        run: npm publish "$GITHUB_WORKSPACE/artifacts/npm/respondkit-protocol-${GITHUB_REF_NAME#v}.tgz" --access public
+
+      - name: Publish @respondkit/api-client
+        working-directory: /tmp
+        run: npm publish "$GITHUB_WORKSPACE/artifacts/npm/respondkit-api-client-${GITHUB_REF_NAME#v}.tgz" --access public
+
+      - name: Publish @respondkit/react
+        working-directory: /tmp
+        run: npm publish "$GITHUB_WORKSPACE/artifacts/npm/respondkit-react-${GITHUB_REF_NAME#v}.tgz" --access public
