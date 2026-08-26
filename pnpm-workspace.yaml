@@ -4,6 +4,7 @@ packages:
 
 catalog:
   "@ai-sdk/google": 4.0.51
+  "@arethetypeswrong/core": ^0.18.5
   "@base-ui/react": 1.7.0
   "@cloudflare/vitest-plugin": 1.0.0
   "@msw/cloudflare": 0.0.1
@@ -25,6 +26,7 @@ catalog:
   jsdom: 30.0.1
   lucide-react: 1.34.0
   msw: 2.15.0
+  publint: ^0.3.24
   react: 19.2.8
   react-dom: 19.2.8
   react-grab: 0.2.0

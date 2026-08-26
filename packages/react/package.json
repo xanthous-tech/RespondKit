@@ -1,7 +1,25 @@
 {
   "name": "@respondkit/react",
   "version": "0.1.0",
+  "description": "Embeddable React customer-support widget for RespondKit",
+  "keywords": [
+    "chat-widget",
+    "customer-support",
+    "react",
+    "respondkit",
+    "typescript"
+  ],
+  "homepage": "https://respondkit.dev",
+  "bugs": {
+    "url": "https://github.com/xanthous-tech/RespondKit/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xanthous-tech/RespondKit.git",
+    "directory": "packages/react"
+  },
   "files": [
+    "dist",
     "src/components",
     "src/lib",
     "src/widget/respondkit-widget.tsx",
@@ -11,9 +29,11 @@
     "src/widget/types.ts",
     "src/widget/use-respondkit.ts",
     "src/index.ts",
-    "src/styles.css"
+    "src/styles.css",
+    "src/styles.d.css.ts"
   ],
   "type": "module",
+  "sideEffects": false,
   "imports": {
     "#components/*": "./src/components/*.tsx",
     "#hooks/*": "./src/hooks/*.ts",
@@ -24,12 +44,28 @@
       "types": "./src/index.ts",
       "default": "./src/index.ts"
     },
-    "./styles.css": "./src/styles.css"
+    "./styles.css": {
+      "types": "./src/styles.d.css.ts",
+      "default": "./src/styles.css"
+    }
   },
   "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js",
+        "default": "./dist/index.js"
+      },
+      "./styles.css": {
+        "types": "./src/styles.d.css.ts",
+        "default": "./src/styles.css"
+      },
+      "./package.json": "./package.json"
+    },
     "access": "public"
   },
   "scripts": {
+    "build:npm": "vp pack",
     "test": "vp test",
     "typecheck": "vp check --no-fmt --no-lint"
   },
@@ -59,5 +95,8 @@
   "peerDependencies": {
     "react": ">=18.2",
     "react-dom": ">=18.2"
+  },
+  "engines": {
+    "node": ">=18.18.0"
   }
 }

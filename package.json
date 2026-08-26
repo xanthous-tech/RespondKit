@@ -7,6 +7,9 @@
     "check": "vp check",
     "test:all": "vp run -r test",
     "build:all": "vp run -r build",
+    "build:npm": "vp run -r build:npm",
+    "check:npm": "vp exec tsx scripts/check-npm-packages.ts",
+    "pack:npm": "vp exec tsx scripts/pack-npm-packages.ts",
     "ready": "vp check && vp run -r test && vp run -r build",
     "deploy:staging": "vp -C apps/api run deploy:staging",
     "dev:widget": "vp -C apps/widget dev",
@@ -18,6 +21,8 @@
     "discord:commands:apply": "vp -C apps/api exec tsx scripts/discord-register.ts"
   },
   "devDependencies": {
+    "@arethetypeswrong/core": "catalog:",
+    "publint": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:"
