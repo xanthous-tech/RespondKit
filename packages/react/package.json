@@ -1,0 +1,63 @@
+{
+  "name": "@agent-chat/react",
+  "version": "0.1.0",
+  "files": [
+    "src/components",
+    "src/lib",
+    "src/widget/agent-chat-widget.tsx",
+    "src/widget/message-composer.tsx",
+    "src/widget/message-list.tsx",
+    "src/widget/theme.ts",
+    "src/widget/types.ts",
+    "src/widget/use-agent-chat.ts",
+    "src/index.ts",
+    "src/styles.css"
+  ],
+  "type": "module",
+  "imports": {
+    "#components/*": "./src/components/*.tsx",
+    "#hooks/*": "./src/hooks/*.ts",
+    "#lib/*": "./src/lib/*.ts"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./styles.css": "./src/styles.css"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test": "vp test",
+    "typecheck": "vp check --no-fmt --no-lint"
+  },
+  "dependencies": {
+    "@agent-chat/api-client": "workspace:^",
+    "@base-ui/react": "catalog:",
+    "class-variance-authority": "catalog:",
+    "clsx": "catalog:",
+    "lucide-react": "catalog:",
+    "tailwind-merge": "catalog:",
+    "tailwindcss": "catalog:",
+    "tw-animate-css": "catalog:"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "catalog:",
+    "@testing-library/react": "catalog:",
+    "@testing-library/user-event": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "jsdom": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "react": ">=18.2",
+    "react-dom": ">=18.2"
+  }
+}

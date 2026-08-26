@@ -1,0 +1,36 @@
+{
+  "name": "@agent-chat/protocol",
+  "version": "0.1.0",
+  "description": "Versioned public protocol for Agent Chat customer clients",
+  "files": [
+    "src/customer.ts",
+    "src/errors.ts",
+    "src/ids.ts",
+    "src/index.ts"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "typecheck": "vp check",
+    "test": "vp test"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "vite-plus": "catalog:"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  }
+}

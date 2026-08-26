@@ -1,0 +1,26 @@
+export const agentChatAccentPalette = {
+  red: "oklch(50.5% 0.213 27.518)",
+  orange: "oklch(55.3% 0.195 38.402)",
+  amber: "oklch(55.5% 0.163 48.998)",
+  yellow: "oklch(55.4% 0.135 66.442)",
+  lime: "oklch(53.2% 0.157 131.589)",
+  green: "oklch(52.7% 0.154 150.069)",
+  emerald: "oklch(50.8% 0.118 165.612)",
+  teal: "oklch(51.1% 0.096 186.391)",
+  cyan: "oklch(52% 0.105 223.128)",
+  sky: "oklch(50% 0.134 242.749)",
+  blue: "oklch(48.8% 0.243 264.376)",
+  indigo: "oklch(45.7% 0.24 277.023)",
+  violet: "oklch(49.1% 0.27 292.581)",
+  purple: "oklch(49.6% 0.265 301.924)",
+  fuchsia: "oklch(51.8% 0.253 323.949)",
+  pink: "oklch(52.5% 0.223 3.958)",
+  rose: "oklch(51.4% 0.222 16.935)",
+  slate: "oklch(37.2% 0.044 257.287)",
+  gray: "oklch(37.3% 0.034 259.733)",
+  zinc: "oklch(37% 0.013 285.805)",
+  neutral: "oklch(37.1% 0 none)",
+  stone: "oklch(37.4% 0.01 67.558)",
+} as const;
+
+export type AgentChatAccentColor = keyof typeof agentChatAccentPalette;

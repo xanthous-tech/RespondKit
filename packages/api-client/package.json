@@ -1,0 +1,34 @@
+{
+  "name": "@agent-chat/api-client",
+  "version": "0.1.0",
+  "description": "SSR-safe typed Agent Chat customer API client",
+  "files": [
+    "src/client.ts",
+    "src/index.ts"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "typecheck": "vp check",
+    "test": "vp test"
+  },
+  "dependencies": {
+    "@agent-chat/protocol": "workspace:^"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "vite-plus": "catalog:"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  }
+}

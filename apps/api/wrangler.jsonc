@@ -1,0 +1,60 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "agent-chat-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-25",
+  "observability": {
+    "enabled": true,
+  },
+  "vars": {
+    "ENVIRONMENT": "development",
+    "GEMINI_MODEL": "gemini-3.1-flash-lite",
+    "DISCORD_API_BASE_URL": "https://discord.com/api/v10",
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "agent-chat",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations",
+    },
+  ],
+  "workflows": [
+    {
+      "name": "agent-chat-message",
+      "binding": "MESSAGE_WORKFLOW",
+      "class_name": "MessageWorkflow",
+    },
+  ],
+  "env": {
+    "staging": {
+      "name": "respondkit-api-staging",
+      "routes": [
+        {
+          "pattern": "api.respondkit.dev",
+          "custom_domain": true,
+        },
+      ],
+      "vars": {
+        "ENVIRONMENT": "staging",
+        "GEMINI_MODEL": "gemini-3.1-flash-lite",
+        "DISCORD_API_BASE_URL": "https://discord.com/api/v10",
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "respondkit-staging",
+          "database_id": "cbd8c612-bd74-4a95-8bf7-f479e9e2c51f",
+          "migrations_dir": "migrations",
+        },
+      ],
+      "workflows": [
+        {
+          "name": "respondkit-message-staging",
+          "binding": "MESSAGE_WORKFLOW",
+          "class_name": "MessageWorkflow",
+        },
+      ],
+    },
+  },
+}
