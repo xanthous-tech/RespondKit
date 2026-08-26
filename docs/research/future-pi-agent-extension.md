@@ -1,11 +1,11 @@
 # Future Pi agent extension
 
-Status: deferred research; not part of the Canto support base  
+Status: deferred research; not part of the MVP support base
 Last updated: 2026-08-25
 
 ## Product direction
 
-After the base React/thread/translation/Discord product works, a Canto-specific Pi extension should act as a pull consumer. An incoming support event opens a fresh Pi session and injects a bounded thread snapshot plus product context. Each product eventually has an isolated extension, repository/manual, analytics tooling, and credentials.
+After the base React/thread/translation/Discord product works, a product-specific Pi extension should act as a pull consumer. An incoming support event opens a fresh Pi session and injects a bounded thread snapshot plus product context. Each product eventually has an isolated extension, repository/manual, analytics tooling, and credentials.
 
 Do not implement or freeze this contract during the base build. The base only preserves the prerequisites:
 
@@ -49,7 +49,7 @@ Other questions to resolve only after the base exists:
 
 - direct Queue token versus product-scoped job API;
 - Mac mini runner versus per-run [Cloudflare Sandbox](https://developers.cloudflare.com/sandbox/);
-- signed Canto identity and which PostHog ID can authorize a lookup;
+- signed host-product identity and which PostHog ID can authorize a lookup;
 - answer-agent read tools versus a separate manual-maintenance mode;
 - human takeover/stale-run semantics and whether auto-send exists at all;
 - safe generated support documents versus repository-owned reusable articles.

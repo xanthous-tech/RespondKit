@@ -1,8 +1,8 @@
-# Canto Transcriber support base
+# Example Product support base
 
 Status: superseded for implementation by [RespondKit base architecture v1](../architecture/base-v1.md); retained as the earlier Durable Object/Gateway design
 Last updated: 2026-08-25
-First integration: `canto-transcriber` web
+First integration: `example-product` web
 
 > The current reviewed candidate uses Discord `/reply` interactions, D1 polling, and one Cloudflare `MessageWorkflow` per message. It has no Discord Gateway, Durable Object, Queue, Cron, or transactional outbox. Use the linked architecture as the implementation source of truth.
 
@@ -10,7 +10,7 @@ First integration: `canto-transcriber` web
 
 Build one complete, intentionally small support loop:
 
-1. A visitor talks through a React widget on Canto Transcriber.
+1. A visitor talks through a React widget on Example Product.
 2. The Cloudflare backend durably stores threads and messages.
 3. A customer message is translated into English and appears in its mapped Discord thread.
 4. Simon types an ordinary English reply in Discord.
@@ -26,7 +26,7 @@ Included:
 
 - one SSR-safe React customer widget;
 - anonymous browser sessions;
-- one active support thread per Canto browser installation;
+- one active support thread per Example Product browser installation;
 - durable text messages and immutable original content;
 - automatic incoming customer-language-to-English translation;
 - automatic outgoing English-to-customer-language translation;
@@ -34,7 +34,7 @@ Included:
 - one Discord thread per support thread;
 - normal human Discord replies, delivery state, deduplication, and reconnect;
 - a small client/integration API and versioned event schema;
-- Canto route, locale, PostHog IDs, user ID/email when available, UA, and coarse Cloudflare location as provenance-labelled context.
+- Example Product route, locale, PostHog IDs, user ID/email when available, UA, and coarse Cloudflare location as provenance-labelled context.
 
 Deferred until this loop works:
 
@@ -43,7 +43,7 @@ Deferred until this loop works:
 - PostHog API access or session-replay analysis;
 - attachments and screen recordings;
 - email notifications/replies;
-- server-signed Canto identity;
+- server-signed Example Product identity;
 - generated support documents;
 - native iOS/Android clients;
 - an operator dashboard, search, assignment, metrics, billing, and public multi-tenancy.
@@ -54,7 +54,7 @@ The schemas reserve message kinds and event names for these additions, but the b
 
 ### React customer widget
 
-- A small launcher is available across Canto marketing, docs, tools, and `/app`.
+- A small launcher is available across Example Product marketing, docs, tools, and `/app`.
 - The conversation panel lazy-loads only when opened and becomes full-height on a narrow mobile browser.
 - A first send creates or resumes the installation's active thread.
 - Text sends optimistically with a `client_message_id`, then shows pending, sent, or retryable failure.
@@ -64,7 +64,7 @@ The schemas reserve message kinds and event names for these additions, but the b
 
 ### Discord operator inbox
 
-- A configured private forum channel is the Canto inbox.
+- A configured private forum channel is the Example Product inbox.
 - The first customer message creates one forum post/thread. IDs, not names, form the durable mapping.
 - Incoming content shows the English translation first, with the original immediately available below it or in a compact secondary block.
 - The thread starter shows current URL, locale, browser/device, coarse location, and allowlisted customer/PostHog identifiers with their provenance.
@@ -81,7 +81,7 @@ Use `thread` as the product term. A Discord thread is a projection of one suppor
 
 | Entity | Base meaning |
 | --- | --- |
-| Product | Fixed Canto configuration, inbox key, translation settings, and Discord destination. |
+| Product | Fixed Example Product configuration, inbox key, translation settings, and Discord destination. |
 | Installation | Opaque browser identity and session boundary. |
 | Thread | One ordered support conversation for a product/installation. |
 | Message | One immutable authored item with a server sequence and delivery state. |
@@ -101,7 +101,7 @@ Only `text` is accepted in v0. Unknown future kinds fall back to a plain unsuppo
 ## Cloudflare architecture
 
 ```text
-Canto React widget
+Example Product React widget
   | HTTP history/send + short-lived WebSocket ticket
   v
 RespondKit Worker API
@@ -199,7 +199,7 @@ For every call:
 
 1. Persist the exact original first.
 2. Mask code, URLs/Markdown destinations, emails, UUIDs/hashes, file paths, CLI flags, variables, HTML tags, version strings, and glossary terms marked `preserve` with unique placeholders.
-3. Send only the current message, target language, a short Canto description/glossary, and at most six recent customer-visible turns capped around 2,000 tokens.
+3. Send only the current message, target language, a short Example Product description/glossary, and at most six recent customer-visible turns capped around 2,000 tokens.
 4. Ask for schema-constrained JSON: source language, target language, translation, mixed-language/review flags, and ambiguities.
 5. Require every placeholder exactly once and reject unknown placeholders before restoring the originals byte-for-byte.
 
@@ -218,11 +218,11 @@ For likely legacy Burmese Zawgyi, convert only the model input to Unicode when d
 
 Use minimal thinking and leave Gemini 3 temperature at its documented default. Incoming translation may update asynchronously; outgoing translation fails closed. Retry transient `408`, `429`, and `5xx` failures with bounded jitter, and retry one invalid/safety result through a configured fallback. The source message ID deduplicates every attempt.
 
-Current Standard pricing makes model cost secondary: 10,000 short one-way translations are roughly $4.75 at 1,000 input/150 output tokens each, or $10 at 2,500 input/250 output tokens. See [pricing](https://ai.google.dev/gemini-api/docs/pricing). Measure the actual Canto path with targets of p50 below 1.5 seconds and p95 below four seconds for short messages.
+Current Standard pricing makes model cost secondary: 10,000 short one-way translations are roughly $4.75 at 1,000 input/150 output tokens each, or $10 at 2,500 input/250 output tokens. See [pricing](https://ai.google.dev/gemini-api/docs/pricing). Measure the actual Example Product path with targets of p50 below 1.5 seconds and p95 below four seconds for short messages.
 
-## Verified Canto integration
+## Verified Example Product integration
 
-Canto already has a one-component global seam. In `canto-transcriber/code/apps/web/src/routes/__root.tsx`, `AnalyticsProvider` and `CrispProvider` are siblings under `<ClientOnly>`. Replace the Crisp slot:
+Example Product already has a one-component global seam. In `example-product/code/apps/web/src/routes/__root.tsx`, `AnalyticsProvider` and `CrispProvider` are siblings under `<ClientOnly>`. Replace the Crisp slot:
 
 ```tsx
 <ClientOnly>
@@ -231,16 +231,16 @@ Canto already has a one-component global seam. In `canto-transcriber/code/apps/w
 </ClientOnly>
 ```
 
-`RespondKitProvider` wraps the generic package. Its async context resolver runs only when support is opened, preserving Canto's current lack of user API requests on untouched marketing pages:
+`RespondKitProvider` wraps the generic package. Its async context resolver runs only when support is opened, preserving Example Product's current lack of user API requests on untouched marketing pages:
 
 ```tsx
 <RespondKitWidget
-  inboxId="canto-transcriber"
+  inboxId="example-product"
   resolveContext={async () => {
     const [posthog, user] = await Promise.all([initPostHog(), getUserInfo()]);
 
     return {
-      product: "canto-transcriber",
+      product: "example-product",
       surface: "web",
       pageUrl: window.location.href,
       locale: document.documentElement.lang,
@@ -256,14 +256,14 @@ Canto already has a one-component global seam. In `canto-transcriber/code/apps/w
 
 `initPostHog()` is already single-flight and exposes the required IDs. The package must not touch browser globals during module evaluation; `<ClientOnly>` prevents server rendering but cannot make an unsafe static import safe.
 
-Required Canto changes after the base is ready:
+Required Example Product changes after the base is ready:
 
 - replace `CrispProvider` in `apps/web/src/routes/__root.tsx`;
 - add `apps/web/src/lib/respondkit-provider.tsx`;
 - remove the Crisp call from `apps/web/src/lib/user-tracking-provider.tsx`, which otherwise reloads Crisp in `/app`;
 - add the package/lockfile, provider test, update the user-tracking test, and update web documentation.
 
-No Canto backend, router, Worker binding, or generated route change is needed for this anonymous/manual base. Browser-reported IDs are displayed as unverified context and cannot authorize private data access.
+No Example Product backend, router, Worker binding, or generated route change is needed for this anonymous/manual base. Browser-reported IDs are displayed as unverified context and cannot authorize private data access.
 
 ## Repository shape
 
@@ -305,15 +305,15 @@ A realistic target is 7–10 focused engineering days for the base plus real Dis
 2. **React client (1–2 days):** launcher, panel, optimistic text, history/reconnect, responsive/accessibility pass, demo host.
 3. **Translation (1–2 days):** Gemini adapter, masking/schema validation, language state, Queue consumer, Thai/Burmese fixtures.
 4. **Discord (2–3 days):** forum/thread projection, Gateway container, ordinary replies, receipts, `/language`, echo/reconnect tests.
-5. **Canto pilot (1 day):** adapter, Crisp feature switch, context, integration tests, private rollout and rollback.
+5. **Example Product pilot (1 day):** adapter, Crisp feature switch, context, integration tests, private rollout and rollback.
 
-Attachments are the first follow-on slice because they matter to the Canto support experience; they should not delay proving the text/translation/Discord architecture.
+Attachments are the first follow-on slice because they matter to the Example Product support experience; they should not delay proving the text/translation/Discord architecture.
 
 ## Acceptance gate
 
 The base is working when:
 
-- the Canto root contains one support provider integration and Crisp can be selected as rollback without both widgets loading;
+- the Example Product root contains one support provider integration and Crisp can be selected as rollback without both widgets loading;
 - a real Thai and a real Burmese message each persist, translate to useful English, and arrive in the correct Discord thread;
 - an ordinary English Discord reply translates into the persisted customer language and appears exactly once in the correct browser;
 - refresh, WebSocket reconnect, Queue redelivery, and Gateway reconnect do not lose or duplicate messages;
@@ -321,14 +321,14 @@ The base is working when:
 - original and translated text, model/prompt version, Discord mapping, delivery state, and context provenance are inspectable through the API;
 - p95 translation is below four seconds and the complete message-to-Discord path is below five seconds under pilot load.
 
-Build a small anonymized evaluation set from actual Canto Burmese/Thai conversations. The supplied Crisp inbox URLs were not accessible from the available signed-in browser session, so volume/language statistics have not been invented; a connected browser or export is still needed for that corpus.
+Build a small anonymized evaluation set from actual Example Product Burmese/Thai conversations. The supplied Crisp inbox URLs were not accessible from the available signed-in browser session, so volume/language statistics have not been invented; a connected browser or export is still needed for that corpus.
 
 ## After the base
 
 Follow-on order is intentionally separate from the acceptance gate:
 
 1. R2 screenshot/screen-recording uploads with configurable abuse limits.
-2. Email continuity and server-signed Canto identity.
+2. Email continuity and server-signed Example Product identity.
 3. A Pi extension with a pull consumer that opens a fresh session and injects a bounded thread snapshot/context.
 4. Read-only PostHog tooling, reviewed agent manual, generated support documents, and controlled auto-send.
 5. SwiftUI/Jetpack Compose WebView clients, then other products.

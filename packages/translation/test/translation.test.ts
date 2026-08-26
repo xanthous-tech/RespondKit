@@ -58,7 +58,7 @@ function modelWithOutput(
 describe("protected text", () => {
   it("restores URLs, email, code, routes, identifiers, and coupons byte-for-byte", () => {
     const source = [
-      "Email me at dev@example.com and open https://canto.example/settings?q=1.",
+      "Email me at dev@example.com and open https://product.example/settings?q=1.",
       "Use `accountId`, /settings/billing, usr_abcd1234, and SAVE-20.",
       "```ts\nconst appRoute = '/support/new'\n```",
     ].join("\n");
@@ -66,7 +66,7 @@ describe("protected text", () => {
     const masked = maskProtectedText(source);
 
     expect(masked.text).not.toContain("dev@example.com");
-    expect(masked.text).not.toContain("https://canto.example/settings?q=1");
+    expect(masked.text).not.toContain("https://product.example/settings?q=1");
     expect(masked.text).not.toContain("/settings/billing");
     expect(masked.text).not.toContain("SAVE-20");
     expect(restoreProtectedText(masked.text, masked.fragments)).toBe(source);
@@ -98,17 +98,17 @@ describe("protected text", () => {
   });
 
   it("preserves explicit glossary terms", () => {
-    const masked = maskProtectedText("Use Canto Transcriber today", {
-      preserve: ["Canto Transcriber"],
+    const masked = maskProtectedText("Use Example Product today", {
+      preserve: ["Example Product"],
     });
 
     expect(masked.fragments).toEqual([
       expect.objectContaining({
         kind: "glossary",
-        value: "Canto Transcriber",
+        value: "Example Product",
       }),
     ]);
-    expect(restoreProtectedText(masked.text, masked.fragments)).toBe("Use Canto Transcriber today");
+    expect(restoreProtectedText(masked.text, masked.fragments)).toBe("Use Example Product today");
   });
 });
 
@@ -148,9 +148,9 @@ describe("translator", () => {
   });
 
   it("translates a Thai fixture with context and a preserved product name", async () => {
-    const source = "Canto Transcriber เปิดไฟล์ไม่ได้ ติดต่อ help@example.com";
+    const source = "Example Product เปิดไฟล์ไม่ได้ ติดต่อ help@example.com";
     const masked = maskProtectedText(source, {
-      preserve: ["Canto Transcriber"],
+      preserve: ["Example Product"],
     });
     const placeholders = masked.fragments.map((fragment) => fragment.placeholder);
     const model = modelWithOutput({
@@ -167,13 +167,13 @@ describe("translator", () => {
         { role: "customer", text: "ฉันอัปโหลดเสียงแล้ว" },
         { role: "operator", text: "Which file format did you upload?" },
       ],
-      glossary: [{ preserve: true, source: "Canto Transcriber" }],
+      glossary: [{ preserve: true, source: "Example Product" }],
       targetLanguage: "en",
       text: source,
     });
 
     expect(result.translatedText).toBe(
-      "Canto Transcriber cannot open the file. Contact help@example.com.",
+      "Example Product cannot open the file. Contact help@example.com.",
     );
     expect(result.mixedLanguage).toBe(true);
   });

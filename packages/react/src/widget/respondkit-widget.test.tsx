@@ -284,7 +284,7 @@ describe("RespondKitWidget", () => {
       <RespondKitWidget
         apiBaseUrl="https://support.test"
         context={{ inboxId: "inbox_test", locale: "en" }}
-        title="Canto Support"
+        title="Example Support"
       />,
     );
 
@@ -295,9 +295,9 @@ describe("RespondKitWidget", () => {
     });
     fireEvent.click(openLauncher);
 
-    expect(await screen.findByRole("dialog")).toHaveAccessibleName("Canto Support");
+    expect(await screen.findByRole("dialog")).toHaveAccessibleName("Example Support");
     await waitFor(() =>
-      expect(screen.getByRole("heading", { name: "Canto Support" })).toHaveFocus(),
+      expect(screen.getByRole("heading", { name: "Example Support" })).toHaveFocus(),
     );
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
     expect(await screen.findByText("How can I help?")).toBeVisible();

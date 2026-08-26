@@ -258,7 +258,7 @@ describe("DiscordRestClient", () => {
       guildId: ids.guild,
       forumChannelId: ids.forum,
       correlationMarker: marker,
-      name: "Canto support",
+      name: "Example Product support",
       starterContent: `Reference: ${marker}`,
     });
 
@@ -295,13 +295,13 @@ describe("DiscordRestClient", () => {
       guildId: ids.guild,
       forumChannelId: ids.forum,
       correlationMarker: marker,
-      name: "Canto support",
+      name: "Example Product support",
       starterContent: `Reference: ${marker}`,
     });
 
     const create = requests.find((request) => request.method === "POST");
     await expect(create?.json()).resolves.toEqual({
-      name: "Canto support",
+      name: "Example Product support",
       message: {
         content: `Reference: ${marker}`,
         allowed_mentions: { parse: [] },
@@ -341,7 +341,7 @@ describe("DiscordRestClient", () => {
         guildId: ids.guild,
         forumChannelId: ids.forum,
         correlationMarker: marker,
-        name: "Canto support",
+        name: "Example Product support",
         starterContent: starter.content,
       }),
     ).resolves.toEqual({ thread, starterMessage: starter, reconciled: true });
@@ -366,7 +366,7 @@ describe("DiscordRestClient", () => {
     const error = await client
       .createForumThread({
         forumChannelId: ids.forum,
-        name: "Canto support",
+        name: "Example Product support",
         starterContent: `Reference: ${marker}`,
       })
       .catch((caught: unknown) => caught);

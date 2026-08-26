@@ -3,7 +3,7 @@
 Status: superseded for implementation by [RespondKit base architecture v1](../architecture/base-v1.md); retained as broader follow-on architecture
 Last updated: 2026-08-24
 
-> The 2026-08-25 decision narrowed the launch to a React-only Canto Transcriber widget, durable text threads/messages, English-canonical translation, Discord `/reply` interactions, and a small API. Native clients, media, email, AI agents, multi-product support, and the paid-provider bridge are no longer base requirements. Use the linked base architecture for current implementation decisions.
+> The 2026-08-25 decision narrowed the launch to a React-only Example Product widget, durable text threads/messages, English-canonical translation, Discord `/reply` interactions, and a small API. Native clients, media, email, AI agents, multi-product support, and the paid-provider bridge are no longer base requirements. Use the linked base architecture for current implementation decisions.
 
 ## Outcome
 

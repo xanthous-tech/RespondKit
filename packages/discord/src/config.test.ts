@@ -6,7 +6,7 @@ describe("discordIntegrationConfigurationSchema", () => {
   it("normalizes a key-free integration topology", () => {
     expect(
       discordIntegrationConfigurationSchema.parse({
-        id: "canto-discord",
+        id: "example-discord",
         applicationId: "100000000000000001",
         guildId: "100000000000000002",
         forumChannelId: "100000000000000003",
@@ -25,7 +25,7 @@ describe("discordIntegrationConfigurationSchema", () => {
 
   it("requires at least one operator and valid Discord snowflakes", () => {
     const base = {
-      id: "canto-discord",
+      id: "example-discord",
       applicationId: "100000000000000001",
       guildId: "100000000000000002",
       forumChannelId: "100000000000000003",

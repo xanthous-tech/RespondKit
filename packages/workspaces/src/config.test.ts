@@ -32,43 +32,43 @@ describe("workspace configuration", () => {
   it("validates a minimal workspace topology", () => {
     const result = workspaceConfigurationSchema.parse({
       id: "workspace_one",
-      slug: "canto-transcriber",
-      name: "Canto Transcriber",
+      slug: "example-product",
+      name: "Example Product",
       products: [
         {
-          id: "product_canto",
-          slug: "canto-transcriber",
-          name: "Canto Transcriber",
+          id: "product_example",
+          slug: "example-product",
+          name: "Example Product",
           inboxes: [
             {
-              id: "inbox_canto",
+              id: "inbox_example",
               name: "Customer support",
-              allowedOrigins: ["https://canto.example.com"],
+              allowedOrigins: ["https://product.example.com"],
             },
           ],
         },
       ],
     });
 
-    expect(result.products[0]?.inboxes[0]?.allowedOrigins).toEqual(["https://canto.example.com"]);
+    expect(result.products[0]?.inboxes[0]?.allowedOrigins).toEqual(["https://product.example.com"]);
   });
 
   it("rejects an invalid default language tag before it reaches translation", () => {
     const result = workspaceConfigurationSchema.safeParse({
       id: "workspace_one",
-      slug: "canto-transcriber",
-      name: "Canto Transcriber",
+      slug: "example-product",
+      name: "Example Product",
       products: [
         {
-          id: "product_canto",
-          slug: "canto-transcriber",
-          name: "Canto Transcriber",
+          id: "product_example",
+          slug: "example-product",
+          name: "Example Product",
           inboxes: [
             {
-              id: "inbox_canto",
+              id: "inbox_example",
               name: "Customer support",
               defaultLocale: "not_a_language",
-              allowedOrigins: ["https://canto.example.com"],
+              allowedOrigins: ["https://product.example.com"],
             },
           ],
         },
