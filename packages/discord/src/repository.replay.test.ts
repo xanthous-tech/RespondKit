@@ -4,7 +4,7 @@ import type {
   ThreadId,
   WorkflowInstanceId,
   WorkspaceId,
-} from "@agent-chat/protocol";
+} from "@respondkit/protocol";
 import { DatabaseSync } from "node:sqlite";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import {

@@ -1,10 +1,10 @@
-import { createDiscordCorrelationMarker } from "@agent-chat/discord";
+import { createDiscordCorrelationMarker } from "@respondkit/discord";
 import {
   CreateClientSessionResponseV1Schema,
   CreateThreadResponseV1Schema,
   type SessionToken,
   type ThreadId,
-} from "@agent-chat/protocol";
+} from "@respondkit/protocol";
 import { env } from "cloudflare:test";
 
 import type { Env } from "../src/env";

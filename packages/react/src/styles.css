@@ -29,59 +29,59 @@
   }
 }
 
-.agent-chat-root {
-  --agent-chat-radius: 0.75rem;
-  --agent-chat-background: oklch(1 0 0);
-  --agent-chat-foreground: oklch(0.145 0 0);
-  --agent-chat-card: oklch(1 0 0);
-  --agent-chat-card-foreground: oklch(0.145 0 0);
-  --agent-chat-popover: oklch(1 0 0);
-  --agent-chat-popover-foreground: oklch(0.145 0 0);
-  --agent-chat-primary: oklch(0.456 0.214 277.02);
-  --agent-chat-primary-foreground: oklch(0.985 0 0);
-  --agent-chat-secondary: oklch(0.97 0 0);
-  --agent-chat-secondary-foreground: oklch(0.205 0 0);
-  --agent-chat-muted: oklch(0.97 0 0);
-  --agent-chat-muted-foreground: oklch(0.556 0 0);
-  --agent-chat-accent: oklch(0.97 0 0);
-  --agent-chat-accent-foreground: oklch(0.205 0 0);
-  --agent-chat-destructive: oklch(0.577 0.245 27.325);
-  --agent-chat-border: oklch(0.922 0 0);
-  --agent-chat-input: oklch(0.922 0 0);
-  --agent-chat-ring: oklch(0.456 0.214 277.02);
+.respondkit-root {
+  --respondkit-radius: 0.75rem;
+  --respondkit-background: oklch(1 0 0);
+  --respondkit-foreground: oklch(0.145 0 0);
+  --respondkit-card: oklch(1 0 0);
+  --respondkit-card-foreground: oklch(0.145 0 0);
+  --respondkit-popover: oklch(1 0 0);
+  --respondkit-popover-foreground: oklch(0.145 0 0);
+  --respondkit-primary: oklch(0.456 0.214 277.02);
+  --respondkit-primary-foreground: oklch(0.985 0 0);
+  --respondkit-secondary: oklch(0.97 0 0);
+  --respondkit-secondary-foreground: oklch(0.205 0 0);
+  --respondkit-muted: oklch(0.97 0 0);
+  --respondkit-muted-foreground: oklch(0.556 0 0);
+  --respondkit-accent: oklch(0.97 0 0);
+  --respondkit-accent-foreground: oklch(0.205 0 0);
+  --respondkit-destructive: oklch(0.577 0.245 27.325);
+  --respondkit-border: oklch(0.922 0 0);
+  --respondkit-input: oklch(0.922 0 0);
+  --respondkit-ring: oklch(0.456 0.214 277.02);
 }
 
 @theme inline {
-  --radius-sm: calc(var(--agent-chat-radius) - 4px);
-  --radius-md: calc(var(--agent-chat-radius) - 2px);
-  --radius-lg: var(--agent-chat-radius);
-  --radius-xl: calc(var(--agent-chat-radius) + 4px);
-  --color-background: var(--agent-chat-background);
-  --color-foreground: var(--agent-chat-foreground);
-  --color-card: var(--agent-chat-card);
-  --color-card-foreground: var(--agent-chat-card-foreground);
-  --color-popover: var(--agent-chat-popover);
-  --color-popover-foreground: var(--agent-chat-popover-foreground);
-  --color-primary: var(--agent-chat-primary);
-  --color-primary-foreground: var(--agent-chat-primary-foreground);
-  --color-secondary: var(--agent-chat-secondary);
-  --color-secondary-foreground: var(--agent-chat-secondary-foreground);
-  --color-muted: var(--agent-chat-muted);
-  --color-muted-foreground: var(--agent-chat-muted-foreground);
-  --color-accent: var(--agent-chat-accent);
-  --color-accent-foreground: var(--agent-chat-accent-foreground);
-  --color-destructive: var(--agent-chat-destructive);
-  --color-border: var(--agent-chat-border);
-  --color-input: var(--agent-chat-input);
-  --color-ring: var(--agent-chat-ring);
-  --radius-2xl: calc(var(--agent-chat-radius) + 8px);
-  --radius-3xl: calc(var(--agent-chat-radius) + 12px);
-  --radius-4xl: calc(var(--agent-chat-radius) + 16px);
+  --radius-sm: calc(var(--respondkit-radius) - 4px);
+  --radius-md: calc(var(--respondkit-radius) - 2px);
+  --radius-lg: var(--respondkit-radius);
+  --radius-xl: calc(var(--respondkit-radius) + 4px);
+  --color-background: var(--respondkit-background);
+  --color-foreground: var(--respondkit-foreground);
+  --color-card: var(--respondkit-card);
+  --color-card-foreground: var(--respondkit-card-foreground);
+  --color-popover: var(--respondkit-popover);
+  --color-popover-foreground: var(--respondkit-popover-foreground);
+  --color-primary: var(--respondkit-primary);
+  --color-primary-foreground: var(--respondkit-primary-foreground);
+  --color-secondary: var(--respondkit-secondary);
+  --color-secondary-foreground: var(--respondkit-secondary-foreground);
+  --color-muted: var(--respondkit-muted);
+  --color-muted-foreground: var(--respondkit-muted-foreground);
+  --color-accent: var(--respondkit-accent);
+  --color-accent-foreground: var(--respondkit-accent-foreground);
+  --color-destructive: var(--respondkit-destructive);
+  --color-border: var(--respondkit-border);
+  --color-input: var(--respondkit-input);
+  --color-ring: var(--respondkit-ring);
+  --radius-2xl: calc(var(--respondkit-radius) + 8px);
+  --radius-3xl: calc(var(--respondkit-radius) + 12px);
+  --radius-4xl: calc(var(--respondkit-radius) + 16px);
 }
 
 @layer base {
-  .agent-chat-root {
-    color: var(--agent-chat-foreground);
+  .respondkit-root {
+    color: var(--respondkit-foreground);
     font-family:
       Inter,
       ui-sans-serif,
@@ -94,26 +94,26 @@
     line-height: 1.5;
   }
 
-  .agent-chat-root *,
-  .agent-chat-root *::before,
-  .agent-chat-root *::after {
+  .respondkit-root *,
+  .respondkit-root *::before,
+  .respondkit-root *::after {
     box-sizing: border-box;
   }
 
-  .agent-chat-root button,
-  .agent-chat-root textarea {
+  .respondkit-root button,
+  .respondkit-root textarea {
     font: inherit;
   }
 
-  .agent-chat-root button {
+  .respondkit-root button {
     cursor: pointer;
   }
 
-  .agent-chat-root button:disabled {
+  .respondkit-root button:disabled {
     cursor: default;
   }
 }
 
-.agent-chat-safe-bottom {
+.respondkit-safe-bottom {
   padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
 }

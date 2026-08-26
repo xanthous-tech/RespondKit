@@ -23,7 +23,7 @@ customer message committed
   → extension starts a fresh in-memory Pi session
   → injects trigger + bounded thread snapshot + repository/manual context
   → Pi reads source/docs and calls allowlisted product tools
-  → extension submits draft/reply/abstain/escalate through Agent Chat API
+  → extension submits draft/reply/abstain/escalate through RespondKit API
 ```
 
 The implementation should use the current `@earendil-works/pi-coding-agent` SDK with an in-memory session per run. Pi moved packages in May 2026; see the [migration notice](https://pi.dev/news/2026/5/7/pi-has-a-new-home) and [SDK](https://pi.dev/docs/latest/sdk).
@@ -35,7 +35,7 @@ Customer messages are hostile input. Pi's own documentation says it is not a fil
 There are two viable shapes to evaluate later:
 
 1. The Pi extension pulls a dedicated Cloudflare Queue directly.
-2. A Cloudflare consumer materializes durable jobs, and the Pi extension pulls a product-scoped Agent Chat API.
+2. A Cloudflare consumer materializes durable jobs, and the Pi extension pulls a product-scoped RespondKit API.
 
 Direct Queue pull matches the desired extension ergonomics. The tradeoff is credential scope: acknowledgement requires Queues read and write, and Cloudflare permissions are account-scoped. See [pull consumers](https://developers.cloudflare.com/queues/configuration/pull-consumers/) and [API-token permissions](https://developers.cloudflare.com/fundamentals/api/reference/permissions/). This may be acceptable for a private single-account deployment; it should be re-evaluated before becoming a product contract.
 

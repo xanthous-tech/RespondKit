@@ -57,12 +57,12 @@ test("opens, restores the transcript, and sends a message", async ({ page }, tes
   await titleInput.fill("Canto Concierge");
   await accentSelect.selectOption("lime");
 
-  const widgetRoot = page.locator(".agent-chat-root[data-accent-color]").first();
+  const widgetRoot = page.locator(".respondkit-root[data-accent-color]").first();
   await expect(widgetRoot).toHaveAttribute("data-accent-color", "lime");
   await expect
     .poll(() =>
       widgetRoot.evaluate((element) =>
-        getComputedStyle(element).getPropertyValue("--agent-chat-primary").trim(),
+        getComputedStyle(element).getPropertyValue("--respondkit-primary").trim(),
       ),
     )
     .toBe("oklch(53.2% 0.157 131.589)");

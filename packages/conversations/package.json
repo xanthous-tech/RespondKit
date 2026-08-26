@@ -1,5 +1,5 @@
 {
-  "name": "@agent-chat/conversations",
+  "name": "@respondkit/conversations",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,8 +14,8 @@
     "typecheck": "vp check --no-fmt --no-lint"
   },
   "dependencies": {
-    "@agent-chat/protocol": "workspace:*",
-    "@agent-chat/workspaces": "workspace:*",
+    "@respondkit/protocol": "workspace:*",
+    "@respondkit/workspaces": "workspace:*",
     "drizzle-orm": "catalog:"
   },
   "devDependencies": {

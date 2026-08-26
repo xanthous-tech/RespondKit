@@ -1,5 +1,5 @@
 {
-  "name": "@agent-chat/widget-playground",
+  "name": "@respondkit/widget-playground",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@agent-chat/react": "workspace:*",
+    "@respondkit/react": "workspace:*",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

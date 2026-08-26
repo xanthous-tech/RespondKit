@@ -1,4 +1,4 @@
-export const agentChatAccentPalette = {
+export const respondKitAccentPalette = {
   red: "oklch(50.5% 0.213 27.518)",
   orange: "oklch(55.3% 0.195 38.402)",
   amber: "oklch(55.5% 0.163 48.998)",
@@ -23,4 +23,4 @@ export const agentChatAccentPalette = {
   stone: "oklch(37.4% 0.01 67.558)",
 } as const;
 
-export type AgentChatAccentColor = keyof typeof agentChatAccentPalette;
+export type RespondKitAccentColor = keyof typeof respondKitAccentPalette;

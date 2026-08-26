@@ -4,13 +4,13 @@ import type {
   ThreadId,
   WorkflowInstanceId,
   WorkspaceId,
-} from "@agent-chat/protocol";
+} from "@respondkit/protocol";
 import {
   findMessageById,
   prepareOperatorMessageStatements,
   type IngressAcceptanceKind,
   type MessageRow,
-} from "@agent-chat/conversations";
+} from "@respondkit/conversations";
 import { and, eq, lte, ne, or } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 

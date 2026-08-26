@@ -4,8 +4,8 @@ import {
   publishOperatorReply,
   recordTerminalFailure,
   storeCustomerTranslation,
-} from "@agent-chat/conversations";
-import { acceptReplyIngress } from "@agent-chat/discord";
+} from "@respondkit/conversations";
+import { acceptReplyIngress } from "@respondkit/discord";
 import {
   CreateClientSessionResponseV1Schema,
   CreateThreadResponseV1Schema,
@@ -17,8 +17,8 @@ import {
   type ClientMessageId,
   type SessionToken,
   type ThreadId,
-} from "@agent-chat/protocol";
-import type { TranslationResult } from "@agent-chat/translation";
+} from "@respondkit/protocol";
+import type { TranslationResult } from "@respondkit/translation";
 import {
   createExecutionContext,
   env,
@@ -773,7 +773,7 @@ describe("customer HTTP ingress and MessageWorkflow", () => {
       await env.MESSAGE_WORKFLOW.create({
         id: identity.workflowInstanceId,
         params: {
-          schema: "agent-chat.workflow-message/1",
+          schema: "respondkit.workflow-message/1",
           direction: "customer_to_operator",
           workspaceId,
           inboxId,

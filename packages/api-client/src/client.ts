@@ -23,7 +23,7 @@ import {
   type SendMessageResponseV1,
   type SessionToken,
   type ThreadId,
-} from "@agent-chat/protocol";
+} from "@respondkit/protocol";
 
 const DEFAULT_ACCEPTANCE_ATTEMPTS = 3;
 const DEFAULT_RETRY_DELAY_MS = 250;
@@ -36,7 +36,7 @@ export interface AcceptanceRetryOptions {
   readonly maxDelayMs?: number | undefined;
 }
 
-export interface AgentChatClientOptions {
+export interface RespondKitClientOptions {
   readonly baseUrl: string;
   /** Resolved lazily so importing this package is safe during SSR. */
   readonly fetch?: typeof globalThis.fetch | undefined;
@@ -48,7 +48,7 @@ export interface RequestOptions {
   readonly signal?: AbortSignal | undefined;
 }
 
-export interface AgentChatClient {
+export interface RespondKitClient {
   createSession(
     input: CreateClientSessionRequestV1,
     options?: RequestOptions,
@@ -72,7 +72,7 @@ export interface AgentChatClient {
   ): Promise<SendMessageResponseV1>;
 }
 
-export interface AgentChatClientErrorOptions {
+export interface RespondKitClientErrorOptions {
   readonly code: ApiErrorCode;
   readonly status?: number | undefined;
   readonly retryable: boolean;
@@ -81,16 +81,16 @@ export interface AgentChatClientErrorOptions {
   readonly cause?: unknown;
 }
 
-export class AgentChatClientError extends Error {
+export class RespondKitClientError extends Error {
   readonly code: ApiErrorCode;
   readonly status: number | undefined;
   readonly retryable: boolean;
   readonly requestId: string | undefined;
   readonly clientMessageId: ClientMessageId | undefined;
 
-  constructor(message: string, options: AgentChatClientErrorOptions) {
+  constructor(message: string, options: RespondKitClientErrorOptions) {
     super(message, { cause: options.cause });
-    this.name = "AgentChatClientError";
+    this.name = "RespondKitClientError";
     this.code = options.code;
     this.status = options.status;
     this.retryable = options.retryable;
@@ -108,7 +108,7 @@ interface NormalizedRetryOptions {
 function normalizeBaseUrl(baseUrl: string) {
   const normalized = baseUrl.replace(/\/+$/, "");
   if (normalized.length === 0) {
-    throw new TypeError("Agent Chat baseUrl must not be empty");
+    throw new TypeError("RespondKit baseUrl must not be empty");
   }
   return normalized;
 }
@@ -136,7 +136,7 @@ function normalizeRetryOptions(options: AcceptanceRetryOptions | undefined) {
 function resolveFetch(explicitFetch: typeof globalThis.fetch | undefined) {
   const fetchImplementation = explicitFetch ?? globalThis.fetch;
   if (fetchImplementation === undefined) {
-    throw new AgentChatClientError(
+    throw new RespondKitClientError(
       "No Fetch API implementation is available; pass fetch when creating the client",
       { code: "unavailable", retryable: false },
     );
@@ -157,7 +157,7 @@ async function responseJson(response: Response): Promise<unknown> {
   try {
     return await response.json();
   } catch (cause) {
-    throw new AgentChatClientError("Agent Chat returned a non-JSON response", {
+    throw new RespondKitClientError("RespondKit returned a non-JSON response", {
       code: "internal_error",
       status: response.status,
       retryable: response.status >= 500,
@@ -166,10 +166,10 @@ async function responseJson(response: Response): Promise<unknown> {
   }
 }
 
-function serverError(response: Response, body: unknown): AgentChatClientError {
+function serverError(response: Response, body: unknown): RespondKitClientError {
   const parsed = ApiErrorResponseV1Schema.safeParse(body);
   if (parsed.success) {
-    return new AgentChatClientError(parsed.data.error.message, {
+    return new RespondKitClientError(parsed.data.error.message, {
       code: parsed.data.error.code,
       status: response.status,
       retryable: parsed.data.error.retryable,
@@ -177,7 +177,7 @@ function serverError(response: Response, body: unknown): AgentChatClientError {
     });
   }
 
-  return new AgentChatClientError(`Agent Chat request failed with HTTP ${response.status}`, {
+  return new RespondKitClientError(`RespondKit request failed with HTTP ${response.status}`, {
     code: response.status === 429 ? "rate_limited" : "internal_error",
     status: response.status,
     retryable: response.status === 408 || response.status === 429 || response.status >= 500,
@@ -195,7 +195,7 @@ interface RuntimeSchema<T> {
 function parseSuccess<T>(schema: RuntimeSchema<T>, response: Response, body: unknown): T {
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
-    throw new AgentChatClientError("Agent Chat returned an invalid protocol response", {
+    throw new RespondKitClientError("RespondKit returned an invalid protocol response", {
       code: "internal_error",
       status: response.status,
       retryable: false,
@@ -253,7 +253,7 @@ function wasAborted(signal: AbortSignal | undefined) {
 }
 
 /** Creates a stateless, SSR-safe client for the public v1 customer API. */
-export function createAgentChatClient(options: AgentChatClientOptions): AgentChatClient {
+export function createRespondKitClient(options: RespondKitClientOptions): RespondKitClient {
   const baseUrl = normalizeBaseUrl(options.baseUrl);
   const baseHeaders = options.headers ?? {};
   const acceptanceRetry = normalizeRetryOptions(options.acceptanceRetry);
@@ -277,7 +277,7 @@ export function createAgentChatClient(options: AgentChatClientOptions): AgentCha
       });
     } catch (cause) {
       if (wasAborted(input.signal)) throw cause;
-      throw new AgentChatClientError("Unable to reach Agent Chat", {
+      throw new RespondKitClientError("Unable to reach RespondKit", {
         code: "unavailable",
         retryable: true,
         cause,
@@ -314,8 +314,8 @@ export function createAgentChatClient(options: AgentChatClientOptions): AgentCha
         signal: requestOptions?.signal,
       });
       if (response.thread.clientThreadId !== immutableInput.clientThreadId) {
-        throw new AgentChatClientError(
-          "Agent Chat returned a response for a different client thread",
+        throw new RespondKitClientError(
+          "RespondKit returned a response for a different client thread",
           { code: "internal_error", retryable: false },
         );
       }
@@ -339,8 +339,8 @@ export function createAgentChatClient(options: AgentChatClientOptions): AgentCha
         signal: requestOptions?.signal,
       });
       if (page.threadId !== parsedThreadId) {
-        throw new AgentChatClientError(
-          "Agent Chat returned messages for a different support thread",
+        throw new RespondKitClientError(
+          "RespondKit returned messages for a different support thread",
           { code: "internal_error", retryable: false },
         );
       }
@@ -414,8 +414,8 @@ export function createAgentChatClient(options: AgentChatClientOptions): AgentCha
         const acceptance = SendMessageResponseV1Schema.safeParse(responseBody);
         if (acceptance.success) {
           if (acceptance.data.acceptance.clientMessageId !== immutableInput.clientMessageId) {
-            throw new AgentChatClientError(
-              "Agent Chat returned a response for a different client message",
+            throw new RespondKitClientError(
+              "RespondKit returned a response for a different client message",
               {
                 code: "internal_error",
                 status: response.status,
@@ -428,8 +428,8 @@ export function createAgentChatClient(options: AgentChatClientOptions): AgentCha
             acceptance.data.acceptance.message !== undefined &&
             acceptance.data.acceptance.message.threadId !== parsedThreadId
           ) {
-            throw new AgentChatClientError(
-              "Agent Chat returned a message from a different support thread",
+            throw new RespondKitClientError(
+              "RespondKit returned a message from a different support thread",
               {
                 code: "internal_error",
                 status: response.status,
@@ -450,7 +450,7 @@ export function createAgentChatClient(options: AgentChatClientOptions): AgentCha
           continue;
         }
 
-        lastCause = new AgentChatClientError("Agent Chat returned an invalid protocol response", {
+        lastCause = new RespondKitClientError("RespondKit returned an invalid protocol response", {
           code: "internal_error",
           status: response.status,
           retryable: true,
@@ -461,7 +461,7 @@ export function createAgentChatClient(options: AgentChatClientOptions): AgentCha
         await wait(retryDelay(acceptanceRetry, attempt, response), requestOptions?.signal);
       }
 
-      throw new AgentChatClientError(
+      throw new RespondKitClientError(
         "Message acceptance is unknown; retry the same immutable message request",
         {
           code: "acceptance_unknown",

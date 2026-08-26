@@ -240,11 +240,11 @@ Do not make React Native or Flutter the universal substrate; they are excellent 
 
 A durable package shape would be:
 
-- `@agent-chat/core`: DOM-free protocol, auth, cursor sync, outbox, typed events.
-- `@agent-chat/widget`: hosted drop-in widget.
-- `@agent-chat/react`: controlled/headless React primitives and source-owned recipes.
-- `AgentChatCore` + `AgentChatUI`: Swift Package modules.
-- `agent-chat-core` + `agent-chat-ui-compose`: Android Maven modules.
+- `@respondkit/core`: DOM-free protocol, auth, cursor sync, outbox, typed events.
+- `@respondkit/widget`: hosted drop-in widget.
+- `@respondkit/react`: controlled/headless React primitives and source-owned recipes.
+- `RespondKitCore` + `RespondKitUI`: Swift Package modules.
+- `respondkit-core` + `respondkit-ui-compose`: Android Maven modules.
 - React Native and Flutter adapters later.
 - One generated protocol/schema with capability negotiation and plain-text fallbacks for unknown rich message types.
 

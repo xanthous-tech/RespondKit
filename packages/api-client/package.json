@@ -1,7 +1,7 @@
 {
-  "name": "@agent-chat/api-client",
+  "name": "@respondkit/api-client",
   "version": "0.1.0",
-  "description": "SSR-safe typed Agent Chat customer API client",
+  "description": "SSR-safe typed RespondKit customer API client",
   "files": [
     "src/client.ts",
     "src/index.ts"
@@ -22,7 +22,7 @@
     "test": "vp test"
   },
   "dependencies": {
-    "@agent-chat/protocol": "workspace:^"
+    "@respondkit/protocol": "workspace:^"
   },
   "devDependencies": {
     "typescript": "catalog:",

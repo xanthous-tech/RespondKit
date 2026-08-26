@@ -7,7 +7,7 @@ import {
   toMessageBusinessStatus,
   type MessageRow,
   type ThreadRow,
-} from "@agent-chat/conversations";
+} from "@respondkit/conversations";
 import {
   DISCORD_PONG_RESPONSE,
   DiscordChannelType,
@@ -20,7 +20,7 @@ import {
   resolveAuthorizedDiscordThread,
   verifyDiscordSignature,
   type ParsedDiscordCommandInteraction,
-} from "@agent-chat/discord";
+} from "@respondkit/discord";
 import {
   ApiErrorResponseV1Schema,
   CreateClientSessionRequestV1Schema,
@@ -30,7 +30,7 @@ import {
   deriveCustomerMessageIdentity,
   type ApiErrorCode,
   type MessageAcceptanceV1,
-} from "@agent-chat/protocol";
+} from "@respondkit/protocol";
 import {
   findInboxById,
   findInboxByPublicId,
@@ -40,7 +40,7 @@ import {
   upsertVisitor,
   type InboxContext,
   type VisitorRow,
-} from "@agent-chat/workspaces";
+} from "@respondkit/workspaces";
 import { Hono, type Context } from "hono";
 import { z } from "zod";
 
@@ -351,7 +351,7 @@ function customerEnvelope(input: {
   readonly acceptedAt: Date;
 }): MessageWorkflowEnvelope {
   return {
-    schema: "agent-chat.workflow-message/1",
+    schema: "respondkit.workflow-message/1",
     direction: "customer_to_operator",
     workspaceId: input.auth.claims.workspaceId,
     inboxId: input.auth.claims.inboxId,
@@ -399,7 +399,7 @@ function operatorEnvelope(input: {
   readonly acceptedAt: Date;
 }): MessageWorkflowEnvelope {
   return {
-    schema: "agent-chat.workflow-message/1",
+    schema: "respondkit.workflow-message/1",
     direction: "operator_to_customer",
     workspaceId: input.workspaceId,
     inboxId: input.inboxId,
@@ -440,10 +440,10 @@ export function createHttpApp() {
         new ApiHttpError(400, "invalid_request", "The request payload is invalid"),
       );
     }
-    console.error("Unhandled Agent Chat API error", error);
+    console.error("Unhandled RespondKit API error", error);
     return apiError(
       context,
-      new ApiHttpError(500, "internal_error", "Agent Chat could not process the request", true),
+      new ApiHttpError(500, "internal_error", "RespondKit could not process the request", true),
     );
   });
 
@@ -456,7 +456,7 @@ export function createHttpApp() {
   app.get("/health", (context) =>
     context.json({
       ok: true,
-      service: "agent-chat-api",
+      service: "respondkit-api",
     }),
   );
 

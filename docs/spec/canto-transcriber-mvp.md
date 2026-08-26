@@ -1,6 +1,6 @@
 # Canto Transcriber support base
 
-Status: superseded for implementation by [Agent Chat base architecture v1](../architecture/base-v1.md); retained as the earlier Durable Object/Gateway design
+Status: superseded for implementation by [RespondKit base architecture v1](../architecture/base-v1.md); retained as the earlier Durable Object/Gateway design
 Last updated: 2026-08-25
 First integration: `canto-transcriber` web
 
@@ -104,7 +104,7 @@ Only `text` is accepted in v0. Unknown future kinds fall back to a plain unsuppo
 Canto React widget
   | HTTP history/send + short-lived WebSocket ticket
   v
-Agent Chat Worker API
+RespondKit Worker API
   |
   v
 Thread Durable Object (ordered writes, SQLite, hibernating WebSockets)
@@ -117,7 +117,7 @@ separate Cloudflare Queues
 
 Discord Gateway bot in a small Cloudflare Container
   | normalized authorized message event
-  +----------------------> Agent Chat Worker API
+  +----------------------> RespondKit Worker API
 ```
 
 Responsibilities:
@@ -227,14 +227,14 @@ Canto already has a one-component global seam. In `canto-transcriber/code/apps/w
 ```tsx
 <ClientOnly>
   <AnalyticsProvider />
-  <AgentChatProvider />
+  <RespondKitProvider />
 </ClientOnly>
 ```
 
-`AgentChatProvider` wraps the generic package. Its async context resolver runs only when support is opened, preserving Canto's current lack of user API requests on untouched marketing pages:
+`RespondKitProvider` wraps the generic package. Its async context resolver runs only when support is opened, preserving Canto's current lack of user API requests on untouched marketing pages:
 
 ```tsx
-<AgentChatWidget
+<RespondKitWidget
   inboxId="canto-transcriber"
   resolveContext={async () => {
     const [posthog, user] = await Promise.all([initPostHog(), getUserInfo()]);
@@ -259,7 +259,7 @@ Canto already has a one-component global seam. In `canto-transcriber/code/apps/w
 Required Canto changes after the base is ready:
 
 - replace `CrispProvider` in `apps/web/src/routes/__root.tsx`;
-- add `apps/web/src/lib/agent-chat-provider.tsx`;
+- add `apps/web/src/lib/respondkit-provider.tsx`;
 - remove the Crisp call from `apps/web/src/lib/user-tracking-provider.tsx`, which otherwise reloads Crisp in `/app`;
 - add the package/lockfile, provider test, update the user-tracking test, and update web documentation.
 

@@ -123,19 +123,19 @@ importers:
 
   apps/api:
     dependencies:
-      '@agent-chat/conversations':
+      '@respondkit/conversations':
         specifier: workspace:*
         version: link:../../packages/conversations
-      '@agent-chat/discord':
+      '@respondkit/discord':
         specifier: workspace:*
         version: link:../../packages/discord
-      '@agent-chat/protocol':
+      '@respondkit/protocol':
         specifier: workspace:*
         version: link:../../packages/protocol
-      '@agent-chat/translation':
+      '@respondkit/translation':
         specifier: workspace:*
         version: link:../../packages/translation
-      '@agent-chat/workspaces':
+      '@respondkit/workspaces':
         specifier: workspace:*
         version: link:../../packages/workspaces
       drizzle-orm:
@@ -175,7 +175,7 @@ importers:
 
   apps/widget:
     dependencies:
-      '@agent-chat/react':
+      '@respondkit/react':
         specifier: workspace:*
         version: link:../../packages/react
       react:
@@ -221,7 +221,7 @@ importers:
 
   packages/api-client:
     dependencies:
-      '@agent-chat/protocol':
+      '@respondkit/protocol':
         specifier: workspace:^
         version: link:../protocol
     devDependencies:
@@ -234,10 +234,10 @@ importers:
 
   packages/conversations:
     dependencies:
-      '@agent-chat/protocol':
+      '@respondkit/protocol':
         specifier: workspace:*
         version: link:../protocol
-      '@agent-chat/workspaces':
+      '@respondkit/workspaces':
         specifier: workspace:*
         version: link:../workspaces
       drizzle-orm:
@@ -256,13 +256,13 @@ importers:
 
   packages/discord:
     dependencies:
-      '@agent-chat/conversations':
+      '@respondkit/conversations':
         specifier: workspace:*
         version: link:../conversations
-      '@agent-chat/protocol':
+      '@respondkit/protocol':
         specifier: workspace:*
         version: link:../protocol
-      '@agent-chat/workspaces':
+      '@respondkit/workspaces':
         specifier: workspace:*
         version: link:../workspaces
       drizzle-orm:
@@ -300,12 +300,12 @@ importers:
 
   packages/react:
     dependencies:
-      '@agent-chat/api-client':
-        specifier: workspace:^
-        version: link:../api-client
       '@base-ui/react':
         specifier: 'catalog:'
         version: 1.7.0(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@respondkit/api-client':
+        specifier: workspace:^
+        version: link:../api-client
       class-variance-authority:
         specifier: 'catalog:'
         version: 0.7.1
@@ -380,7 +380,7 @@ importers:
 
   packages/workspaces:
     dependencies:
-      '@agent-chat/protocol':
+      '@respondkit/protocol':
         specifier: workspace:*
         version: link:../protocol
       drizzle-orm:

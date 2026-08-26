@@ -1,4 +1,4 @@
-import "@agent-chat/react/styles.css";
+import "@respondkit/react/styles.css";
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";

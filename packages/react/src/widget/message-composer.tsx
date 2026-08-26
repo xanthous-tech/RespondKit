@@ -32,7 +32,7 @@ export function MessageComposer({ disabled, onSend }: MessageComposerProps) {
   return (
     <form
       ref={formRef}
-      className="agent-chat-safe-bottom ac:flex ac:items-end ac:gap-2 ac:border-t ac:border-border ac:bg-background ac:p-3"
+      className="respondkit-safe-bottom ac:flex ac:items-end ac:gap-2 ac:border-t ac:border-border ac:bg-background ac:p-3"
       onSubmit={submit}
     >
       <Textarea

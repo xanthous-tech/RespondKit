@@ -9,7 +9,7 @@ import {
   reopenMessageForRetry,
   storeCustomerTranslation,
   type MessageFailureStage,
-} from "@agent-chat/conversations";
+} from "@respondkit/conversations";
 import {
   DiscordRestClient,
   DiscordRestError,
@@ -25,15 +25,15 @@ import {
   markDiscordProjectionSent,
   splitDiscordMessage,
   type DiscordProjectionKind,
-} from "@agent-chat/discord";
+} from "@respondkit/discord";
 import {
   TranslationError,
   classifyTranslationError,
   createGeminiTranslationModel,
   createTranslator,
   type TranslationResult,
-} from "@agent-chat/translation";
-import { findInboxById } from "@agent-chat/workspaces";
+} from "@respondkit/translation";
+import { findInboxById } from "@respondkit/workspaces";
 import {
   WorkflowEntrypoint,
   type WorkflowDynamicDelayContext,
@@ -157,7 +157,7 @@ function discordClient(env: Env): DiscordRestClient {
   return new DiscordRestClient({
     botToken: env.DISCORD_BOT_TOKEN,
     baseUrl: env.DISCORD_API_BASE_URL,
-    userAgent: "AgentChat (https://github.com/lhr0909/agent-chat, 0.1)",
+    userAgent: "RespondKit (https://github.com/xanthous-tech/RespondKit, 0.1)",
   });
 }
 
@@ -177,7 +177,7 @@ function safeThreadName(envelope: MessageWorkflowEnvelope): string {
 
 function starterContent(envelope: MessageWorkflowEnvelope, marker: string): string {
   const lines = [
-    "**New Agent Chat support conversation**",
+    "**New RespondKit support conversation**",
     `Inbox: \`${envelope.inboxId}\``,
     `Thread: \`${envelope.threadId}\``,
     envelope.direction === "customer_to_operator" && envelope.context.email !== undefined

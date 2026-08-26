@@ -1,4 +1,4 @@
-# Agent Chat base architecture v1
+# RespondKit base architecture v1
 
 Status: Implemented MVP foundation; external Gemini/Discord soak testing pending
 Last updated: 2026-08-25
@@ -13,7 +13,7 @@ This is the implementation architecture for the first Canto pilot.
 3. Cloudflare Workflow creation is the durable acceptance boundary for messages. The API validates ingress and awaits an idempotent, deterministic `createBatch([one])` call before returning `202 Accepted` to the widget or `Queued` to Discord. The Workflow's first step idempotently writes the canonical message to D1.
 4. D1 is the canonical transcript and product store after that first Workflow step. The customer widget uses optimistic updates plus a two-second cursor poll; there is no per-thread Durable Object or customer WebSocket.
 5. V1 has no Queues, dead-letter queue, scheduled recovery job, transactional outbox, or Durable Object. Workflow supplies durable checkpoints and retries. Discord sends signed command interactions to the HTTP Worker, while outgoing forum/thread/message operations use Discord REST.
-6. `apps/widget` is only a widget playground and E2E host. Canto imports `@agent-chat/react` directly. Only `apps/widget` and `apps/api` build; functional packages export TypeScript source.
+6. `apps/widget` is only a widget playground and E2E host. Canto imports `@respondkit/react` directly. Only `apps/widget` and `apps/api` build; functional packages export TypeScript source.
 
 ## Runtime architecture
 
@@ -23,7 +23,7 @@ flowchart LR
 
   subgraph Customer[Customer surface]
     Canto[Canto Transcriber]
-    Widget[@agent-chat/react]
+    Widget[@respondkit/react]
     Canto --> Widget
   end
 
@@ -134,7 +134,7 @@ Pilot limitation: ambiguous Discord delivery reconciliation is deliberately boun
 
 See Discord's [interaction overview](https://docs.discord.com/developers/interactions/overview), [receiving and responding rules](https://docs.discord.com/developers/interactions/receiving-and-responding), and [application-command schema](https://docs.discord.com/developers/interactions/application-commands). Cloudflare Web Crypto supports [Ed25519 verification](https://developers.cloudflare.com/workers/runtime-apis/web-crypto/).
 
-Ordinary typed Discord messages, `@bot` mentions, edits, deletes, reactions, and manually created forum posts are deliberately not input surfaces in v1. Without a Gateway they are not observed or ingested by Agent Chat. A future `/note` command, Reply button, or modal still works through the same HTTP interaction endpoint and does not require a socket.
+Ordinary typed Discord messages, `@bot` mentions, edits, deletes, reactions, and manually created forum posts are deliberately not input surfaces in v1. Without a Gateway they are not observed or ingested by RespondKit. A future `/note` command, Reply button, or modal still works through the same HTTP interaction endpoint and does not require a socket.
 
 ## Why Workflow, and why no Queues or Durable Objects
 
@@ -167,10 +167,10 @@ D1 remains canonical even if a later DO provides coordination or realtime fanout
 ## Monorepo and build boundary
 
 ```text
-agent-chat/
+respondkit/
   apps/
     widget/                         Vite widget playground and browser/E2E host
-      src/main.tsx                  mounts the real @agent-chat/react package
+      src/main.tsx                  mounts the real @respondkit/react package
       vite.config.ts
       package.json
     api/                            sole deployed Worker application
@@ -231,7 +231,7 @@ The API's `wrangler.jsonc` has one same-script Workflow binding and no Queue con
 {
   "workflows": [
     {
-      "name": "agent-chat-message",
+      "name": "respondkit-message",
       "binding": "MESSAGE_WORKFLOW",
       "class_name": "MessageWorkflow"
     }
@@ -279,7 +279,7 @@ Private app/server edges use `workspace:*`. The publishable client chain uses `w
 
 ```json
 {
-  "name": "@agent-chat/react",
+  "name": "@respondkit/react",
   "version": "0.1.0",
   "type": "module",
   "files": ["src/components", "src/lib", "src/widget", "src/index.ts", "src/styles.css"],
@@ -291,7 +291,7 @@ Private app/server edges use `workspace:*`. The publishable client chain uses `w
     "./styles.css": "./src/styles.css"
   },
   "dependencies": {
-    "@agent-chat/api-client": "workspace:^"
+    "@respondkit/api-client": "workspace:^"
   },
   "peerDependencies": {
     "react": ">=18"
@@ -300,7 +300,7 @@ Private app/server edges use `workspace:*`. The publishable client chain uses `w
 }
 ```
 
-`@agent-chat/api-client` likewise declares its direct `@agent-chat/protocol` dependency; no package relies on a transitive import or workspace hoisting.
+`@respondkit/api-client` likewise declares its direct `@respondkit/protocol` dependency; no package relies on a transitive import or workspace hoisting.
 
 Use strict ESM TypeScript with `moduleResolution: "Bundler"`, `verbatimModuleSyntax`, and no emit. Do not use path aliases for package names; they can hide undeclared dependencies. Wrangler and Vite both follow the `.ts` exports and perform the only production builds. See [pnpm workspaces](https://pnpm.io/workspaces) and [Wrangler bundling](https://developers.cloudflare.com/workers/wrangler/bundling/).
 
@@ -551,4 +551,4 @@ There is no Queue consumer, scheduled handler, bespoke/admin operator API, or pu
 
 The monorepo, source packages, API/Workflow composition, D1 model and migration, setup scripts, interaction-only Discord connector, Gemini adapter, and responsive React widget are implemented. Key-free unit, D1/Workflow integration, build, pack, and desktop/mobile browser tests form the automated gate.
 
-The remaining pilot work requires separately provisioned development credentials: apply the real Canto/Discord topology, register the guild commands, run Thai and Burmese messages through Gemini and Discord, validate an English `/reply` back to each customer language, then integrate `@agent-chat/react` into Canto behind a Crisp rollback switch. Attachments remain the first follow-on slice after this real-language soak test.
+The remaining pilot work requires separately provisioned development credentials: apply the real Canto/Discord topology, register the guild commands, run Thai and Burmese messages through Gemini and Discord, validate an English `/reply` back to each customer language, then integrate `@respondkit/react` into Canto behind a Crisp rollback switch. Attachments remain the first follow-on slice after this real-language soak test.

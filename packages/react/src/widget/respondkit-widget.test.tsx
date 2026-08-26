@@ -2,8 +2,8 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
-import { AgentChatWidget } from "./agent-chat-widget";
-import { agentChatAccentPalette } from "./theme";
+import { RespondKitWidget } from "./respondkit-widget";
+import { respondKitAccentPalette } from "./theme";
 
 function json(body: unknown, init?: ResponseInit) {
   return new Response(JSON.stringify(body), {
@@ -217,13 +217,13 @@ afterEach(() => {
   window.localStorage.clear();
 });
 
-describe("AgentChatWidget", () => {
+describe("RespondKitWidget", () => {
   it("applies the selected accent theme without rendering a translation notice", async () => {
     const apiFetch = createApiFetch();
     vi.stubGlobal("fetch", apiFetch);
 
     const { container } = render(
-      <AgentChatWidget
+      <RespondKitWidget
         accentColor="lime"
         apiBaseUrl="https://support.test"
         context={{ inboxId: "inbox_test", locale: "en" }}
@@ -234,8 +234,8 @@ describe("AgentChatWidget", () => {
     const root = container.querySelector<HTMLElement>("[data-accent-color='lime']");
     expect(root).not.toBeNull();
     expect(root).toHaveAttribute("data-accent-color", "lime");
-    expect(root?.style.getPropertyValue("--agent-chat-primary")).toBe(agentChatAccentPalette.lime);
-    expect(root?.style.getPropertyValue("--agent-chat-ring")).toBe(agentChatAccentPalette.lime);
+    expect(root?.style.getPropertyValue("--respondkit-primary")).toBe(respondKitAccentPalette.lime);
+    expect(root?.style.getPropertyValue("--respondkit-ring")).toBe(respondKitAccentPalette.lime);
     expect(
       screen.queryByText("Messages are translated for our support team."),
     ).not.toBeInTheDocument();
@@ -252,7 +252,7 @@ describe("AgentChatWidget", () => {
     const user = userEvent.setup();
 
     render(
-      <AgentChatWidget
+      <RespondKitWidget
         apiBaseUrl="https://support.test"
         context={{ inboxId: "inbox_test", locale: "en" }}
         initiallyOpen
@@ -281,7 +281,7 @@ describe("AgentChatWidget", () => {
     vi.stubGlobal("fetch", apiFetch);
 
     render(
-      <AgentChatWidget
+      <RespondKitWidget
         apiBaseUrl="https://support.test"
         context={{ inboxId: "inbox_test", locale: "en" }}
         title="Canto Support"
@@ -331,7 +331,7 @@ describe("AgentChatWidget", () => {
     vi.stubGlobal("fetch", apiFetch);
 
     render(
-      <AgentChatWidget
+      <RespondKitWidget
         apiBaseUrl="https://support.test"
         context={{ inboxId: "inbox_test", locale: "en" }}
         initiallyOpen
@@ -364,7 +364,7 @@ describe("AgentChatWidget", () => {
     vi.stubGlobal("fetch", apiFetch);
 
     render(
-      <AgentChatWidget
+      <RespondKitWidget
         apiBaseUrl="https://support.test"
         context={{ inboxId: "inbox_test", locale: "en" }}
       />,
@@ -403,7 +403,7 @@ describe("AgentChatWidget", () => {
     const user = userEvent.setup();
 
     render(
-      <AgentChatWidget
+      <RespondKitWidget
         apiBaseUrl="https://support.test"
         context={{ inboxId: "inbox_test", locale: "en" }}
         initiallyOpen
@@ -446,7 +446,7 @@ describe("AgentChatWidget", () => {
     const user = userEvent.setup();
 
     render(
-      <AgentChatWidget
+      <RespondKitWidget
         apiBaseUrl="https://support.test"
         context={{ inboxId: "inbox_test", locale: "en" }}
         initiallyOpen
@@ -477,7 +477,7 @@ describe("AgentChatWidget", () => {
     const user = userEvent.setup();
 
     render(
-      <AgentChatWidget
+      <RespondKitWidget
         apiBaseUrl="https://support.test"
         context={{ inboxId: "inbox_test", locale: "en" }}
         initiallyOpen
@@ -513,7 +513,7 @@ describe("AgentChatWidget", () => {
     vi.stubGlobal("fetch", apiFetch);
 
     const { rerender } = render(
-      <AgentChatWidget
+      <RespondKitWidget
         apiBaseUrl="https://support.test"
         context={{ inboxId: "inbox_test", userId: "user_one" }}
         initiallyOpen
@@ -527,7 +527,7 @@ describe("AgentChatWidget", () => {
     });
 
     rerender(
-      <AgentChatWidget
+      <RespondKitWidget
         apiBaseUrl="https://support.test"
         context={{ inboxId: "inbox_test", userId: "user_two" }}
         initiallyOpen
@@ -580,7 +580,7 @@ describe("AgentChatWidget", () => {
     const user = userEvent.setup();
 
     const { rerender } = render(
-      <AgentChatWidget
+      <RespondKitWidget
         apiBaseUrl="https://support.test"
         context={{ inboxId: "inbox_test", userId: "user_one" }}
         initiallyOpen
@@ -593,7 +593,7 @@ describe("AgentChatWidget", () => {
     expect(await screen.findByText("Message from the old account")).toBeVisible();
 
     rerender(
-      <AgentChatWidget
+      <RespondKitWidget
         apiBaseUrl="https://support.test"
         context={{ inboxId: "inbox_test", userId: "user_two" }}
         initiallyOpen

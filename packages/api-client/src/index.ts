@@ -1,19 +1,19 @@
-export { AgentChatClientError, createAgentChatClient } from "./client";
+export { RespondKitClientError, createRespondKitClient } from "./client";
 export type {
   AcceptanceRetryOptions,
-  AgentChatClient,
-  AgentChatClientErrorOptions,
-  AgentChatClientOptions,
+  RespondKitClient,
+  RespondKitClientErrorOptions,
+  RespondKitClientOptions,
   RequestOptions,
 } from "./client";
 
-// Customer-facing facade: @agent-chat/react can consume these without taking a
-// hidden transitive dependency on @agent-chat/protocol.
+// Customer-facing facade: @respondkit/react can consume these without taking a
+// hidden transitive dependency on @respondkit/protocol.
 export {
   createClientMessageId,
   createClientThreadId,
   createInstallationId,
-} from "@agent-chat/protocol";
+} from "@respondkit/protocol";
 export type {
   ClientMessageId,
   ClientSessionV1,
@@ -39,4 +39,4 @@ export type {
   SessionToken,
   ThreadId,
   ThreadV1,
-} from "@agent-chat/protocol";
+} from "@respondkit/protocol";

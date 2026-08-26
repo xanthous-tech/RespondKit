@@ -4,7 +4,7 @@ import { acceptWorkflow, isActiveWorkflow } from "./workflow-binding";
 import type { MessageWorkflowEnvelope } from "./workflows/envelope";
 
 const envelope: MessageWorkflowEnvelope = {
-  schema: "agent-chat.workflow-message/1",
+  schema: "respondkit.workflow-message/1",
   direction: "customer_to_operator",
   workspaceId: "workspace_test",
   inboxId: "inbox_test",

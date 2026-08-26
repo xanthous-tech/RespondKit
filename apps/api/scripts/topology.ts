@@ -4,12 +4,12 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
-import { discordIntegrationConfigurationSchema } from "@agent-chat/discord";
+import { discordIntegrationConfigurationSchema } from "@respondkit/discord";
 import {
   inboxConfigurationSchema,
   productConfigurationSchema,
   workspaceConfigurationSchema,
-} from "@agent-chat/workspaces";
+} from "@respondkit/workspaces";
 import { z } from "zod";
 
 const configuredInboxSchema = inboxConfigurationSchema.extend({

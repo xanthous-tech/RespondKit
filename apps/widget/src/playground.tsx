@@ -1,17 +1,17 @@
 import {
-  AgentChatWidget,
-  agentChatAccentPalette,
-  type AgentChatAccentColor,
-} from "@agent-chat/react";
+  RespondKitWidget,
+  respondKitAccentPalette,
+  type RespondKitAccentColor,
+} from "@respondkit/react";
 import { useState } from "react";
 
 import { demoApiFetch } from "./demo-api";
 
-const accentColors = Object.keys(agentChatAccentPalette) as AgentChatAccentColor[];
+const accentColors = Object.keys(respondKitAccentPalette) as RespondKitAccentColor[];
 
 export function Playground() {
   const [title, setTitle] = useState("Canto Support");
-  const [accentColor, setAccentColor] = useState<AgentChatAccentColor>("indigo");
+  const [accentColor, setAccentColor] = useState<RespondKitAccentColor>("indigo");
   const [initiallyOpen, setInitiallyOpen] = useState(false);
 
   return (
@@ -38,13 +38,13 @@ export function Playground() {
             <span className="color-select-shell">
               <span
                 className="color-swatch"
-                style={{ backgroundColor: agentChatAccentPalette[accentColor] }}
+                style={{ backgroundColor: respondKitAccentPalette[accentColor] }}
                 aria-hidden="true"
               />
               <select
                 value={accentColor}
                 onChange={(event) =>
-                  setAccentColor(event.currentTarget.value as AgentChatAccentColor)
+                  setAccentColor(event.currentTarget.value as RespondKitAccentColor)
                 }
               >
                 {accentColors.map((color) => (
@@ -70,16 +70,16 @@ export function Playground() {
         </div>
       </section>
 
-      <AgentChatWidget
+      <RespondKitWidget
         key={`initially-open-${initiallyOpen}`}
         accentColor={accentColor}
-        apiBaseUrl={import.meta.env.VITE_AGENT_CHAT_API_URL ?? "https://demo.agent-chat.local"}
+        apiBaseUrl={import.meta.env.VITE_RESPONDKIT_API_URL ?? "https://demo.respondkit.local"}
         context={{
-          inboxId: import.meta.env.VITE_AGENT_CHAT_INBOX_ID ?? "inbox_demo",
+          inboxId: import.meta.env.VITE_RESPONDKIT_INBOX_ID ?? "inbox_demo",
           locale: navigator.language,
           path: window.location.pathname,
         }}
-        fetch={import.meta.env.VITE_AGENT_CHAT_API_URL === undefined ? demoApiFetch : undefined}
+        fetch={import.meta.env.VITE_RESPONDKIT_API_URL === undefined ? demoApiFetch : undefined}
         initiallyOpen={initiallyOpen}
         title={title || "Support"}
       />
