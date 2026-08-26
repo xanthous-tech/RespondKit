@@ -8,10 +8,12 @@
     "test:all": "vp run -r test",
     "build:all": "vp run -r build",
     "ready": "vp check && vp run -r test && vp run -r build",
+    "deploy:staging": "vp -C apps/api run deploy:staging",
     "dev:widget": "vp -C apps/widget dev",
     "dev:api": "vp -C apps/api run dev",
     "db:generate": "vp -C apps/api run db:generate",
     "db:migrate:local": "vp -C apps/api run db:migrate:local",
+    "db:migrate:staging": "vp -C apps/api run db:migrate:staging",
     "config:apply": "vp -C apps/api exec tsx scripts/config-apply.ts",
     "discord:commands:apply": "vp -C apps/api exec tsx scripts/discord-register.ts"
   },
