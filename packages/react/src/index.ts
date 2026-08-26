@@ -1,4 +1,4 @@
-export { AgentChatWidget } from "./widget/agent-chat-widget";
-export type { AgentChatContext, AgentChatWidgetProps } from "./widget/agent-chat-widget";
-export { agentChatAccentPalette } from "./widget/theme";
-export type { AgentChatAccentColor } from "./widget/theme";
+export { RespondKitWidget } from "./widget/respondkit-widget";
+export type { RespondKitContext, RespondKitWidgetProps } from "./widget/respondkit-widget";
+export { respondKitAccentPalette } from "./widget/theme";
+export type { RespondKitAccentColor } from "./widget/theme";

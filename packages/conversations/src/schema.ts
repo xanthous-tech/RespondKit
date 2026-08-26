@@ -8,8 +8,8 @@ import type {
   VisitorId,
   WorkflowInstanceId,
   WorkspaceId,
-} from "@agent-chat/protocol";
-import { inboxes, visitors } from "@agent-chat/workspaces";
+} from "@respondkit/protocol";
+import { inboxes, visitors } from "@respondkit/workspaces";
 import { sql } from "drizzle-orm";
 import {
   check,

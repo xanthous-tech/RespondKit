@@ -1,7 +1,7 @@
 {
-  "name": "@agent-chat/protocol",
+  "name": "@respondkit/protocol",
   "version": "0.1.0",
-  "description": "Versioned public protocol for Agent Chat customer clients",
+  "description": "Versioned public protocol for RespondKit customer clients",
   "files": [
     "src/customer.ts",
     "src/errors.ts",

@@ -4,7 +4,7 @@ import type {
   JsonValue,
   VisitorId,
   WorkspaceId,
-} from "@agent-chat/protocol";
+} from "@respondkit/protocol";
 import { sql } from "drizzle-orm";
 import {
   check,

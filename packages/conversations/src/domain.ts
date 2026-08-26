@@ -1,4 +1,4 @@
-import type { MessageState } from "@agent-chat/protocol";
+import type { MessageState } from "@respondkit/protocol";
 
 import type {
   CustomerAvailabilityStatus,

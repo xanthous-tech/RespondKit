@@ -24,7 +24,7 @@ function parseOptions(): ApplyOptions {
   const { values } = parseArgs({
     options: {
       config: { type: "string", short: "c" },
-      database: { type: "string", default: "agent-chat" },
+      database: { type: "string", default: "respondkit" },
       "dry-run": { type: "boolean", default: false },
       env: { type: "string" },
       help: { type: "boolean", short: "h", default: false },
@@ -54,14 +54,14 @@ function parseOptions(): ApplyOptions {
 }
 
 function printHelp(): void {
-  console.log(`Apply the non-secret Agent Chat topology to D1.
+  console.log(`Apply the non-secret RespondKit topology to D1.
 
 Usage:
   vp exec tsx scripts/config-apply.ts [options]
 
 Options:
   -c, --config <path>    Topology JSON (default: config/workspaces.local.json)
-      --database <name>  D1 database name (default: agent-chat)
+      --database <name>  D1 database name (default: respondkit)
       --local            Apply to Wrangler's local D1 database (default)
       --remote           Apply to a remote D1 database
       --env <name>       Wrangler environment; implies --remote unless --local is set
@@ -118,7 +118,7 @@ async function main(): Promise<void> {
   );
   await runWrangler(["d1", "migrations", "apply", options.database, ...target]);
 
-  const temporaryDirectory = await mkdtemp(join(tmpdir(), "agent-chat-config-"));
+  const temporaryDirectory = await mkdtemp(join(tmpdir(), "respondkit-config-"));
   const seedPath = join(temporaryDirectory, "topology.sql");
 
   try {

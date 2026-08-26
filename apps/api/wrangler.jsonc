@@ -1,6 +1,6 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
-  "name": "agent-chat-api",
+  "name": "respondkit-api",
   "main": "src/index.ts",
   "compatibility_date": "2026-08-25",
   "observability": {
@@ -14,14 +14,14 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "agent-chat",
+      "database_name": "respondkit",
       "database_id": "00000000-0000-0000-0000-000000000000",
       "migrations_dir": "migrations",
     },
   ],
   "workflows": [
     {
-      "name": "agent-chat-message",
+      "name": "respondkit-message",
       "binding": "MESSAGE_WORKFLOW",
       "class_name": "MessageWorkflow",
     },

@@ -1,6 +1,6 @@
-import type { InboxId, MessageId, ThreadId, WorkspaceId } from "@agent-chat/protocol";
-import { messages, threads } from "@agent-chat/conversations";
-import { inboxes } from "@agent-chat/workspaces";
+import type { InboxId, MessageId, ThreadId, WorkspaceId } from "@respondkit/protocol";
+import { messages, threads } from "@respondkit/conversations";
+import { inboxes } from "@respondkit/workspaces";
 import { sql } from "drizzle-orm";
 import {
   check,

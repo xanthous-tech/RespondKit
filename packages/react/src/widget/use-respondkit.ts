@@ -1,6 +1,6 @@
 import {
-  AgentChatClientError,
-  createAgentChatClient,
+  RespondKitClientError,
+  createRespondKitClient,
   createClientMessageId,
   createClientThreadId,
   createInstallationId,
@@ -9,11 +9,11 @@ import {
   type MessageAcceptanceV1,
   type MessageV1,
   type ThreadV1,
-} from "@agent-chat/api-client";
+} from "@respondkit/api-client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type {
-  AgentChatContext,
+  RespondKitContext,
   BootstrapState,
   DisplayMessage,
   LocalDeliveryState,
@@ -30,9 +30,9 @@ interface PendingMessage {
   readonly delivery: LocalDeliveryState;
 }
 
-interface UseAgentChatInput {
+interface UseRespondKitInput {
   readonly apiBaseUrl: string;
-  readonly context: AgentChatContext;
+  readonly context: RespondKitContext;
   readonly fetch?: typeof globalThis.fetch | undefined;
   readonly open: boolean;
 }
@@ -63,7 +63,7 @@ async function identityStorageScope(userId: string | undefined) {
     .join("")}`;
 }
 
-function contextPayload(context: AgentChatContext) {
+function contextPayload(context: RespondKitContext) {
   const metadata = {
     ...context.metadata,
     ...(context.path === undefined ? {} : { pagePath: context.path }),
@@ -138,9 +138,9 @@ function displayMessages(
   });
 }
 
-export function useAgentChat({ apiBaseUrl, context, fetch, open }: UseAgentChatInput) {
+export function useRespondKit({ apiBaseUrl, context, fetch, open }: UseRespondKitInput) {
   const client = useMemo(
-    () => createAgentChatClient({ baseUrl: apiBaseUrl, fetch }),
+    () => createRespondKitClient({ baseUrl: apiBaseUrl, fetch }),
     [apiBaseUrl, fetch],
   );
   const contextKey = JSON.stringify(context);
@@ -194,7 +194,7 @@ export function useAgentChat({ apiBaseUrl, context, fetch, open }: UseAgentChatI
         const currentContext = contextRef.current;
         const identityScope = await identityStorageScope(currentContext.userId);
         if (!active) return;
-        const storagePrefix = `agent-chat:${currentContext.inboxId}:${identityScope}`;
+        const storagePrefix = `respondkit:${currentContext.inboxId}:${identityScope}`;
         const installationId = storageValue(
           `${storagePrefix}:installation-id`,
           createInstallationId,
@@ -352,7 +352,7 @@ export function useAgentChat({ apiBaseUrl, context, fetch, open }: UseAgentChatI
       } catch (error) {
         if (identityEpochRef.current !== identityEpoch) return;
         const acceptanceUnknown =
-          error instanceof AgentChatClientError && error.code === "acceptance_unknown";
+          error instanceof RespondKitClientError && error.code === "acceptance_unknown";
         setPendingMessages((current) => {
           const next = new Map(current);
           next.set(pending.clientMessageId, {

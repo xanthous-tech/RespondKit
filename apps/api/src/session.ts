@@ -9,7 +9,7 @@ import {
   type SessionToken,
   type VisitorId,
   type WorkspaceId,
-} from "@agent-chat/protocol";
+} from "@respondkit/protocol";
 import { z } from "zod";
 
 const SESSION_TOKEN_VERSION = "v1";

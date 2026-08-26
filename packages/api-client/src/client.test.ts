@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vite-plus/test";
 
-import { AgentChatClientError, createAgentChatClient } from "./index";
+import { RespondKitClientError, createRespondKitClient } from "./index";
 
 const SESSION_TOKEN = "session_token_that_is_long_enough";
 
@@ -25,7 +25,7 @@ function acceptedResponse(status = "accepted") {
   );
 }
 
-describe("Agent Chat API client", () => {
+describe("RespondKit API client", () => {
   it("builds authenticated cursor requests", async () => {
     const after = String(Number.MAX_SAFE_INTEGER - 1);
     const nextCursor = String(Number.MAX_SAFE_INTEGER);
@@ -37,7 +37,7 @@ describe("Agent Chat API client", () => {
         hasMore: false,
       }),
     );
-    const client = createAgentChatClient({ baseUrl: "https://chat.example.com/", fetch });
+    const client = createRespondKitClient({ baseUrl: "https://chat.example.com/", fetch });
 
     const page = await client.listMessages(SESSION_TOKEN, "thread_1", { after, limit: 50 });
 
@@ -60,7 +60,7 @@ describe("Agent Chat API client", () => {
         hasMore: false,
       }),
     );
-    const client = createAgentChatClient({ baseUrl: "https://chat.example.com", fetch });
+    const client = createRespondKitClient({ baseUrl: "https://chat.example.com", fetch });
 
     await expect(client.listMessages(SESSION_TOKEN, "thread_expected")).rejects.toMatchObject({
       code: "internal_error",
@@ -73,7 +73,7 @@ describe("Agent Chat API client", () => {
       .fn<typeof globalThis.fetch>()
       .mockRejectedValueOnce(new TypeError("connection reset"))
       .mockResolvedValueOnce(acceptedResponse());
-    const client = createAgentChatClient({
+    const client = createRespondKitClient({
       baseUrl: "https://chat.example.com",
       fetch,
       acceptanceRetry: { attempts: 2, delayMs: 0, maxDelayMs: 0 },
@@ -97,7 +97,7 @@ describe("Agent Chat API client", () => {
       .fn<typeof globalThis.fetch>()
       .mockResolvedValueOnce(acceptedResponse("acceptance_unknown"))
       .mockResolvedValueOnce(acceptedResponse("already_accepted"));
-    const client = createAgentChatClient({
+    const client = createRespondKitClient({
       baseUrl: "https://chat.example.com",
       fetch,
       acceptanceRetry: { attempts: 2, delayMs: 0, maxDelayMs: 0 },
@@ -119,7 +119,7 @@ describe("Agent Chat API client", () => {
     const fetch = vi
       .fn<typeof globalThis.fetch>()
       .mockImplementation(async () => acceptedResponse("acceptance_unknown"));
-    const client = createAgentChatClient({
+    const client = createRespondKitClient({
       baseUrl: "https://chat.example.com",
       fetch,
       acceptanceRetry: { attempts: 2, delayMs: 0, maxDelayMs: 0 },
@@ -150,7 +150,7 @@ describe("Agent Chat API client", () => {
         { status: 202 },
       ),
     );
-    const client = createAgentChatClient({ baseUrl: "https://chat.example.com", fetch });
+    const client = createRespondKitClient({ baseUrl: "https://chat.example.com", fetch });
 
     await expect(
       client.sendMessage(SESSION_TOKEN, "thread_1", {
@@ -186,7 +186,7 @@ describe("Agent Chat API client", () => {
         { status: 202 },
       ),
     );
-    const client = createAgentChatClient({ baseUrl: "https://chat.example.com", fetch });
+    const client = createRespondKitClient({ baseUrl: "https://chat.example.com", fetch });
 
     await expect(
       client.sendMessage(SESSION_TOKEN, "thread_expected", {
@@ -205,7 +205,7 @@ describe("Agent Chat API client", () => {
       .fn<typeof globalThis.fetch>()
       .mockResolvedValueOnce(new Response("not json", { status: 202 }))
       .mockResolvedValueOnce(acceptedResponse("already_accepted"));
-    const client = createAgentChatClient({
+    const client = createRespondKitClient({
       baseUrl: "https://chat.example.com",
       fetch,
       acceptanceRetry: { attempts: 2, delayMs: 0, maxDelayMs: 0 },
@@ -222,7 +222,7 @@ describe("Agent Chat API client", () => {
 
   it("throws a typed acceptance_unknown after ambiguous transport exhaustion", async () => {
     const fetch = vi.fn<typeof globalThis.fetch>().mockRejectedValue(new TypeError("offline"));
-    const client = createAgentChatClient({
+    const client = createRespondKitClient({
       baseUrl: "https://chat.example.com",
       fetch,
       acceptanceRetry: { attempts: 2, delayMs: 0, maxDelayMs: 0 },
@@ -238,7 +238,7 @@ describe("Agent Chat API client", () => {
       clientMessageId: "cmsg_1",
       retryable: true,
     });
-    await expect(promise).rejects.toBeInstanceOf(AgentChatClientError);
+    await expect(promise).rejects.toBeInstanceOf(RespondKitClientError);
   });
 
   it("does not retry a rejected immutable payload", async () => {
@@ -254,7 +254,7 @@ describe("Agent Chat API client", () => {
         { status: 400 },
       ),
     );
-    const client = createAgentChatClient({ baseUrl: "https://chat.example.com", fetch });
+    const client = createRespondKitClient({ baseUrl: "https://chat.example.com", fetch });
 
     await expect(
       client.sendMessage(SESSION_TOKEN, "thread_1", {
@@ -269,7 +269,7 @@ describe("Agent Chat API client", () => {
     const fetch = vi
       .fn<typeof globalThis.fetch>()
       .mockResolvedValue(new Response("forbidden", { status: 403 }));
-    const client = createAgentChatClient({
+    const client = createRespondKitClient({
       baseUrl: "https://chat.example.com",
       fetch,
       acceptanceRetry: { attempts: 3, delayMs: 0, maxDelayMs: 0 },
@@ -297,7 +297,7 @@ describe("Agent Chat API client", () => {
         { status: 400 },
       ),
     );
-    const client = createAgentChatClient({ baseUrl: "https://chat.example.com", fetch });
+    const client = createRespondKitClient({ baseUrl: "https://chat.example.com", fetch });
 
     await expect(
       client.sendMessage(SESSION_TOKEN, "thread_1", {
@@ -313,7 +313,7 @@ describe("Agent Chat API client", () => {
       .fn<typeof globalThis.fetch>()
       .mockResolvedValueOnce(jsonResponse({ accepted: true }, { status: 202 }))
       .mockResolvedValueOnce(acceptedResponse("already_accepted"));
-    const client = createAgentChatClient({
+    const client = createRespondKitClient({
       baseUrl: "https://chat.example.com",
       fetch,
       acceptanceRetry: { attempts: 2, delayMs: 0, maxDelayMs: 0 },
@@ -331,7 +331,7 @@ describe("Agent Chat API client", () => {
 
   it("does not resolve fetch or browser globals until a method is called", () => {
     expect(() =>
-      createAgentChatClient({
+      createRespondKitClient({
         baseUrl: "/support",
         fetch: undefined,
         acceptanceRetry: { attempts: 1 },

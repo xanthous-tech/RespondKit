@@ -1,8 +1,8 @@
-import type { MessageDirection, MessageState } from "@agent-chat/api-client";
+import type { MessageDirection, MessageState } from "@respondkit/api-client";
 
-export type AgentChatMetadataValue = string | number | boolean | null;
+export type RespondKitMetadataValue = string | number | boolean | null;
 
-export interface AgentChatContext {
+export interface RespondKitContext {
   readonly inboxId: string;
   readonly userId?: string | undefined;
   readonly email?: string | undefined;
@@ -10,7 +10,7 @@ export interface AgentChatContext {
   readonly locale?: string | undefined;
   readonly timezone?: string | undefined;
   readonly path?: string | undefined;
-  readonly metadata?: Readonly<Record<string, AgentChatMetadataValue>> | undefined;
+  readonly metadata?: Readonly<Record<string, RespondKitMetadataValue>> | undefined;
 }
 
 export type BootstrapState =

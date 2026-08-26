@@ -1,5 +1,5 @@
 {
-  "name": "@agent-chat/api",
+  "name": "@respondkit/api",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,17 +10,17 @@
     "test": "vp test --config vitest.config.ts",
     "typegen": "vp exec wrangler types --env-interface CloudflareBindings",
     "db:generate": "vp exec drizzle-kit generate",
-    "db:migrate:local": "vp exec wrangler d1 migrations apply agent-chat --local",
+    "db:migrate:local": "vp exec wrangler d1 migrations apply respondkit --local",
     "db:migrate:staging": "vp exec wrangler d1 migrations apply respondkit-staging --remote --env staging",
     "config:apply": "vp exec tsx scripts/config-apply.ts",
     "discord:commands:apply": "vp exec tsx scripts/discord-register.ts"
   },
   "dependencies": {
-    "@agent-chat/conversations": "workspace:*",
-    "@agent-chat/discord": "workspace:*",
-    "@agent-chat/protocol": "workspace:*",
-    "@agent-chat/translation": "workspace:*",
-    "@agent-chat/workspaces": "workspace:*",
+    "@respondkit/conversations": "workspace:*",
+    "@respondkit/discord": "workspace:*",
+    "@respondkit/protocol": "workspace:*",
+    "@respondkit/translation": "workspace:*",
+    "@respondkit/workspaces": "workspace:*",
     "drizzle-orm": "catalog:",
     "hono": "catalog:",
     "zod": "catalog:"

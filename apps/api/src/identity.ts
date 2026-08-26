@@ -11,11 +11,11 @@ import {
   type VisitorId,
   type WorkflowInstanceId,
   type WorkspaceId,
-} from "@agent-chat/protocol";
+} from "@respondkit/protocol";
 
 function runtimeCrypto(): Crypto {
   if (globalThis.crypto === undefined) {
-    throw new Error("Agent Chat requires the Web Crypto API");
+    throw new Error("RespondKit requires the Web Crypto API");
   }
   return globalThis.crypto;
 }
@@ -37,7 +37,7 @@ export async function deriveVisitorId(input: {
   readonly installationId: string;
 }): Promise<VisitorId> {
   return VisitorIdSchema.parse(
-    `visitor_${await digest("agent-chat/visitor/v1", [
+    `visitor_${await digest("respondkit/visitor/v1", [
       input.workspaceId,
       input.inboxId,
       input.installationId,
@@ -52,7 +52,7 @@ export async function deriveThreadId(input: {
   readonly clientThreadId: ClientThreadId;
 }): Promise<ThreadId> {
   return ThreadIdSchema.parse(
-    `thread_${await digest("agent-chat/thread/v1", [
+    `thread_${await digest("respondkit/thread/v1", [
       input.workspaceId,
       input.inboxId,
       input.visitorId,
@@ -72,8 +72,8 @@ export async function deriveOperatorMessageIdentity(input: {
 }): Promise<OperatorMessageIdentity> {
   const parts = [input.applicationId, input.interactionId] as const;
   const [message, workflow] = await Promise.all([
-    digest("agent-chat/operator-message/v1", parts),
-    digest("agent-chat/operator-workflow/v1", parts),
+    digest("respondkit/operator-message/v1", parts),
+    digest("respondkit/operator-workflow/v1", parts),
   ]);
   return {
     messageId: MessageIdSchema.parse(`msg_${message}`),

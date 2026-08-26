@@ -7,29 +7,29 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "#compo
 
 import { MessageComposer } from "./message-composer";
 import { MessageList } from "./message-list";
-import { agentChatAccentPalette, type AgentChatAccentColor } from "./theme";
-import type { AgentChatContext } from "./types";
-import { useAgentChat } from "./use-agent-chat";
+import { respondKitAccentPalette, type RespondKitAccentColor } from "./theme";
+import type { RespondKitContext } from "./types";
+import { useRespondKit } from "./use-respondkit";
 
-export type { AgentChatContext } from "./types";
+export type { RespondKitContext } from "./types";
 
-export interface AgentChatWidgetProps {
+export interface RespondKitWidgetProps {
   readonly apiBaseUrl: string;
-  readonly context: AgentChatContext;
+  readonly context: RespondKitContext;
   readonly fetch?: typeof globalThis.fetch | undefined;
   readonly title?: string | undefined;
   readonly initiallyOpen?: boolean | undefined;
-  readonly accentColor?: AgentChatAccentColor | undefined;
+  readonly accentColor?: RespondKitAccentColor | undefined;
 }
 
-export function AgentChatWidget({
+export function RespondKitWidget({
   apiBaseUrl,
   context,
   fetch,
   title = "Support",
   initiallyOpen = false,
   accentColor = "indigo",
-}: AgentChatWidgetProps) {
+}: RespondKitWidgetProps) {
   const [open, setOpen] = useState(initiallyOpen);
   const titleId = useId();
   const launcherRef = useRef<HTMLButtonElement>(null);
@@ -42,7 +42,7 @@ export function AgentChatWidget({
     retryMessage,
     sendMessage,
     transcriptState,
-  } = useAgentChat({ apiBaseUrl, context, fetch, open });
+  } = useRespondKit({ apiBaseUrl, context, fetch, open });
 
   useEffect(() => {
     if (!open) return;
@@ -72,16 +72,16 @@ export function AgentChatWidget({
     setOpen(true);
   }
 
-  const accentValue = agentChatAccentPalette[accentColor];
+  const accentValue = respondKitAccentPalette[accentColor];
   const themeStyle = {
-    "--agent-chat-primary": accentValue,
-    "--agent-chat-ring": accentValue,
+    "--respondkit-primary": accentValue,
+    "--respondkit-ring": accentValue,
   } as CSSProperties;
 
   return (
     <TooltipProvider>
       <div
-        className="agent-chat-root ac:fixed ac:right-4 ac:bottom-4 ac:z-[2147483000]"
+        className="respondkit-root ac:fixed ac:right-4 ac:bottom-4 ac:z-[2147483000]"
         data-accent-color={accentColor}
         style={themeStyle}
       >

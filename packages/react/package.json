@@ -1,15 +1,15 @@
 {
-  "name": "@agent-chat/react",
+  "name": "@respondkit/react",
   "version": "0.1.0",
   "files": [
     "src/components",
     "src/lib",
-    "src/widget/agent-chat-widget.tsx",
+    "src/widget/respondkit-widget.tsx",
     "src/widget/message-composer.tsx",
     "src/widget/message-list.tsx",
     "src/widget/theme.ts",
     "src/widget/types.ts",
-    "src/widget/use-agent-chat.ts",
+    "src/widget/use-respondkit.ts",
     "src/index.ts",
     "src/styles.css"
   ],
@@ -34,8 +34,8 @@
     "typecheck": "vp check --no-fmt --no-lint"
   },
   "dependencies": {
-    "@agent-chat/api-client": "workspace:^",
     "@base-ui/react": "catalog:",
+    "@respondkit/api-client": "workspace:^",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
     "lucide-react": "catalog:",

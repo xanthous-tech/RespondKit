@@ -10,7 +10,7 @@ import type {
   VisitorId,
   WorkflowInstanceId,
   WorkspaceId,
-} from "@agent-chat/protocol";
+} from "@respondkit/protocol";
 import { and, asc, desc, eq, gt, inArray, or, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 

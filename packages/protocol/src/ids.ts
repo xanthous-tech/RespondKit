@@ -61,7 +61,7 @@ export const INITIAL_CURSOR: Cursor = "0";
 function runtimeCrypto(): Crypto {
   const crypto = globalThis.crypto;
   if (crypto === undefined) {
-    throw new Error("Agent Chat ID generation requires the Web Crypto API");
+    throw new Error("RespondKit ID generation requires the Web Crypto API");
   }
   return crypto;
 }
@@ -118,8 +118,8 @@ export async function deriveCustomerMessageIdentity(
 ): Promise<CustomerMessageIdentity> {
   const parts = [input.workspaceId, input.threadId, input.clientMessageId] as const;
   const [messageDigest, workflowDigest] = await Promise.all([
-    stableDigest("agent-chat/message/v1", parts),
-    stableDigest("agent-chat/customer-workflow/v1", parts),
+    stableDigest("respondkit/message/v1", parts),
+    stableDigest("respondkit/customer-workflow/v1", parts),
   ]);
 
   return {

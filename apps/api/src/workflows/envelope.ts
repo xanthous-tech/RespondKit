@@ -12,7 +12,7 @@ const boundedContextSchema = z.object({
 });
 
 const sharedEnvelopeSchema = z.object({
-  schema: z.literal("agent-chat.workflow-message/1"),
+  schema: z.literal("respondkit.workflow-message/1"),
   workspaceId: z.string().min(1).max(128),
   inboxId: z.string().min(1).max(128),
   threadId: z.string().min(1).max(128),

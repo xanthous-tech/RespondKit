@@ -4,7 +4,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
-import { DISCORD_GUILD_COMMANDS } from "@agent-chat/discord";
+import { DISCORD_GUILD_COMMANDS } from "@respondkit/discord";
 
 import { collectDiscordCommandTargets, loadTopologyConfiguration } from "./topology";
 
@@ -39,7 +39,7 @@ function parseOptions(): RegisterOptions {
 }
 
 function printHelp(): void {
-  console.log(`Bulk-overwrite Agent Chat's guild-scoped Discord commands.
+  console.log(`Bulk-overwrite RespondKit's guild-scoped Discord commands.
 
 Usage:
   vp exec tsx scripts/discord-register.ts [options]
@@ -64,7 +64,7 @@ async function registerGuildCommands(
     headers: {
       authorization: `Bot ${token}`,
       "content-type": "application/json",
-      "user-agent": "Agent Chat command setup",
+      "user-agent": "RespondKit command setup",
     },
     body: JSON.stringify(DISCORD_GUILD_COMMANDS),
   });

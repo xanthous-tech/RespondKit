@@ -5,7 +5,7 @@ import {
   LanguageTagSchema,
   VisitorIdSchema,
   WorkspaceIdSchema,
-} from "@agent-chat/protocol";
+} from "@respondkit/protocol";
 import { z } from "zod";
 
 const slugSchema = z
