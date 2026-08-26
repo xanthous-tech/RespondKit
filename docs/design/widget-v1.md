@@ -6,7 +6,7 @@ Status: implemented and key-free tested on desktop and mobile
 
 The widget borrows the useful product ideas from [chatcn](https://github.com/leonickson1/chatcn)—copy-owned shadcn components, a small provider-free widget surface, rounded message groups, explicit delivery state, responsive widget/full-screen layouts, and theme tokens—without adopting its much broader messenger feature set.
 
-For the Canto MVP, the deliberately narrow surface is:
+For the MVP, the deliberately narrow surface is:
 
 - one launcher and one support dialog;
 - a persistent customer thread with cursor polling;

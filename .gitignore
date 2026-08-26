@@ -6,6 +6,7 @@ coverage/
 .vite-plus/
 playwright-report/
 test-results/
+artifacts/
 
 .env
 .env.*

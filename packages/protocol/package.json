@@ -2,7 +2,24 @@
   "name": "@respondkit/protocol",
   "version": "0.1.0",
   "description": "Versioned public protocol for RespondKit customer clients",
+  "keywords": [
+    "customer-support",
+    "respondkit",
+    "typescript",
+    "zod"
+  ],
+  "homepage": "https://respondkit.dev",
+  "bugs": {
+    "url": "https://github.com/xanthous-tech/RespondKit/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xanthous-tech/RespondKit.git",
+    "directory": "packages/protocol"
+  },
   "files": [
+    "dist",
     "src/customer.ts",
     "src/errors.ts",
     "src/ids.ts",
@@ -17,9 +34,18 @@
     }
   },
   "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js",
+        "default": "./dist/index.js"
+      },
+      "./package.json": "./package.json"
+    },
     "access": "public"
   },
   "scripts": {
+    "build:npm": "vp pack",
     "typecheck": "vp check",
     "test": "vp test"
   },
@@ -31,6 +57,6 @@
     "vite-plus": "catalog:"
   },
   "engines": {
-    "node": ">=22.18.0"
+    "node": ">=18.18.0"
   }
 }

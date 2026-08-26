@@ -6,14 +6,14 @@ Scope: pnpm/TypeScript monorepo, React customer widget, D1 chat storage, Cloudfl
 
 ## Implemented decisions
 
-This is the implementation architecture for the first Canto pilot.
+This is the implementation architecture for the first product pilot.
 
 1. Discord is the only operator UI. Operators reply with a guild-scoped `/reply message:<English text>` command inside the mapped support thread. Recovery-only `/status reference:<interaction ID>` and `/retry reference:<interaction ID> message:<original English text>` resolve rare ambiguous acceptances using the original idempotency key. There is no Better Auth dependency, magic-link flow, operator web app, or authenticated admin API.
 2. Workspace, product, inbox, origin, and Discord-channel configuration live in D1 and are applied by a local Wrangler-authenticated bootstrap command.
 3. Cloudflare Workflow creation is the durable acceptance boundary for messages. The API validates ingress and awaits an idempotent, deterministic `createBatch([one])` call before returning `202 Accepted` to the widget or `Queued` to Discord. The Workflow's first step idempotently writes the canonical message to D1.
 4. D1 is the canonical transcript and product store after that first Workflow step. The customer widget uses optimistic updates plus a two-second cursor poll; there is no per-thread Durable Object or customer WebSocket.
 5. V1 has no Queues, dead-letter queue, scheduled recovery job, transactional outbox, or Durable Object. Workflow supplies durable checkpoints and retries. Discord sends signed command interactions to the HTTP Worker, while outgoing forum/thread/message operations use Discord REST.
-6. `apps/widget` is only a widget playground and E2E host. Canto imports `@respondkit/react` directly. Only `apps/widget` and `apps/api` build; functional packages export TypeScript source.
+6. `apps/widget` is only a widget playground and E2E host. The host app imports `@respondkit/react` directly. Only `apps/widget` and `apps/api` build; functional packages export TypeScript source.
 
 ## Runtime architecture
 
@@ -22,9 +22,9 @@ flowchart LR
   Bootstrap[Local config bootstrap<br/>Wrangler-authenticated]
 
   subgraph Customer[Customer surface]
-    Canto[Canto Transcriber]
+    HostApp[Host product]
     Widget[@respondkit/react]
-    Canto --> Widget
+    HostApp --> Widget
   end
 
   subgraph ApiApp[apps/api — one Wrangler bundle]
@@ -130,7 +130,7 @@ Register two recovery-only guild-scoped commands. `/status reference:<interactio
 
 Discord message content is limited to 2,000 characters even though the command string option permits 6,000. Audit projection therefore uses deterministic chunks of at most 2,000 characters, each with its own deterministic nonce of at most 25 characters. Every forum starter, translated customer message, and audit receipt containing user-derived text sets `allowed_mentions: { parse: [] }`.
 
-Pilot limitation: ambiguous Discord delivery reconciliation is deliberately bounded to one page of the newest 100 messages and to 50 active plus 50 archived forum-thread candidates. This is adequate for a monitored, low-volume Canto soak, but it is not permanent projection idempotency: a sufficiently delayed retry after enough forum traffic can miss the original projection and create a duplicate. Before production-scale use, paginate to a persisted time/snowflake boundary and persist a canonical projection content digest for comparison.
+Pilot limitation: ambiguous Discord delivery reconciliation is deliberately bounded to one page of the newest 100 messages and to 50 active plus 50 archived forum-thread candidates. This is adequate for a monitored, low-volume soak, but it is not permanent projection idempotency: a sufficiently delayed retry after enough forum traffic can miss the original projection and create a duplicate. Before production-scale use, paginate to a persisted time/snowflake boundary and persist a canonical projection content digest for comparison.
 
 See Discord's [interaction overview](https://docs.discord.com/developers/interactions/overview), [receiving and responding rules](https://docs.discord.com/developers/interactions/receiving-and-responding), and [application-command schema](https://docs.discord.com/developers/interactions/application-commands). Cloudflare Web Crypto supports [Ed25519 verification](https://developers.cloudflare.com/workers/runtime-apis/web-crypto/).
 
@@ -243,10 +243,10 @@ The API's `wrangler.jsonc` has one same-script Workflow binding and no Queue con
 
 Only application packages expose `build`:
 
-- `apps/widget` bundles a tiny page that mounts the real widget for development and E2E testing. It is not a dashboard and is not on Canto's production request path.
+- `apps/widget` bundles a tiny page that mounts the real widget for development and E2E testing. It is not a dashboard and is not on the host product's production request path.
 - `apps/api` lets Wrangler bundle the HTTP Worker and named `MessageWorkflow` entrypoint together.
 - Feature packages are checked and tested directly by Vite+ from the workspace root, with no `build`, `dist`, or generated JavaScript.
-- Canto consumes the publishable source packages (`protocol`, `api-client`, and `react`) and compiles them in its own Vite build.
+- The host product consumes the publishable source packages (`protocol`, `api-client`, and `react`) and compiles them in its own Vite build.
 - The root, both apps, and the server-only `workspaces`, `conversations`, `translation`, and `discord` packages are `private: true`. Only `protocol`, `api-client`, and `react` are publishable.
 
 ### Package dependency graph
@@ -275,7 +275,7 @@ flowchart BT
 
 `apps/api` is the composition root. Translation and Discord adapters do not orchestrate or import each other. `MessageWorkflow` invokes them in order, keeping feature dependencies acyclic and independently testable.
 
-Private app/server edges use `workspace:*`. The publishable client chain uses `workspace:^` so pnpm rewrites it to caret semver ranges when packed. Public packages include their source so Canto can consume them outside this monorepo. An abridged but dependency-complete React manifest is:
+Private app/server edges use `workspace:*`. The publishable client chain uses `workspace:^` so pnpm rewrites it to caret semver ranges when packed. Public packages include their source so host products can consume them outside this monorepo. An abridged but dependency-complete React manifest is:
 
 ```json
 {
@@ -314,7 +314,7 @@ An idempotent local command such as `pnpm config:apply --env production` will:
 2. run the checked-in D1 migrations through Wrangler;
 3. generate parameter-safe, idempotent seed SQL for the workspace, product, inbox, allowed origins, Discord guild/forum IDs, and allowed Discord user/role IDs;
 4. execute that temporary SQL with `wrangler d1 execute --remote --file`;
-5. print the public widget installation ID needed by Canto.
+5. print the public widget installation ID needed by the host product.
 
 The Node script does not receive an `env.DB` binding. It reuses the config/domain schemas, then delegates remote database access to the Wrangler CLI authenticated by the developer's Cloudflare credentials. It does not create an unauthenticated admin HTTP route. Secrets are installed separately with `wrangler secret put` and local uncommitted dev vars.
 
@@ -347,7 +347,7 @@ Key constraints:
 - Every product-owned row carries `workspace_id` directly or through an enforced composite relation. Worker queries never infer a workspace from untrusted client input.
 - An inbox has an opaque public installation ID, allowed origins, and one Discord forum destination.
 - Visitors store the app-supplied external user ID, email, PostHog distinct ID, locale, and bounded metadata. External user IDs are deliberately non-unique; only the opaque, inbox-scoped installation identity resumes an anonymous transcript. IP-derived region and user agent are observational context, not authentication.
-- Client-supplied identity/context is advisory unless Canto later signs it server-side.
+- Client-supplied identity/context is advisory unless the host product later signs it server-side.
 - `customer_transcript_entry.row_id` is the committed internal cursor; `message.id` is a public opaque ID.
 - Each message stores its deterministic `workflow_instance_id`, direction, processing generation/status, and a bounded terminal failure code. Workflow history is temporary operational state, not transcript storage.
 - The API stamps `accepted_at` and the stable message ID before Workflow creation. That server observation time is not part of immutable replay equality; duplicates return the first canonical timestamp. Each customer-observable `processing`, `available`, or `failed` transition appends an idempotent transcript revision keyed by `(message_id, processing_generation, event_kind)`. Clients page by revision `row_id`, merge repeated message IDs, and display by `(accepted_at, message.id)`, so both ordering and later state changes survive cursor advancement. Thread activity updates use the maximum canonical accepted timestamp rather than last-writer-wins.
@@ -551,4 +551,4 @@ There is no Queue consumer, scheduled handler, bespoke/admin operator API, or pu
 
 The monorepo, source packages, API/Workflow composition, D1 model and migration, setup scripts, interaction-only Discord connector, Gemini adapter, and responsive React widget are implemented. Key-free unit, D1/Workflow integration, build, pack, and desktop/mobile browser tests form the automated gate.
 
-The remaining pilot work requires separately provisioned development credentials: apply the real Canto/Discord topology, register the guild commands, run Thai and Burmese messages through Gemini and Discord, validate an English `/reply` back to each customer language, then integrate `@respondkit/react` into Canto behind a Crisp rollback switch. Attachments remain the first follow-on slice after this real-language soak test.
+The remaining pilot work requires separately provisioned development credentials: apply the real product/Discord topology, register the guild commands, run Thai and Burmese messages through Gemini and Discord, validate an English `/reply` back to each customer language, then integrate `@respondkit/react` into the pilot product behind a Crisp rollback switch. Attachments remain the first follow-on slice after this real-language soak test.

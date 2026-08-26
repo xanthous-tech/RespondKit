@@ -10,7 +10,7 @@ import { demoApiFetch } from "./demo-api";
 const accentColors = Object.keys(respondKitAccentPalette) as RespondKitAccentColor[];
 
 export function Playground() {
-  const [title, setTitle] = useState("Canto Support");
+  const [title, setTitle] = useState("Example Support");
   const [accentColor, setAccentColor] = useState<RespondKitAccentColor>("indigo");
   const [initiallyOpen, setInitiallyOpen] = useState(false);
 

@@ -5,7 +5,7 @@ import { z } from "zod";
 import { classifyTranslationError, TranslationError } from "./errors";
 import { maskProtectedText, restoreProtectedText } from "./masking";
 
-export const TRANSLATION_PROMPT_VERSION = "canto-support-v1";
+export const TRANSLATION_PROMPT_VERSION = "respondkit-translation-v1";
 export const MAX_TRANSLATED_TEXT_LENGTH = 24_000;
 
 export const translationOutputSchema = z.object({

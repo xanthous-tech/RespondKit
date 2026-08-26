@@ -3,7 +3,6 @@ import { defineConfig } from "vite-plus";
 export default defineConfig({
   pack: {
     attw: {
-      ignoreRules: ["no-resolution"],
       level: "error",
       profile: "esm-only",
     },
@@ -11,15 +10,11 @@ export default defineConfig({
     dts: true,
     entry: ["src/index.ts"],
     format: ["esm"],
-    platform: "browser",
+    platform: "neutral",
     publint: {
       strict: true,
     },
     sourcemap: true,
     target: "es2022",
-  },
-  test: {
-    environment: "jsdom",
-    setupFiles: ["./src/test/setup.ts"],
   },
 });

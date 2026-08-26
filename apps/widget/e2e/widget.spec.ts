@@ -54,7 +54,7 @@ test("opens, restores the transcript, and sends a message", async ({ page }, tes
   await expect(accentSelect.locator("option")).toHaveCount(22);
   expect(await accentSelect.locator("option").allTextContents()).toEqual(accentColorNames);
 
-  await titleInput.fill("Canto Concierge");
+  await titleInput.fill("Example Concierge");
   await accentSelect.selectOption("lime");
 
   const widgetRoot = page.locator(".respondkit-root[data-accent-color]").first();
@@ -70,9 +70,9 @@ test("opens, restores the transcript, and sends a message", async ({ page }, tes
   const openLauncher = page.getByRole("button", { name: "Open support chat" });
   await openOnLoad.check();
 
-  const dialog = page.getByRole("dialog", { name: "Canto Concierge" });
+  const dialog = page.getByRole("dialog", { name: "Example Concierge" });
   await expect(dialog).toBeVisible();
-  const dialogHeading = dialog.getByRole("heading", { name: "Canto Concierge" });
+  const dialogHeading = dialog.getByRole("heading", { name: "Example Concierge" });
   const headerClose = dialog.getByRole("button", { name: "Close support chat" });
   const floatingClose = widgetRoot.locator(':scope > button[aria-label="Close support chat"]');
   await expect(dialogHeading).toBeFocused();

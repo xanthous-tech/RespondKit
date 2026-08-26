@@ -17,8 +17,8 @@ describe("customer protocol v1", () => {
   it("accepts bounded customer context and rejects unknown fields", () => {
     expect(
       CreateClientSessionRequestV1Schema.parse({
-        inboxId: "inbox_canto",
-        installationId: "install_canto",
+        inboxId: "inbox_example",
+        installationId: "install_example",
         context: {
           userId: "user_42",
           email: "person@example.com",
@@ -27,12 +27,12 @@ describe("customer protocol v1", () => {
           metadata: { plan: "pro", transcriptionCount: 12 },
         },
       }),
-    ).toMatchObject({ installationId: "install_canto" });
+    ).toMatchObject({ installationId: "install_example" });
 
     expect(() =>
       CreateClientSessionRequestV1Schema.parse({
-        inboxId: "inbox_canto",
-        installationId: "install_canto",
+        inboxId: "inbox_example",
+        installationId: "install_example",
         unexpected: true,
       }),
     ).toThrow();
