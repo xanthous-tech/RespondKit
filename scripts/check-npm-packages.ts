@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -169,17 +169,20 @@ if (!styleUrl.endsWith("/src/styles.css")) throw new Error("Stylesheet export mi
   }
 
   for (const { directory, name } of packages) {
-    const packageJson = await readFile(
-      join(consumerDirectory, "node_modules", ...name.split("/"), "package.json"),
-      "utf8",
-    );
+    const installedPackageDirectory = join(consumerDirectory, "node_modules", ...name.split("/"));
+    const packageJson = await readFile(join(installedPackageDirectory, "package.json"), "utf8");
     if (packageJson.includes("workspace:")) {
       throw new Error(`${directory} leaked a workspace dependency into its npm tarball`);
     }
+    const installedManifest = JSON.parse(packageJson) as { license?: string };
+    if (installedManifest.license !== "MIT") {
+      throw new Error(`${directory} does not declare the MIT license in its npm tarball`);
+    }
+    await access(join(installedPackageDirectory, "LICENSE"));
   }
 
   console.log(
-    "RespondKit npm tarballs passed clean-install, type, runtime, Vite, CSS, and manifest checks.",
+    "RespondKit npm tarballs passed clean-install, type, runtime, Vite, CSS, license, and manifest checks.",
   );
 } finally {
   await rm(temporaryRoot, { force: true, recursive: true });

@@ -23,7 +23,7 @@ Vite+ Pack runs publint and Are the Types Wrong for every package. `check:npm` t
 
 Staged and trusted publishing require an existing npm package, so version `0.1.0` must be published interactively once. Before publishing:
 
-1. choose the public license, add the root `LICENSE`, and add its SPDX identifier to all three package manifests;
+1. confirm the root MIT `LICENSE` and the `MIT` SPDX identifier in all three package manifests;
 2. run the local release gate above;
 3. authenticate an npm account with publish access to the `respondkit` organization and 2FA enabled;
 4. run `vp exec tsx scripts/validate-npm-release.ts v0.1.0`;

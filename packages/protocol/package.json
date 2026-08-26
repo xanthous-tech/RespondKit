@@ -12,6 +12,7 @@
   "bugs": {
     "url": "https://github.com/xanthous-tech/RespondKit/issues"
   },
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/xanthous-tech/RespondKit.git",
