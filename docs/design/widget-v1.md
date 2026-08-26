@@ -19,9 +19,15 @@ Reactions, rich text, replies, presence, typing indicators, search, voice, and m
 
 ## Host-app isolation
 
-The implementation uses Tailwind CSS v4 and local shadcn primitives. All generated utilities carry the `ac:` Tailwind prefix, all product tokens use `--agent-chat-*`, and the package omits Tailwind preflight. Portaled tooltip content reapplies the widget token root. This prevents common utilities and shadcn variables from overriding—or being overridden by—the host application's Tailwind theme.
+The implementation uses Tailwind CSS v4 and local shadcn primitives built on Base UI. All generated utilities carry the `ac:` Tailwind prefix, all product tokens use `--agent-chat-*`, and the package omits Tailwind preflight. Portaled tooltip content reapplies the widget token root and sits above the widget's embed layer. This prevents common utilities and shadcn variables from overriding—or being overridden by—the host application's Tailwind theme.
 
-The visual baseline uses white and cool neutral surfaces with one indigo action color. Customer messages use a soft indigo fill; support replies use a neutral fill. The compact geometry follows the support-oriented chatcn widget pattern while keeping the translation notice continuously visible.
+The visual baseline uses white and cool neutral surfaces with a configurable action color. Customer messages use a soft accent fill; support replies use a neutral fill. Translation stays in the support workflow rather than adding a persistent notice to the customer-facing widget.
+
+## Accent colors
+
+`AgentChatWidget` accepts an optional `accentColor` prop. It defaults to `"indigo"` and supports the standard Tailwind palette families: `red`, `orange`, `amber`, `yellow`, `lime`, `green`, `emerald`, `teal`, `cyan`, `sky`, `blue`, `indigo`, `violet`, `purple`, `fuchsia`, `pink`, `rose`, `slate`, `gray`, `zinc`, `neutral`, and `stone`.
+
+The package exports both the `AgentChatAccentColor` type and `agentChatAccentPalette` map. The selected family sets the widget-scoped `--agent-chat-primary` and `--agent-chat-ring` tokens, so it does not depend on or mutate the host application's Tailwind theme.
 
 ## Visual references
 

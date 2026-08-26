@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { AgentChatWidget } from "./agent-chat-widget";
+import { agentChatAccentPalette } from "./theme";
 
 function json(body: unknown, init?: ResponseInit) {
   return new Response(JSON.stringify(body), {
@@ -181,16 +182,103 @@ function createAmbiguousAcceptanceApiFetch() {
   });
 }
 
+function createDelayedEmptyTranscriptApiFetch() {
+  const baseFetch = createApiFetch();
+  let resolveTranscript!: (response: Response) => void;
+  const transcriptResponse = new Promise<Response>((resolve) => {
+    resolveTranscript = resolve;
+  });
+
+  const apiFetch = vi.fn<typeof fetch>(async (input, init) => {
+    const url = new URL(requestUrl(input));
+    if (url.pathname === "/v1/threads/thread_test/messages" && init?.method === "GET") {
+      return transcriptResponse;
+    }
+    return baseFetch(input, init);
+  });
+
+  return {
+    apiFetch,
+    resolveTranscript: () => {
+      resolveTranscript(
+        json({
+          threadId: "thread_test",
+          messages: [],
+          nextCursor: "0",
+          hasMore: false,
+        }),
+      );
+    },
+  };
+}
+
 afterEach(() => {
   vi.unstubAllGlobals();
   window.localStorage.clear();
 });
 
 describe("AgentChatWidget", () => {
-  it("opens lazily and renders the server transcript", async () => {
+  it("applies the selected accent theme without rendering a translation notice", async () => {
+    const apiFetch = createApiFetch();
+    vi.stubGlobal("fetch", apiFetch);
+
+    const { container } = render(
+      <AgentChatWidget
+        accentColor="lime"
+        apiBaseUrl="https://support.test"
+        context={{ inboxId: "inbox_test", locale: "en" }}
+        initiallyOpen
+      />,
+    );
+
+    const root = container.querySelector<HTMLElement>("[data-accent-color='lime']");
+    expect(root).not.toBeNull();
+    expect(root).toHaveAttribute("data-accent-color", "lime");
+    expect(root?.style.getPropertyValue("--agent-chat-primary")).toBe(agentChatAccentPalette.lime);
+    expect(root?.style.getPropertyValue("--agent-chat-ring")).toBe(agentChatAccentPalette.lime);
+    expect(
+      screen.queryByText("Messages are translated for our support team."),
+    ).not.toBeInTheDocument();
+
+    expect(await screen.findByText("How can I help?")).toBeVisible();
+    expect(
+      screen.queryByText("Messages are translated for our support team."),
+    ).not.toBeInTheDocument();
+  });
+
+  it("uses compact message tails and matching 44px composer controls", async () => {
     const apiFetch = createApiFetch();
     vi.stubGlobal("fetch", apiFetch);
     const user = userEvent.setup();
+
+    render(
+      <AgentChatWidget
+        apiBaseUrl="https://support.test"
+        context={{ inboxId: "inbox_test", locale: "en" }}
+        initiallyOpen
+      />,
+    );
+
+    const operatorBubble = await screen.findByText("How can I help?");
+    expect(operatorBubble).toHaveClass("ac:rounded-bl-[4px]");
+    expect(operatorBubble).not.toHaveClass("ac:rounded-bl-sm");
+
+    const composer = screen.getByRole("textbox", { name: "Message" });
+    const sendButton = screen.getByRole("button", { name: "Send message" });
+    expect(composer).toHaveClass("ac:min-h-11");
+    expect(sendButton).toHaveClass("ac:size-11");
+
+    await waitFor(() => expect(composer).toBeEnabled());
+    await user.type(composer, "Customer message{Enter}");
+
+    const customerBubble = await screen.findByText("Customer message");
+    expect(customerBubble).toHaveClass("ac:rounded-br-[4px]");
+    expect(customerBubble).not.toHaveClass("ac:rounded-br-sm");
+  });
+
+  it("toggles from the floating launcher and focuses the heading without opening a tooltip", async () => {
+    const apiFetch = createApiFetch();
+    vi.stubGlobal("fetch", apiFetch);
 
     render(
       <AgentChatWidget
@@ -201,9 +289,17 @@ describe("AgentChatWidget", () => {
     );
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Open support chat" }));
+    const openLauncher = screen.getByRole("button", {
+      name: "Open support chat",
+      expanded: false,
+    });
+    fireEvent.click(openLauncher);
 
     expect(await screen.findByRole("dialog")).toHaveAccessibleName("Canto Support");
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "Canto Support" })).toHaveFocus(),
+    );
+    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
     expect(await screen.findByText("How can I help?")).toBeVisible();
 
     const sessionRequest = apiFetch.mock.calls.find(([input]) =>
@@ -213,6 +309,92 @@ describe("AgentChatWidget", () => {
     expect(JSON.parse(requestBody(sessionRequest?.[1]?.body))).toMatchObject({
       inboxId: "inbox_test",
     });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Close support chat",
+        expanded: true,
+      }),
+    );
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: "Open support chat",
+        expanded: false,
+      }),
+    ).toBeVisible();
+  });
+
+  it("keeps the loading skeleton visible until an empty initial transcript resolves", async () => {
+    const { apiFetch, resolveTranscript } = createDelayedEmptyTranscriptApiFetch();
+    vi.stubGlobal("fetch", apiFetch);
+
+    render(
+      <AgentChatWidget
+        apiBaseUrl="https://support.test"
+        context={{ inboxId: "inbox_test", locale: "en" }}
+        initiallyOpen
+      />,
+    );
+
+    expect(screen.getByLabelText("Loading messages")).toBeVisible();
+    expect(screen.queryByText("How can we help?")).not.toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(
+        apiFetch.mock.calls.filter(
+          ([input, init]) =>
+            requestUrl(input).includes("/v1/threads/thread_test/messages") &&
+            init?.method === "GET",
+        ),
+      ).toHaveLength(1);
+    });
+    expect(screen.getByLabelText("Loading messages")).toBeVisible();
+    expect(screen.queryByText("How can we help?")).not.toBeInTheDocument();
+
+    resolveTranscript();
+
+    expect(await screen.findByText("How can we help?")).toBeVisible();
+    expect(screen.queryByLabelText("Loading messages")).not.toBeInTheDocument();
+  });
+
+  it("retains a successful transcript across launcher close and reopen", async () => {
+    const apiFetch = createApiFetch();
+    vi.stubGlobal("fetch", apiFetch);
+
+    render(
+      <AgentChatWidget
+        apiBaseUrl="https://support.test"
+        context={{ inboxId: "inbox_test", locale: "en" }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Open support chat" }));
+    expect(await screen.findByText("How can I help?")).toBeVisible();
+
+    const sessionRequests = () =>
+      apiFetch.mock.calls.filter(([input]) => requestUrl(input).includes("/v1/client/sessions"));
+    const threadRequests = () =>
+      apiFetch.mock.calls.filter(
+        ([input, init]) => requestUrl(input).endsWith("/v1/threads") && init?.method === "POST",
+      );
+    expect(sessionRequests()).toHaveLength(1);
+    expect(threadRequests()).toHaveLength(1);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Close support chat",
+        expanded: true,
+      }),
+    );
+    expect(screen.queryByText("How can I help?")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Open support chat" }));
+
+    expect(await screen.findByText("How can I help?")).toBeVisible();
+    expect(sessionRequests()).toHaveLength(1);
+    expect(threadRequests()).toHaveLength(1);
   });
 
   it("sends on Enter, keeps Shift+Enter and IME composition safe", async () => {
