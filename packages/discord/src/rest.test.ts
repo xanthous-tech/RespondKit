@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vite-plus/test";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import {
   DiscordRestClient,
@@ -62,6 +62,28 @@ describe("Discord message helpers", () => {
 });
 
 describe("DiscordRestClient", () => {
+  it("calls the runtime fetch implementation with its required global receiver", async () => {
+    const nativeStyleFetch = async function (
+      this: typeof globalThis,
+      _input: RequestInfo | URL,
+      _init?: RequestInit,
+    ): Promise<Response> {
+      if (this !== globalThis) {
+        throw new TypeError("Illegal invocation");
+      }
+      return json({ id: ids.thread, type: 11 });
+    };
+    vi.stubGlobal("fetch", nativeStyleFetch);
+
+    try {
+      const client = new DiscordRestClient({ botToken: "test-token" });
+
+      await expect(client.getChannel(ids.thread)).resolves.toMatchObject({ id: ids.thread });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("sends bot messages with deterministic deduplication and mentions disabled", async () => {
     const requests: Request[] = [];
     const fakeFetch: typeof fetch = async (input, init) => {
