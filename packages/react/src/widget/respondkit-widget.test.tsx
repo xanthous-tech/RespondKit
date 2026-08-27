@@ -90,6 +90,11 @@ function createApiFetch() {
       );
     }
 
+    if (url.pathname === "/v1/threads/thread_test/read-receipts" && init?.method === "POST") {
+      const request = JSON.parse(requestBody(init.body)) as { messageIds: string[] };
+      return json({ acknowledgedMessageIds: request.messageIds, pendingMessageIds: [] });
+    }
+
     return json(
       {
         error: {
@@ -213,6 +218,7 @@ function createDelayedEmptyTranscriptApiFetch() {
 }
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllGlobals();
   window.localStorage.clear();
 });
@@ -324,6 +330,49 @@ describe("RespondKitWidget", () => {
         expanded: false,
       }),
     ).toBeVisible();
+  });
+
+  it("polls more slowly while collapsed and acknowledges an unread reply when opened", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const apiFetch = createApiFetch();
+    vi.stubGlobal("fetch", apiFetch);
+
+    render(
+      <RespondKitWidget
+        apiBaseUrl="https://support.test"
+        context={{ inboxId: "inbox_test", locale: "en" }}
+      />,
+    );
+
+    const messagePolls = () =>
+      apiFetch.mock.calls.filter(
+        ([input, init]) =>
+          new URL(requestUrl(input)).pathname === "/v1/threads/thread_test/messages" &&
+          init?.method === "GET",
+      );
+    await waitFor(() => expect(messagePolls()).toHaveLength(1));
+    expect(await screen.findByRole("status", { name: "Unread support reply" })).toBeVisible();
+
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(messagePolls()).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(8_000);
+    await waitFor(() => expect(messagePolls()).toHaveLength(2));
+
+    fireEvent.click(screen.getByRole("button", { name: "Open support chat" }));
+    expect(screen.queryByRole("status", { name: "Unread support reply" })).not.toBeInTheDocument();
+
+    const receiptRequest = await waitFor(() => {
+      const request = apiFetch.mock.calls.find(
+        ([input, init]) =>
+          requestUrl(input).endsWith("/v1/threads/thread_test/read-receipts") &&
+          init?.method === "POST",
+      );
+      expect(request).toBeDefined();
+      return request;
+    });
+    expect(JSON.parse(requestBody(receiptRequest?.[1]?.body))).toEqual({
+      messageIds: ["message_support"],
+    });
   });
 
   it("keeps the loading skeleton visible until an empty initial transcript resolves", async () => {
