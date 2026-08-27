@@ -21,6 +21,9 @@ const internalIdSchema = z
   .max(160)
   .regex(/^[A-Za-z0-9_-]+$/);
 
+const loopbackHosts = new Set(["localhost", "127.0.0.1", "[::1]"]);
+const loopbackPortWildcardPattern = /^(https?):\/\/(localhost|127\.0\.0\.1|\[::1\]):\*\/?$/i;
+
 export function normalizeOrigin(value: string): string {
   const url = new URL(value);
 
@@ -39,13 +42,35 @@ export function normalizeOrigin(value: string): string {
   return url.origin;
 }
 
+/** Normalizes an exact origin or a loopback-only any-port development pattern. */
+export function normalizeAllowedOrigin(value: string): string {
+  const normalized = value.trim();
+  const wildcard = loopbackPortWildcardPattern.exec(normalized);
+  if (wildcard !== null) {
+    return `${wildcard[1]?.toLowerCase()}://${wildcard[2]?.toLowerCase()}:*`;
+  }
+  if (normalized.includes("*")) {
+    throw new TypeError("Origin wildcards are limited to loopback host ports");
+  }
+  return normalizeOrigin(normalized);
+}
+
+/** Returns the exact request origin plus its eligible loopback wildcard. */
+export function originAllowlistCandidates(value: string): readonly string[] {
+  const origin = normalizeOrigin(value);
+  const url = new URL(origin);
+  return loopbackHosts.has(url.hostname)
+    ? [origin, `${url.protocol}//${url.hostname}:*`]
+    : [origin];
+}
+
 export const allowedOriginConfigSchema = z
   .string()
   .min(8)
   .max(2048)
   .transform((value, context) => {
     try {
-      return normalizeOrigin(value);
+      return normalizeAllowedOrigin(value);
     } catch (error) {
       context.addIssue({
         code: "custom",

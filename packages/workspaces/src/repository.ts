@@ -1,9 +1,9 @@
 import type { InboxId, InstallationId, VisitorId, WorkspaceId } from "@respondkit/protocol";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 
 import type { VisitorContext } from "./config";
-import { normalizeOrigin } from "./config";
+import { originAllowlistCandidates } from "./config";
 import { allowedOrigins, inboxes, products, visitors, workspaces, type VisitorRow } from "./schema";
 
 export interface InboxContext {
@@ -107,10 +107,10 @@ export async function isOriginAllowed(
     readonly origin: string;
   },
 ): Promise<boolean> {
-  let origin: string;
+  let candidates: readonly string[];
 
   try {
-    origin = normalizeOrigin(input.origin);
+    candidates = originAllowlistCandidates(input.origin);
   } catch {
     return false;
   }
@@ -122,7 +122,7 @@ export async function isOriginAllowed(
       and(
         eq(allowedOrigins.workspaceId, input.workspaceId),
         eq(allowedOrigins.inboxId, input.inboxId),
-        eq(allowedOrigins.origin, origin),
+        inArray(allowedOrigins.origin, candidates),
       ),
     )
     .limit(1);
