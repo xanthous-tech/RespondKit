@@ -1,0 +1,29 @@
+---
+title: Discord inbox
+description: Use a Discord forum channel as the operator-side support inbox.
+icon: MessagesSquare
+---
+
+RespondKit maps one customer conversation to one Discord forum post. Operators can read translated customer messages and keep the entire support history in the thread.
+
+## Required channel permissions
+
+The RespondKit bot needs permission to:
+
+- view the forum channel;
+- create posts;
+- send messages in posts;
+- read post history;
+- manage posts;
+- add reactions;
+- use application commands.
+
+## Reply to a customer
+
+Run the command inside the relevant support thread:
+
+```text
+/reply message:Please reopen the app and try the export again.
+```
+
+RespondKit acknowledges the command immediately, translates the English reply into the customer language, and publishes the result to the widget. The bot also mirrors the operator reply into the thread so the conversation is easy to scan.

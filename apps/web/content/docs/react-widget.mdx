@@ -1,0 +1,34 @@
+---
+title: React widget
+description: Configure the embedded RespondKit customer experience.
+icon: PanelsTopLeft
+---
+
+`RespondKitWidget` is the public React entrypoint. It owns session bootstrap, thread creation, message polling, optimistic sends, retry state, and the visible chat interface.
+
+## Props
+
+| Prop            | Type                    | Description                                                         |
+| --------------- | ----------------------- | ------------------------------------------------------------------- |
+| `apiBaseUrl`    | `string`                | RespondKit API origin.                                              |
+| `context`       | `RespondKitContext`     | Product and customer context for this conversation.                 |
+| `title`         | `string`                | Header text shown in the open widget.                               |
+| `accentColor`   | `RespondKitAccentColor` | Tailwind palette family used by the launcher and customer messages. |
+| `initiallyOpen` | `boolean`               | Opens the widget on its first render.                               |
+| `fetch`         | `typeof fetch`          | Optional fetch implementation for hosts that need to supply one.    |
+
+## Accent colors
+
+The widget supports the standard Tailwind color families, including `lime`, `indigo`, `rose`, `slate`, and `neutral`.
+
+```tsx
+<RespondKitWidget
+  apiBaseUrl="https://api.respondkit.dev"
+  accentColor="lime"
+  context={{ inboxId: "inbox_example", userId: currentUser.id }}
+/>
+```
+
+## Customer identity
+
+Pass your stable internal ID whenever possible. RespondKit scopes the local installation and thread identity to the inbox and user context while keeping authorization tied to the issued client session.

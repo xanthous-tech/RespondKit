@@ -1,0 +1,23 @@
+---
+title: Agent API
+description: Connect an external support agent without coupling it to the widget runtime.
+icon: Bot
+---
+
+RespondKit keeps the AI agent outside the core message pipeline. This lets each product run an isolated agent beside its source code, documentation, product tools, and operating manual.
+
+## Intended integration
+
+An external agent can:
+
+1. consume new thread messages;
+2. inspect the supplied product and customer context;
+3. use product-specific read-only tools;
+4. draft or send an English response when confidence is high;
+5. let RespondKit translate and deliver the customer-facing reply.
+
+The first public API surface focuses on client sessions, threads, messages, and polling. A pull consumer for long-running coding agents is planned after the base operator loop is stable.
+
+## Product isolation
+
+Use one inbox and one agent configuration per product. The thread context exposes the identifiers the integration supplied, while the agent remains responsible for its own prompts, documentation, source access, and operational policies.
