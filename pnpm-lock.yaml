@@ -123,6 +123,9 @@ importers:
       publint:
         specifier: 'catalog:'
         version: 0.3.24
+      tsx:
+        specifier: 'catalog:'
+        version: 4.23.12
       typescript:
         specifier: 'catalog:'
         version: 7.0.2
