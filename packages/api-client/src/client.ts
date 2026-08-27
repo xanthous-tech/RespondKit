@@ -1,5 +1,7 @@
 import {
   API_VERSION,
+  AcknowledgeMessagesReadRequestV1Schema,
+  AcknowledgeMessagesReadResponseV1Schema,
   ApiErrorResponseV1Schema,
   CreateClientSessionRequestV1Schema,
   CreateClientSessionResponseV1Schema,
@@ -12,6 +14,8 @@ import {
   SessionTokenSchema,
   ThreadIdSchema,
   type ApiErrorCode,
+  type AcknowledgeMessagesReadRequestV1,
+  type AcknowledgeMessagesReadResponseV1,
   type ClientMessageId,
   type CreateClientSessionRequestV1,
   type CreateClientSessionResponseV1,
@@ -49,6 +53,12 @@ export interface RequestOptions {
 }
 
 export interface RespondKitClient {
+  acknowledgeMessagesRead(
+    sessionToken: SessionToken,
+    threadId: ThreadId,
+    input: AcknowledgeMessagesReadRequestV1,
+    options?: RequestOptions,
+  ): Promise<AcknowledgeMessagesReadResponseV1>;
   createSession(
     input: CreateClientSessionRequestV1,
     options?: RequestOptions,
@@ -290,6 +300,34 @@ export function createRespondKitClient(options: RespondKitClientOptions): Respon
   }
 
   return {
+    async acknowledgeMessagesRead(sessionToken, threadId, input, requestOptions) {
+      const token = SessionTokenSchema.parse(sessionToken);
+      const parsedThreadId = ThreadIdSchema.parse(threadId);
+      const parsedInput = AcknowledgeMessagesReadRequestV1Schema.parse(input);
+      const response = await request({
+        path: `/${API_VERSION}/threads/${encodeURIComponent(parsedThreadId)}/read-receipts`,
+        method: "POST",
+        responseSchema: AcknowledgeMessagesReadResponseV1Schema,
+        token,
+        body: JSON.stringify(parsedInput),
+        signal: requestOptions?.signal,
+      });
+      const returnedIds = new Set([
+        ...response.acknowledgedMessageIds,
+        ...response.pendingMessageIds,
+      ]);
+      if (
+        returnedIds.size !== parsedInput.messageIds.length ||
+        parsedInput.messageIds.some((messageId) => !returnedIds.has(messageId))
+      ) {
+        throw new RespondKitClientError(
+          "RespondKit returned read receipts for a different message batch",
+          { code: "internal_error", retryable: false },
+        );
+      }
+      return response;
+    },
+
     async createSession(input, requestOptions) {
       const body = JSON.stringify(CreateClientSessionRequestV1Schema.parse(input));
       return request({

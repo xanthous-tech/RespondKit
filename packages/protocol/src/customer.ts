@@ -192,6 +192,47 @@ export const ListMessagesResponseV1Schema = z
   });
 export type ListMessagesResponseV1 = z.infer<typeof ListMessagesResponseV1Schema>;
 
+export const AcknowledgeMessagesReadRequestV1Schema = z
+  .object({
+    messageIds: z.array(MessageIdSchema).min(1).max(25),
+  })
+  .strict()
+  .superRefine((request, context) => {
+    if (new Set(request.messageIds).size !== request.messageIds.length) {
+      context.addIssue({
+        code: "custom",
+        path: ["messageIds"],
+        message: "message IDs must be unique",
+      });
+    }
+  });
+export type AcknowledgeMessagesReadRequestV1 = z.infer<
+  typeof AcknowledgeMessagesReadRequestV1Schema
+>;
+
+export const AcknowledgeMessagesReadResponseV1Schema = z
+  .object({
+    acknowledgedMessageIds: z.array(MessageIdSchema).max(25),
+    pendingMessageIds: z.array(MessageIdSchema).max(25),
+  })
+  .strict()
+  .superRefine((response, context) => {
+    const acknowledged = new Set(response.acknowledgedMessageIds);
+    const combined = [...response.acknowledgedMessageIds, ...response.pendingMessageIds];
+    if (
+      acknowledged.size !== response.acknowledgedMessageIds.length ||
+      new Set(combined).size !== combined.length
+    ) {
+      context.addIssue({
+        code: "custom",
+        message: "read-receipt message IDs must be unique and disjoint",
+      });
+    }
+  });
+export type AcknowledgeMessagesReadResponseV1 = z.infer<
+  typeof AcknowledgeMessagesReadResponseV1Schema
+>;
+
 const nonBlankMessageText = z
   .string()
   .min(1)

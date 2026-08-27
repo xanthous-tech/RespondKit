@@ -26,6 +26,48 @@ function acceptedResponse(status = "accepted") {
 }
 
 describe("RespondKit API client", () => {
+  it("posts a bounded read-receipt batch for the requested thread", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
+      jsonResponse({
+        acknowledgedMessageIds: ["msg_1"],
+        pendingMessageIds: ["msg_2"],
+      }),
+    );
+    const client = createRespondKitClient({ baseUrl: "https://chat.example.com/", fetch });
+
+    await expect(
+      client.acknowledgeMessagesRead(SESSION_TOKEN, "thread_1", {
+        messageIds: ["msg_1", "msg_2"],
+      }),
+    ).resolves.toEqual({
+      acknowledgedMessageIds: ["msg_1"],
+      pendingMessageIds: ["msg_2"],
+    });
+    expect(fetch).toHaveBeenCalledWith(
+      "https://chat.example.com/v1/threads/thread_1/read-receipts",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({ authorization: `Bearer ${SESSION_TOKEN}` }),
+        body: JSON.stringify({ messageIds: ["msg_1", "msg_2"] }),
+      }),
+    );
+  });
+
+  it("rejects a read-receipt response for a different message batch", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(
+        jsonResponse({ acknowledgedMessageIds: ["msg_other"], pendingMessageIds: [] }),
+      );
+    const client = createRespondKitClient({ baseUrl: "https://chat.example.com", fetch });
+
+    await expect(
+      client.acknowledgeMessagesRead(SESSION_TOKEN, "thread_1", {
+        messageIds: ["msg_1"],
+      }),
+    ).rejects.toMatchObject({ code: "internal_error", retryable: false });
+  });
+
   it("builds authenticated cursor requests", async () => {
     const after = String(Number.MAX_SAFE_INTEGER - 1);
     const nextCursor = String(Number.MAX_SAFE_INTEGER);
