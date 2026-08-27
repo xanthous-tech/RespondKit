@@ -19,9 +19,10 @@ pnpm pack:npm
 
 Vite+ Pack runs publint and Are the Types Wrong for every package. `check:npm` then installs the real tarballs into a clean temporary npm consumer, type-checks a React integration, imports the runtime modules, builds the widget and Tailwind stylesheet with a clean Vite application, and verifies that no `workspace:` range leaked into a published manifest.
 
-## First release
+## Bootstrap release
 
-Staged and trusted publishing require an existing npm package, so version `0.1.0` must be published interactively once. Before publishing:
+Staged and trusted publishing require an existing npm package, so version `0.1.0` was
+published interactively once. The bootstrap procedure was:
 
 1. confirm the root MIT `LICENSE` and the `MIT` SPDX identifier in all three package manifests;
 2. run the local release gate above;
@@ -41,6 +42,9 @@ After the first versions exist, configure the trusted publisher on each package 
 - workflow: `publish.yml`;
 - allowed action: `npm publish`.
 
-The workflow publishes a GitHub release only after the full repository gate, tarball checks, matching lockstep versions, and license metadata pass. It uses npm OIDC and does not require a long-lived npm token. While the source repository is private, npm can use trusted publishing but cannot generate public provenance attestations.
+After a GitHub release is published, the workflow publishes to npm only after the full
+repository gate, tarball checks, matching lockstep versions, and license metadata pass. It
+uses npm OIDC and does not require a long-lived npm token. Because the source repository and
+packages are public, trusted publishing also generates npm provenance attestations.
 
 For subsequent releases, update all three package versions together, merge the change, and publish a GitHub release whose tag exactly matches `v<version>`.
