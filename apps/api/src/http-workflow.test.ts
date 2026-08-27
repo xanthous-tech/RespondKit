@@ -300,6 +300,28 @@ describe("customer HTTP ingress and MessageWorkflow", () => {
     expect(response.headers.get("access-control-allow-origin")).toBeNull();
   });
 
+  it("accepts any localhost port when a loopback wildcard is configured", async () => {
+    await env.DB.prepare("update allowed_origin set origin = ? where id = ?")
+      .bind("http://localhost:*", "allowed_origin_test")
+      .run();
+
+    const response = await createHttpApp().request(
+      "/v1/client/sessions",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json", origin: "http://localhost:5174" },
+        body: JSON.stringify({
+          inboxId: TEST_TOPOLOGY.inboxId,
+          installationId: "installation_localhost_wildcard",
+        }),
+      },
+      createTestEnv(),
+    );
+
+    expect(response.status).toBe(201);
+    expect(response.headers.get("access-control-allow-origin")).toBe("http://localhost:5174");
+  });
+
   it("reports malformed JSON as a non-retryable client error", async () => {
     const response = await createHttpApp().request(
       "/v1/client/sessions",

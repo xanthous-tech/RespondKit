@@ -14,7 +14,7 @@
               "id": "inbox_example_public",
               "name": "Customer support",
               "defaultLocale": "en",
-              "allowedOrigins": ["http://localhost:5173", "https://example-product.example.com"],
+              "allowedOrigins": ["http://localhost:*", "https://example-product.example.com"],
               "discord": {
                 "id": "discord_example",
                 "applicationId": "111111111111111111",

@@ -56,6 +56,8 @@ pnpm discord:commands:apply --dry-run
 
 `config:apply` validates the complete workspace → product → inbox topology, applies the checked-in D1 migration, and idempotently seeds the local database. The Discord dry run prints the guild-scoped `/reply`, `/status`, and `/retry` registration requests without contacting Discord.
 
+Inbox origin allowlists accept exact production origins and loopback any-port patterns such as `http://localhost:*` or `http://127.0.0.1:*`. Wildcards are rejected for non-loopback hosts so a development convenience cannot expose an inbox to arbitrary websites.
+
 Live local API development additionally needs an uncommitted `apps/api/.dev.vars`, based on `.dev.vars.example`. Do not commit it. Remote deployments should use `wrangler secret put` for secrets rather than plaintext configuration.
 
 ## React integration

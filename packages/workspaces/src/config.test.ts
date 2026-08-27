@@ -2,7 +2,9 @@ import { describe, expect, it } from "vite-plus/test";
 
 import {
   allowedOriginConfigSchema,
+  normalizeAllowedOrigin,
   normalizeOrigin,
+  originAllowlistCandidates,
   visitorContextSchema,
   workspaceConfigurationSchema,
 } from "./config";
@@ -28,6 +30,25 @@ describe("workspace configuration", () => {
   it("normalizes configured origins", () => {
     expect(allowedOriginConfigSchema.parse("https://EXAMPLE.com/")).toBe("https://example.com");
   });
+
+  it("allows any port only for loopback development hosts", () => {
+    expect(normalizeAllowedOrigin("HTTP://LOCALHOST:*/")).toBe("http://localhost:*");
+    expect(normalizeAllowedOrigin("https://[::1]:*")).toBe("https://[::1]:*");
+    expect(originAllowlistCandidates("http://localhost:5174")).toEqual([
+      "http://localhost:5174",
+      "http://localhost:*",
+    ]);
+    expect(originAllowlistCandidates("https://product.example.com")).toEqual([
+      "https://product.example.com",
+    ]);
+  });
+
+  it.each(["*", "https://*", "https://*.example.com", "http://192.168.1.20:*"])(
+    "rejects a non-loopback wildcard: %s",
+    (value) => {
+      expect(allowedOriginConfigSchema.safeParse(value).success).toBe(false);
+    },
+  );
 
   it("validates a minimal workspace topology", () => {
     const result = workspaceConfigurationSchema.parse({
