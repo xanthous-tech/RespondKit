@@ -5,8 +5,13 @@ import {
   recordTerminalFailure,
   storeCustomerTranslation,
 } from "@respondkit/conversations";
-import { acceptReplyIngress } from "@respondkit/discord";
 import {
+  acceptReplyIngress,
+  beginDiscordProjection,
+  markDiscordProjectionSent,
+} from "@respondkit/discord";
+import {
+  AcknowledgeMessagesReadResponseV1Schema,
   CreateClientSessionResponseV1Schema,
   CreateThreadResponseV1Schema,
   InboxIdSchema,
@@ -142,6 +147,104 @@ beforeEach(async () => {
 });
 
 describe("customer HTTP ingress and MessageWorkflow", () => {
+  it("keeps a read receipt pending until its Discord audit projection exists", async () => {
+    const customer = await createCustomerFixture();
+    const response = await createHttpApp().request(
+      `/v1/threads/${customer.threadId}/read-receipts`,
+      {
+        method: "POST",
+        headers: authorizationHeaders(customer.sessionToken),
+        body: JSON.stringify({ messageIds: ["msg_pending_discord_audit"] }),
+      },
+      createTestEnv(),
+    );
+
+    expect(response.status).toBe(200);
+    expect(AcknowledgeMessagesReadResponseV1Schema.parse(await response.json())).toEqual({
+      acknowledgedMessageIds: [],
+      pendingMessageIds: ["msg_pending_discord_audit"],
+    });
+  });
+
+  it("acknowledges an operator reply with a Discord reaction", async () => {
+    const customer = await createCustomerFixture();
+    await seedReadyDiscordThread(customer.threadId);
+    const db = createDatabase(env.DB);
+    const workspaceId = WorkspaceIdSchema.parse(TEST_TOPOLOGY.workspaceId);
+    const inboxId = InboxIdSchema.parse(TEST_TOPOLOGY.inboxId);
+    const now = new Date();
+    const interactionId = snowflakeAt(now.getTime(), 42n);
+    const operatorIdentity = await deriveOperatorMessageIdentity({
+      applicationId: TEST_TOPOLOGY.applicationId,
+      interactionId,
+    });
+    await acceptReplyIngress(db, {
+      integrationId: TEST_TOPOLOGY.integrationId,
+      interactionId,
+      workspaceId,
+      inboxId,
+      threadId: customer.threadId,
+      ...operatorIdentity,
+      applicationId: TEST_TOPOLOGY.applicationId,
+      guildId: TEST_TOPOLOGY.guildId,
+      discordThreadId: TEST_TOPOLOGY.discordThreadId,
+      operatorUserId: TEST_TOPOLOGY.operatorId,
+      operatorRoleIds: [TEST_TOPOLOGY.operatorRoleId],
+      acceptedAt: now,
+      originalEnglishText: "Please reopen the app.",
+    });
+    await beginDiscordProjection(db, {
+      workspaceId,
+      inboxId,
+      threadId: customer.threadId,
+      messageId: operatorIdentity.messageId,
+      integrationId: TEST_TOPOLOGY.integrationId,
+      projectionKind: "available_audit",
+      chunkIndex: 0,
+      nonce: "read-receipt-test",
+      correlationMarker: "rk:read-receipt-test",
+      discordThreadId: TEST_TOPOLOGY.discordThreadId,
+      createdAt: now,
+    });
+    const discordMessageId = "100000000000000099";
+    await markDiscordProjectionSent(db, {
+      workspaceId,
+      inboxId,
+      threadId: customer.threadId,
+      messageId: operatorIdentity.messageId,
+      projectionKind: "available_audit",
+      chunkIndex: 0,
+      discordMessageId,
+      sentAt: now,
+    });
+    const discordFetch = vi.fn(async () => new Response(null, { status: 204 }));
+    vi.stubGlobal("fetch", discordFetch);
+
+    try {
+      const response = await createHttpApp().request(
+        `/v1/threads/${customer.threadId}/read-receipts`,
+        {
+          method: "POST",
+          headers: authorizationHeaders(customer.sessionToken),
+          body: JSON.stringify({ messageIds: [operatorIdentity.messageId] }),
+        },
+        createTestEnv({ DISCORD_API_BASE_URL: "https://discord.example/api/v10" }),
+      );
+
+      expect(response.status).toBe(200);
+      expect(AcknowledgeMessagesReadResponseV1Schema.parse(await response.json())).toEqual({
+        acknowledgedMessageIds: [operatorIdentity.messageId],
+        pendingMessageIds: [],
+      });
+      expect(discordFetch).toHaveBeenCalledWith(
+        `https://discord.example/api/v10/channels/${TEST_TOPOLOGY.discordThreadId}/messages/${discordMessageId}/reactions/%E2%9C%85/@me`,
+        expect.objectContaining({ method: "PUT" }),
+      );
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("persists, translates, projects, and exposes a customer message without live APIs", async () => {
     const customer = await createCustomerFixture();
     await seedReadyDiscordThread(customer.threadId);

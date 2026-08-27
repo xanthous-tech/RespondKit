@@ -62,6 +62,25 @@ describe("Discord message helpers", () => {
 });
 
 describe("DiscordRestClient", () => {
+  it("adds a bot reaction using Discord's empty 204 response", async () => {
+    const requests: Request[] = [];
+    const fakeFetch: typeof fetch = async (input, init) => {
+      requests.push(new Request(input, init));
+      return new Response(null, { status: 204 });
+    };
+    const client = new DiscordRestClient({ botToken: "test-token", fetch: fakeFetch });
+
+    await expect(
+      client.addReaction({ channelId: ids.thread, messageId: ids.message, emoji: "✅" }),
+    ).resolves.toBeUndefined();
+    expect(requests).toHaveLength(1);
+    expect(requests[0]?.method).toBe("PUT");
+    expect(requests[0]?.url).toBe(
+      `https://discord.com/api/v10/channels/${ids.thread}/messages/${ids.message}/reactions/%E2%9C%85/@me`,
+    );
+    expect(requests[0]?.headers.get("authorization")).toBe("Bot test-token");
+  });
+
   it("calls the runtime fetch implementation with its required global receiver", async () => {
     const nativeStyleFetch = async function (
       this: typeof globalThis,

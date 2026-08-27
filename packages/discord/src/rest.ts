@@ -431,6 +431,12 @@ export interface SendDiscordMessageInput {
   readonly nonce: string;
 }
 
+export interface AddDiscordReactionInput {
+  readonly channelId: string;
+  readonly messageId: string;
+  readonly emoji: string;
+}
+
 export interface DiscordMessageResult {
   readonly message: DiscordMessage;
   readonly reconciled: boolean;
@@ -565,6 +571,24 @@ export class DiscordRestClient {
       }
       return channel;
     });
+  }
+
+  async addReaction(input: AddDiscordReactionInput): Promise<void> {
+    assertIdentifier(input.channelId, "Discord channel ID");
+    assertIdentifier(input.messageId, "Discord message ID");
+    const emoji = input.emoji.trim();
+    if (emoji.length === 0 || emoji.length > 100) {
+      throw new RangeError("Discord reaction emoji must contain 1-100 characters");
+    }
+    await this.#request(
+      "PUT",
+      `/channels/${input.channelId}/messages/${input.messageId}/reactions/${encodeURIComponent(emoji)}/@me`,
+      (body) => {
+        if (body !== undefined) {
+          throw new TypeError("Discord add-reaction response must be empty");
+        }
+      },
+    );
   }
 
   async createForumThread(input: CreateDiscordForumThreadInput): Promise<DiscordForumThread> {
