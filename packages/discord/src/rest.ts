@@ -476,7 +476,7 @@ export class DiscordRestClient {
       throw new TypeError("Discord bot token must not be empty");
     }
     this.#botToken = options.botToken;
-    this.#fetch = options.fetch ?? globalThis.fetch;
+    this.#fetch = options.fetch ?? globalThis.fetch.bind(globalThis);
     this.#baseUrl = (options.baseUrl ?? DISCORD_API_BASE_URL).replace(/\/$/, "");
     this.#userAgent = options.userAgent;
   }
