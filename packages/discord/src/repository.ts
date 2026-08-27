@@ -11,7 +11,7 @@ import {
   type IngressAcceptanceKind,
   type MessageRow,
 } from "@respondkit/conversations";
-import { and, eq, lte, ne, or } from "drizzle-orm";
+import { and, eq, inArray, lte, ne, or } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 
 import {
@@ -580,6 +580,54 @@ export interface DiscordProjectionIdentity {
   readonly messageId: MessageId;
   readonly projectionKind: DiscordProjectionKind;
   readonly chunkIndex: number;
+}
+
+export interface DiscordReadReceiptTarget {
+  readonly messageId: MessageId;
+  readonly discordThreadId: string;
+  readonly discordMessageId: string;
+}
+
+export async function findDiscordReadReceiptTargets(
+  db: DrizzleD1Database,
+  input: {
+    readonly workspaceId: WorkspaceId;
+    readonly inboxId: InboxId;
+    readonly threadId: ThreadId;
+    readonly messageIds: readonly MessageId[];
+  },
+): Promise<readonly DiscordReadReceiptTarget[]> {
+  if (input.messageIds.length === 0) return [];
+  const projections = await db
+    .select({
+      messageId: discordMessages.messageId,
+      discordThreadId: discordMessages.discordThreadId,
+      discordMessageId: discordMessages.discordMessageId,
+    })
+    .from(discordMessages)
+    .where(
+      and(
+        eq(discordMessages.workspaceId, input.workspaceId),
+        eq(discordMessages.inboxId, input.inboxId),
+        eq(discordMessages.threadId, input.threadId),
+        inArray(discordMessages.messageId, input.messageIds),
+        eq(discordMessages.projectionKind, "available_audit"),
+        eq(discordMessages.chunkIndex, 0),
+        eq(discordMessages.status, "sent"),
+      ),
+    );
+
+  return projections.flatMap((projection) =>
+    projection.discordMessageId === null
+      ? []
+      : [
+          {
+            messageId: projection.messageId,
+            discordThreadId: projection.discordThreadId,
+            discordMessageId: projection.discordMessageId,
+          },
+        ],
+  );
 }
 
 export async function findDiscordProjection(

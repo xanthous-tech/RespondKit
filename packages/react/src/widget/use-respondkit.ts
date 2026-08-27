@@ -7,6 +7,7 @@ import {
   type ClientSessionV1,
   type Cursor,
   type MessageAcceptanceV1,
+  type MessageId,
   type MessageV1,
   type ThreadV1,
 } from "@respondkit/api-client";
@@ -20,7 +21,10 @@ import type {
   TranscriptState,
 } from "./types";
 
-const POLL_INTERVAL_MS = 2_000;
+const OPEN_POLL_INTERVAL_MS = 2_000;
+const COLLAPSED_POLL_INTERVAL_MS = 10_000;
+const READ_RECEIPT_RETRY_INTERVAL_MS = 5_000;
+const MAX_PERSISTED_SEEN_MESSAGE_IDS = 1_000;
 const INITIAL_CURSOR = "0" as Cursor;
 
 interface PendingMessage {
@@ -47,6 +51,29 @@ function storageValue(key: string, create: () => string) {
     return value;
   } catch {
     return create();
+  }
+}
+
+function storedMessageIds(key: string): ReadonlySet<MessageId> {
+  try {
+    const parsed: unknown = JSON.parse(window.localStorage.getItem(key) ?? "[]");
+    if (!Array.isArray(parsed)) return new Set();
+    return new Set(
+      parsed.filter((value): value is MessageId => typeof value === "string" && value.length > 0),
+    );
+  } catch {
+    return new Set();
+  }
+}
+
+function persistMessageIds(key: string, messageIds: ReadonlySet<MessageId>) {
+  try {
+    window.localStorage.setItem(
+      key,
+      JSON.stringify([...messageIds].slice(-MAX_PERSISTED_SEEN_MESSAGE_IDS)),
+    );
+  } catch {
+    // Read state remains valid for the current page when storage is unavailable.
   }
 }
 
@@ -161,10 +188,18 @@ export function useRespondKit({ apiBaseUrl, context, fetch, open }: UseRespondKi
   const [pendingMessages, setPendingMessages] = useState<ReadonlyMap<string, PendingMessage>>(
     () => new Map(),
   );
+  const [seenOperatorMessageIds, setSeenOperatorMessageIds] = useState<ReadonlySet<MessageId>>(
+    () => new Set(),
+  );
+  const [pendingReadReceiptIds, setPendingReadReceiptIds] = useState<ReadonlySet<MessageId>>(
+    () => new Set(),
+  );
+  const [readReceiptAttempt, setReadReceiptAttempt] = useState(0);
   const cursorRef = useRef<Cursor>(INITIAL_CURSOR);
+  const seenOperatorMessageIdsRef = useRef<ReadonlySet<MessageId>>(new Set());
+  const seenMessageStorageKeyRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
-    if (!open) return;
     if (
       initializedClientRef.current === client &&
       initializedContextKeyRef.current === contextKey
@@ -187,6 +222,12 @@ export function useRespondKit({ apiBaseUrl, context, fetch, open }: UseRespondKi
     setThread(undefined);
     setServerMessages([]);
     setPendingMessages(new Map<string, PendingMessage>());
+    const emptySeenMessageIds = new Set<MessageId>();
+    seenOperatorMessageIdsRef.current = emptySeenMessageIds;
+    seenMessageStorageKeyRef.current = undefined;
+    setSeenOperatorMessageIds(emptySeenMessageIds);
+    setPendingReadReceiptIds(new Set<MessageId>());
+    setReadReceiptAttempt(0);
     cursorRef.current = INITIAL_CURSOR;
 
     async function bootstrap() {
@@ -195,6 +236,11 @@ export function useRespondKit({ apiBaseUrl, context, fetch, open }: UseRespondKi
         const identityScope = await identityStorageScope(currentContext.userId);
         if (!active) return;
         const storagePrefix = `respondkit:${currentContext.inboxId}:${identityScope}`;
+        const seenMessageStorageKey = `${storagePrefix}:seen-operator-message-ids`;
+        const persistedSeenMessageIds = storedMessageIds(seenMessageStorageKey);
+        seenMessageStorageKeyRef.current = seenMessageStorageKey;
+        seenOperatorMessageIdsRef.current = persistedSeenMessageIds;
+        setSeenOperatorMessageIds(persistedSeenMessageIds);
         const installationId = storageValue(
           `${storagePrefix}:installation-id`,
           createInstallationId,
@@ -241,7 +287,7 @@ export function useRespondKit({ apiBaseUrl, context, fetch, open }: UseRespondKi
       active = false;
       abortController.abort();
     };
-  }, [client, contextKey, open]);
+  }, [client, contextKey]);
 
   const mergeMessages = useCallback((incoming: readonly MessageV1[]) => {
     if (incoming.length === 0) return;
@@ -252,18 +298,43 @@ export function useRespondKit({ apiBaseUrl, context, fetch, open }: UseRespondKi
     });
   }, []);
 
+  const queueVisibleOperatorMessages = useCallback((incoming: readonly MessageV1[]) => {
+    const unseenMessageIds = incoming.flatMap((message) =>
+      message.direction === "operator_to_customer" &&
+      message.state === "available" &&
+      !seenOperatorMessageIdsRef.current.has(message.id)
+        ? [message.id]
+        : [],
+    );
+    if (unseenMessageIds.length === 0) return;
+
+    const nextSeenMessageIds = new Set(seenOperatorMessageIdsRef.current);
+    for (const messageId of unseenMessageIds) nextSeenMessageIds.add(messageId);
+    seenOperatorMessageIdsRef.current = nextSeenMessageIds;
+    setSeenOperatorMessageIds(nextSeenMessageIds);
+    const storageKey = seenMessageStorageKeyRef.current;
+    if (storageKey !== undefined) persistMessageIds(storageKey, nextSeenMessageIds);
+
+    setPendingReadReceiptIds((current) => {
+      const next = new Set(current);
+      for (const messageId of unseenMessageIds) next.add(messageId);
+      return next;
+    });
+  }, []);
+
   useEffect(() => {
-    if (!open || session === undefined || thread === undefined) return;
+    if (session === undefined || thread === undefined) return;
 
     const activeSession = session;
     const activeThread = thread;
+    const pollInterval = open ? OPEN_POLL_INTERVAL_MS : COLLAPSED_POLL_INTERVAL_MS;
     const abortController = new AbortController();
     let timeout: ReturnType<typeof setTimeout> | undefined;
     let active = true;
 
     async function poll() {
       if (!active || document.visibilityState === "hidden") {
-        timeout = setTimeout(poll, POLL_INTERVAL_MS);
+        timeout = setTimeout(poll, pollInterval);
         return;
       }
 
@@ -290,7 +361,7 @@ export function useRespondKit({ apiBaseUrl, context, fetch, open }: UseRespondKi
         setPollError(error instanceof Error ? error.message : "New messages could not be loaded.");
         setTranscriptState("stale");
       } finally {
-        if (active) timeout = setTimeout(poll, POLL_INTERVAL_MS);
+        if (active) timeout = setTimeout(poll, pollInterval);
       }
     }
 
@@ -311,6 +382,73 @@ export function useRespondKit({ apiBaseUrl, context, fetch, open }: UseRespondKi
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [client, mergeMessages, open, session, thread]);
+
+  useEffect(() => {
+    if (!open || activeContextKey !== contextKey) return;
+    queueVisibleOperatorMessages(serverMessages);
+  }, [activeContextKey, contextKey, open, queueVisibleOperatorMessages, serverMessages]);
+
+  useEffect(() => {
+    if (
+      !open ||
+      session === undefined ||
+      thread === undefined ||
+      pendingReadReceiptIds.size === 0
+    ) {
+      return;
+    }
+
+    const messageIds = [...pendingReadReceiptIds].slice(0, 25);
+    const abortController = new AbortController();
+    let retryTimeout: ReturnType<typeof setTimeout> | undefined;
+    let active = true;
+
+    void client
+      .acknowledgeMessagesRead(
+        session.token,
+        thread.id,
+        { messageIds },
+        { signal: abortController.signal },
+      )
+      .then((response) => {
+        if (!active) return;
+        const acknowledged = new Set(response.acknowledgedMessageIds);
+        if (acknowledged.size > 0) {
+          setPendingReadReceiptIds((current) => {
+            const next = new Set(current);
+            for (const messageId of acknowledged) next.delete(messageId);
+            return next;
+          });
+        }
+        if (response.pendingMessageIds.length > 0) {
+          retryTimeout = setTimeout(
+            () => setReadReceiptAttempt((attempt) => attempt + 1),
+            READ_RECEIPT_RETRY_INTERVAL_MS,
+          );
+        }
+      })
+      .catch((error: unknown) => {
+        if (!active || abortController.signal.aborted) return;
+        if (error instanceof RespondKitClientError && !error.retryable) {
+          setPendingReadReceiptIds((current) => {
+            const next = new Set(current);
+            for (const messageId of messageIds) next.delete(messageId);
+            return next;
+          });
+          return;
+        }
+        retryTimeout = setTimeout(
+          () => setReadReceiptAttempt((attempt) => attempt + 1),
+          READ_RECEIPT_RETRY_INTERVAL_MS,
+        );
+      });
+
+    return () => {
+      active = false;
+      abortController.abort();
+      if (retryTimeout !== undefined) clearTimeout(retryTimeout);
+    };
+  }, [client, open, pendingReadReceiptIds, readReceiptAttempt, session, thread]);
 
   const submitPending = useCallback(
     async (pending: PendingMessage) => {
@@ -406,10 +544,19 @@ export function useRespondKit({ apiBaseUrl, context, fetch, open }: UseRespondKi
   );
 
   const contextMatches = activeContextKey === contextKey;
+  const hasUnreadReply =
+    contextMatches &&
+    serverMessages.some(
+      (message) =>
+        message.direction === "operator_to_customer" &&
+        message.state === "available" &&
+        !seenOperatorMessageIds.has(message.id),
+    );
 
   return {
     bootstrapError: contextMatches ? bootstrapError : undefined,
     bootstrapState: contextMatches ? bootstrapState : "resolving_context",
+    hasUnreadReply,
     messages: contextMatches ? displayMessages(serverMessages, pendingMessages) : [],
     pollError: contextMatches ? pollError : undefined,
     retryMessage,

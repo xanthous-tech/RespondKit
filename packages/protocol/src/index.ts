@@ -3,6 +3,8 @@ export type { ApiErrorCode, ApiErrorResponseV1, ApiErrorV1 } from "./errors";
 
 export {
   API_VERSION,
+  AcknowledgeMessagesReadRequestV1Schema,
+  AcknowledgeMessagesReadResponseV1Schema,
   ClientSessionV1Schema,
   CreateClientSessionRequestV1Schema,
   CreateClientSessionResponseV1Schema,
@@ -24,6 +26,8 @@ export {
   ThreadV1Schema,
 } from "./customer";
 export type {
+  AcknowledgeMessagesReadRequestV1,
+  AcknowledgeMessagesReadResponseV1,
   ClientSessionV1,
   CreateClientSessionRequestV1,
   CreateClientSessionResponseV1,

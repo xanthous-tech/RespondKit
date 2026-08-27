@@ -120,6 +120,12 @@ export const demoApiFetch: typeof fetch = async (input, init) => {
     );
   }
 
+  if (url.pathname === "/v1/threads/thread_demo/read-receipts" && init?.method === "POST") {
+    if (typeof init.body !== "string") throw new TypeError("Expected a JSON body");
+    const request = JSON.parse(init.body) as { messageIds: string[] };
+    return json({ acknowledgedMessageIds: request.messageIds, pendingMessageIds: [] });
+  }
+
   return json(
     {
       error: {

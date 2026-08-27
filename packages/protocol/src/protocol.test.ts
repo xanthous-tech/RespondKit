@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vite-plus/test";
 
 import {
+  AcknowledgeMessagesReadRequestV1Schema,
+  AcknowledgeMessagesReadResponseV1Schema,
   ClientMessageIdSchema,
   CreateClientSessionRequestV1Schema,
   CursorSchema,
@@ -81,6 +83,21 @@ describe("customer protocol v1", () => {
         hasMore: false,
       }),
     ).toThrow("message thread does not match");
+  });
+
+  it("keeps read-receipt batches bounded, unique, and disjoint", () => {
+    expect(
+      AcknowledgeMessagesReadRequestV1Schema.parse({ messageIds: ["msg_1", "msg_2"] }),
+    ).toEqual({ messageIds: ["msg_1", "msg_2"] });
+    expect(() =>
+      AcknowledgeMessagesReadRequestV1Schema.parse({ messageIds: ["msg_1", "msg_1"] }),
+    ).toThrow("message IDs must be unique");
+    expect(() =>
+      AcknowledgeMessagesReadResponseV1Schema.parse({
+        acknowledgedMessageIds: ["msg_1"],
+        pendingMessageIds: ["msg_1"],
+      }),
+    ).toThrow("unique and disjoint");
   });
 
   it("ties client message identity to customer-authored messages", () => {

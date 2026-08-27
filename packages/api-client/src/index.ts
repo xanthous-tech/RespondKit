@@ -15,6 +15,8 @@ export {
   createInstallationId,
 } from "@respondkit/protocol";
 export type {
+  AcknowledgeMessagesReadRequestV1,
+  AcknowledgeMessagesReadResponseV1,
   ClientMessageId,
   ClientSessionV1,
   ClientThreadId,

@@ -37,6 +37,7 @@ export function RespondKitWidget({
   const {
     bootstrapError,
     bootstrapState,
+    hasUnreadReply,
     messages,
     pollError,
     retryMessage,
@@ -156,7 +157,7 @@ export function RespondKitWidget({
             render={
               <Button
                 ref={launcherRef}
-                className={`ac:size-14 ac:rounded-full ac:shadow-lg ${open ? "ac:max-sm:hidden" : ""}`}
+                className={`ac:relative ac:size-14 ac:rounded-full ac:shadow-lg ${open ? "ac:max-sm:hidden" : ""}`}
                 size="icon-lg"
                 onClick={toggle}
                 aria-expanded={open}
@@ -165,6 +166,13 @@ export function RespondKitWidget({
             }
           >
             {open ? <XIcon /> : <MessageCircleIcon />}
+            {!open && hasUnreadReply ? (
+              <span
+                className="ac:absolute ac:-top-0.5 ac:-right-0.5 ac:size-3.5 ac:rounded-full ac:border-2 ac:border-background ac:bg-red-500"
+                role="status"
+                aria-label="Unread support reply"
+              />
+            ) : null}
           </TooltipTrigger>
           <TooltipContent side="left">
             {open ? "Close support chat" : "Open support chat"}

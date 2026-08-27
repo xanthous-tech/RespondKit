@@ -12,7 +12,10 @@ import {
   DISCORD_PONG_RESPONSE,
   DiscordChannelType,
   DiscordInteractionParseError,
+  DiscordRestClient,
+  DiscordRestError,
   createEphemeralInteractionResponse,
+  findDiscordReadReceiptTargets,
   findDiscordReplyByReference,
   normalizeDiscordCommand,
   parseDiscordInteraction,
@@ -22,6 +25,8 @@ import {
   type ParsedDiscordCommandInteraction,
 } from "@respondkit/discord";
 import {
+  AcknowledgeMessagesReadRequestV1Schema,
+  AcknowledgeMessagesReadResponseV1Schema,
   ApiErrorResponseV1Schema,
   CreateClientSessionRequestV1Schema,
   CreateThreadRequestV1Schema,
@@ -72,6 +77,7 @@ type ApiStatus = 400 | 401 | 403 | 404 | 409 | 429 | 500 | 503;
 type ApiVariables = { corsOrigin?: string };
 type ApiContext = Context<{ Bindings: Env; Variables: ApiVariables }>;
 const DISCORD_RESPONSE_CUTOFF_MS = 2_200;
+const CUSTOMER_READ_REACTION = "✅";
 
 class ApiHttpError extends Error {
   constructor(
@@ -136,6 +142,14 @@ function requestOrigin(context: ApiContext): string {
   } catch {
     throw new ApiHttpError(403, "forbidden", "The request Origin is invalid");
   }
+}
+
+function readReceiptDiscordClient(env: Env): DiscordRestClient {
+  return new DiscordRestClient({
+    botToken: env.DISCORD_BOT_TOKEN,
+    baseUrl: env.DISCORD_API_BASE_URL,
+    userAgent: "RespondKit (https://github.com/xanthous-tech/RespondKit, 0.1)",
+  });
 }
 
 async function requireAllowedOrigin(
@@ -560,6 +574,52 @@ export function createHttpApp() {
         threadId: thread.id,
         ...(query.after === undefined ? {} : { after: query.after }),
         ...(query.limit === undefined ? {} : { limit: query.limit }),
+      }),
+    );
+  });
+
+  app.post("/v1/threads/:threadId/read-receipts", async (context) => {
+    const auth = await authenticateCustomer(context);
+    const thread = await requireOwnedThread(context, auth, context.req.param("threadId"));
+    const request = AcknowledgeMessagesReadRequestV1Schema.parse(await parseRequestJson(context));
+    const targets = await findDiscordReadReceiptTargets(createDatabase(context.env.DB), {
+      workspaceId: auth.claims.workspaceId,
+      inboxId: auth.claims.inboxId,
+      threadId: thread.id,
+      messageIds: request.messageIds,
+    });
+    const targetsByMessageId = new Map(targets.map((target) => [target.messageId, target]));
+    const client = readReceiptDiscordClient(context.env);
+    const results = await Promise.all(
+      request.messageIds.map(async (messageId) => {
+        const target = targetsByMessageId.get(messageId);
+        if (target === undefined) return { messageId, acknowledged: false } as const;
+        try {
+          await client.addReaction({
+            channelId: target.discordThreadId,
+            messageId: target.discordMessageId,
+            emoji: CUSTOMER_READ_REACTION,
+          });
+          return { messageId, acknowledged: true } as const;
+        } catch (error) {
+          console.error("Discord read-receipt reaction failed", {
+            messageId,
+            status: error instanceof DiscordRestError ? error.status : undefined,
+            code: error instanceof DiscordRestError ? error.discordCode : undefined,
+            retryable: error instanceof DiscordRestError ? error.retryable : true,
+          });
+          return { messageId, acknowledged: false } as const;
+        }
+      }),
+    );
+    return context.json(
+      AcknowledgeMessagesReadResponseV1Schema.parse({
+        acknowledgedMessageIds: results.flatMap((result) =>
+          result.acknowledged ? [result.messageId] : [],
+        ),
+        pendingMessageIds: results.flatMap((result) =>
+          result.acknowledged ? [] : [result.messageId],
+        ),
       }),
     );
   });
