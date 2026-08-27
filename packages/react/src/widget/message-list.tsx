@@ -39,7 +39,7 @@ function deliveryLabel(message: DisplayMessage) {
   if (message.localDelivery === "optimistic") return "Sending…";
   if (message.state === "failed") return "Failed";
   if (message.localDelivery === "accepted" || message.state === "processing") {
-    return "Sending…";
+    return "Sent";
   }
   if (message.state === "available") return "Sent";
   return undefined;
