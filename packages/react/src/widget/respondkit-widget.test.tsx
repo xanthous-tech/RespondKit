@@ -438,6 +438,7 @@ describe("RespondKitWidget", () => {
     };
     expect(body.clientMessageId).toMatch(/^cmsg_/);
     expect(body.text).toBe("composing\nHello");
+    expect(await screen.findByText("Sent")).toBeVisible();
   });
 
   it("shows and retries a terminal server failure after a fresh load", async () => {
@@ -468,7 +469,7 @@ describe("RespondKitWidget", () => {
       clientMessageId: "cmsg_failed",
       text: "Please retry this message",
     });
-    expect(await screen.findByText("Sending…")).toBeVisible();
+    expect(await screen.findByText("Sent")).toBeVisible();
   });
 
   it("retries ambiguous acceptance with the original immutable message ID", async () => {
@@ -505,7 +506,7 @@ describe("RespondKitWidget", () => {
     });
 
     expect(new Set(messageIds)).toHaveProperty("size", 1);
-    expect(await screen.findByText("Sending…")).toBeVisible();
+    expect(await screen.findByText("Sent")).toBeVisible();
   });
 
   it("isolates persisted installation and thread IDs when the host account changes", async () => {

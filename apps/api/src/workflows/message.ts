@@ -21,6 +21,9 @@ import {
   finalizeDiscordThreadClaim,
   findDiscordIntegrationForInbox,
   findDiscordThread,
+  formatCustomerProjectionContent,
+  formatOperatorReplyAuditContent,
+  languageDisplayName,
   markDiscordProjectionFailed,
   markDiscordProjectionSent,
   splitDiscordMessage,
@@ -191,7 +194,7 @@ function starterContent(envelope: MessageWorkflowEnvelope, marker: string): stri
       ? `PostHog: \`${envelope.context.posthogDistinctId}\``
       : undefined,
     envelope.direction === "customer_to_operator" && envelope.context.locale !== undefined
-      ? `Locale: ${envelope.context.locale}`
+      ? `Language: ${languageDisplayName(envelope.context.locale)}`
       : undefined,
     envelope.direction === "customer_to_operator" && envelope.context.timezone !== undefined
       ? `Timezone: ${envelope.context.timezone}`
@@ -606,30 +609,24 @@ function customerProjectionContent(
   envelope: MessageWorkflowEnvelope & { readonly direction: "customer_to_operator" },
   translation: CanonicalTranslationResult,
 ): string {
-  return [
-    `**Customer · ${translation.sourceLanguage} → English**`,
-    translation.needsReview
-      ? "⚠️ **Translation needs review.** Check the original message before acting."
-      : undefined,
-    translation.translatedText,
-    "",
-    `**Original (${translation.sourceLanguage})**`,
-    envelope.originalText,
-  ]
-    .filter((line): line is string => line !== undefined)
-    .join("\n");
+  return formatCustomerProjectionContent({
+    originalText: envelope.originalText,
+    sourceLanguage: translation.sourceLanguage,
+    translatedText: translation.translatedText,
+    needsReview: translation.needsReview,
+  });
 }
 
-function availableAuditContent(translation: CanonicalTranslationResult): string {
-  return [
-    `**Available in chat · ${translation.targetLanguage}**`,
-    translation.needsReview
-      ? "⚠️ **Translation needs review.** Check the customer-facing text."
-      : undefined,
-    translation.translatedText,
-  ]
-    .filter((line): line is string => line !== undefined)
-    .join("\n");
+function availableAuditContent(
+  envelope: MessageWorkflowEnvelope & { readonly direction: "operator_to_customer" },
+  translation: CanonicalTranslationResult,
+): string {
+  return formatOperatorReplyAuditContent({
+    originalText: envelope.originalText,
+    targetLanguage: translation.targetLanguage,
+    translatedText: translation.translatedText,
+    needsReview: translation.needsReview,
+  });
 }
 
 function failureAuditContent(
@@ -739,7 +736,7 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
           envelope,
           target,
           "available_audit",
-          availableAuditContent(canonicalTranslation),
+          availableAuditContent(envelope, canonicalTranslation),
           "post-available-audit",
         );
       }
