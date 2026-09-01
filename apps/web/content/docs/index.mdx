@@ -1,0 +1,28 @@
+---
+title: Introduction
+description: Customer support infrastructure that stays close to your product stack.
+icon: MessageCircleMore
+---
+
+RespondKit is an open-core customer support toolkit for product teams that want a support experience they can own and extend.
+
+The MVP combines four pieces:
+
+- an embeddable React chat widget;
+- translated customer and operator messages;
+- Discord forum threads as the operator inbox;
+- a small API that external agents can consume.
+
+## How a conversation moves
+
+1. Your product opens a RespondKit thread with customer context such as user ID, email, locale, and PostHog distinct ID.
+2. The customer message is accepted immediately and translated in a Cloudflare Workflow.
+3. RespondKit projects the translated message into its Discord thread.
+4. An operator replies with `/reply` in Discord.
+5. RespondKit translates the reply back to the customer language and exposes it to the widget.
+
+## Current scope
+
+RespondKit is still early. The React client, Cloudflare API, D1 conversation model, translation workflow, and Discord operator loop are the current focus. Native mobile SDKs, email delivery, and a hosted control plane can build on the same protocol later.
+
+Continue with [Getting started](/docs/getting-started) to add the widget to a React product.

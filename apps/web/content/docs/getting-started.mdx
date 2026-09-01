@@ -1,0 +1,54 @@
+---
+title: Getting started
+description: Install the React package and open your first support conversation.
+icon: Rocket
+---
+
+## Install the package
+
+```bash
+pnpm add @respondkit/react react react-dom tailwindcss @tailwindcss/vite
+```
+
+RespondKit currently expects the host application to process its stylesheet with Tailwind CSS v4.
+
+## Add the widget
+
+Import the component and its stylesheet once in your application:
+
+```tsx
+import { RespondKitWidget } from "@respondkit/react";
+import "@respondkit/react/styles.css";
+
+export function Support() {
+  return (
+    <RespondKitWidget
+      apiBaseUrl="https://api.respondkit.dev"
+      title="Support"
+      context={{
+        inboxId: "inbox_example",
+        userId: "user_123",
+        email: "customer@example.com",
+      }}
+    />
+  );
+}
+```
+
+Replace `inbox_example` with the inbox ID provisioned for your product.
+
+## Pass useful context
+
+The widget accepts the following context when it is available:
+
+| Field               | Purpose                                                                   |
+| ------------------- | ------------------------------------------------------------------------- |
+| `inboxId`           | Routes the conversation to the correct product and Discord forum.         |
+| `userId`            | Connects support to your internal customer record.                        |
+| `email`             | Gives the operator a stable contact identifier.                           |
+| `locale`            | Helps RespondKit choose the customer language.                            |
+| `posthogDistinctId` | Lets your support tools correlate the conversation with product activity. |
+| `path`              | Captures the page or screen where the user requested help.                |
+| `metadata`          | Adds JSON-safe product context specific to your application.              |
+
+See [React widget](/docs/react-widget) for the complete component surface.
