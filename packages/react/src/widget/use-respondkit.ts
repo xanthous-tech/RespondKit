@@ -162,6 +162,7 @@ export function useRespondKit({ apiBaseUrl, context, fetch, open }: UseRespondKi
     () => new Map(),
   );
   const cursorRef = useRef<Cursor>(INITIAL_CURSOR);
+  const hasLoadedTranscriptRef = useRef(false);
 
   useEffect(() => {
     if (!open) return;
@@ -188,6 +189,7 @@ export function useRespondKit({ apiBaseUrl, context, fetch, open }: UseRespondKi
     setServerMessages([]);
     setPendingMessages(new Map<string, PendingMessage>());
     cursorRef.current = INITIAL_CURSOR;
+    hasLoadedTranscriptRef.current = false;
 
     async function bootstrap() {
       try {
@@ -267,7 +269,8 @@ export function useRespondKit({ apiBaseUrl, context, fetch, open }: UseRespondKi
         return;
       }
 
-      if (cursorRef.current === INITIAL_CURSOR) setTranscriptState("loading");
+      // An empty transcript can load successfully without advancing the cursor.
+      if (!hasLoadedTranscriptRef.current) setTranscriptState("loading");
 
       try {
         let hasMore = true;
@@ -279,10 +282,12 @@ export function useRespondKit({ apiBaseUrl, context, fetch, open }: UseRespondKi
             { after: previousCursor, limit: 100 },
             { signal: abortController.signal },
           );
+          if (!active || abortController.signal.aborted) return;
           mergeMessages(response.messages);
           cursorRef.current = response.nextCursor;
           hasMore = response.hasMore && response.nextCursor !== previousCursor;
         }
+        hasLoadedTranscriptRef.current = true;
         setPollError(undefined);
         setTranscriptState("ready");
       } catch (error) {
