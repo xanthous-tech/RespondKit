@@ -1,6 +1,6 @@
 {
   "name": "@respondkit/react",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Embeddable React customer-support widget for RespondKit",
   "keywords": [
     "chat-widget",
