@@ -359,6 +359,91 @@ describe("RespondKitWidget", () => {
     expect(screen.queryByLabelText("Loading messages")).not.toBeInTheDocument();
   });
 
+  it.each(["interval", "reopen", "visibility"])(
+    "keeps an empty transcript visible during a pending %s refresh",
+    async (trigger) => {
+      const baseFetch = createApiFetch();
+      let resolveRefresh!: (response: Response) => void;
+      const refresh = new Promise<Response>((resolve) => {
+        resolveRefresh = resolve;
+      });
+      let transcriptRequests = 0;
+      const apiFetch = vi.fn<typeof fetch>(async (input, init) => {
+        if (new URL(requestUrl(input)).pathname.endsWith("/messages") && init?.method === "GET") {
+          transcriptRequests += 1;
+          if (transcriptRequests > 1) return refresh;
+          return json({ threadId: "thread_test", messages: [], nextCursor: "0", hasMore: false });
+        }
+        return baseFetch(input, init);
+      });
+      vi.stubGlobal("fetch", apiFetch);
+
+      render(
+        <RespondKitWidget
+          apiBaseUrl="https://support.test"
+          context={{ inboxId: "inbox_test" }}
+          initiallyOpen
+        />,
+      );
+      expect(await screen.findByText("How can we help?")).toBeVisible();
+
+      if (trigger === "reopen") {
+        fireEvent.click(screen.getByRole("button", { name: "Close support chat", expanded: true }));
+        fireEvent.click(screen.getByRole("button", { name: "Open support chat" }));
+      } else if (trigger === "visibility") {
+        fireEvent(document, new Event("visibilitychange"));
+      }
+      await waitFor(() => expect(transcriptRequests).toBe(2), { timeout: 3_000 });
+      expect(screen.queryByLabelText("Loading messages")).not.toBeInTheDocument();
+      expect(screen.getByText("How can we help?")).toBeVisible();
+      expect(screen.getByRole("textbox", { name: "Message" })).toBeEnabled();
+
+      resolveRefresh(
+        await baseFetch("https://support.test/v1/threads/thread_test/messages", { method: "GET" }),
+      );
+      expect(await screen.findByText("How can I help?")).toBeVisible();
+      expect(screen.queryByLabelText("Loading messages")).not.toBeInTheDocument();
+    },
+  );
+
+  it("loads a new context after an empty transcript has already loaded", async () => {
+    const baseFetch = createApiFetch();
+    const { apiFetch: delayedFetch, resolveTranscript } = createDelayedEmptyTranscriptApiFetch();
+    let transcriptRequests = 0;
+    const apiFetch = vi.fn<typeof fetch>(async (input, init) => {
+      if (new URL(requestUrl(input)).pathname.endsWith("/messages") && init?.method === "GET") {
+        transcriptRequests += 1;
+        if (transcriptRequests > 1) return delayedFetch(input, init);
+        return json({ threadId: "thread_test", messages: [], nextCursor: "0", hasMore: false });
+      }
+      return baseFetch(input, init);
+    });
+    vi.stubGlobal("fetch", apiFetch);
+
+    const { rerender } = render(
+      <RespondKitWidget
+        apiBaseUrl="https://support.test"
+        context={{ inboxId: "inbox_one" }}
+        initiallyOpen
+      />,
+    );
+    expect(await screen.findByText("How can we help?")).toBeVisible();
+
+    rerender(
+      <RespondKitWidget
+        apiBaseUrl="https://support.test"
+        context={{ inboxId: "inbox_two" }}
+        initiallyOpen
+      />,
+    );
+    await waitFor(() => expect(transcriptRequests).toBe(2));
+    expect(screen.getByLabelText("Loading messages")).toBeVisible();
+    expect(screen.queryByText("How can we help?")).not.toBeInTheDocument();
+
+    resolveTranscript();
+    expect(await screen.findByText("How can we help?")).toBeVisible();
+  });
+
   it("retains a successful transcript across launcher close and reopen", async () => {
     const apiFetch = createApiFetch();
     vi.stubGlobal("fetch", apiFetch);
