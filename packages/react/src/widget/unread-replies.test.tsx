@@ -134,9 +134,11 @@ describe("unread operator replies", () => {
     view = render(<RespondKitWidget {...base} fetch={api.fetch} />);
     await vi.waitFor(() => expect(dot()).toBeInTheDocument());
     open();
-    await vi.waitFor(() => expect(screen.getByText("Reply thread_one 3")).toBeVisible());
-    expect(dot()).not.toBeInTheDocument();
-    expect(localStorage.getItem(readKey)).toBe("3");
+    await vi.waitFor(() => {
+      expect(screen.getByText("Reply thread_one 3")).toBeVisible();
+      expect(dot()).not.toBeInTheDocument();
+      expect(localStorage.getItem(readKey)).toBe("3");
+    });
     close();
     view.unmount();
     render(<RespondKitWidget {...base} fetch={api.fetch} />);
@@ -169,9 +171,11 @@ describe("unread operator replies", () => {
     api.replies.set("thread_one", 2);
     api.transcriptCursors.set("thread_one", 1);
     render(<RespondKitWidget {...base} fetch={api.fetch} initiallyOpen />);
-    await vi.waitFor(() => expect(screen.getByText("Reply thread_one 1")).toBeVisible());
-    expect(dot()).toBeInTheDocument();
-    expect(localStorage.getItem(readKey)).toBe("1");
+    await vi.waitFor(() => {
+      expect(screen.getByText("Reply thread_one 1")).toBeVisible();
+      expect(dot()).toBeInTheDocument();
+      expect(localStorage.getItem(readKey)).toBe("1");
+    });
     api.transcriptCursors.set("thread_one", 2);
     await tick(2000);
     expect(dot()).not.toBeInTheDocument();
@@ -188,8 +192,10 @@ describe("unread operator replies", () => {
     expect(screen.getByRole("option", { name: /Unread reply/ })).toHaveValue("thread_two");
     expect(dot()).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Conversation"), { target: { value: "thread_two" } });
-    await vi.waitFor(() => expect(screen.getByText("Reply thread_two 1")).toBeVisible());
-    expect(dot()).not.toBeInTheDocument();
+    await vi.waitFor(() => {
+      expect(screen.getByText("Reply thread_two 1")).toBeVisible();
+      expect(dot()).not.toBeInTheDocument();
+    });
   });
 
   it("pauses in hidden tabs, resumes immediately on return, and retains unread state through network failures", async () => {
@@ -245,8 +251,10 @@ describe("unread operator replies", () => {
     render(<RespondKitWidget {...base} fetch={api.fetch} />);
     await vi.waitFor(() => expect(dot()).toBeInTheDocument());
     open();
-    await vi.waitFor(() => expect(screen.getByText("Reply thread_one 10")).toBeVisible());
-    expect(dot()).not.toBeInTheDocument();
+    await vi.waitFor(() => {
+      expect(screen.getByText("Reply thread_one 10")).toBeVisible();
+      expect(dot()).not.toBeInTheDocument();
+    });
     close();
     await tick();
     expect(dot()).not.toBeInTheDocument();
