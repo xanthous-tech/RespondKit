@@ -84,6 +84,7 @@ Hosts without a resolver continue to use anonymous/advisory sessions. `RESPONDKI
 
 - `POST /v1/client/sessions` accepts optional `identityToken` alongside installation ID and context. It links or resumes the visitor and issues a scoped session.
 - `GET /v1/threads?after=<cursor>` returns up to 100 authorized conversations and an optional `nextCursor`. The cursor is an opaque thread ID in stable ascending order. The widget can load further pages with More.
+- `GET /v1/thread-statuses?after=<cursor>` uses the same authorization and 100-thread pagination as history. Each entry contains `thread` and `latestReplyCursor` ("0" when no published operator reply exists). Reply cursors come from available operator events in the customer transcript, so a delayed translation is newer than an earlier read cursor even if its message was accepted first. The widget checks all pages every 10 seconds in visible tabs and compares against local read cursors.
 - `GET /v1/threads/:threadId` restores a known active conversation even when it is outside the first history page.
 - Message reads and writes accept any thread owned by the verified customer. Anonymous tokens remain limited to their original visitor.
 - `POST /v1/client/logout` invalidates all currently issued tokens for that visitor by incrementing its session version. It does not delete or unlink history.
@@ -94,7 +95,7 @@ The additive D1 migration introduces `customer`, `visitor_customer`, `visitor_al
 
 1. Apply migration `0001_thankful_ezekiel.sql` and deploy the updated API.
 2. Provision the matching per-inbox signing secret on both backends.
-3. Publish protocol, API client and React packages at 0.2.0 in dependency order.
+3. Publish protocol, API client and React packages at 0.3.0 in dependency order (includes the 0.2.0 identity changes and unread reply notifications).
 4. Upgrade the host SDK and enable its authenticated assertion resolver.
 5. Verify anonymous chat → login → same thread, fresh browser → login → recovered history, and logout/account switching → isolated history.
 

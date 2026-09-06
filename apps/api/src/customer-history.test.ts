@@ -2,6 +2,7 @@ import {
   CreateClientSessionResponseV1Schema,
   CreateThreadResponseV1Schema,
   ListThreadsResponseV1Schema,
+  ListThreadStatusesResponseV1Schema,
 } from "@respondkit/protocol";
 import { env } from "cloudflare:test";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
@@ -76,6 +77,11 @@ describe("verified customer history", () => {
     expect((await history(alice.token)).threads.map((t) => t.id)).toEqual([original.id]);
     const fresh = await session("install_browser_b", await identityToken());
     expect(fresh.visitorId).not.toBe(alice.visitorId);
+    const statuses = await request("/v1/thread-statuses", undefined, fresh.token);
+    expect(statuses.headers.get("cache-control")).toBe("private, no-store");
+    expect(ListThreadStatusesResponseV1Schema.parse(await statuses.json()).threads).toEqual([
+      { thread: original, latestReplyCursor: "0" },
+    ]);
     expect((await history(fresh.token)).threads.map((t) => t.id)).toEqual([original.id]);
     expect(
       (await request(`/v1/threads/${original.id}/messages`, undefined, fresh.token)).status,
@@ -94,6 +100,8 @@ describe("verified customer history", () => {
       ]),
     );
     expect((await request("/v1/threads", undefined, anonymous.token)).status).toBe(401);
+    expect((await request("/v1/thread-statuses", undefined, anonymous.token)).status).toBe(401);
+    expect((await request("/v1/thread-statuses")).status).toBe(401);
   });
 
   it("does not grant history through raw user IDs, matching PostHog aliases, or another account", async () => {
@@ -108,6 +116,8 @@ describe("verified customer history", () => {
     const bob = await session("install_bob", await identityToken({ sub: "bob" }));
     for (const token of [impostor.token, bob.token]) {
       expect((await history(token)).threads).toEqual([]);
+      const statuses = await request("/v1/thread-statuses", undefined, token);
+      expect(ListThreadStatusesResponseV1Schema.parse(await statuses.json()).threads).toEqual([]);
       expect((await request(`/v1/threads/${original.id}/messages`, undefined, token)).status).toBe(
         404,
       );
@@ -220,6 +230,19 @@ describe("verified customer history", () => {
     expect(second.threads).toHaveLength(3);
     expect(second.nextCursor).toBeUndefined();
     expect(new Set([...first.threads, ...second.threads].map((t) => t.id)).size).toBe(103);
+    const statusFirst = ListThreadStatusesResponseV1Schema.parse(
+      await (await request("/v1/thread-statuses", undefined, alice.token)).json(),
+    );
+    expect(statusFirst.threads).toHaveLength(100);
+    const statusSecond = ListThreadStatusesResponseV1Schema.parse(
+      await (
+        await request(`/v1/thread-statuses?after=${statusFirst.nextCursor}`, undefined, alice.token)
+      ).json(),
+    );
+    expect(statusSecond.threads.map((item) => item.thread.id)).toEqual(
+      second.threads.map((item) => item.id),
+    );
+    expect(statusSecond.nextCursor).toBeUndefined();
     const direct = await request("/v1/threads/thread_page_102", undefined, alice.token);
     expect(CreateThreadResponseV1Schema.parse(await direct.json()).thread.id).toBe(
       "thread_page_102",
@@ -256,6 +279,11 @@ describe("verified customer history", () => {
     const other = CreateClientSessionResponseV1Schema.parse(await response.json()).session;
     expect(other.visitorId).not.toBe(alice.visitorId);
     expect((await history(other.token)).threads).toEqual([]);
+    expect(
+      ListThreadStatusesResponseV1Schema.parse(
+        await (await request("/v1/thread-statuses", undefined, other.token)).json(),
+      ).threads,
+    ).toEqual([]);
     expect((await request(`/v1/threads/${firstThread.id}`, undefined, other.token)).status).toBe(
       404,
     );

@@ -1,6 +1,6 @@
 {
   "name": "@respondkit/react",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Embeddable React customer-support widget for RespondKit",
   "keywords": [
     "chat-widget",
@@ -29,6 +29,7 @@
     "src/widget/theme.ts",
     "src/widget/types.ts",
     "src/widget/use-respondkit.ts",
+    "src/widget/use-reply-status.ts",
     "src/widget/browser-identity.ts",
     "src/index.ts",
     "src/styles.css",

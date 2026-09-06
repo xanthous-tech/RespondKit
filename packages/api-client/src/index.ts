@@ -27,6 +27,7 @@ export type {
   InboxId,
   InstallationId,
   ListThreadsResponseV1,
+  ListThreadStatusesResponseV1,
   ListMessagesQueryV1,
   ListMessagesResponseV1,
   MessageAcceptanceStatus,

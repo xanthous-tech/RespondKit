@@ -54,6 +54,7 @@ export function RespondKitWidget({
     loadMoreThreads,
     hasMoreThreads,
     reconnect,
+    unreadThreadIds,
   } = useRespondKit({ apiBaseUrl, context, fetch, open, getIdentityToken, identityPending });
 
   useEffect(() => {
@@ -169,6 +170,7 @@ export function RespondKitWidget({
                         <option key={item.id} value={item.id}>
                           {new Date(item.createdAt).toLocaleDateString(context.locale)} ·{" "}
                           {index + 1}
+                          {unreadThreadIds.has(item.id) ? " · Unread reply" : ""}
                         </option>
                       ))}
                     </select>
@@ -191,20 +193,31 @@ export function RespondKitWidget({
           </section>
         ) : null}
 
+        <span id={`${titleId}-unread`} className="ac:sr-only" role="status">
+          {unreadThreadIds.size > 0 ? "Unread support reply" : ""}
+        </span>
         <Tooltip>
           <TooltipTrigger
             render={
               <Button
                 ref={launcherRef}
-                className={`ac:size-14 ac:rounded-full ac:shadow-lg ${open ? "ac:max-sm:hidden" : ""}`}
+                className={`ac:relative ac:size-14 ac:rounded-full ac:shadow-lg ${open ? "ac:max-sm:hidden" : ""}`}
                 size="icon-lg"
                 onClick={toggle}
+                aria-describedby={unreadThreadIds.size > 0 ? `${titleId}-unread` : undefined}
                 aria-expanded={open}
                 aria-label={open ? "Close support chat" : "Open support chat"}
               />
             }
           >
             {open ? <XIcon /> : <MessageCircleIcon />}
+            {unreadThreadIds.size > 0 ? (
+              <span
+                aria-hidden="true"
+                data-testid="unread-reply-dot"
+                className="ac:absolute ac:top-0 ac:right-0 ac:size-3 ac:rounded-full ac:bg-red-500 ac:ring-2 ac:ring-background"
+              />
+            ) : null}
           </TooltipTrigger>
           <TooltipContent side="left">
             {open ? "Close support chat" : "Open support chat"}
