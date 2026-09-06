@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test"
 import { RespondKitWidget } from "./respondkit-widget";
 import { browserIdentityKey } from "./browser-identity";
 
-function harness() {
+function harness(lifetime = 300_000) {
   const sessions: Array<{
     installationId: string;
     identityToken?: string;
@@ -33,7 +33,7 @@ function harness() {
           id: "session_test",
           visitorId: "visitor_test",
           token: `session_token_test_${sessions.length}`,
-          expiresAt: new Date(Date.now() + 300_000).toISOString(),
+          expiresAt: new Date(Date.now() + lifetime).toISOString(),
         },
       });
     }
@@ -283,5 +283,15 @@ describe("customer identity lifecycle", () => {
       context: { userId: "alice" },
     });
     expect(localStorage.getItem(key)).toBeNull();
+  });
+  it("does not repeatedly refresh a thirty-day anonymous session", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+    const api = harness(30 * 24 * 60 * 60 * 1000);
+    render(<RespondKitWidget {...base} fetch={api.fetch} initiallyOpen />);
+    await vi.waitFor(() => expect(screen.getByText("History for thread_0")).toBeVisible());
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000);
+    });
+    expect(api.sessions).toHaveLength(1);
   });
 });

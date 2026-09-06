@@ -360,7 +360,11 @@ export function useRespondKit({
     let active = true;
     const controller = new AbortController();
     const epoch = identityEpochRef.current;
-    const delay = Math.max(1000, new Date(session.expiresAt).getTime() - Date.now() - 30_000);
+    // Browsers clamp delays above a signed 32-bit integer to about 1 ms.
+    const delay = Math.min(
+      2_147_000_000,
+      Math.max(1000, new Date(session.expiresAt).getTime() - Date.now() - 30_000),
+    );
     const timeout = setTimeout(async () => {
       try {
         const current = contextRef.current;
