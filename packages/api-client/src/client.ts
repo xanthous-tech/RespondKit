@@ -62,6 +62,11 @@ export interface RespondKitClient {
     options?: RequestOptions,
   ): Promise<ListThreadsResponseV1>;
   logout(sessionToken: SessionToken, options?: RequestOptions): Promise<{ ok: true }>;
+  getThread(
+    sessionToken: SessionToken,
+    threadId: ThreadId,
+    options?: RequestOptions,
+  ): Promise<CreateThreadResponseV1>;
   createThread(
     sessionToken: SessionToken,
     input: CreateThreadRequestV1,
@@ -328,6 +333,23 @@ export function createRespondKitClient(options: RespondKitClientOptions): Respon
         token: SessionTokenSchema.parse(sessionToken),
         signal: requestOptions?.signal,
       });
+    },
+
+    async getThread(sessionToken, threadId, requestOptions) {
+      const id = ThreadIdSchema.parse(threadId);
+      const response = await request({
+        path: `/${API_VERSION}/threads/${encodeURIComponent(id)}`,
+        method: "GET",
+        responseSchema: CreateThreadResponseV1Schema,
+        token: SessionTokenSchema.parse(sessionToken),
+        signal: requestOptions?.signal,
+      });
+      if (response.thread.id !== id)
+        throw new RespondKitClientError("RespondKit returned a different support thread", {
+          code: "internal_error",
+          retryable: false,
+        });
+      return response;
     },
 
     async createThread(sessionToken, input, requestOptions) {

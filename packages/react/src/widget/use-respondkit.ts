@@ -2,8 +2,6 @@ import {
   RespondKitClientError,
   createRespondKitClient,
   createClientMessageId,
-  createClientThreadId,
-  createInstallationId,
   type ClientSessionV1,
   type Cursor,
   type MessageAcceptanceV1,
@@ -11,6 +9,15 @@ import {
   type ThreadV1,
 } from "@respondkit/api-client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import {
+  legacyAccountIdentity,
+  removeLegacyAccountIdentity,
+  browserIdentityKey,
+  freshBrowserIdentity,
+  readBrowserIdentity,
+  saveBrowserIdentity,
+} from "./browser-identity";
 
 import type {
   RespondKitContext,
@@ -35,32 +42,8 @@ interface UseRespondKitInput {
   readonly context: RespondKitContext;
   readonly fetch?: typeof globalThis.fetch | undefined;
   readonly open: boolean;
-}
-
-function storageValue(key: string, create: () => string) {
-  try {
-    const existing = window.localStorage.getItem(key);
-    if (existing !== null) return existing;
-
-    const value = create();
-    window.localStorage.setItem(key, value);
-    return value;
-  } catch {
-    return create();
-  }
-}
-
-async function identityStorageScope(userId: string | undefined) {
-  if (userId === undefined) return "anonymous";
-  if (globalThis.crypto?.subtle === undefined) {
-    throw new Error("Support chat requires a secure browser context.");
-  }
-
-  const digest = await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(userId));
-  return `user-${[...new Uint8Array(digest)]
-    .slice(0, 16)
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("")}`;
+  readonly getIdentityToken?: (() => Promise<string | null>) | undefined;
+  readonly identityPending?: boolean | undefined;
 }
 
 function contextPayload(context: RespondKitContext) {
@@ -75,6 +58,9 @@ function contextPayload(context: RespondKitContext) {
     ...(context.posthogDistinctId === undefined
       ? {}
       : { posthogDistinctId: context.posthogDistinctId }),
+    ...(context.posthogSessionId === undefined
+      ? {}
+      : { posthogSessionId: context.posthogSessionId }),
     ...(context.locale === undefined ? {} : { locale: context.locale }),
     ...(context.timezone === undefined ? {} : { timezone: context.timezone }),
     ...(Object.keys(metadata).length === 0 ? {} : { metadata }),
@@ -138,12 +124,32 @@ function displayMessages(
   });
 }
 
-export function useRespondKit({ apiBaseUrl, context, fetch, open }: UseRespondKitInput) {
+export function useRespondKit({
+  apiBaseUrl,
+  context,
+  fetch,
+  open,
+  getIdentityToken,
+  identityPending = false,
+}: UseRespondKitInput) {
   const client = useMemo(
     () => createRespondKitClient({ baseUrl: apiBaseUrl, fetch }),
     [apiBaseUrl, fetch],
   );
-  const contextKey = JSON.stringify(context);
+  const storageKey = browserIdentityKey(apiBaseUrl, context.inboxId);
+  const identityTokenRef = useRef(getIdentityToken);
+  identityTokenRef.current = getIdentityToken;
+  const [refresh, setRefresh] = useState(0);
+  const [storageBlocked, setStorageBlocked] = useState(false);
+  const [threads, setThreads] = useState<ThreadV1[]>([]);
+  const [historyCursor, setHistoryCursor] = useState<string>();
+  const contextKey = JSON.stringify([
+    context,
+    refresh,
+    identityPending,
+    storageBlocked,
+    Boolean(getIdentityToken),
+  ]);
   const contextRef = useRef(context);
   contextRef.current = context;
   const identityEpochRef = useRef(0);
@@ -165,7 +171,31 @@ export function useRespondKit({ apiBaseUrl, context, fetch, open }: UseRespondKi
   const hasLoadedTranscriptRef = useRef(false);
 
   useEffect(() => {
-    if (!open) return;
+    setStorageBlocked(false);
+  }, [context.userId]);
+
+  useEffect(() => {
+    function changed(event: StorageEvent) {
+      if (event.key !== storageKey && event.key !== null) return;
+      try {
+        const before = event.oldValue
+          ? (JSON.parse(event.oldValue) as { installationId?: string; userId?: string })
+          : null;
+        const after = event.newValue
+          ? (JSON.parse(event.newValue) as { installationId?: string; userId?: string })
+          : null;
+        if (before?.installationId !== after?.installationId || before?.userId !== after?.userId)
+          setStorageBlocked(true);
+      } catch {
+        setStorageBlocked(true);
+      }
+    }
+    window.addEventListener("storage", changed);
+    return () => window.removeEventListener("storage", changed);
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (identityPending || storageBlocked) return;
     if (
       initializedClientRef.current === client &&
       initializedContextKeyRef.current === contextKey
@@ -186,6 +216,8 @@ export function useRespondKit({ apiBaseUrl, context, fetch, open }: UseRespondKi
     setTranscriptState("idle");
     setSession(undefined);
     setThread(undefined);
+    setThreads([]);
+    setHistoryCursor(undefined);
     setServerMessages([]);
     setPendingMessages(new Map<string, PendingMessage>());
     cursorRef.current = INITIAL_CURSOR;
@@ -194,40 +226,114 @@ export function useRespondKit({ apiBaseUrl, context, fetch, open }: UseRespondKi
     async function bootstrap() {
       try {
         const currentContext = contextRef.current;
-        const identityScope = await identityStorageScope(currentContext.userId);
+        let browser = readBrowserIdentity(storageKey, currentContext.inboxId);
+        if (browser.userId !== undefined && browser.userId !== currentContext.userId) {
+          if (browser.session) void client.logout(browser.session.token).catch(() => undefined);
+          browser = freshBrowserIdentity(currentContext.userId);
+        }
+        if (currentContext.userId !== undefined) browser.userId = currentContext.userId;
+        saveBrowserIdentity(storageKey, browser);
+        // Login linking runs even while the launcher is closed. Untouched anonymous pages stay lazy.
+        if (!open && currentContext.userId === undefined) return;
+        const identityToken =
+          currentContext.userId === undefined ? null : await identityTokenRef.current?.();
         if (!active) return;
-        const storagePrefix = `respondkit:${currentContext.inboxId}:${identityScope}`;
-        const installationId = storageValue(
-          `${storagePrefix}:installation-id`,
-          createInstallationId,
-        );
-        const clientThreadId = storageValue(`${storagePrefix}:thread-id`, createClientThreadId);
-
+        if (identityTokenRef.current && currentContext.userId !== undefined && !identityToken) {
+          throw new Error("Sign in again to restore your support history.");
+        }
+        if (identityToken && currentContext.userId !== undefined) {
+          const legacy = await legacyAccountIdentity(currentContext.inboxId, currentContext.userId);
+          if (!active) return;
+          if (legacy) {
+            await client.createSession(
+              {
+                inboxId: currentContext.inboxId,
+                installationId: legacy.installationId,
+                identityToken,
+                context: contextPayload(currentContext),
+              },
+              { signal: abortController.signal },
+            );
+            if (!active) return;
+            removeLegacyAccountIdentity(legacy.prefix);
+          }
+        }
         setBootstrapState("creating_session");
-        const sessionResponse = await client.createSession(
-          {
-            inboxId: currentContext.inboxId,
-            installationId,
-            context: contextPayload(currentContext),
-          },
-          { signal: abortController.signal },
-        );
+        const createSession = () =>
+          client.createSession(
+            {
+              inboxId: currentContext.inboxId,
+              installationId: browser.installationId,
+              context: contextPayload(currentContext),
+              ...(identityToken ? { identityToken } : {}),
+            },
+            { signal: abortController.signal },
+          );
+        let sessionResponse;
+        try {
+          sessionResponse = await createSession();
+        } catch (error) {
+          // A linked installation cannot become another account or anonymous again.
+          if (!(error instanceof RespondKitClientError) || error.code !== "conflict" || !active)
+            throw error;
+          browser = freshBrowserIdentity(currentContext.userId);
+          saveBrowserIdentity(storageKey, browser);
+          sessionResponse = await createSession();
+        }
         if (!active) return;
         setSession(sessionResponse.session);
 
-        setBootstrapState("creating_thread");
-        const threadResponse = await client.createThread(
-          sessionResponse.session.token,
-          { clientThreadId },
-          { signal: abortController.signal },
-        );
+        browser.session = sessionResponse.session;
+        saveBrowserIdentity(storageKey, browser);
+        let available: ThreadV1[] = [];
+        let nextCursor: string | undefined;
+        // Older anonymous-only hosts keep their existing single-thread API behavior.
+        if (identityTokenRef.current) {
+          const history = await client.listThreads(sessionResponse.session.token, undefined, {
+            signal: abortController.signal,
+          });
+          available = history.threads;
+          nextCursor = history.nextCursor;
+        }
+        let selected =
+          available.find((item) => item.id === browser.selectedThreadId) ??
+          available.find((item) => item.clientThreadId === browser.clientThreadId);
+        // The active conversation may be outside the first page of a large account history.
+        if (!selected && browser.selectedThreadId && identityTokenRef.current) {
+          try {
+            selected = (
+              await client.getThread(sessionResponse.session.token, browser.selectedThreadId, {
+                signal: abortController.signal,
+              })
+            ).thread;
+            available = [selected, ...available];
+          } catch (error) {
+            if (!(error instanceof RespondKitClientError) || error.code !== "not_found")
+              throw error;
+          }
+        }
+        selected ??= [...available].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
+        if (selected === undefined && open) {
+          setBootstrapState("creating_thread");
+          selected = (
+            await client.createThread(
+              sessionResponse.session.token,
+              { clientThreadId: browser.clientThreadId },
+              { signal: abortController.signal },
+            )
+          ).thread;
+          available = [selected, ...available];
+        }
         if (!active) return;
-
+        if (selected) browser.selectedThreadId = selected.id;
+        saveBrowserIdentity(storageKey, browser);
+        setThreads(available);
+        setHistoryCursor(nextCursor);
         cursorRef.current = INITIAL_CURSOR;
         initializedClientRef.current = client;
-        initializedContextKeyRef.current = contextKey;
+        initializedContextKeyRef.current = selected === undefined ? undefined : contextKey;
         setServerMessages([]);
-        setThread(threadResponse.thread);
+        setThread(selected);
         setBootstrapState("ready");
       } catch (error) {
         if (abortController.signal.aborted || !active) return;
@@ -243,7 +349,81 @@ export function useRespondKit({ apiBaseUrl, context, fetch, open }: UseRespondKi
       active = false;
       abortController.abort();
     };
-  }, [client, contextKey, open]);
+  }, [client, contextKey, open, identityPending, storageBlocked, storageKey]);
+
+  useEffect(() => {
+    if (!session || identityPending || storageBlocked) return;
+    let active = true;
+    const controller = new AbortController();
+    const epoch = identityEpochRef.current;
+    const delay = Math.max(1000, new Date(session.expiresAt).getTime() - Date.now() - 30_000);
+    const timeout = setTimeout(async () => {
+      try {
+        const current = contextRef.current;
+        const identityToken =
+          current.userId === undefined ? null : await identityTokenRef.current?.();
+        if (!active || epoch !== identityEpochRef.current) return;
+        if (identityTokenRef.current && current.userId !== undefined && !identityToken)
+          throw new Error("Sign in again to restore your support history.");
+        const browser = readBrowserIdentity(storageKey, current.inboxId);
+        const response = await client.createSession(
+          {
+            inboxId: current.inboxId,
+            installationId: browser.installationId,
+            context: contextPayload(current),
+            ...(identityToken ? { identityToken } : {}),
+          },
+          { signal: controller.signal },
+        );
+        if (!active || epoch !== identityEpochRef.current) return;
+        browser.session = response.session;
+        saveBrowserIdentity(storageKey, browser);
+        setSession(response.session);
+      } catch {
+        if (!active || epoch !== identityEpochRef.current) return;
+        setSession(undefined);
+        setServerMessages([]);
+        setBootstrapState("recoverable_error");
+        setBootstrapError("Your support session expired. Reconnect to continue.");
+      }
+    }, delay);
+    return () => {
+      active = false;
+      controller.abort();
+      clearTimeout(timeout);
+    };
+  }, [client, session, storageKey, identityPending, storageBlocked]);
+
+  function selectThread(id: string) {
+    const selected = threads.find((item) => item.id === id);
+    if (!selected || selected.id === thread?.id) return;
+    identityEpochRef.current += 1;
+    cursorRef.current = INITIAL_CURSOR;
+    hasLoadedTranscriptRef.current = false;
+    setServerMessages([]);
+    setPendingMessages(new Map());
+    setTranscriptState("loading");
+    setThread(selected);
+    const browser = readBrowserIdentity(storageKey, context.inboxId);
+    browser.selectedThreadId = selected.id;
+    saveBrowserIdentity(storageKey, browser);
+  }
+
+  async function loadMoreThreads() {
+    if (!session || !historyCursor) return;
+    const epoch = identityEpochRef.current;
+    try {
+      const page = await client.listThreads(session.token, historyCursor);
+      if (epoch !== identityEpochRef.current) return;
+      setThreads((items) => [
+        ...new Map([...items, ...page.threads].map((item) => [item.id, item])).values(),
+      ]);
+      setHistoryCursor(page.nextCursor);
+    } catch {
+      if (epoch === identityEpochRef.current)
+        setPollError("Conversation history could not be loaded. Try More again.");
+    }
+  }
 
   const mergeMessages = useCallback((incoming: readonly MessageV1[]) => {
     if (incoming.length === 0) return;
@@ -255,7 +435,15 @@ export function useRespondKit({ apiBaseUrl, context, fetch, open }: UseRespondKi
   }, []);
 
   useEffect(() => {
-    if (!open || session === undefined || thread === undefined) return;
+    if (
+      !open ||
+      identityPending ||
+      storageBlocked ||
+      activeContextKey !== contextKey ||
+      session === undefined ||
+      thread === undefined
+    )
+      return;
 
     const activeSession = session;
     const activeThread = thread;
@@ -315,7 +503,17 @@ export function useRespondKit({ apiBaseUrl, context, fetch, open }: UseRespondKi
       if (timeout !== undefined) clearTimeout(timeout);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [client, mergeMessages, open, session, thread]);
+  }, [
+    client,
+    mergeMessages,
+    open,
+    session,
+    thread,
+    identityPending,
+    storageBlocked,
+    activeContextKey,
+    contextKey,
+  ]);
 
   const submitPending = useCallback(
     async (pending: PendingMessage) => {
@@ -410,11 +608,25 @@ export function useRespondKit({ apiBaseUrl, context, fetch, open }: UseRespondKi
     [pendingMessages, serverMessages, submitPending],
   );
 
-  const contextMatches = activeContextKey === contextKey;
+  const contextMatches = activeContextKey === contextKey && !identityPending && !storageBlocked;
 
   return {
-    bootstrapError: contextMatches ? bootstrapError : undefined,
-    bootstrapState: contextMatches ? bootstrapState : "resolving_context",
+    threads: contextMatches ? threads : [],
+    selectedThreadId: contextMatches ? thread?.id : undefined,
+    reconnect: () => (storageBlocked ? window.location.reload() : setRefresh((value) => value + 1)),
+    selectThread,
+    loadMoreThreads,
+    hasMoreThreads: contextMatches && historyCursor !== undefined,
+    bootstrapError: storageBlocked
+      ? "Support identity changed in another tab. Reconnect to reload your account."
+      : contextMatches
+        ? bootstrapError
+        : undefined,
+    bootstrapState: storageBlocked
+      ? "recoverable_error"
+      : contextMatches
+        ? bootstrapState
+        : "resolving_context",
     messages: contextMatches ? displayMessages(serverMessages, pendingMessages) : [],
     pollError: contextMatches ? pollError : undefined,
     retryMessage,

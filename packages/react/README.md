@@ -34,3 +34,7 @@ export function Support() {
 ```
 
 The widget can also receive locale, route, PostHog distinct ID, and arbitrary JSON-safe metadata through `context`.
+
+## Verified account history
+
+Version 0.2.0 adds `getIdentityToken`, an async resolver for a short-lived assertion from your authenticated backend, and `identityPending` to pause while host auth loads. These enable anonymous-to-account linking and cross-browser history recovery. `posthogDistinctId` and `posthogSessionId` remain advisory analytics context. See the [identity setup guide](https://github.com/xanthous-tech/RespondKit/blob/main/docs/architecture/customer-identity.md) for the signing contract, logout behavior, and rollout order.

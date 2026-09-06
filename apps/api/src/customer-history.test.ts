@@ -195,4 +195,69 @@ describe("verified customer history", () => {
       ).toBe(401);
     }
   });
+  it("paginates every conversation without duplicates and restores a known thread directly", async () => {
+    const alice = await session("install_many", await identityToken());
+    await env.DB.batch(
+      Array.from({ length: 103 }, (_, index) =>
+        env.DB.prepare(
+          "insert into thread (id, workspace_id, inbox_id, visitor_id, client_thread_id, created_at, updated_at, last_activity_at) values (?, ?, ?, ?, ?, ?, ?, ?)",
+        ).bind(
+          `thread_page_${String(index).padStart(3, "0")}`,
+          TEST_TOPOLOGY.workspaceId,
+          TEST_TOPOLOGY.inboxId,
+          alice.visitorId,
+          `client_thread_page_${index}`,
+          Date.now(),
+          Date.now(),
+          Date.now(),
+        ),
+      ),
+    );
+    const first = await history(alice.token);
+    expect(first.threads).toHaveLength(100);
+    const response = await request(`/v1/threads?after=${first.nextCursor}`, undefined, alice.token);
+    const second = ListThreadsResponseV1Schema.parse(await response.json());
+    expect(second.threads).toHaveLength(3);
+    expect(second.nextCursor).toBeUndefined();
+    expect(new Set([...first.threads, ...second.threads].map((t) => t.id)).size).toBe(103);
+    const direct = await request("/v1/threads/thread_page_102", undefined, alice.token);
+    expect(CreateThreadResponseV1Schema.parse(await direct.json()).thread.id).toBe(
+      "thread_page_102",
+    );
+  });
+
+  it("keeps matching verified user IDs isolated across inboxes", async () => {
+    const alice = await session("install_same", await identityToken());
+    const firstThread = await thread(alice.token);
+    await env.DB.prepare(
+      "insert into inbox (id, workspace_id, product_id, name, status, default_locale, created_at, updated_at) select 'inbox_other', workspace_id, product_id, name, status, default_locale, created_at, updated_at from inbox where id = ?",
+    )
+      .bind(TEST_TOPOLOGY.inboxId)
+      .run();
+    await env.DB.prepare(
+      "insert into allowed_origin (id, workspace_id, inbox_id, origin, created_at) values ('origin_other', ?, 'inbox_other', ?, ?)",
+    )
+      .bind(TEST_TOPOLOGY.workspaceId, TEST_ORIGIN, Date.now())
+      .run();
+    const response = await app.request(
+      "/v1/client/sessions",
+      {
+        method: "POST",
+        headers: { origin: TEST_ORIGIN, "content-type": "application/json" },
+        body: JSON.stringify({
+          inboxId: "inbox_other",
+          installationId: "install_same",
+          identityToken: await identityToken({ inboxId: "inbox_other" }),
+        }),
+      },
+      createTestEnv({ IDENTITY_SIGNING_KEYS: JSON.stringify({ inbox_other: IDENTITY_TEST_KEY }) }),
+    );
+    expect(response.status).toBe(201);
+    const other = CreateClientSessionResponseV1Schema.parse(await response.json()).session;
+    expect(other.visitorId).not.toBe(alice.visitorId);
+    expect((await history(other.token)).threads).toEqual([]);
+    expect((await request(`/v1/threads/${firstThread.id}`, undefined, other.token)).status).toBe(
+      404,
+    );
+  });
 });

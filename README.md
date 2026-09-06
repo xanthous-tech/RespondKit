@@ -88,7 +88,7 @@ export function Support() {
 }
 ```
 
-Customer-supplied identity and metadata are advisory context in this MVP, never authorization. The widget scopes its persisted installation/thread IDs to the supplied user ID so switching accounts cannot inherit the previous account's transcript.
+The widget preserves a browser visitor through anonymous use and login. Customer-supplied IDs remain advisory; pass `getIdentityToken` from an authenticated backend and `identityPending` from your auth state to link conversations to a verified account and restore history on another browser. Logout and account changes isolate subsequent history. See [persistent visitors and verified customer history](docs/architecture/customer-identity.md) for signing, aliases, migration, and rollout instructions.
 
 The package uses shadcn primitives with Tailwind v4 utilities namespaced as `ac:` and does not import Tailwind preflight, so it can coexist with the host product's Tailwind/shadcn theme.
 

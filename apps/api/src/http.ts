@@ -4,6 +4,7 @@ import {
   findThreadById,
   listCustomerMessages,
   listCustomerThreads,
+  toCustomerThreadV1,
   toCustomerMessageV1,
   toMessageBusinessStatus,
   type MessageRow,
@@ -645,6 +646,15 @@ export function createHttpApp() {
       },
       201,
     );
+  });
+
+  app.get("/v1/threads/:threadId", async (context) => {
+    const auth = await authenticateCustomer(context);
+    return context.json({
+      thread: toCustomerThreadV1(
+        await requireOwnedThread(context, auth, context.req.param("threadId")),
+      ),
+    });
   });
 
   app.get("/v1/threads/:threadId/messages", async (context) => {

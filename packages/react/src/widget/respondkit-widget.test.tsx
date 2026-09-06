@@ -35,7 +35,7 @@ function createApiFetch() {
           id: "session_test",
           token: "session_test_token_12345",
           visitorId: "visitor_test",
-          expiresAt: "2026-08-26T00:00:00.000Z",
+          expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
         },
       });
     }
