@@ -5,6 +5,8 @@ import {
   CreateClientSessionResponseV1Schema,
   CreateThreadRequestV1Schema,
   CreateThreadResponseV1Schema,
+  ListThreadsResponseV1Schema,
+  LogoutResponseV1Schema,
   ListMessagesQueryV1Schema,
   ListMessagesResponseV1Schema,
   SendMessageRequestV1Schema,
@@ -17,6 +19,7 @@ import {
   type CreateClientSessionResponseV1,
   type CreateThreadRequestV1,
   type CreateThreadResponseV1,
+  type ListThreadsResponseV1,
   type ListMessagesQueryV1,
   type ListMessagesResponseV1,
   type SendMessageRequestV1,
@@ -53,6 +56,12 @@ export interface RespondKitClient {
     input: CreateClientSessionRequestV1,
     options?: RequestOptions,
   ): Promise<CreateClientSessionResponseV1>;
+  listThreads(
+    sessionToken: SessionToken,
+    after?: string,
+    options?: RequestOptions,
+  ): Promise<ListThreadsResponseV1>;
+  logout(sessionToken: SessionToken, options?: RequestOptions): Promise<{ ok: true }>;
   createThread(
     sessionToken: SessionToken,
     input: CreateThreadRequestV1,
@@ -297,6 +306,26 @@ export function createRespondKitClient(options: RespondKitClientOptions): Respon
         method: "POST",
         responseSchema: CreateClientSessionResponseV1Schema,
         body,
+        signal: requestOptions?.signal,
+      });
+    },
+
+    async listThreads(sessionToken, after, requestOptions) {
+      return request({
+        path: `/${API_VERSION}/threads${after === undefined ? "" : `?after=${encodeURIComponent(after)}`}`,
+        method: "GET",
+        responseSchema: ListThreadsResponseV1Schema,
+        token: SessionTokenSchema.parse(sessionToken),
+        signal: requestOptions?.signal,
+      });
+    },
+
+    async logout(sessionToken, requestOptions) {
+      return request({
+        path: `/${API_VERSION}/client/logout`,
+        method: "POST",
+        responseSchema: LogoutResponseV1Schema,
+        token: SessionTokenSchema.parse(sessionToken),
         signal: requestOptions?.signal,
       });
     },

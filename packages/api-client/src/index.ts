@@ -26,6 +26,7 @@ export type {
   CustomerContextV1,
   InboxId,
   InstallationId,
+  ListThreadsResponseV1,
   ListMessagesQueryV1,
   ListMessagesResponseV1,
   MessageAcceptanceStatus,

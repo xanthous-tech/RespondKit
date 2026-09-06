@@ -3,6 +3,7 @@ import {
   findCustomerMessageByClientId,
   findThreadById,
   listCustomerMessages,
+  listCustomerThreads,
   toCustomerMessageV1,
   toMessageBusinessStatus,
   type MessageRow,
@@ -32,6 +33,10 @@ import {
   type MessageAcceptanceV1,
 } from "@respondkit/protocol";
 import {
+  findVisitorCustomer,
+  linkVisitorCustomer,
+  recordVisitorAliases,
+  revokeVisitorSessions,
   findInboxById,
   findInboxByPublicId,
   findVisitorById,
@@ -44,6 +49,7 @@ import {
 import { Hono, type Context } from "hono";
 import { z } from "zod";
 
+import { verifyCustomerIdentity } from "./customer-identity";
 import { createDatabase } from "./db";
 import type { Env } from "./env";
 import {
@@ -188,6 +194,13 @@ async function authenticateCustomer(context: ApiContext): Promise<CustomerReques
   if (visitor === null) {
     throw new ApiHttpError(401, "unauthorized", "The customer profile is unavailable");
   }
+  const link = await findVisitorCustomer(db, visitor.id);
+  if (
+    (claims.sessionVersion ?? 0) !== visitor.sessionVersion ||
+    link?.customerId !== claims.customerId
+  ) {
+    throw new ApiHttpError(401, "unauthorized", "The customer session must be renewed");
+  }
   return { claims, inbox, visitor };
 }
 
@@ -201,7 +214,15 @@ async function requireOwnedThread(
     inboxId: auth.claims.inboxId,
     threadId,
   });
-  if (thread === null || thread.visitorId !== auth.claims.visitorId) {
+  const owner =
+    thread === null || auth.claims.customerId === undefined
+      ? null
+      : await findVisitorCustomer(createDatabase(context.env.DB), thread.visitorId);
+  if (
+    thread === null ||
+    (thread.visitorId !== auth.claims.visitorId && owner?.customerId !== auth.claims.customerId) ||
+    (thread.visitorId !== auth.claims.visitorId && auth.claims.customerId === undefined)
+  ) {
     throw new ApiHttpError(404, "not_found", "The support thread was not found");
   }
   return thread;
@@ -474,6 +495,36 @@ export function createHttpApp() {
       inboxId: inbox.inboxId,
       installationId: request.installationId,
     });
+    const identity =
+      request.identityToken === undefined
+        ? null
+        : await verifyCustomerIdentity({
+            token: request.identityToken,
+            inboxId: inbox.inboxId,
+            signingKeys: context.env.IDENTITY_SIGNING_KEYS,
+          });
+    if (request.identityToken !== undefined && identity === null) {
+      throw new ApiHttpError(
+        401,
+        "unauthorized",
+        "The product identity assertion is invalid or expired",
+      );
+    }
+    if (
+      identity &&
+      request.context?.userId !== undefined &&
+      request.context.userId !== identity.sub
+    ) {
+      throw new ApiHttpError(
+        400,
+        "invalid_request",
+        "Customer context does not match the verified account",
+      );
+    }
+    const existingLink = await findVisitorCustomer(db, visitorId);
+    if (existingLink && existingLink.userId !== identity?.sub) {
+      throw new ApiHttpError(409, "conflict", "Start a fresh browser visitor for this account");
+    }
     const rawRequest = context.req.raw as Request & {
       readonly cf?: { readonly country?: string; readonly region?: string };
     };
@@ -484,8 +535,8 @@ export function createHttpApp() {
       workspaceId: inbox.workspaceId,
       inboxId: inbox.inboxId,
       observedAt: new Date(),
-      externalUserId: request.context?.userId,
-      email: request.context?.email,
+      externalUserId: identity?.sub ?? request.context?.userId,
+      email: identity?.email ?? request.context?.email,
       posthogDistinctId: request.context?.posthogDistinctId,
       locale: request.context?.locale,
       timezone: request.context?.timezone,
@@ -493,13 +544,34 @@ export function createHttpApp() {
       userAgent: context.req.header("user-agent")?.slice(0, 1_024),
       metadata: request.context?.metadata,
     });
+    const link =
+      identity === null
+        ? null
+        : await linkVisitorCustomer(db, {
+            workspaceId: inbox.workspaceId,
+            inboxId: inbox.inboxId,
+            visitorId,
+            userId: identity.sub,
+          });
+    if (identity !== null && link === null) {
+      throw new ApiHttpError(409, "conflict", "This visitor is already linked to another account");
+    }
+    await recordVisitorAliases(db, visitorId, {
+      ...request.context,
+      ...(identity === null ? {} : { userId: identity.sub }),
+    });
     const session = await createAnonymousSession({
       signingKey: context.env.SESSION_SIGNING_KEY,
       sessionId: createClientSessionId(),
       workspaceId: inbox.workspaceId,
       inboxId: inbox.inboxId,
       visitorId: visitor.id,
-      ...(context.env.SESSION_TTL_SECONDS === undefined
+      sessionVersion: visitor.sessionVersion,
+      ...(link === null ? {} : { customerId: link.customerId }),
+      ...(identity === null
+        ? {}
+        : { lifetimeSeconds: identity.exp - Math.floor(Date.now() / 1000) }),
+      ...(identity !== null || context.env.SESSION_TTL_SECONDS === undefined
         ? {}
         : { lifetimeSeconds: Number(context.env.SESSION_TTL_SECONDS) }),
     });
@@ -513,6 +585,32 @@ export function createHttpApp() {
         },
       },
       201,
+    );
+  });
+
+  app.post("/v1/client/logout", async (context) => {
+    const auth = await authenticateCustomer(context);
+    await revokeVisitorSessions(
+      createDatabase(context.env.DB),
+      auth.visitor.id,
+      auth.visitor.sessionVersion,
+    );
+    return context.json({ ok: true as const });
+  });
+
+  app.get("/v1/threads", async (context) => {
+    const auth = await authenticateCustomer(context);
+    const after = context.req.query("after");
+    if (after !== undefined && after.length > 256)
+      throw new ApiHttpError(400, "invalid_request", "Invalid history cursor");
+    return context.json(
+      await listCustomerThreads(createDatabase(context.env.DB), {
+        workspaceId: auth.claims.workspaceId,
+        inboxId: auth.claims.inboxId,
+        visitorId: auth.visitor.id,
+        ...(auth.claims.customerId === undefined ? {} : { customerId: auth.claims.customerId }),
+        ...(after === undefined ? {} : { after }),
+      }),
     );
   });
 

@@ -1,0 +1,198 @@
+import {
+  CreateClientSessionResponseV1Schema,
+  CreateThreadResponseV1Schema,
+  ListThreadsResponseV1Schema,
+} from "@respondkit/protocol";
+import { env } from "cloudflare:test";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
+import { createHttpApp } from "./http";
+import { verifyCustomerIdentity } from "./customer-identity";
+import { createTestEnv, seedTopology, TEST_ORIGIN, TEST_TOPOLOGY } from "../test/fixtures";
+import { identityToken, IDENTITY_TEST_KEY } from "../test/identity";
+
+const signingKeys = JSON.stringify({ [TEST_TOPOLOGY.inboxId]: IDENTITY_TEST_KEY });
+const app = createHttpApp();
+function request(path: string, body?: unknown, token?: string) {
+  return app.request(
+    path,
+    {
+      method: body === undefined ? "GET" : "POST",
+      headers: {
+        origin: TEST_ORIGIN,
+        "content-type": "application/json",
+        ...(token ? { authorization: `Bearer ${token}` } : {}),
+      },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    },
+    createTestEnv({ IDENTITY_SIGNING_KEYS: signingKeys }),
+  );
+}
+async function session(
+  installationId: string,
+  assertion?: string,
+  context?: Record<string, string>,
+) {
+  const response = await request("/v1/client/sessions", {
+    inboxId: TEST_TOPOLOGY.inboxId,
+    installationId,
+    ...(assertion ? { identityToken: assertion } : {}),
+    ...(context ? { context } : {}),
+  });
+  expect(response.status).toBe(201);
+  return CreateClientSessionResponseV1Schema.parse(await response.json()).session;
+}
+async function thread(token: string) {
+  const response = await request(
+    "/v1/threads",
+    { clientThreadId: `client_thread_${crypto.randomUUID()}` },
+    token,
+  );
+  expect(response.status).toBe(201);
+  return CreateThreadResponseV1Schema.parse(await response.json()).thread;
+}
+async function history(token: string) {
+  const response = await request("/v1/threads", undefined, token);
+  expect(response.status).toBe(200);
+  return ListThreadsResponseV1Schema.parse(await response.json());
+}
+
+beforeEach(async () => {
+  await seedTopology();
+});
+
+describe("verified customer history", () => {
+  it("preserves an anonymous conversation through login and restores it from a fresh browser", async () => {
+    const anonymous = await session("install_browser_a", undefined, {
+      posthogDistinctId: "ph_anon",
+      posthogSessionId: "ph_session_1",
+    });
+    const original = await thread(anonymous.token);
+    const alice = await session("install_browser_a", await identityToken(), {
+      userId: "alice",
+      posthogDistinctId: "alice",
+      posthogSessionId: "ph_session_2",
+    });
+    expect(alice.visitorId).toBe(anonymous.visitorId);
+    expect((await history(alice.token)).threads.map((t) => t.id)).toEqual([original.id]);
+    const fresh = await session("install_browser_b", await identityToken());
+    expect(fresh.visitorId).not.toBe(alice.visitorId);
+    expect((await history(fresh.token)).threads.map((t) => t.id)).toEqual([original.id]);
+    expect(
+      (await request(`/v1/threads/${original.id}/messages`, undefined, fresh.token)).status,
+    ).toBe(200);
+    const aliases = await env.DB.prepare(
+      "select kind, value from visitor_alias where visitor_id = ? order by kind, value",
+    )
+      .bind(alice.visitorId)
+      .all();
+    expect(aliases.results).toEqual(
+      expect.arrayContaining([
+        { kind: "posthog_distinct_id", value: "ph_anon" },
+        { kind: "posthog_distinct_id", value: "alice" },
+        { kind: "posthog_session_id", value: "ph_session_1" },
+        { kind: "posthog_session_id", value: "ph_session_2" },
+      ]),
+    );
+    expect((await request("/v1/threads", undefined, anonymous.token)).status).toBe(401);
+  });
+
+  it("does not grant history through raw user IDs, matching PostHog aliases, or another account", async () => {
+    const alice = await session("install_alice", await identityToken(), {
+      posthogDistinctId: "shared",
+    });
+    const original = await thread(alice.token);
+    const impostor = await session("install_impostor", undefined, {
+      userId: "alice",
+      posthogDistinctId: "shared",
+    });
+    const bob = await session("install_bob", await identityToken({ sub: "bob" }));
+    for (const token of [impostor.token, bob.token]) {
+      expect((await history(token)).threads).toEqual([]);
+      expect((await request(`/v1/threads/${original.id}/messages`, undefined, token)).status).toBe(
+        404,
+      );
+      expect(
+        (
+          await request(
+            `/v1/threads/${original.id}/messages`,
+            { clientMessageId: "client_message_attack", text: "attack" },
+            token,
+          )
+        ).status,
+      ).toBe(404);
+    }
+    for (const assertion of [undefined, await identityToken({ sub: "bob" })]) {
+      expect(
+        (
+          await request("/v1/client/sessions", {
+            inboxId: TEST_TOPOLOGY.inboxId,
+            installationId: "install_alice",
+            ...(assertion ? { identityToken: assertion } : {}),
+          })
+        ).status,
+      ).toBe(409);
+    }
+  });
+
+  it("revokes every issued session for that visitor on logout and permits verified re-login", async () => {
+    const first = await session("install_alice", await identityToken());
+    const second = await session("install_alice", await identityToken());
+    const original = await thread(first.token);
+    expect((await request("/v1/client/logout", {}, second.token)).status).toBe(200);
+    expect((await request("/v1/threads", undefined, first.token)).status).toBe(401);
+    expect((await request("/v1/threads", undefined, second.token)).status).toBe(401);
+    const again = await session("install_new_login", await identityToken());
+    expect((await history(again.token)).threads[0]?.id).toBe(original.id);
+  });
+
+  it("converges concurrent logins on one customer without duplicating links", async () => {
+    const assertion = await identityToken();
+    await Promise.all([
+      session("install_one", assertion),
+      session("install_two", assertion),
+      session("install_one", assertion),
+    ]);
+    expect(await env.DB.prepare("select count(*) as count from customer").first("count")).toBe(1);
+    expect(
+      await env.DB.prepare("select count(*) as count from visitor_customer").first("count"),
+    ).toBe(2);
+  });
+
+  it("rejects mismatched contextual user IDs before creating a visitor", async () => {
+    const response = await request("/v1/client/sessions", {
+      inboxId: TEST_TOPOLOGY.inboxId,
+      installationId: "install_mismatch",
+      identityToken: await identityToken(),
+      context: { userId: "bob" },
+    });
+    expect(response.status).toBe(400);
+    expect(await env.DB.prepare("select count(*) as count from visitor").first("count")).toBe(0);
+  });
+
+  it("rejects expired, forged, wrong-inbox, wrong-audience and long-lived identity assertions", async () => {
+    const now = Math.floor(Date.now() / 1000);
+    const invalid = await Promise.all([
+      identityToken({ exp: now - 1 }),
+      identityToken({ inboxId: "inbox_other" }),
+      identityToken({ aud: "another-service" }),
+      identityToken({ exp: now + 3600 }),
+      identityToken({ iat: now + 100, exp: now + 300 }),
+      identityToken({}, "another-signing-key-at-least-32-characters"),
+      identityToken({}, IDENTITY_TEST_KEY, { alg: "none", typ: "JWT" }),
+    ]);
+    for (const token of [...invalid, "garbage"]) {
+      expect(
+        await verifyCustomerIdentity({ token, inboxId: TEST_TOPOLOGY.inboxId, signingKeys }),
+      ).toBeNull();
+      expect(
+        (
+          await request("/v1/client/sessions", {
+            inboxId: TEST_TOPOLOGY.inboxId,
+            installationId: "install_invalid",
+            identityToken: token,
+          })
+        ).status,
+      ).toBe(401);
+    }
+  });
+});

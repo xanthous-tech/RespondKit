@@ -21,6 +21,8 @@ const sessionClaimsSchema = z.strictObject({
   workspaceId: WorkspaceIdSchema,
   inboxId: InboxIdSchema,
   visitorId: VisitorIdSchema,
+  customerId: z.string().optional(),
+  sessionVersion: z.number().int().nonnegative().optional(),
   issuedAt: z.number().int().nonnegative(),
   expiresAt: z.number().int().positive(),
 });
@@ -33,6 +35,8 @@ export interface CreateAnonymousSessionInput {
   readonly workspaceId: WorkspaceId;
   readonly inboxId: InboxId;
   readonly visitorId: VisitorId;
+  readonly customerId?: string;
+  readonly sessionVersion?: number;
   readonly now?: Date;
   readonly lifetimeSeconds?: number;
 }
@@ -97,8 +101,8 @@ export async function createAnonymousSession(
 ): Promise<AnonymousSession> {
   const nowSeconds = Math.floor((input.now ?? new Date()).getTime() / 1_000);
   const lifetimeSeconds = input.lifetimeSeconds ?? DEFAULT_SESSION_LIFETIME_SECONDS;
-  if (!Number.isSafeInteger(lifetimeSeconds) || lifetimeSeconds < 60) {
-    throw new RangeError("Anonymous session lifetime must be at least 60 seconds");
+  if (!Number.isSafeInteger(lifetimeSeconds) || lifetimeSeconds < 1) {
+    throw new RangeError("Anonymous session lifetime must be at least 1 second");
   }
 
   const claims = sessionClaimsSchema.parse({
@@ -107,6 +111,8 @@ export async function createAnonymousSession(
     workspaceId: input.workspaceId,
     inboxId: input.inboxId,
     visitorId: input.visitorId,
+    ...(input.customerId === undefined ? {} : { customerId: input.customerId }),
+    ...(input.sessionVersion === undefined ? {} : { sessionVersion: input.sessionVersion }),
     issuedAt: nowSeconds,
     expiresAt: nowSeconds + lifetimeSeconds,
   });
