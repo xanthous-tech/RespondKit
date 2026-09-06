@@ -177,6 +177,10 @@ export function useRespondKit({
   useEffect(() => {
     function changed(event: StorageEvent) {
       if (event.key !== storageKey && event.key !== null) return;
+      if (event.key === null) {
+        setStorageBlocked(true);
+        return;
+      }
       try {
         const before = event.oldValue
           ? (JSON.parse(event.oldValue) as { installationId?: string; userId?: string })

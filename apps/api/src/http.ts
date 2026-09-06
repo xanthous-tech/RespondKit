@@ -526,6 +526,29 @@ export function createHttpApp() {
     if (existingLink && existingLink.userId !== identity?.sub) {
       throw new ApiHttpError(409, "conflict", "Start a fresh browser visitor for this account");
     }
+    // Create only the opaque visitor first. Claim it before writing verified profile
+    // fields so a losing concurrent account claim cannot overwrite the winner.
+    if (identity !== null) {
+      await upsertVisitor(db, {
+        id: visitorId,
+        installationId: request.installationId,
+        workspaceId: inbox.workspaceId,
+        inboxId: inbox.inboxId,
+        observedAt: new Date(),
+      });
+    }
+    const link =
+      identity === null
+        ? null
+        : await linkVisitorCustomer(db, {
+            workspaceId: inbox.workspaceId,
+            inboxId: inbox.inboxId,
+            visitorId,
+            userId: identity.sub,
+          });
+    if (identity !== null && link === null) {
+      throw new ApiHttpError(409, "conflict", "This visitor is already linked to another account");
+    }
     const rawRequest = context.req.raw as Request & {
       readonly cf?: { readonly country?: string; readonly region?: string };
     };
@@ -545,18 +568,6 @@ export function createHttpApp() {
       userAgent: context.req.header("user-agent")?.slice(0, 1_024),
       metadata: request.context?.metadata,
     });
-    const link =
-      identity === null
-        ? null
-        : await linkVisitorCustomer(db, {
-            workspaceId: inbox.workspaceId,
-            inboxId: inbox.inboxId,
-            visitorId,
-            userId: identity.sub,
-          });
-    if (identity !== null && link === null) {
-      throw new ApiHttpError(409, "conflict", "This visitor is already linked to another account");
-    }
     await recordVisitorAliases(db, visitorId, {
       ...request.context,
       ...(identity === null ? {} : { userId: identity.sub }),

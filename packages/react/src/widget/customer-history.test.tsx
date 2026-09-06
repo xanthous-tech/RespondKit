@@ -205,30 +205,34 @@ describe("customer identity lifecycle", () => {
     expect(screen.queryByText("History for thread_newer")).not.toBeInTheDocument();
   });
 
-  it("hides account history when another tab resets browser identity", async () => {
-    const api = harness();
-    render(
-      <RespondKitWidget
-        {...base}
-        context={{ inboxId: "inbox_test", userId: "alice" }}
-        fetch={api.fetch}
-        getIdentityToken={async () => "signed_alice"}
-        initiallyOpen
-      />,
-    );
-    expect(await screen.findByText("History for thread_0")).toBeVisible();
-    fireEvent(
-      window,
-      new StorageEvent("storage", {
-        key: browserIdentityKey(base.apiBaseUrl, base.context.inboxId),
-        oldValue: JSON.stringify({ installationId: "old", userId: "alice" }),
-        newValue: JSON.stringify({ installationId: "new" }),
-      }),
-    );
-    expect(screen.queryByText("History for thread_0")).not.toBeInTheDocument();
-    expect(screen.queryByRole("textbox", { name: "Message" })).not.toBeInTheDocument();
-    expect(screen.getByText(/Support identity changed in another tab/)).toBeVisible();
-  });
+  it.each(["identity", "clear"])(
+    "hides account history after another tab performs %s",
+    async (change) => {
+      const api = harness();
+      render(
+        <RespondKitWidget
+          {...base}
+          context={{ inboxId: "inbox_test", userId: "alice" }}
+          fetch={api.fetch}
+          getIdentityToken={async () => "signed_alice"}
+          initiallyOpen
+        />,
+      );
+      expect(await screen.findByText("History for thread_0")).toBeVisible();
+      fireEvent(
+        window,
+        new StorageEvent("storage", {
+          key:
+            change === "clear" ? null : browserIdentityKey(base.apiBaseUrl, base.context.inboxId),
+          oldValue: JSON.stringify({ installationId: "old", userId: "alice" }),
+          newValue: JSON.stringify({ installationId: "new" }),
+        }),
+      );
+      expect(screen.queryByText("History for thread_0")).not.toBeInTheDocument();
+      expect(screen.queryByRole("textbox", { name: "Message" })).not.toBeInTheDocument();
+      expect(screen.getByText(/Support identity changed in another tab/)).toBeVisible();
+    },
+  );
   it("refreshes account credentials without clearing the current transcript", async () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
     const api = harness();
