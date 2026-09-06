@@ -16,6 +16,10 @@ export type { RespondKitContext } from "./types";
 export interface RespondKitWidgetProps {
   readonly apiBaseUrl: string;
   readonly context: RespondKitContext;
+  /** Fetch a short-lived assertion from your authenticated backend. Never return a signing secret. */
+  readonly getIdentityToken?: (() => Promise<string | null>) | undefined;
+  /** Pause identity changes while the host authentication session is loading. */
+  readonly identityPending?: boolean | undefined;
   readonly fetch?: typeof globalThis.fetch | undefined;
   readonly title?: string | undefined;
   readonly initiallyOpen?: boolean | undefined;
@@ -26,6 +30,8 @@ export function RespondKitWidget({
   apiBaseUrl,
   context,
   fetch,
+  getIdentityToken,
+  identityPending,
   title = "Support",
   initiallyOpen = false,
   accentColor = "indigo",
@@ -42,7 +48,13 @@ export function RespondKitWidget({
     retryMessage,
     sendMessage,
     transcriptState,
-  } = useRespondKit({ apiBaseUrl, context, fetch, open });
+    threads,
+    selectedThreadId,
+    selectThread,
+    loadMoreThreads,
+    hasMoreThreads,
+    reconnect,
+  } = useRespondKit({ apiBaseUrl, context, fetch, open, getIdentityToken, identityPending });
 
   useEffect(() => {
     if (!open) return;
@@ -128,6 +140,9 @@ export function RespondKitWidget({
                     {bootstrapError ?? "Support chat could not be started."}
                   </AlertDescription>
                 </Alert>
+                <Button className="ac:mt-3" onClick={reconnect}>
+                  Reconnect
+                </Button>
               </div>
             ) : (
               <>
@@ -139,6 +154,31 @@ export function RespondKitWidget({
                     </AlertDescription>
                   </Alert>
                 )}
+                {threads.length > 1 || hasMoreThreads ? (
+                  <div className="ac:flex ac:items-center ac:gap-2 ac:border-b ac:p-3">
+                    <label className="ac:text-sm" htmlFor={`${titleId}-history`}>
+                      Conversation
+                    </label>
+                    <select
+                      id={`${titleId}-history`}
+                      className="ac:min-w-0 ac:flex-1 ac:rounded ac:border ac:bg-background ac:p-2 ac:text-sm"
+                      value={selectedThreadId ?? ""}
+                      onChange={(event) => selectThread(event.target.value)}
+                    >
+                      {threads.map((item, index) => (
+                        <option key={item.id} value={item.id}>
+                          {new Date(item.createdAt).toLocaleDateString(context.locale)} ·{" "}
+                          {index + 1}
+                        </option>
+                      ))}
+                    </select>
+                    {hasMoreThreads ? (
+                      <Button variant="ghost" onClick={() => void loadMoreThreads()}>
+                        More
+                      </Button>
+                    ) : null}
+                  </div>
+                ) : null}
                 <MessageList
                   locale={context.locale}
                   messages={messages}

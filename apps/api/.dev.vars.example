@@ -5,3 +5,6 @@ DISCORD_BOT_TOKEN=
 DISCORD_APPLICATION_ID=
 DISCORD_PUBLIC_KEY=
 SESSION_SIGNING_KEY=
+
+# Optional: per-inbox product-backend identity secrets (at least 32 characters each).
+# IDENTITY_SIGNING_KEYS={"inbox_example_public":"replace-with-a-random-backend-secret"}

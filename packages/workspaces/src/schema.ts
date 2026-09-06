@@ -125,6 +125,7 @@ export const visitors = sqliteTable(
     workspaceId: text("workspace_id").$type<WorkspaceId>().notNull(),
     inboxId: text("inbox_id").$type<InboxId>().notNull(),
     installationId: text("installation_id").$type<InstallationId>().notNull(),
+    sessionVersion: integer("session_version").notNull().default(0),
     externalUserId: text("external_user_id"),
     email: text("email"),
     posthogDistinctId: text("posthog_distinct_id"),
@@ -206,3 +207,66 @@ export type AllowedOriginRow = typeof allowedOrigins.$inferSelect;
 export type NewAllowedOriginRow = typeof allowedOrigins.$inferInsert;
 export type VisitorRow = typeof visitors.$inferSelect;
 export type NewVisitorRow = typeof visitors.$inferInsert;
+
+// Account identity is unique within an inbox; analytics identifiers never authorize access.
+export const customers = sqliteTable(
+  "customer",
+  {
+    id: text("id").primaryKey(),
+    workspaceId: text("workspace_id").$type<WorkspaceId>().notNull(),
+    inboxId: text("inbox_id").$type<InboxId>().notNull(),
+    userId: text("user_id").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("customer_user_inbox_uq").on(table.workspaceId, table.inboxId, table.userId),
+    uniqueIndex("customer_scope_uq").on(table.id, table.workspaceId, table.inboxId),
+    foreignKey({
+      columns: [table.inboxId, table.workspaceId],
+      foreignColumns: [inboxes.id, inboxes.workspaceId],
+    }),
+  ],
+);
+
+export const visitorCustomers = sqliteTable(
+  "visitor_customer",
+  {
+    visitorId: text("visitor_id").$type<VisitorId>().primaryKey(),
+    customerId: text("customer_id").notNull(),
+    workspaceId: text("workspace_id").$type<WorkspaceId>().notNull(),
+    inboxId: text("inbox_id").$type<InboxId>().notNull(),
+    linkedAt: integer("linked_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [
+    index("visitor_customer_lookup_idx").on(table.customerId, table.visitorId),
+    foreignKey({
+      columns: [table.visitorId, table.workspaceId, table.inboxId],
+      foreignColumns: [visitors.id, visitors.workspaceId, visitors.inboxId],
+    }),
+    foreignKey({
+      columns: [table.customerId, table.workspaceId, table.inboxId],
+      foreignColumns: [customers.id, customers.workspaceId, customers.inboxId],
+    }),
+  ],
+);
+
+export const visitorAliases = sqliteTable(
+  "visitor_alias",
+  {
+    id: text("id").primaryKey(),
+    visitorId: text("visitor_id")
+      .$type<VisitorId>()
+      .notNull()
+      .references(() => visitors.id),
+    kind: text("kind", {
+      enum: ["app_user_id", "posthog_distinct_id", "posthog_session_id"],
+    }).notNull(),
+    value: text("value").notNull(),
+    firstSeenAt: integer("first_seen_at", { mode: "timestamp_ms" }).notNull(),
+    lastSeenAt: integer("last_seen_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("visitor_alias_value_uq").on(table.visitorId, table.kind, table.value),
+    index("visitor_alias_lookup_idx").on(table.kind, table.value),
+  ],
+);

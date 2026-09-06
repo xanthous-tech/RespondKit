@@ -64,6 +64,7 @@ export const CustomerContextV1Schema = z
     userId: z.string().min(1).max(256).optional(),
     email: z.email().max(320).optional(),
     posthogDistinctId: z.string().min(1).max(256).optional(),
+    posthogSessionId: z.string().min(1).max(256).optional(),
     locale: LanguageTagSchema.optional(),
     timezone: z.string().min(1).max(64).optional(),
     metadata: MetadataSchema.optional(),
@@ -75,6 +76,7 @@ export const CreateClientSessionRequestV1Schema = z
   .object({
     inboxId: InboxIdSchema,
     installationId: InstallationIdSchema,
+    identityToken: z.string().min(1).max(4096).optional(),
     context: CustomerContextV1Schema.optional(),
   })
   .strict();
@@ -124,6 +126,14 @@ export const CreateThreadResponseV1Schema = z
   })
   .strict();
 export type CreateThreadResponseV1 = z.infer<typeof CreateThreadResponseV1Schema>;
+
+export const ListThreadsResponseV1Schema = z.strictObject({
+  threads: z.array(ThreadV1Schema).max(100),
+  nextCursor: z.string().max(256).optional(),
+});
+export type ListThreadsResponseV1 = z.infer<typeof ListThreadsResponseV1Schema>;
+
+export const LogoutResponseV1Schema = z.strictObject({ ok: z.literal(true) });
 
 export const MessageDirectionSchema = z.enum(["customer_to_operator", "operator_to_customer"]);
 export type MessageDirection = z.infer<typeof MessageDirectionSchema>;

@@ -31,4 +31,6 @@ The widget supports the standard Tailwind color families, including `lime`, `ind
 
 ## Customer identity
 
-Pass your stable internal ID whenever possible. RespondKit scopes the local installation and thread identity to the inbox and user context while keeping authorization tied to the issued client session.
+Pass your stable internal ID whenever possible. Add `getIdentityToken`, an async callback fetching a short-lived HS256 assertion from your authenticated backend, to link anonymous conversations and recover account history across browsers. Pass `identityPending` while authentication is loading. Raw user IDs and PostHog IDs remain advisory and cannot grant history access.
+
+The widget preserves browser identity through login, rotates it on logout or account switching, and offers a conversation selector when account history contains multiple threads. `posthogSessionId` is accepted alongside `posthogDistinctId` for analytics correlation. See the repository’s [identity setup guide](https://github.com/xanthous-tech/RespondKit/blob/main/docs/architecture/customer-identity.md) for the JWT contract and rollout order.

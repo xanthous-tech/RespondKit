@@ -1,5 +1,7 @@
 # RespondKit base architecture v1
 
+Identity update (0.2.0): see [persistent visitors and verified customer history](customer-identity.md) for account linking, alias persistence, authentication, and migration. That guide supersedes the anonymous-only identity behavior described here.
+
 Status: Implemented MVP foundation; external Gemini/Discord soak testing pending
 Last updated: 2026-08-25
 Scope: pnpm/TypeScript monorepo, React customer widget, D1 chat storage, Cloudflare Workflows, Gemini translation, and Discord as the complete operator interface

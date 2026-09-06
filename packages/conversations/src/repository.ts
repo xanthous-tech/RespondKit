@@ -11,6 +11,7 @@ import type {
   WorkflowInstanceId,
   WorkspaceId,
 } from "@respondkit/protocol";
+import { visitorCustomers } from "@respondkit/workspaces";
 import { and, asc, desc, eq, gt, inArray, or, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 
@@ -1078,5 +1079,61 @@ export function toCustomerMessageV1(message: MessageRow): MessageV1 {
       : { language: message.customerVisibleLanguage }),
     acceptedAt: message.acceptedAt.toISOString(),
     state: toCustomerMessageState(message),
+  };
+}
+
+export async function listCustomerThreads(
+  db: DrizzleD1Database,
+  input: {
+    workspaceId: WorkspaceId;
+    inboxId: InboxId;
+    visitorId: VisitorId;
+    customerId?: string;
+    after?: string;
+  },
+) {
+  const ownership =
+    input.customerId === undefined
+      ? eq(threads.visitorId, input.visitorId)
+      : inArray(
+          threads.visitorId,
+          db
+            .select({ id: visitorCustomers.visitorId })
+            .from(visitorCustomers)
+            .where(
+              and(
+                eq(visitorCustomers.customerId, input.customerId),
+                eq(visitorCustomers.workspaceId, input.workspaceId),
+                eq(visitorCustomers.inboxId, input.inboxId),
+              ),
+            ),
+        );
+  const rows = await db
+    .select()
+    .from(threads)
+    .where(
+      and(
+        eq(threads.workspaceId, input.workspaceId),
+        eq(threads.inboxId, input.inboxId),
+        ownership,
+        input.after === undefined ? undefined : gt(threads.id, input.after),
+      ),
+    )
+    .orderBy(asc(threads.id))
+    .limit(101);
+  const page = rows.slice(0, 100);
+  return {
+    threads: page.map(toCustomerThreadV1),
+    ...(rows.length > 100 ? { nextCursor: page.at(-1)!.id } : {}),
+  };
+}
+
+export function toCustomerThreadV1(thread: ThreadRow) {
+  return {
+    id: thread.id,
+    clientThreadId: thread.clientThreadId,
+    state: thread.status,
+    createdAt: thread.createdAt.toISOString(),
+    updatedAt: thread.updatedAt.toISOString(),
   };
 }

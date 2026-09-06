@@ -11,5 +11,7 @@ export interface Env {
   readonly DISCORD_APPLICATION_ID: string;
   readonly DISCORD_PUBLIC_KEY: string;
   readonly SESSION_SIGNING_KEY: string;
+  /** JSON object mapping inbox IDs to independent backend identity signing secrets. */
+  readonly IDENTITY_SIGNING_KEYS?: string;
   readonly SESSION_TTL_SECONDS?: string;
 }

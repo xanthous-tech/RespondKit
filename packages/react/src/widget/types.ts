@@ -7,6 +7,7 @@ export interface RespondKitContext {
   readonly userId?: string | undefined;
   readonly email?: string | undefined;
   readonly posthogDistinctId?: string | undefined;
+  readonly posthogSessionId?: string | undefined;
   readonly locale?: string | undefined;
   readonly timezone?: string | undefined;
   readonly path?: string | undefined;
