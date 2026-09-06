@@ -19,6 +19,8 @@ import {
   saveBrowserIdentity,
 } from "./browser-identity";
 
+import { useReplyStatus } from "./use-reply-status";
+
 import type {
   RespondKitContext,
   BootstrapState,
@@ -169,6 +171,38 @@ export function useRespondKit({
   );
   const cursorRef = useRef<Cursor>(INITIAL_CURSOR);
   const hasLoadedTranscriptRef = useRef(false);
+  const [loadedTranscript, setLoadedTranscript] = useState<{ threadId: string; cursor: Cursor }>();
+  const contextMatches = activeContextKey === contextKey && !identityPending && !storageBlocked;
+  const mergeThreads = useCallback((incoming: ThreadV1[]) => {
+    setThreads((current) => [
+      ...new Map([...current, ...incoming].map((item) => [item.id, item])).values(),
+    ]);
+  }, []);
+  const { unreadThreadIds, markRead } = useReplyStatus({
+    client,
+    session,
+    storageKey,
+    enabled: contextMatches && bootstrapState === "ready",
+    onThreads: mergeThreads,
+  });
+
+  // Acknowledge only a transcript that has committed to the open, visible dialog.
+  // The transcript cursor prevents a concurrent status response from hiding a newer reply.
+  useEffect(() => {
+    function acknowledge() {
+      if (
+        open &&
+        contextMatches &&
+        loadedTranscript &&
+        loadedTranscript.threadId === thread?.id &&
+        document.visibilityState === "visible"
+      )
+        markRead(loadedTranscript.threadId, loadedTranscript.cursor);
+    }
+    acknowledge();
+    document.addEventListener("visibilitychange", acknowledge);
+    return () => document.removeEventListener("visibilitychange", acknowledge);
+  }, [open, contextMatches, loadedTranscript, thread?.id, markRead]);
 
   useEffect(() => {
     setStorageBlocked(false);
@@ -223,6 +257,7 @@ export function useRespondKit({
     setThreads([]);
     setHistoryCursor(undefined);
     setServerMessages([]);
+    setLoadedTranscript(undefined);
     setPendingMessages(new Map<string, PendingMessage>());
     cursorRef.current = INITIAL_CURSOR;
     hasLoadedTranscriptRef.current = false;
@@ -238,7 +273,7 @@ export function useRespondKit({
         if (currentContext.userId !== undefined) browser.userId = currentContext.userId;
         saveBrowserIdentity(storageKey, browser);
         // Login linking runs even while the launcher is closed. Untouched anonymous pages stay lazy.
-        if (!open && currentContext.userId === undefined) return;
+        if (!open && currentContext.userId === undefined && !browser.selectedThreadId) return;
         const identityToken =
           currentContext.userId === undefined ? null : await identityTokenRef.current?.();
         if (!active) return;
@@ -303,7 +338,7 @@ export function useRespondKit({
           available.find((item) => item.id === browser.selectedThreadId) ??
           available.find((item) => item.clientThreadId === browser.clientThreadId);
         // The active conversation may be outside the first page of a large account history.
-        if (!selected && browser.selectedThreadId && identityTokenRef.current) {
+        if (!selected && browser.selectedThreadId) {
           try {
             selected = (
               await client.getThread(sessionResponse.session.token, browser.selectedThreadId, {
@@ -400,7 +435,7 @@ export function useRespondKit({
       controller.abort();
       clearTimeout(timeout);
     };
-  }, [client, session, storageKey, identityPending, storageBlocked]);
+  }, [client, session, thread, storageKey, identityPending, storageBlocked]);
 
   function selectThread(id: string) {
     const selected = threads.find((item) => item.id === id);
@@ -409,6 +444,7 @@ export function useRespondKit({
     cursorRef.current = INITIAL_CURSOR;
     hasLoadedTranscriptRef.current = false;
     setServerMessages([]);
+    setLoadedTranscript(undefined);
     setPendingMessages(new Map());
     setTranscriptState("loading");
     setThread(selected);
@@ -458,13 +494,16 @@ export function useRespondKit({
     const abortController = new AbortController();
     let timeout: ReturnType<typeof setTimeout> | undefined;
     let active = true;
+    let inFlight = false;
 
     async function poll() {
-      if (!active || document.visibilityState === "hidden") {
+      if (!active || inFlight) return;
+      if (document.visibilityState === "hidden") {
         timeout = setTimeout(poll, POLL_INTERVAL_MS);
         return;
       }
 
+      inFlight = true;
       // An empty transcript can load successfully without advancing the cursor.
       if (!hasLoadedTranscriptRef.current) setTranscriptState("loading");
 
@@ -483,6 +522,7 @@ export function useRespondKit({
           cursorRef.current = response.nextCursor;
           hasMore = response.hasMore && response.nextCursor !== previousCursor;
         }
+        setLoadedTranscript({ threadId: activeThread.id, cursor: cursorRef.current });
         hasLoadedTranscriptRef.current = true;
         setPollError(undefined);
         setTranscriptState("ready");
@@ -491,6 +531,7 @@ export function useRespondKit({
         setPollError(error instanceof Error ? error.message : "New messages could not be loaded.");
         setTranscriptState("stale");
       } finally {
+        inFlight = false;
         if (active) timeout = setTimeout(poll, POLL_INTERVAL_MS);
       }
     }
@@ -616,9 +657,8 @@ export function useRespondKit({
     [pendingMessages, serverMessages, submitPending],
   );
 
-  const contextMatches = activeContextKey === contextKey && !identityPending && !storageBlocked;
-
   return {
+    unreadThreadIds,
     threads: contextMatches ? threads : [],
     selectedThreadId: contextMatches ? thread?.id : undefined,
     reconnect: () => (storageBlocked ? window.location.reload() : setRefresh((value) => value + 1)),

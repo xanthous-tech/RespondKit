@@ -1,6 +1,6 @@
 {
   "name": "@respondkit/api-client",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "SSR-safe typed RespondKit customer API client",
   "keywords": [
     "api-client",

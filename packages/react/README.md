@@ -38,3 +38,13 @@ The widget can also receive locale, route, PostHog distinct ID, and arbitrary JS
 ## Verified account history
 
 Version 0.2.0 adds `getIdentityToken`, an async resolver for a short-lived assertion from your authenticated backend, and `identityPending` to pause while host auth loads. These enable anonymous-to-account linking and cross-browser history recovery. `posthogDistinctId` and `posthogSessionId` remain advisory analytics context. See the [identity setup guide](https://github.com/xanthous-tech/RespondKit/blob/main/docs/architecture/customer-identity.md) for the signing contract, logout behavior, and rollout order.
+
+## Unread replies
+
+Version 0.3.0 adds unread reply notifications. The launcher checks for published operator replies every 10 seconds while the browser tab is visible, including while the chat is closed. Open conversations continue fetching messages every two seconds. Returning to the tab triggers an immediate check.
+
+A red dot and an accessible “Unread support reply” description indicate unread replies in any authorized conversation. The conversation selector labels histories with unread replies, including those beyond the first history page. Loading a conversation in the open, visible chat marks its loaded transcript as read; opening the launcher alone does not clear a reply that has not loaded yet.
+
+Read cursors are saved per visitor and conversation in this browser's local storage and synchronize between tabs. Another browser has its own read state. Existing anonymous conversations resume checks after reload; untouched anonymous pages do not create a support session until opened. Auth loading, logout, and cross-tab identity changes stop checks and hide the previous identity's unread state.
+
+Deploy the API's new `/v1/thread-statuses` endpoint before releasing/upgrading this widget. There is no database migration. Existing API response shapes are unchanged; an older API will leave background notifications unavailable while message polling continues.

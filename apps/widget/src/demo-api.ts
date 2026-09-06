@@ -32,6 +32,14 @@ const messages: DemoMessage[] = [
   },
 ];
 
+let demoThread = {
+  id: "thread_demo",
+  clientThreadId: "client_thread_demo",
+  state: "open",
+  createdAt: new Date(baseTime).toISOString(),
+  updatedAt: new Date(baseTime).toISOString(),
+};
+
 function json(body: unknown, init?: ResponseInit) {
   return Promise.resolve(
     new Response(JSON.stringify(body), {
@@ -62,18 +70,21 @@ export const demoApiFetch: typeof fetch = async (input, init) => {
     });
   }
 
+  if (url.pathname === "/v1/thread-statuses") {
+    const latestReplyCursor = String(
+      messages.findLastIndex(
+        (message) => message.direction === "operator_to_customer" && message.state === "available",
+      ) + 1,
+    );
+    return json({ threads: [{ thread: demoThread, latestReplyCursor }] });
+  }
+  if (url.pathname === "/v1/threads/thread_demo") return json({ thread: demoThread });
   if (url.pathname === "/v1/threads") {
+    if (init?.method === "GET") return json({ threads: [demoThread] });
     if (typeof init?.body !== "string") throw new TypeError("Expected a JSON body");
     const request = JSON.parse(init.body) as { clientThreadId: string };
-    return json({
-      thread: {
-        id: "thread_demo",
-        clientThreadId: request.clientThreadId,
-        state: "open",
-        createdAt: new Date(baseTime).toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    });
+    demoThread = { ...demoThread, clientThreadId: request.clientThreadId };
+    return json({ thread: demoThread });
   }
 
   if (url.pathname === "/v1/threads/thread_demo/messages" && init?.method === "GET") {

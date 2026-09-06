@@ -237,6 +237,15 @@ describe("customer identity lifecycle", () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
     const api = harness();
     const getIdentityToken = vi.fn(async () => "signed_alice");
+    api.threads.push(
+      ...["older", "newer"].map((id) => ({
+        id: `thread_${id}`,
+        clientThreadId: `client_thread_${id}`,
+        state: "open" as const,
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: id === "older" ? "2026-01-01T00:00:00.000Z" : "2026-02-01T00:00:00.000Z",
+      })),
+    );
     render(
       <RespondKitWidget
         {...base}
@@ -246,14 +255,16 @@ describe("customer identity lifecycle", () => {
         initiallyOpen
       />,
     );
-    await vi.waitFor(() => expect(screen.getByText("History for thread_0")).toBeVisible());
+    await vi.waitFor(() => expect(screen.getByText("History for thread_newer")).toBeVisible());
+    fireEvent.change(screen.getByLabelText("Conversation"), { target: { value: "thread_older" } });
+    await vi.waitFor(() => expect(screen.getByText("History for thread_older")).toBeVisible());
     await act(async () => {
       await vi.advanceTimersByTimeAsync(270_000);
     });
     expect(getIdentityToken).toHaveBeenCalledTimes(2);
     expect(api.sessions).toHaveLength(2);
     expect(api.sessions[1]?.installationId).toBe(api.sessions[0]?.installationId);
-    expect(screen.getByText("History for thread_0")).toBeVisible();
+    expect(screen.getByText("History for thread_older")).toBeVisible();
     expect(screen.queryByLabelText("Loading messages")).not.toBeInTheDocument();
   });
 
