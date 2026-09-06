@@ -4,6 +4,7 @@ import {
   findThreadById,
   listCustomerMessages,
   listCustomerThreads,
+  listCustomerThreadStatuses,
   toCustomerThreadV1,
   toCustomerMessageV1,
   toMessageBusinessStatus,
@@ -617,6 +618,23 @@ export function createHttpApp() {
       throw new ApiHttpError(400, "invalid_request", "Invalid history cursor");
     return context.json(
       await listCustomerThreads(createDatabase(context.env.DB), {
+        workspaceId: auth.claims.workspaceId,
+        inboxId: auth.claims.inboxId,
+        visitorId: auth.visitor.id,
+        ...(auth.claims.customerId === undefined ? {} : { customerId: auth.claims.customerId }),
+        ...(after === undefined ? {} : { after }),
+      }),
+    );
+  });
+
+  app.get("/v1/thread-statuses", async (context) => {
+    context.header("Cache-Control", "private, no-store");
+    const auth = await authenticateCustomer(context);
+    const after = context.req.query("after");
+    if (after !== undefined && after.length > 256)
+      throw new ApiHttpError(400, "invalid_request", "Invalid history cursor");
+    return context.json(
+      await listCustomerThreadStatuses(createDatabase(context.env.DB), {
         workspaceId: auth.claims.workspaceId,
         inboxId: auth.claims.inboxId,
         visitorId: auth.visitor.id,

@@ -1137,3 +1137,58 @@ export function toCustomerThreadV1(thread: ThreadRow) {
     updatedAt: thread.updatedAt.toISOString(),
   };
 }
+
+/** Reuse history authorization and pagination; never expose pending operator work. */
+export async function listCustomerThreadStatuses(
+  db: DrizzleD1Database,
+  input: Parameters<typeof listCustomerThreads>[1],
+) {
+  const page = await listCustomerThreads(db, input);
+  // D1 allows at most 100 bound parameters, including the scope/state predicates.
+  const groups = [page.threads.slice(0, 80), page.threads.slice(80)].filter(
+    (group) => group.length > 0,
+  );
+  const replies = (
+    await Promise.all(
+      groups.map((group) =>
+        db
+          .select({
+            threadId: customerTranscriptEntries.threadId,
+            cursor: sql<number>`max(${customerTranscriptEntries.rowId})`.mapWith(Number),
+          })
+          .from(customerTranscriptEntries)
+          .innerJoin(
+            messages,
+            and(
+              eq(messages.id, customerTranscriptEntries.messageId),
+              eq(messages.workspaceId, customerTranscriptEntries.workspaceId),
+              eq(messages.inboxId, customerTranscriptEntries.inboxId),
+              eq(messages.threadId, customerTranscriptEntries.threadId),
+            ),
+          )
+          .where(
+            and(
+              eq(customerTranscriptEntries.workspaceId, input.workspaceId),
+              eq(customerTranscriptEntries.inboxId, input.inboxId),
+              inArray(
+                customerTranscriptEntries.threadId,
+                group.map((thread) => thread.id),
+              ),
+              eq(customerTranscriptEntries.eventKind, "available"),
+              eq(messages.direction, "operator_to_customer"),
+              eq(messages.customerAvailability, "available"),
+            ),
+          )
+          .groupBy(customerTranscriptEntries.threadId),
+      ),
+    )
+  ).flat();
+  const cursors = new Map(replies.map((reply) => [reply.threadId, reply.cursor]));
+  return {
+    threads: page.threads.map((thread) => ({
+      thread,
+      latestReplyCursor: String(cursors.get(thread.id) ?? 0) as Cursor,
+    })),
+    ...(page.nextCursor === undefined ? {} : { nextCursor: page.nextCursor }),
+  };
+}

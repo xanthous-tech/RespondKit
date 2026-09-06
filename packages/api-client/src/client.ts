@@ -6,6 +6,7 @@ import {
   CreateThreadRequestV1Schema,
   CreateThreadResponseV1Schema,
   ListThreadsResponseV1Schema,
+  ListThreadStatusesResponseV1Schema,
   LogoutResponseV1Schema,
   ListMessagesQueryV1Schema,
   ListMessagesResponseV1Schema,
@@ -20,6 +21,7 @@ import {
   type CreateThreadRequestV1,
   type CreateThreadResponseV1,
   type ListThreadsResponseV1,
+  type ListThreadStatusesResponseV1,
   type ListMessagesQueryV1,
   type ListMessagesResponseV1,
   type SendMessageRequestV1,
@@ -61,6 +63,11 @@ export interface RespondKitClient {
     after?: string,
     options?: RequestOptions,
   ): Promise<ListThreadsResponseV1>;
+  listThreadStatuses(
+    sessionToken: SessionToken,
+    after?: string,
+    options?: RequestOptions,
+  ): Promise<ListThreadStatusesResponseV1>;
   logout(sessionToken: SessionToken, options?: RequestOptions): Promise<{ ok: true }>;
   getThread(
     sessionToken: SessionToken,
@@ -320,6 +327,16 @@ export function createRespondKitClient(options: RespondKitClientOptions): Respon
         path: `/${API_VERSION}/threads${after === undefined ? "" : `?after=${encodeURIComponent(after)}`}`,
         method: "GET",
         responseSchema: ListThreadsResponseV1Schema,
+        token: SessionTokenSchema.parse(sessionToken),
+        signal: requestOptions?.signal,
+      });
+    },
+
+    async listThreadStatuses(sessionToken, after, requestOptions) {
+      return request({
+        path: `/${API_VERSION}/thread-statuses${after === undefined ? "" : `?after=${encodeURIComponent(after)}`}`,
+        method: "GET",
+        responseSchema: ListThreadStatusesResponseV1Schema,
         token: SessionTokenSchema.parse(sessionToken),
         signal: requestOptions?.signal,
       });

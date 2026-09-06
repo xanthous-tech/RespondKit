@@ -1,3 +1,4 @@
+import { ListThreadStatusesResponseV1Schema } from "@respondkit/protocol";
 import {
   acceptCustomerIngress,
   markCustomerMessageProjected,
@@ -447,6 +448,20 @@ describe("customer HTTP ingress and MessageWorkflow", () => {
       localeHint: "my-MM",
     });
 
+    async function replyStatus() {
+      const response = await createHttpApp().request(
+        "/v1/thread-statuses",
+        {
+          headers: authorizationHeaders(customer.sessionToken),
+        },
+        createTestEnv(),
+      );
+      expect(response.status).toBe(200);
+      return ListThreadStatusesResponseV1Schema.parse(await response.json()).threads.find(
+        (item) => item.thread.id === customer.threadId,
+      );
+    }
+    expect((await replyStatus())?.latestReplyCursor).toBe("0");
     const firstPage = await pollMessages(customer);
     expect(firstPage.messages).toEqual([
       expect.objectContaining({
@@ -475,6 +490,9 @@ describe("customer HTTP ingress and MessageWorkflow", () => {
     });
 
     const secondPage = await pollMessages({ ...customer, after: firstPage.nextCursor });
+    const replyCursor = (await replyStatus())?.latestReplyCursor;
+    expect(replyCursor).toBe(secondPage.nextCursor);
+    expect(Number(replyCursor)).toBeGreaterThan(Number(firstPage.nextCursor));
     expect(secondPage.messages).toEqual([
       expect.objectContaining({
         id: operatorIdentity.messageId,

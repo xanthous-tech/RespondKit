@@ -26,6 +26,42 @@ function acceptedResponse(status = "accepted") {
 }
 
 describe("RespondKit API client", () => {
+  it("requests authenticated reply-status pages and validates reply cursors", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(jsonResponse({ threads: [], nextCursor: "thread_next" }));
+    const client = createRespondKitClient({ baseUrl: "https://chat.example.com", fetch });
+    expect(await client.listThreadStatuses(SESSION_TOKEN, "thread_a&b")).toEqual({
+      threads: [],
+      nextCursor: "thread_next",
+    });
+    expect(fetch).toHaveBeenCalledWith(
+      "https://chat.example.com/v1/thread-statuses?after=thread_a%26b",
+      expect.objectContaining({
+        method: "GET",
+        headers: expect.objectContaining({ authorization: `Bearer ${SESSION_TOKEN}` }),
+      }),
+    );
+    fetch.mockResolvedValueOnce(
+      jsonResponse({
+        threads: [
+          {
+            thread: {
+              id: "thread_1",
+              clientThreadId: "cthread_1",
+              state: "open",
+              createdAt: "2026-01-01T00:00:00.000Z",
+              updatedAt: "2026-01-01T00:00:00.000Z",
+            },
+            latestReplyCursor: "-1",
+          },
+        ],
+      }),
+    );
+    await expect(client.listThreadStatuses(SESSION_TOKEN)).rejects.toMatchObject({
+      code: "internal_error",
+    });
+  });
   it("builds authenticated cursor requests", async () => {
     const after = String(Number.MAX_SAFE_INTEGER - 1);
     const nextCursor = String(Number.MAX_SAFE_INTEGER);

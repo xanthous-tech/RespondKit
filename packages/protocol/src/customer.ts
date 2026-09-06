@@ -133,6 +133,20 @@ export const ListThreadsResponseV1Schema = z.strictObject({
 });
 export type ListThreadsResponseV1 = z.infer<typeof ListThreadsResponseV1Schema>;
 
+/** Reply cursors share the append-only customer transcript sequence. */
+export const ListThreadStatusesResponseV1Schema = z.strictObject({
+  threads: z
+    .array(
+      z.strictObject({
+        thread: ThreadV1Schema,
+        latestReplyCursor: CursorSchema,
+      }),
+    )
+    .max(100),
+  nextCursor: z.string().max(256).optional(),
+});
+export type ListThreadStatusesResponseV1 = z.infer<typeof ListThreadStatusesResponseV1Schema>;
+
 export const LogoutResponseV1Schema = z.strictObject({ ok: z.literal(true) });
 
 export const MessageDirectionSchema = z.enum(["customer_to_operator", "operator_to_customer"]);
