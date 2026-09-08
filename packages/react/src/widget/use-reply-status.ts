@@ -5,7 +5,7 @@ import type {
   RespondKitClient,
   ThreadV1,
 } from "@respondkit/api-client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 const STATUS_POLL_INTERVAL_MS = 10_000;
 const memory = new Map<string, number>();
@@ -21,7 +21,7 @@ function readCursor(key: string): number {
   }
 }
 
-/** Read receipts are local to this browser, separate from session credentials. */
+/** Local unread state updates immediately; server receipts retry independently. */
 export function useReplyStatus({
   client,
   session,
@@ -41,12 +41,47 @@ export function useReplyStatus({
     threads: ListThreadStatusesResponseV1["threads"];
   }>();
   const [, setReadVersion] = useState(0);
+  const delivery = useMemo(
+    () => ({
+      cursors: new Map<string, { acknowledged: number; inFlight: boolean; retryAt: number }>(),
+    }),
+    [prefix, session?.token],
+  );
+
+  const sendRead = useCallback(
+    (threadId: string, cursor: Cursor) => {
+      const value = Number(cursor);
+      if (!enabled || !session || value <= 0) return;
+      const state = delivery.cursors.get(threadId) ?? {
+        acknowledged: 0,
+        inFlight: false,
+        retryAt: 0,
+      };
+      if (state.inFlight || value <= state.acknowledged || Date.now() < state.retryAt) return;
+      state.inFlight = true;
+      delivery.cursors.set(threadId, state);
+      void client
+        .markThreadRead(session.token, threadId, { cursor })
+        .then(() => {
+          state.acknowledged = Math.max(state.acknowledged, value);
+        })
+        .catch(() => {
+          state.retryAt = Date.now() + 5_000;
+        })
+        .finally(() => {
+          state.inFlight = false;
+        });
+    },
+    [client, delivery, enabled, session],
+  );
 
   const markRead = useCallback(
     (threadId: string, cursor: Cursor) => {
       const key = `${prefix}${threadId}`;
       const value = Number(cursor);
-      if (!enabled || !session || value <= readCursor(key)) return;
+      if (!enabled || !session) return;
+      sendRead(threadId, cursor);
+      if (value <= readCursor(key)) return;
       memory.set(key, value);
       try {
         localStorage.setItem(key, String(value));
@@ -57,7 +92,7 @@ export function useReplyStatus({
       }
       setReadVersion((version) => version + 1);
     },
-    [prefix, enabled, session],
+    [prefix, enabled, session, sendRead],
   );
 
   useEffect(() => {
@@ -89,6 +124,10 @@ export function useReplyStatus({
           if (page.nextCursor === after) break;
           after = page.nextCursor;
         } while (after !== undefined);
+        for (const status of statuses) {
+          const cursor = readCursor(`${prefix}${status.thread.id}`);
+          if (cursor > 0) sendRead(status.thread.id, String(cursor));
+        }
         setSnapshot({ prefix, threads: statuses });
         onThreads(statuses.map((status) => status.thread));
       } catch {
@@ -111,7 +150,7 @@ export function useReplyStatus({
       clearTimeout(timeout);
       document.removeEventListener("visibilitychange", visible);
     };
-  }, [client, session, enabled, prefix, onThreads]);
+  }, [client, session, enabled, prefix, onThreads, sendRead]);
 
   const unreadThreadIds = new Set(
     enabled && snapshot?.prefix === prefix

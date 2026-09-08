@@ -18,6 +18,12 @@ The RespondKit bot needs permission to:
 - add reactions;
 - use application commands.
 
+## Customer read receipts
+
+A bot-owned ✅ on a “Reply sent” message means the customer has displayed that reply in an open, visible chat. Sending a reply, polling unread counts, or keeping the chat closed does not mark it read. Each reply keeps its own checkmark once read; a newer reply stays unchecked until it is displayed.
+
+This requires the React SDK 0.4.1 or later and the bot’s Add Reactions and Read Message History permissions. The widget sends an authenticated transcript cursor to the API and retries failed receipts. The API persists that cursor before adding the reaction. A once-per-minute sweep recovers Discord failures and receipts that arrive before the bot’s reply is posted. A delayed checkmark does not require resending the reply.
+
 ## Reply to a customer
 
 Run the command inside the relevant support thread:

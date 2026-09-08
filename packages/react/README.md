@@ -66,3 +66,7 @@ Version 0.4.0 adds `renderLauncher` to replace the floating bubble with your own
 ```
 
 Custom launchers own their appearance and should show `hasUnreadReplies`; the supplied button props already include an accessible unread description. The default floating launcher is unchanged when the prop is omitted.
+
+### Discord read receipts
+
+Starting with 0.4.1, an open, visible conversation acknowledges its committed transcript to the API. RespondKit adds ✅ to read operator replies in Discord. Unread polling alone does not mark a reply read. Local unread indicators update immediately; failed server acknowledgements retry during polling and after reload. Deploy the matching API read-receipt endpoint and migration before upgrading the widget.
