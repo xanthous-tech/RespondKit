@@ -6,12 +6,14 @@ import type {
   WorkspaceId,
 } from "@respondkit/protocol";
 import {
+  customerTranscriptEntries,
+  threads,
   findMessageById,
   prepareOperatorMessageStatements,
   type IngressAcceptanceKind,
   type MessageRow,
 } from "@respondkit/conversations";
-import { and, eq, lte, ne, or } from "drizzle-orm";
+import { and, asc, eq, isNull, lte, ne, or, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 
 import {
@@ -808,4 +810,50 @@ export async function recordRecoveryInteraction(
       canonical.normalizedMessage === normalizedMessage,
     interaction: canonical,
   };
+}
+
+/** The durable cursor also covers reads arriving before Discord audit projection completes. */
+export async function pendingDiscordReadReactions(db: DrizzleD1Database, threadId?: ThreadId) {
+  return db
+    .select({ projection: discordMessages })
+    .from(discordMessages)
+    .innerJoin(threads, eq(threads.id, discordMessages.threadId))
+    .where(
+      and(
+        eq(discordMessages.projectionKind, "available_audit"),
+        eq(discordMessages.status, "sent"),
+        isNull(discordMessages.readReactionAt),
+        or(
+          isNull(discordMessages.readReactionRetryAt),
+          lte(discordMessages.readReactionRetryAt, new Date()),
+        ),
+        threadId === undefined ? undefined : eq(discordMessages.threadId, threadId),
+        sql`exists (select 1 from ${customerTranscriptEntries} where
+        ${customerTranscriptEntries.messageId} = ${discordMessages.messageId}
+        and ${customerTranscriptEntries.threadId} = ${threads.id}
+        and ${customerTranscriptEntries.workspaceId} = ${threads.workspaceId}
+        and ${customerTranscriptEntries.inboxId} = ${threads.inboxId}
+        and ${customerTranscriptEntries.eventKind} = 'available'
+        and ${customerTranscriptEntries.rowId} <= ${threads.customerReadCursor})`,
+      ),
+    )
+    .orderBy(asc(discordMessages.readReactionRetryAt), asc(discordMessages.createdAt))
+    .limit(50);
+}
+
+export async function recordDiscordReadReaction(
+  db: DrizzleD1Database,
+  projection: DiscordMessageRow,
+  result: { readReactionAt: Date } | { readReactionRetryAt: Date },
+) {
+  await db
+    .update(discordMessages)
+    .set(result)
+    .where(
+      and(
+        eq(discordMessages.messageId, projection.messageId),
+        eq(discordMessages.projectionKind, projection.projectionKind),
+        eq(discordMessages.chunkIndex, projection.chunkIndex),
+      ),
+    );
 }

@@ -187,6 +187,8 @@ export const discordMessages = sqliteTable(
     discordThreadId: text("discord_thread_id").notNull(),
     discordMessageId: text("discord_message_id"),
     status: text("status", { enum: discordProjectionStatuses }).notNull().default("pending"),
+    readReactionAt: integer("read_reaction_at", { mode: "timestamp_ms" }),
+    readReactionRetryAt: integer("read_reaction_retry_at", { mode: "timestamp_ms" }),
     lastErrorCode: text("last_error_code"),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().default(nowInMilliseconds),
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull().default(nowInMilliseconds),

@@ -439,3 +439,15 @@ describe("DiscordRestClient", () => {
     ).resolves.toMatchObject({ thread: { id: archivedId } });
   });
 });
+
+it("adds an encoded read checkmark using an idempotent PUT and accepts Discord's empty 204", async () => {
+  const fetch = vi
+    .fn<typeof globalThis.fetch>()
+    .mockResolvedValue(new Response(null, { status: 204 }));
+  const client = new DiscordRestClient({ botToken: "test-token", fetch });
+  await client.addReadReaction("100000000000000001", "100000000000000002");
+  expect(fetch).toHaveBeenCalledWith(
+    "https://discord.com/api/v10/channels/100000000000000001/messages/100000000000000002/reactions/%E2%9C%85/@me",
+    expect.objectContaining({ method: "PUT", headers: { authorization: "Bot test-token" } }),
+  );
+});

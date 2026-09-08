@@ -26,6 +26,25 @@ function acceptedResponse(status = "accepted") {
 }
 
 describe("RespondKit API client", () => {
+  it("posts authenticated read cursors and rejects invalid cursors before sending", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(jsonResponse({ ok: true }));
+    const client = createRespondKitClient({ baseUrl: "https://chat.example.com", fetch });
+    await expect(
+      client.markThreadRead(SESSION_TOKEN, "thread_1", { cursor: "42" }),
+    ).resolves.toEqual({ ok: true });
+    expect(fetch).toHaveBeenCalledWith(
+      "https://chat.example.com/v1/threads/thread_1/read",
+      expect.objectContaining({
+        method: "POST",
+        body: '{"cursor":"42"}',
+        headers: expect.objectContaining({ authorization: `Bearer ${SESSION_TOKEN}` }),
+      }),
+    );
+    await expect(
+      client.markThreadRead(SESSION_TOKEN, "thread_1", { cursor: "-1" }),
+    ).rejects.toThrow();
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
   it("requests authenticated reply-status pages and validates reply cursors", async () => {
     const fetch = vi
       .fn<typeof globalThis.fetch>()

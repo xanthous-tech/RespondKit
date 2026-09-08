@@ -641,6 +641,17 @@ export class DiscordRestClient {
     );
   }
 
+  /** Discord PUT is idempotent: retries keep a single bot-owned checkmark. */
+  async addReadReaction(channelId: string, messageId: string): Promise<void> {
+    assertIdentifier(channelId, "Discord channel ID");
+    assertIdentifier(messageId, "Discord message ID");
+    return this.#request(
+      "PUT",
+      `/channels/${channelId}/messages/${messageId}/reactions/${encodeURIComponent("✅")}/@me`,
+      () => undefined,
+    );
+  }
+
   async getMessage(channelId: string, messageId: string): Promise<DiscordMessage> {
     assertIdentifier(channelId, "Discord channel ID");
     assertIdentifier(messageId, "Discord message ID");

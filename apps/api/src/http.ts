@@ -1,4 +1,5 @@
 import {
+  acknowledgeCustomerRead,
   createThread,
   findCustomerMessageByClientId,
   findThreadById,
@@ -25,6 +26,7 @@ import {
   type ParsedDiscordCommandInteraction,
 } from "@respondkit/discord";
 import {
+  MarkThreadReadRequestV1Schema,
   ApiErrorResponseV1Schema,
   CreateClientSessionRequestV1Schema,
   CreateThreadRequestV1Schema,
@@ -53,6 +55,7 @@ import { z } from "zod";
 
 import { verifyCustomerIdentity } from "./customer-identity";
 import { createDatabase } from "./db";
+import { syncDiscordReadReceipts } from "./read-receipts";
 import type { Env } from "./env";
 import {
   createClientSessionId,
@@ -685,6 +688,26 @@ export function createHttpApp() {
         await requireOwnedThread(context, auth, context.req.param("threadId")),
       ),
     });
+  });
+
+  app.post("/v1/threads/:threadId/read", async (context) => {
+    const auth = await authenticateCustomer(context);
+    const thread = await requireOwnedThread(context, auth, context.req.param("threadId"));
+    const { cursor } = MarkThreadReadRequestV1Schema.parse(await parseRequestJson(context));
+    const accepted = await acknowledgeCustomerRead(createDatabase(context.env.DB), {
+      workspaceId: auth.claims.workspaceId,
+      inboxId: auth.claims.inboxId,
+      threadId: thread.id,
+      cursor,
+    });
+    if (!accepted)
+      throw new ApiHttpError(
+        400,
+        "invalid_request",
+        "Read cursor does not belong to this conversation",
+      );
+    context.executionCtx.waitUntil(syncDiscordReadReceipts(context.env, thread.id));
+    return context.json({ ok: true });
   });
 
   app.get("/v1/threads/:threadId/messages", async (context) => {

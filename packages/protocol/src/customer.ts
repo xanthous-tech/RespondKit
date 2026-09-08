@@ -314,3 +314,7 @@ export const SendMessageResponseV1Schema = z
   })
   .strict();
 export type SendMessageResponseV1 = z.infer<typeof SendMessageResponseV1Schema>;
+
+export const MarkThreadReadRequestV1Schema = z.object({ cursor: CursorSchema });
+export const MarkThreadReadResponseV1Schema = z.object({ ok: z.literal(true) });
+export type MarkThreadReadRequestV1 = z.infer<typeof MarkThreadReadRequestV1Schema>;

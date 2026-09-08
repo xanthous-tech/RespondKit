@@ -1,4 +1,7 @@
 import {
+  MarkThreadReadRequestV1Schema,
+  MarkThreadReadResponseV1Schema,
+  type MarkThreadReadRequestV1,
   API_VERSION,
   ApiErrorResponseV1Schema,
   CreateClientSessionRequestV1Schema,
@@ -68,6 +71,12 @@ export interface RespondKitClient {
     after?: string,
     options?: RequestOptions,
   ): Promise<ListThreadStatusesResponseV1>;
+  markThreadRead(
+    sessionToken: SessionToken,
+    threadId: ThreadId,
+    input: MarkThreadReadRequestV1,
+    options?: RequestOptions,
+  ): Promise<{ ok: true }>;
   logout(sessionToken: SessionToken, options?: RequestOptions): Promise<{ ok: true }>;
   getThread(
     sessionToken: SessionToken,
@@ -338,6 +347,17 @@ export function createRespondKitClient(options: RespondKitClientOptions): Respon
         method: "GET",
         responseSchema: ListThreadStatusesResponseV1Schema,
         token: SessionTokenSchema.parse(sessionToken),
+        signal: requestOptions?.signal,
+      });
+    },
+
+    async markThreadRead(sessionToken, threadId, input, requestOptions) {
+      return request({
+        path: `/${API_VERSION}/threads/${encodeURIComponent(ThreadIdSchema.parse(threadId))}/read`,
+        method: "POST",
+        responseSchema: MarkThreadReadResponseV1Schema,
+        token: SessionTokenSchema.parse(sessionToken),
+        body: JSON.stringify(MarkThreadReadRequestV1Schema.parse(input)),
         signal: requestOptions?.signal,
       });
     },

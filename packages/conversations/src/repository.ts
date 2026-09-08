@@ -1192,3 +1192,36 @@ export async function listCustomerThreadStatuses(
     ...(page.nextCursor === undefined ? {} : { nextCursor: page.nextCursor }),
   };
 }
+
+/** Acknowledge only an existing revision in this thread; never pre-read future replies. */
+export async function acknowledgeCustomerRead(
+  db: DrizzleD1Database,
+  input: { workspaceId: WorkspaceId; inboxId: InboxId; threadId: ThreadId; cursor: Cursor },
+): Promise<boolean> {
+  const cursor = Number(input.cursor);
+  if (cursor === 0) return true;
+  const [entry] = await db
+    .select({ cursor: customerTranscriptEntries.rowId })
+    .from(customerTranscriptEntries)
+    .where(
+      and(
+        eq(customerTranscriptEntries.workspaceId, input.workspaceId),
+        eq(customerTranscriptEntries.inboxId, input.inboxId),
+        eq(customerTranscriptEntries.threadId, input.threadId),
+        eq(customerTranscriptEntries.rowId, cursor),
+      ),
+    )
+    .limit(1);
+  if (!entry) return false;
+  await db
+    .update(threads)
+    .set({ customerReadCursor: sql`max(${threads.customerReadCursor}, ${cursor})` })
+    .where(
+      and(
+        eq(threads.id, input.threadId),
+        eq(threads.workspaceId, input.workspaceId),
+        eq(threads.inboxId, input.inboxId),
+      ),
+    );
+  return true;
+}

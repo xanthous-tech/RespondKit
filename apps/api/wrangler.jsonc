@@ -3,6 +3,7 @@
   "name": "respondkit-api",
   "main": "src/index.ts",
   "compatibility_date": "2026-08-25",
+  "triggers": { "crons": ["* * * * *"] },
   "observability": {
     "enabled": true,
   },
@@ -29,6 +30,7 @@
   "env": {
     "staging": {
       "name": "respondkit-api-staging",
+      "triggers": { "crons": ["* * * * *"] },
       "routes": [
         {
           "pattern": "api.respondkit.dev",
