@@ -249,6 +249,28 @@ describe("verified customer history", () => {
     );
   });
 
+  it("accepts a dedicated inbox secret without replacing the legacy secret map", async () => {
+    const response = await app.request(
+      "/v1/client/sessions",
+      {
+        method: "POST",
+        headers: { origin: TEST_ORIGIN, "content-type": "application/json" },
+        body: JSON.stringify({
+          inboxId: TEST_TOPOLOGY.inboxId,
+          installationId: "install_dedicated_key",
+          identityToken: await identityToken(),
+        }),
+      },
+      createTestEnv({
+        IDENTITY_SIGNING_KEYS: JSON.stringify({ inbox_unrelated: "x".repeat(32) }),
+        [`IDENTITY_SIGNING_KEY_${TEST_TOPOLOGY.inboxId}`]: IDENTITY_TEST_KEY,
+      }),
+    );
+    expect(response.status).toBe(201);
+    const authorized = CreateClientSessionResponseV1Schema.parse(await response.json());
+    expect(authorized.session.token).toBeTruthy();
+  });
+
   it("keeps matching verified user IDs isolated across inboxes", async () => {
     const alice = await session("install_same", await identityToken());
     const firstThread = await thread(alice.token);

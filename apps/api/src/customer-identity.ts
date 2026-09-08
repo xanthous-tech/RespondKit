@@ -21,14 +21,19 @@ export async function verifyCustomerIdentity(input: {
   token: string;
   inboxId: string;
   signingKeys: string | undefined;
+  signingKey?: string | undefined;
   now?: number;
 }) {
   try {
-    const keys = z
-      .record(z.string(), z.string().min(32))
-      .parse(JSON.parse(input.signingKeys ?? "{}"));
-    const secret = keys[input.inboxId];
-    if (!secret) return null;
+    const secret = z
+      .string()
+      .min(32)
+      .parse(
+        input.signingKey ??
+          z.record(z.string(), z.string().min(32)).parse(JSON.parse(input.signingKeys ?? "{}"))[
+            input.inboxId
+          ],
+      );
     const [header, payload, signature, extra] = input.token.split(".");
     if (!header || !payload || !signature || extra !== undefined) return null;
     const parsedHeader = JSON.parse(new TextDecoder().decode(decode(header))) as unknown;

@@ -21,6 +21,8 @@ A backend assertion establishes the authoritative account identity. A visitor al
 
 Generate a distinct random secret of at least 32 characters per inbox. Store it in the product backend and, on the RespondKit Worker, in the secret `IDENTITY_SIGNING_KEYS`, a JSON object mapping inbox ID to that secret. Do not place it in browser configuration, public environment variables, or widget props. This secret is independent of `SESSION_SIGNING_KEY`.
 
+Alternatively, store each inbox secret in a dedicated Worker secret named `IDENTITY_SIGNING_KEY_<exact inbox ID>` (for example, `IDENTITY_SIGNING_KEY_inbox_captioner_public`). A dedicated secret takes precedence for that inbox; existing `IDENTITY_SIGNING_KEYS` entries continue to work. This lets you add a site without reading or replacing the other sites' secrets.
+
 The product's authenticated endpoint returns an HS256 JWT. It must derive `sub` and email from its validated auth session, never request-body identity fields. Use this payload:
 
 ```json

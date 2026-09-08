@@ -504,6 +504,7 @@ export function createHttpApp() {
             token: request.identityToken,
             inboxId: inbox.inboxId,
             signingKeys: context.env.IDENTITY_SIGNING_KEYS,
+            signingKey: context.env[`IDENTITY_SIGNING_KEY_${inbox.inboxId}`],
           });
     if (request.identityToken !== undefined && identity === null) {
       throw new ApiHttpError(

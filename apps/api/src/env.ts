@@ -13,5 +13,7 @@ export interface Env {
   readonly SESSION_SIGNING_KEY: string;
   /** JSON object mapping inbox IDs to independent backend identity signing secrets. */
   readonly IDENTITY_SIGNING_KEYS?: string;
+  /** Per-inbox secrets allow onboarding without replacing the existing JSON secret map. */
+  readonly [key: `IDENTITY_SIGNING_KEY_${string}`]: string | undefined;
   readonly SESSION_TTL_SECONDS?: string;
 }
