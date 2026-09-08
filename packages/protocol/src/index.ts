@@ -2,6 +2,8 @@ export { ApiErrorCodeSchema, ApiErrorResponseV1Schema, ApiErrorV1Schema } from "
 export type { ApiErrorCode, ApiErrorResponseV1, ApiErrorV1 } from "./errors";
 
 export {
+  MarkThreadReadRequestV1Schema,
+  MarkThreadReadResponseV1Schema,
   API_VERSION,
   ClientSessionV1Schema,
   CreateClientSessionRequestV1Schema,
@@ -27,6 +29,7 @@ export {
   ThreadV1Schema,
 } from "./customer";
 export type {
+  MarkThreadReadRequestV1,
   ClientSessionV1,
   CreateClientSessionRequestV1,
   CreateClientSessionResponseV1,

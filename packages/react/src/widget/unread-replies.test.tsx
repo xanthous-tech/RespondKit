@@ -15,6 +15,8 @@ function harness() {
   const replies = new Map([["thread_one", 0]]);
   const transcriptCursors = new Map<string, number>();
   const state = {
+    failReads: false,
+    readCursors: [] as string[],
     failMessages: false,
     failStatus: false,
     statusCalls: 0,
@@ -57,6 +59,11 @@ function harness() {
     }
     if (url.pathname === "/v1/threads" && init?.method === "GET") return json({ threads });
     if (url.pathname === "/v1/client/logout") return json({ ok: true });
+    if (url.pathname.endsWith("/read")) {
+      state.readCursors.push(JSON.parse(typeof init?.body === "string" ? init.body : "{}").cursor);
+      if (state.failReads) throw new Error("Offline");
+      return json({ ok: true });
+    }
     if (url.pathname.endsWith("/messages")) {
       state.messageCalls++;
       if (state.failMessages) throw new Error("Offline");
@@ -130,6 +137,7 @@ describe("unread operator replies", () => {
       "Unread support reply",
     );
     expect(api.state.messageCalls).toBe(0);
+    expect(api.state.readCursors).toEqual([]);
     view.unmount();
     view = render(<RespondKitWidget {...base} fetch={api.fetch} />);
     await vi.waitFor(() => expect(dot()).toBeInTheDocument());
@@ -139,6 +147,7 @@ describe("unread operator replies", () => {
       expect(dot()).not.toBeInTheDocument();
       expect(localStorage.getItem(readKey)).toBe("3");
     });
+    await vi.waitFor(() => expect(api.state.readCursors).toEqual(["3"]));
     close();
     view.unmount();
     render(<RespondKitWidget {...base} fetch={api.fetch} />);
@@ -176,6 +185,7 @@ describe("unread operator replies", () => {
       expect(dot()).toBeInTheDocument();
       expect(localStorage.getItem(readKey)).toBe("1");
     });
+    expect(api.state.readCursors).toEqual(["1"]);
     api.transcriptCursors.set("thread_one", 2);
     await tick(2000);
     expect(dot()).not.toBeInTheDocument();
@@ -241,6 +251,33 @@ describe("unread operator replies", () => {
       expect(api.state.statusCalls).toBe(calls);
     },
   );
+
+  it("retries a failed server receipt after closing without losing the local read", async () => {
+    const api = harness();
+    api.replies.set("thread_one", 7);
+    api.state.failReads = true;
+    render(<RespondKitWidget {...base} fetch={api.fetch} initiallyOpen />);
+    await vi.waitFor(() => expect(api.state.readCursors).toEqual(["7"]));
+    expect(dot()).not.toBeInTheDocument();
+    close();
+    api.state.failReads = false;
+    await tick();
+    expect(api.state.readCursors).toEqual(["7", "7"]);
+    await tick();
+    expect(api.state.readCursors).toHaveLength(2);
+  });
+
+  it("does not send a read receipt for a transcript loaded in a hidden tab", async () => {
+    const api = harness();
+    api.replies.set("thread_one", 8);
+    Object.defineProperty(document, "visibilityState", { configurable: true, value: "hidden" });
+    render(<RespondKitWidget {...base} fetch={api.fetch} initiallyOpen />);
+    await tick();
+    expect(api.state.readCursors).toEqual([]);
+    Object.defineProperty(document, "visibilityState", { configurable: true, value: "visible" });
+    fireEvent(document, new Event("visibilitychange"));
+    await vi.waitFor(() => expect(api.state.readCursors).toEqual(["8"]));
+  });
 
   it("can acknowledge replies when storage is readable but writes fail", async () => {
     const api = harness();

@@ -15,6 +15,13 @@
       "when": 1788682247297,
       "tag": "0001_thankful_ezekiel",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788843309645,
+      "tag": "0002_unique_sir_ram",
+      "breakpoints": true
     }
   ]
 }

@@ -67,6 +67,7 @@ export const threads = sqliteTable(
     visitorId: text("visitor_id").$type<VisitorId>().notNull(),
     clientThreadId: text("client_thread_id").$type<ClientThreadId>().notNull(),
     status: text("status", { enum: threadStatuses }).notNull().default("open"),
+    customerReadCursor: integer("customer_read_cursor").notNull().default(0),
     customerLanguage: text("customer_language"),
     customerLanguageUpdatedAt: integer("customer_language_updated_at", {
       mode: "timestamp_ms",
