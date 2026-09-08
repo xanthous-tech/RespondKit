@@ -48,3 +48,21 @@ A red dot and an accessible “Unread support reply” description indicate unre
 Read cursors are saved per visitor and conversation in this browser's local storage and synchronize between tabs. Another browser has its own read state. Existing anonymous conversations resume checks after reload; untouched anonymous pages do not create a support session until opened. Auth loading, logout, and cross-tab identity changes stop checks and hide the previous identity's unread state.
 
 Deploy the API's new `/v1/thread-statuses` endpoint before releasing/upgrading this widget. There is no database migration. Existing API response shapes are unchanged; an older API will leave background notifications unavailable while message polling continues.
+
+## Custom launchers
+
+Version 0.4.0 adds `renderLauncher` to replace the floating bubble with your own button. The widget still owns chat state, unread tracking, and focus restoration. Spread `buttonProps` onto the actual button (including its `ref`). The renderer can return `createPortal(...)` to place the control in a toolbar while keeping one widget mounted across navigation. Returning `null` hides the launcher without discarding the chat.
+
+```tsx
+<RespondKitWidget
+  apiBaseUrl="https://api.respondkit.dev"
+  context={{ inboxId: "inbox_example" }}
+  renderLauncher={({ buttonProps, hasUnreadReplies }) => (
+    <button {...buttonProps} style={{ background: "#b0e64c", color: "black" }}>
+      Support {hasUnreadReplies ? "•" : ""}
+    </button>
+  )}
+/>
+```
+
+Custom launchers own their appearance and should show `hasUnreadReplies`; the supplied button props already include an accessible unread description. The default floating launcher is unchanged when the prop is omitted.

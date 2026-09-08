@@ -1,5 +1,13 @@
 import { AlertCircleIcon, MessageCircleIcon, XIcon } from "lucide-react";
-import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ComponentPropsWithRef,
+  type ReactNode,
+  type CSSProperties,
+} from "react";
 
 import { Alert, AlertDescription } from "#components/ui/alert";
 import { Button } from "#components/ui/button";
@@ -13,6 +21,13 @@ import { useRespondKit } from "./use-respondkit";
 
 export type { RespondKitContext } from "./types";
 
+export interface RespondKitLauncherProps {
+  /** Spread onto your button, including ref, to preserve keyboard focus and accessibility. */
+  readonly buttonProps: ComponentPropsWithRef<"button">;
+  readonly open: boolean;
+  readonly hasUnreadReplies: boolean;
+}
+
 export interface RespondKitWidgetProps {
   readonly apiBaseUrl: string;
   readonly context: RespondKitContext;
@@ -22,6 +37,8 @@ export interface RespondKitWidgetProps {
   readonly identityPending?: boolean | undefined;
   readonly fetch?: typeof globalThis.fetch | undefined;
   readonly title?: string | undefined;
+  /** Replace the floating launcher. May return a portal into a host toolbar, or null. */
+  readonly renderLauncher?: ((props: RespondKitLauncherProps) => ReactNode) | undefined;
   readonly initiallyOpen?: boolean | undefined;
   readonly accentColor?: RespondKitAccentColor | undefined;
 }
@@ -34,6 +51,7 @@ export function RespondKitWidget({
   identityPending,
   title = "Support",
   initiallyOpen = false,
+  renderLauncher,
   accentColor = "indigo",
 }: RespondKitWidgetProps) {
   const [open, setOpen] = useState(initiallyOpen);
@@ -85,6 +103,17 @@ export function RespondKitWidget({
     setOpen(true);
   }
 
+  const hasUnreadReplies = unreadThreadIds.size > 0;
+  const buttonProps: ComponentPropsWithRef<"button"> = {
+    ref: launcherRef,
+    type: "button",
+    onClick: toggle,
+    "aria-controls": open ? `${titleId}-dialog` : undefined,
+    "aria-describedby": hasUnreadReplies ? `${titleId}-unread` : undefined,
+    "aria-expanded": open,
+    "aria-label": open ? "Close support chat" : "Open support chat",
+  };
+
   const accentValue = respondKitAccentPalette[accentColor];
   const themeStyle = {
     "--respondkit-primary": accentValue,
@@ -101,6 +130,7 @@ export function RespondKitWidget({
         {open ? (
           <section
             className="ac:fixed ac:right-4 ac:bottom-20 ac:flex ac:h-[min(590px,calc(100dvh-6rem))] ac:w-[min(390px,calc(100vw-2rem))] ac:flex-col ac:overflow-hidden ac:rounded-xl ac:border ac:border-border ac:bg-background ac:shadow-xl ac:max-sm:inset-0 ac:max-sm:h-[100dvh] ac:max-sm:w-screen ac:max-sm:rounded-none ac:max-sm:border-0"
+            id={`${titleId}-dialog`}
             role="dialog"
             aria-labelledby={titleId}
           >
@@ -196,33 +226,33 @@ export function RespondKitWidget({
         <span id={`${titleId}-unread`} className="ac:sr-only" role="status">
           {unreadThreadIds.size > 0 ? "Unread support reply" : ""}
         </span>
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                ref={launcherRef}
-                className={`ac:relative ac:size-14 ac:rounded-full ac:shadow-lg ${open ? "ac:max-sm:hidden" : ""}`}
-                size="icon-lg"
-                onClick={toggle}
-                aria-describedby={unreadThreadIds.size > 0 ? `${titleId}-unread` : undefined}
-                aria-expanded={open}
-                aria-label={open ? "Close support chat" : "Open support chat"}
-              />
-            }
-          >
-            {open ? <XIcon /> : <MessageCircleIcon />}
-            {unreadThreadIds.size > 0 ? (
-              <span
-                aria-hidden="true"
-                data-testid="unread-reply-dot"
-                className="ac:absolute ac:top-0 ac:right-0 ac:size-3 ac:rounded-full ac:bg-red-500 ac:ring-2 ac:ring-background"
-              />
-            ) : null}
-          </TooltipTrigger>
-          <TooltipContent side="left">
-            {open ? "Close support chat" : "Open support chat"}
-          </TooltipContent>
-        </Tooltip>
+        {renderLauncher ? (
+          renderLauncher({ buttonProps, open, hasUnreadReplies })
+        ) : (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  {...buttonProps}
+                  className={`ac:relative ac:size-14 ac:rounded-full ac:shadow-lg ${open ? "ac:max-sm:hidden" : ""}`}
+                  size="icon-lg"
+                />
+              }
+            >
+              {open ? <XIcon /> : <MessageCircleIcon />}
+              {unreadThreadIds.size > 0 ? (
+                <span
+                  aria-hidden="true"
+                  data-testid="unread-reply-dot"
+                  className="ac:absolute ac:top-0 ac:right-0 ac:size-3 ac:rounded-full ac:bg-red-500 ac:ring-2 ac:ring-background"
+                />
+              ) : null}
+            </TooltipTrigger>
+            <TooltipContent side="left">
+              {open ? "Close support chat" : "Open support chat"}
+            </TooltipContent>
+          </Tooltip>
+        )}
       </div>
     </TooltipProvider>
   );

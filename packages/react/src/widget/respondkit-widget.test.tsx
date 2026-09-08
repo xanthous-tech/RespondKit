@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { createPortal } from "react-dom";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
@@ -274,6 +275,39 @@ describe("RespondKitWidget", () => {
     const customerBubble = await screen.findByText("Customer message");
     expect(customerBubble).toHaveClass("ac:rounded-br-[4px]");
     expect(customerBubble).not.toHaveClass("ac:rounded-br-sm");
+  });
+
+  it("opens from a custom toolbar launcher and restores focus on Escape and close", async () => {
+    const user = userEvent.setup();
+    const toolbar = document.createElement("div");
+    document.body.append(toolbar);
+    const view = render(
+      <RespondKitWidget
+        apiBaseUrl="https://support.example.com"
+        context={{ inboxId: "inbox_test" }}
+        fetch={createApiFetch()}
+        renderLauncher={({ buttonProps, hasUnreadReplies }) =>
+          createPortal(
+            <button {...buttonProps}>Contact{hasUnreadReplies ? " •" : ""}</button>,
+            toolbar,
+          )
+        }
+      />,
+    );
+    const launcher = screen.getByRole("button", { name: "Open support chat" });
+    expect(toolbar).toContainElement(launcher);
+    expect(screen.getAllByRole("button", { name: "Open support chat" })).toHaveLength(1);
+    await user.click(launcher);
+    expect(await screen.findByRole("dialog")).toBeVisible();
+    expect(launcher).toHaveAttribute("aria-expanded", "true");
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(launcher).toHaveFocus());
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await user.click(launcher);
+    await user.click(screen.getByRole("dialog").querySelector("button")!);
+    await waitFor(() => expect(launcher).toHaveFocus());
+    view.unmount();
+    toolbar.remove();
   });
 
   it("toggles from the floating launcher and focuses the heading without opening a tooltip", async () => {
