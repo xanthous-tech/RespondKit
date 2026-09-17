@@ -124,7 +124,9 @@ class RespondKitScreenTest {
         compose.onNodeWithTag("respondkit-composer").performTextInput("Please help")
         compose.onNodeWithTag("respondkit-send").performClick()
         compose.waitUntil(5_000) { store.state.value.messages.any { it.text == "We can help" } }
-        compose.onNodeWithText("Latest messages").performClick()
+        compose.onNodeWithText("Ask us anything").assertIsDisplayed()
+        compose.onNodeWithText("Sent").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Latest messages").assertDoesNotExist()
         compose.waitUntil(5_000) { api.readCount > 0 }
         compose.onNodeWithTag("respondkit-composer").performTextInput("Preserved draft")
         compose.onNodeWithTag("respondkit-close").performClick()

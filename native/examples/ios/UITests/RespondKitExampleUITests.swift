@@ -32,9 +32,12 @@ final class RespondKitExampleUITests: XCTestCase {
     app.buttons["respondkit-send"].tap()
     XCTAssertTrue(
       app.staticTexts["Thanks! This is a local demo reply."].waitForExistence(timeout: 10))
+    XCTAssertTrue(app.staticTexts["Ask us anything"].exists)
+    XCTAssertTrue(app.staticTexts["Sent"].exists)
+    XCTAssertFalse(app.buttons["Latest messages"].exists)
     composer.tap()
     composer.typeText("Draft survives closing")
-    app.buttons["Close"].firstMatch.tap()
+    app.buttons["respondkit-close"].tap()
     var request = URLRequest(url: URL(string: "http://127.0.0.1:8789/demo/reply")!)
     request.httpMethod = "POST"
     request.httpBody = Data("{\"text\":\"Reply received while chat was closed\"}".utf8)

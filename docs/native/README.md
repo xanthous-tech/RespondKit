@@ -98,7 +98,7 @@ Place that destination above/outside your normal tab scaffold. The widget fills 
 
 ## Accent color
 
-Both screens inherit the host’s styling when `accentColor` is omitted. The host’s red unread dot remains independent of this theme.
+Both screens inherit the host’s accent when `accentColor` is omitted; their white/neutral surfaces and layout match the web widget. The host’s red unread dot remains independent of this theme.
 
 ```swift
 // Inherits SwiftUI’s tint, falling back to the app/system accent.
@@ -112,14 +112,14 @@ RespondKitScreen(store: store).tint(.teal)
 SwiftUI bubbles use [TintShapeStyle](https://developer.apple.com/documentation/swiftui/shapestyle/tint) so they follow the same tint as the controls.
 
 ```kotlin
-// Inherits MaterialTheme.colorScheme, including a host’s dynamic system colors.
+// Inherits MaterialTheme.colorScheme.primary, including a host’s dynamic system accent.
 RespondKitScreen(store, onClose = { showSupport = false })
 RespondKitScreen(store, onClose = { showSupport = false }, accentColor = Color(0xFF6366F1))
 ```
 
-The Compose override changes primary controls and customer bubbles inside the widget, preserving the host’s typography, shapes, surfaces, and error colors. For complete control, supply your own enclosing `MaterialTheme`. Android system colors are provided by the host using [dynamicLightColorScheme / dynamicDarkColorScheme](https://developer.android.com/develop/ui/compose/designsystems/material3); the example does this on Android 12+. Choose custom accents with sufficient contrast against your app’s surfaces, and check both light and dark mode.
+The override changes primary controls and customer bubbles. Both native widgets use the web widget’s white surface, near-black text, gray borders, 10% accent customer bubbles, neutral replies, and compact header/composer. They stay light inside a dark host app, matching the current web widget. Platform fonts, native icons, safe areas, keyboard handling, and accessibility scaling are retained. Android hosts should use dark system-bar icons while this light destination is shown; the example demonstrates restoring the host’s system-bar appearance on close.
 
-Both example apps include Inherit, Indigo, Rose, and Teal controls on their host screens.
+Android system accent colors are provided by the host using [dynamicLightColorScheme / dynamicDarkColorScheme](https://developer.android.com/develop/ui/compose/designsystems/material3). Both examples default to the web palette’s Indigo and offer Inherit, Indigo, Rose, and Teal. Leaving the SDK parameter unset still inherits the host accent.
 
 ## One conversation screen
 

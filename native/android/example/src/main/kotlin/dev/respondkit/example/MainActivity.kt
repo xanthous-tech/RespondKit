@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.respondkit.compose.*
 import dev.respondkit.core.*
@@ -63,12 +64,19 @@ class MainActivity : ComponentActivity() {
                     var showSupport by rememberSaveable {
                         mutableStateOf(intent.getBooleanExtra("openSupport", false))
                     }
-                    var accent by rememberSaveable { mutableStateOf("Inherit") }
+                    SideEffect {
+                        // The widget shares the web's light surface, even inside a dark host app.
+                        WindowCompat.getInsetsController(window, window.decorView).apply {
+                            isAppearanceLightStatusBars = showSupport || !dark
+                            isAppearanceLightNavigationBars = showSupport || !dark
+                        }
+                    }
+                    var accent by rememberSaveable { mutableStateOf("Indigo") }
                     val accentColor =
                         when (accent) {
-                            "Indigo" -> Color(0xFF6366F1)
-                            "Rose" -> Color(0xFFF43F5E)
-                            "Teal" -> Color(0xFF14B8A6)
+                            "Indigo" -> Color(0xFF432DD7)
+                            "Rose" -> Color(0xFFC70036)
+                            "Teal" -> Color(0xFF00786F)
                             else -> null
                         }
                     if (showSupport)

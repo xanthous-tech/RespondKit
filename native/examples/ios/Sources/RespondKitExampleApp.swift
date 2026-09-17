@@ -11,13 +11,13 @@ private struct ExampleRoot: View {
   @State private var store: RespondKitStore?
   @State private var error: String?
   @State private var showingSupport = ProcessInfo.processInfo.arguments.contains("--open-support")
-  @State private var accent = "Inherit"
+  @State private var accent = "Indigo"
   private let options = ["Inherit", "Indigo", "Rose", "Teal"]
   private var accentColor: Color? {
     switch accent {
-    case "Indigo": Color(red: 0.388, green: 0.400, blue: 0.945)
-    case "Rose": Color(red: 0.957, green: 0.247, blue: 0.369)
-    case "Teal": Color(red: 0.078, green: 0.722, blue: 0.651)
+    case "Indigo": Color(red: 67 / 255, green: 45 / 255, blue: 215 / 255)
+    case "Rose": Color(red: 199 / 255, green: 0, blue: 54 / 255)
+    case "Teal": Color(red: 0, green: 120 / 255, blue: 111 / 255)
     default: nil
     }
   }
