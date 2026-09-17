@@ -1,0 +1,24 @@
+<resources>
+    <string name="respondkit_support">Support</string>
+    <string name="respondkit_close">Close</string>
+    <string name="respondkit_conversations">Conversations</string>
+    <string name="respondkit_new">New conversation</string>
+    <string name="respondkit_conversation">Conversation %1$s</string>
+    <string name="respondkit_unread">Unread support reply</string>
+    <string name="respondkit_closed">Closed</string>
+    <string name="respondkit_open">Open</string>
+    <string name="respondkit_return">Your replies will appear here when you return to the app.</string>
+    <string name="respondkit_help">How can we help?</string>
+    <string name="respondkit_intro">Send a message to start a conversation.</string>
+    <string name="respondkit_retry">Retry</string>
+    <string name="respondkit_retry_message">Retry message</string>
+    <string name="respondkit_sending">Sending…</string>
+    <string name="respondkit_sent">Sent</string>
+    <string name="respondkit_failed">Failed</string>
+    <string name="respondkit_unknown">Not confirmed — retry safely</string>
+    <string name="respondkit_latest">Latest messages</string>
+    <string name="respondkit_closed_help">This conversation is closed.</string>
+    <string name="respondkit_another_message">Send another message</string>
+    <string name="respondkit_message">Message</string>
+    <string name="respondkit_send">Send</string>
+</resources>

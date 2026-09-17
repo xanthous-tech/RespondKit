@@ -35,3 +35,9 @@ The package exports both the `RespondKitAccentColor` type and `respondKitAccentP
 - Browser regression screenshots are produced by `pnpm --dir apps/widget test:e2e` for 1280×800 desktop and 390×844 mobile viewports.
 
 The browser test opens the launcher, restores a transcript, sends Thai text, waits for canonical acceptance, verifies the mobile full-screen state, closes the dialog, and checks focus restoration.
+
+## Native visual parity
+
+SwiftUI and Compose follow the same mobile conversation layout: white canvas; title and “Ask us anything” at the left of the header; close icon at the right; 16-unit transcript insets; bottom-aligned messages with local date/time and delivery labels; 16-unit bubble corners with a 4-unit sender-side lower corner; and a bordered, 44-unit composer beside a rounded-square send button. Customer bubbles use a 10% accent tint; operator bubbles use a neutral fill. The new-message pill appears only when new rows arrive while scrolled away. Initial loading and explicit errors remain visible; recurring polling is silent.
+
+Native icons and system fonts are platform equivalents. The native screen respects safe areas, keyboard insets, and font scaling. Its neutral palette stays light, matching the current web baseline; only its accent inherits the host by default. The example accent swatches use sRGB equivalents of the web palette (Indigo `#432DD7`, Rose `#C70036`, Teal `#00786F`).

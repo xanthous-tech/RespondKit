@@ -18,3 +18,13 @@ apps/api/config/workspaces.local.json
 
 *.log
 .DS_Store
+
+# Native SDK build products and local toolchain configuration
+.build/
+.swiftpm/
+DerivedData/
+native/**/build/
+native/**/.gradle/
+native/**/.kotlin/
+native/**/local.properties
+native/examples/ios/*.xcodeproj/
