@@ -30,6 +30,7 @@ class RespondKitStore(
     private var pollJob: Job? = null
     private var screenVisible = false
     private val mutex = Mutex()
+    private var hasLoadedHistory = false
 
     init {
         if (stored.userId != context.userId) stored = StoredState(userId = context.userId)
@@ -43,6 +44,7 @@ class RespondKitStore(
                         }
                     }
             )
+        hasLoadedHistory = stored.statuses.isNotEmpty()
         persist()
         publish()
     }
@@ -94,6 +96,7 @@ class RespondKitStore(
         this.identityToken = identityToken
         session = null
         if (changed) {
+            hasLoadedHistory = false
             stored = StoredState(userId = context.userId)
             mutableState.update { it.copy(activeThreadId = null) }
             publish()
@@ -117,62 +120,88 @@ class RespondKitStore(
         publish()
     }
 
-    suspend fun refresh() = operate { generation ->
-        val statuses = mutableListOf<ThreadStatus>()
-        var after: String? = null
-        val seen = mutableSetOf<String>()
-        do {
-            val page = authorized(generation) { api.statuses(it, after) }
-            check(generation)
-            page.threads.forEach { replyCursor(it.latestReplyCursor) }
-            statuses += page.threads
-            after = page.nextCursor
-            if (after != null && !seen.add(after))
-                throw RespondKitException("Repeated history cursor.")
-        } while (after != null)
-        stored = stored.copy(statuses = statuses.sortedByDescending { it.thread.updatedAt })
-        persist()
-        publish()
-        state.value.activeThreadId?.takeIf { screenVisible }?.let { loadMessages(it, generation) }
-        flushReads(generation)
-    }
-
-    suspend fun sendDraft() {
-        val text = state.value.draft
-        val id = state.value.activeThreadId
-        if (text.isBlank() || text.length > 6_000) {
-            mutableState.update {
-                it.copy(errorMessage = "Enter a message of up to 6,000 characters.")
+    suspend fun refresh() =
+        operate(
+            showLoading = {
+                !hasLoadedHistory ||
+                    (screenVisible &&
+                        state.value.activeThreadId?.let { stored.cursors[it] == null } == true)
             }
-            return
-        }
-        operate { generation ->
-            if (
-                id != null &&
-                    stored.statuses.firstOrNull { it.thread.id == id }?.thread?.state == "closed"
-            )
-                throw RespondKitException("This conversation is closed. Start a new conversation.")
-            val key = id ?: "new"
-            val pending = PendingMessage(newId("cmsg"), text, now(), "sending")
-            stored =
-                stored.copy(
-                    pending = stored.pending + (key to (stored.pending[key].orEmpty() + pending)),
-                    drafts =
-                        if (stored.drafts[key] == text) stored.drafts + (key to "")
-                        else stored.drafts,
-                )
+        ) { generation ->
+            val statuses = mutableListOf<ThreadStatus>()
+            var after: String? = null
+            val seen = mutableSetOf<String>()
+            do {
+                val page = authorized(generation) { api.statuses(it, after) }
+                check(generation)
+                page.threads.forEach { replyCursor(it.latestReplyCursor) }
+                statuses += page.threads
+                after = page.nextCursor
+                if (after != null && !seen.add(after))
+                    throw RespondKitException("Repeated history cursor.")
+            } while (after != null)
+            hasLoadedHistory = true
+            stored = stored.copy(statuses = statuses.sortedByDescending { it.thread.updatedAt })
             persist()
             publish()
-            deliver(pending, id, generation)
+            state.value.activeThreadId
+                ?.takeIf { screenVisible }
+                ?.let { loadMessages(it, generation) }
+            flushReads(generation)
+        }
+
+    suspend fun sendDraft() {
+        if (state.value.isSending) return
+        mutableState.update { it.copy(isSending = true) }
+        try {
+            val text = state.value.draft
+            val id = state.value.activeThreadId
+            if (text.isBlank() || text.length > 6_000) {
+                mutableState.update {
+                    it.copy(errorMessage = "Enter a message of up to 6,000 characters.")
+                }
+                return
+            }
+            operate { generation ->
+                if (
+                    id != null &&
+                        stored.statuses.firstOrNull { it.thread.id == id }?.thread?.state ==
+                            "closed"
+                )
+                    throw RespondKitException(
+                        "This conversation is closed. Start a new conversation."
+                    )
+                val key = id ?: "new"
+                val pending = PendingMessage(newId("cmsg"), text, now(), "sending")
+                stored =
+                    stored.copy(
+                        pending =
+                            stored.pending + (key to (stored.pending[key].orEmpty() + pending)),
+                        drafts =
+                            if (stored.drafts[key] == text) stored.drafts + (key to "")
+                            else stored.drafts,
+                    )
+                persist()
+                publish()
+                deliver(pending, id, generation)
+            }
+        } finally {
+            mutableState.update { it.copy(isSending = false) }
         }
     }
 
     suspend fun retry(messageId: String) {
-        val id = state.value.activeThreadId
-        operate { generation ->
-            stored.pending[id ?: "new"]
-                ?.firstOrNull { it.id == messageId }
-                ?.let { deliver(it, id, generation) }
+        if (state.value.isSending) return
+        mutableState.update { it.copy(isSending = true) }
+        try {
+            val id = state.value.activeThreadId
+            operate { generation ->
+                stored.pending[id ?: "new"]
+                    ?.firstOrNull { it.id == messageId }
+                    ?.let { deliver(it, id, generation) }
+            }
+        } finally {
+            mutableState.update { it.copy(isSending = false) }
         }
     }
 
@@ -186,7 +215,7 @@ class RespondKitStore(
                 current.messages.none { it.isReply }
         )
             return
-        operate { generation ->
+        operate(showLoading = { false }) { generation ->
             val latest = state.value
             if (
                 !latest.isForeground ||
@@ -349,11 +378,14 @@ class RespondKitStore(
         if (expected != epoch) throw CancellationException("Support identity changed")
     }
 
-    private suspend fun operate(action: suspend (Long) -> Unit) {
+    private suspend fun operate(
+        showLoading: () -> Boolean = { true },
+        action: suspend (Long) -> Unit,
+    ) {
         val generation = epoch
         mutex.withLock {
             if (generation != epoch) return
-            mutableState.update { it.copy(isLoading = true) }
+            mutableState.update { it.copy(isLoading = showLoading()) }
             try {
                 action(generation)
                 check(generation)

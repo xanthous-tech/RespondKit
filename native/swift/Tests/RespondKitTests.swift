@@ -101,6 +101,51 @@ struct StoreTests {
       origin: "https://example.com")
     return try RespondKitStore(configuration: config, persistence: storage, api: api)
   }
+  @Test func emptyHistoryAndTranscriptStayVisibleDuringRefreshes() async throws {
+    let api = FakeAPI()
+    let store = try make(api)
+    func refresh(expectingLoading expected: Bool) async {
+      await api.setSuspend(true)
+      let task = Task { await store.refresh() }
+      while await api.statusContinuation == nil { await Task.yield() }
+      #expect(store.isLoading == expected)
+      await api.resume()
+      await task.value
+      #expect(!store.isLoading)
+    }
+    await refresh(expectingLoading: true)
+    await refresh(expectingLoading: false)  // Empty history is still loaded.
+    store.setScreenVisible(true)
+    store.selectThread("empty_thread")
+    await refresh(expectingLoading: true)
+    #expect(store.messages.isEmpty && store.loadedCursor == "0")
+    await refresh(expectingLoading: false)  // Empty transcript at cursor zero is loaded.
+    store.setScreenVisible(false)
+    store.setScreenVisible(true)
+    await refresh(expectingLoading: false)
+    try store.updateIdentity(context: CustomerContext(userId: "another_user"))
+    await refresh(expectingLoading: true)
+  }
+
+  @Test func foregroundPollingIsSilentAndQueuedSendCannotBeDuplicated() async throws {
+    let api = FakeAPI()
+    let store = try make(api)
+    await store.refresh()
+    await api.setSuspend(true)
+    store.setForeground(true)
+    while await api.statusContinuation == nil { await Task.yield() }
+    #expect(!store.isLoading)
+    store.setDraft("Send once")
+    let send = Task { await store.sendDraft() }
+    while !store.isSending { await Task.yield() }
+    await store.sendDraft()
+    await api.resume()
+    await send.value
+    store.setForeground(false)
+    #expect(await api.sent.count == 1)
+    #expect(!store.isSending)
+  }
+
   @Test func contractAndNumericCursors() throws {
     let page: MessagePage = try fixture("messages")
     #expect(page.messages[0].text == "你好！我們可以幫忙。")

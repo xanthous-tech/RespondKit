@@ -145,6 +145,7 @@
                 }
               ) { pending in
                 Button("Retry message") { Task { await store.retry(pending.id) } }
+                  .disabled(store.isSending)
                   .frame(maxWidth: .infinity, alignment: .trailing)
               }
               Color.clear.frame(height: 2)
@@ -184,7 +185,8 @@
               Image(systemName: "arrow.up.circle.fill").font(.title)
             }
             .disabled(
-              store.isLoading || store.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+              store.isLoading || store.isSending
+                || store.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 || store.draft.utf16.count > 6_000
             )
             .accessibilityLabel("Send message").accessibilityIdentifier("respondkit-send")

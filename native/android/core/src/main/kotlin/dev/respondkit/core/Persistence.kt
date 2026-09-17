@@ -43,7 +43,9 @@ data class SupportState(
     val pendingMessages: List<PendingMessage> = emptyList(),
     val draft: String = "",
     val loadedCursor: String = "0",
+    /** Initial loads and explicit operations only; background refreshes remain silent. */
     val isLoading: Boolean = false,
+    val isSending: Boolean = false,
     val errorMessage: String? = null,
     val isForeground: Boolean = false,
 ) {

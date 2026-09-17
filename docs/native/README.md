@@ -132,7 +132,7 @@ Both example apps include Inherit, Indigo, Rose, and Teal controls on their host
 
 ## Unread and delivery semantics
 
-On foreground entry the store refreshes all pages of thread statuses, then polls every 10 seconds by default. It stops polling in the background. Polling creates no empty conversation. The screen's visibility is independent of the store's lifetime, so badges work while chat is closed. The demo polls every two seconds for faster local feedback.
+On foreground entry the store refreshes all pages of thread statuses, then polls every 10 seconds by default. It stops polling in the background. Polling creates no empty conversation. The screen's visibility is independent of the store's lifetime, so badges work while chat is closed. The demo polls every two seconds for faster local feedback. Once history or a transcript has loaded (including an empty result), later polls, reopening, and foreground refreshes keep the UI stable without loading indicators or disabling Send. Read acknowledgements are also silent. `isLoading` represents initial loads and explicit operations; `isSending` covers a send/retry from the moment it queues until it finishes.
 
 Unread means `latestReplyCursor > locallyViewedCursor`, compared numerically. Replies in closed conversations count. Opening a launcher or history alone does not read anything. The screen acknowledges the loaded transcript only when its end becomes visible in the foreground. New replies do not force the user away from older history; Latest messages scrolls to the end. Failed read acknowledgements persist and retry, while the local dot stays cleared. Reads on this installation do not clear unread state on another installation.
 

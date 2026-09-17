@@ -288,7 +288,7 @@ private fun Conversation(store: RespondKitStore, state: SupportState, modifier: 
                 ) { pending ->
                     TextButton(
                         onClick = { scope.launch { store.retry(pending.id) } },
-                        enabled = !state.isLoading,
+                        enabled = !state.isLoading && !state.isSending,
                     ) {
                         Text(stringResource(R.string.respondkit_retry_message))
                     }
@@ -324,7 +324,10 @@ private fun Conversation(store: RespondKitStore, state: SupportState, modifier: 
                 TextButton(
                     onClick = { scope.launch { store.sendDraft() } },
                     enabled =
-                        !state.isLoading && state.draft.isNotBlank() && state.draft.length <= 6_000,
+                        !state.isLoading &&
+                            !state.isSending &&
+                            state.draft.isNotBlank() &&
+                            state.draft.length <= 6_000,
                     modifier = Modifier.testTag("respondkit-send"),
                 ) {
                     Text(stringResource(R.string.respondkit_send))

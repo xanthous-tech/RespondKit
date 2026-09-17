@@ -10,7 +10,9 @@ import Observation
   public private(set) var pendingMessages: [PendingMessage] = []
   public private(set) var draft = ""
   public private(set) var loadedCursor = "0"
+  /// Initial loads and explicit operations only; background refreshes remain silent.
   public private(set) var isLoading = false
+  public private(set) var isSending = false
   public private(set) var errorMessage: String?
   public private(set) var isForeground = false
   public var activeThread: SupportThread? {
@@ -27,6 +29,7 @@ import Observation
   @ObservationIgnored private var epoch = 0
   @ObservationIgnored private var pollTask: Task<Void, Never>?
   @ObservationIgnored private var screenVisible = false
+  @ObservationIgnored private var hasLoadedHistory = false
   @ObservationIgnored private var locked = false
   @ObservationIgnored private var waiters: [CheckedContinuation<Void, Never>] = []
 
@@ -54,6 +57,7 @@ import Observation
       }
     }
     self.state = saved
+    self.hasLoadedHistory = !saved.statuses.isEmpty
     try storage.save(JSONEncoder().encode(saved))
     publish()
   }
@@ -99,6 +103,7 @@ import Observation
     self.identityToken = identityToken
     session = nil
     if changed {
+      hasLoadedHistory = false
       state = StoredState(userID: context.userId)
       activeThreadID = nil
       publish()
@@ -117,7 +122,13 @@ import Observation
   }
 
   public func refresh() async {
-    await operate { epoch in
+    await operate(showLoading: {
+      !self.hasLoadedHistory
+        || (self.screenVisible
+          && self.activeThreadID.map {
+            self.state.cursors[$0] == nil
+          } == true)
+    }) { epoch in
       var all: [ThreadStatus] = []
       var after: String?
       var seen = Set<String>()
@@ -133,6 +144,7 @@ import Observation
           throw RespondKitError("Repeated history cursor.")
         }
       } while after != nil
+      self.hasLoadedHistory = true
       self.state.statuses = all.sorted { $0.thread.updatedAt > $1.thread.updatedAt }
       try self.persist()
       self.publish()
@@ -142,6 +154,9 @@ import Observation
   }
 
   public func sendDraft() async {
+    guard !isSending else { return }
+    isSending = true
+    defer { isSending = false }
     let text = draft
     let threadID = activeThreadID
     guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, text.utf16.count <= 6_000
@@ -167,6 +182,9 @@ import Observation
     }
   }
   public func retry(_ messageID: String) async {
+    guard !isSending else { return }
+    isSending = true
+    defer { isSending = false }
     let id = activeThreadID
     await operate { epoch in
       guard let pending = self.state.pending[id ?? "new"]?.first(where: { $0.id == messageID })
@@ -180,7 +198,7 @@ import Observation
     guard isForeground, screenVisible, activeThreadID == threadID, loadedCursor == cursor,
       messages.contains(where: \.isReply)
     else { return }
-    await operate { epoch in
+    await operate(showLoading: { false }) { epoch in
       guard self.isForeground, self.screenVisible, self.activeThreadID == threadID,
         self.loadedCursor == cursor
       else { return }
@@ -330,7 +348,10 @@ import Observation
     try Task.checkCancellation()
     guard expected == epoch else { throw CancellationError() }
   }
-  private func operate(_ action: @MainActor (Int) async throws -> Void) async {
+  private func operate(
+    showLoading: @MainActor () -> Bool = { true },
+    _ action: @MainActor (Int) async throws -> Void
+  ) async {
     let expected = epoch
     if locked { await withCheckedContinuation { waiters.append($0) } } else { locked = true }
     defer {
@@ -338,7 +359,7 @@ import Observation
       if waiters.isEmpty { locked = false } else { waiters.removeFirst().resume() }
     }
     guard expected == epoch, !Task.isCancelled else { return }
-    isLoading = true
+    isLoading = showLoading()
     do {
       try await action(expected)
       try check(expected)

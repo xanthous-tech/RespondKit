@@ -123,6 +123,57 @@ class RespondKitStoreTest {
         )
 
     @Test
+    fun emptyHistoryAndTranscriptStayVisibleDuringRefreshes() = runTest {
+        val api = FakeApi()
+        val store = store(api)
+        suspend fun refresh(expectingLoading: Boolean) {
+            val gate = CompletableDeferred<Unit>()
+            api.waitForStatuses = gate
+            val job = launch { store.refresh() }
+            runCurrent()
+            assertEquals(expectingLoading, store.state.value.isLoading)
+            gate.complete(Unit)
+            job.join()
+            assertFalse(store.state.value.isLoading)
+        }
+        refresh(true)
+        refresh(false)
+        store.setScreenVisible(true)
+        store.selectThread("empty_thread")
+        refresh(true)
+        assertTrue(store.state.value.messages.isEmpty())
+        assertEquals("0", store.state.value.loadedCursor)
+        refresh(false)
+        store.setScreenVisible(false)
+        store.setScreenVisible(true)
+        refresh(false)
+        store.updateIdentity(CustomerContext(userId = "another_user"))
+        refresh(true)
+    }
+
+    @Test
+    fun foregroundPollingIsSilentAndQueuedSendCannotBeDuplicated() = runTest {
+        val api = FakeApi()
+        val store = store(api)
+        store.refresh()
+        val gate = CompletableDeferred<Unit>()
+        api.waitForStatuses = gate
+        store.setForeground(true)
+        runCurrent()
+        assertFalse(store.state.value.isLoading)
+        store.setDraft("Send once")
+        val send = launch { store.sendDraft() }
+        runCurrent()
+        assertTrue(store.state.value.isSending)
+        store.sendDraft()
+        gate.complete(Unit)
+        send.join()
+        store.setForeground(false)
+        assertEquals(1, api.sent.size)
+        assertFalse(store.state.value.isSending)
+    }
+
+    @Test
     fun contractAndCursorValidation() {
         assertEquals("你好！我們可以幫忙。", fixture<MessagePage>("messages").messages.single().text)
         assertTrue(replyCursor("10") > replyCursor("2"))
