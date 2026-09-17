@@ -1,0 +1,51 @@
+{
+  "session": {
+    "session": {
+      "id": "cs_test",
+      "token": "opaque_session_token_1234",
+      "visitorId": "visitor_test",
+      "expiresAt": "2099-01-01T00:00:00.000Z"
+    }
+  },
+  "statuses": {
+    "threads": [
+      {
+        "thread": {
+          "id": "thread_one",
+          "clientThreadId": "cthread_one",
+          "state": "open",
+          "createdAt": "2026-09-17T00:00:00.000Z",
+          "updatedAt": "2026-09-17T00:00:00.000Z"
+        },
+        "latestReplyCursor": "10"
+      }
+    ],
+    "nextCursor": "thread_one"
+  },
+  "messages": {
+    "threadId": "thread_one",
+    "messages": [
+      {
+        "id": "message_one",
+        "threadId": "thread_one",
+        "direction": "operator_to_customer",
+        "text": "你好！我們可以幫忙。",
+        "language": "zh-Hant",
+        "acceptedAt": "2026-09-17T00:00:00.000Z",
+        "state": "available"
+      }
+    ],
+    "nextCursor": "10",
+    "hasMore": false
+  },
+  "acceptance": {
+    "acceptance": {
+      "messageId": "message_customer",
+      "clientMessageId": "cmsg_one",
+      "status": "acceptance_unknown"
+    }
+  },
+  "error": {
+    "error": { "code": "rate_limited", "message": "Try again shortly.", "retryable": true }
+  }
+}
