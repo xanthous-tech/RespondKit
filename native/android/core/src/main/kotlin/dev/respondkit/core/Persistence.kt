@@ -23,6 +23,8 @@ class MemoryPersistence : RespondKitPersistence {
 
 @Serializable
 internal data class StoredState(
+    val selectedThreadId: String? = null,
+    val isStartingNewConversation: Boolean = false,
     val userId: String? = null,
     val installationId: String = newId("install"),
     val newClientThreadId: String = newId("cthread"),

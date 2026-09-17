@@ -59,6 +59,8 @@ import Security
 }
 
 struct StoredState: Codable {
+  var selectedThreadID: String?
+  var isStartingNewConversation: Bool?
   var userID: String?
   var installationID = newID("install")
   var newClientThreadID = newID("cthread")

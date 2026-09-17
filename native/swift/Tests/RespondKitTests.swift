@@ -146,6 +146,52 @@ struct StoreTests {
     #expect(!store.isSending)
   }
 
+  @Test func opensAndRestoresOneConversationWithoutASelectionScreen() async throws {
+    let api = FakeAPI()
+    try await api.seed()
+    let storage = MemoryPersistence()
+    let store = try make(api, storage: storage)
+    await store.openConversation()
+    #expect(store.activeThreadID == store.statuses.first?.thread.id)
+    #expect(await api.createIDs.isEmpty)
+    // A previously selected conversation wins over a more recently updated one.
+    let other = try #require(store.statuses.last?.thread.id)
+    store.selectThread(other)
+    store.setDraft("Keep this draft")
+    store.setScreenVisible(false)
+    await store.openConversation()
+    #expect(store.activeThreadID == other)
+    let restored = try make(api, storage: storage)
+    await restored.openConversation()
+    #expect(restored.activeThreadID == other)
+    #expect(restored.draft == "Keep this draft")
+    restored.selectThread(nil)
+    restored.setDraft("Follow-up to a closed conversation")
+    let newDraft = try make(api, storage: storage)
+    await newDraft.openConversation()
+    #expect(newDraft.activeThreadID == nil)
+    #expect(newDraft.draft == "Follow-up to a closed conversation")
+    #expect(await api.createIDs.isEmpty)
+  }
+
+  @Test func firstConversationIsCreatedOnlyOnSendAndRestored() async throws {
+    let api = FakeAPI()
+    let storage = MemoryPersistence()
+    let store = try make(api, storage: storage)
+    await store.openConversation()
+    #expect(store.activeThreadID == nil)
+    #expect(await api.createIDs.isEmpty)
+    store.setDraft("Hello")
+    await store.sendDraft()
+    #expect(store.activeThreadID == "thread_new")
+    #expect(await api.createIDs.count == 1)
+    // Cached conversation is available immediately, even if the network is unavailable.
+    await api.configure(failStatuses: true)
+    let restored = try make(api, storage: storage)
+    await restored.openConversation()
+    #expect(restored.activeThreadID == "thread_new")
+  }
+
   @Test func contractAndNumericCursors() throws {
     let page: MessagePage = try fixture("messages")
     #expect(page.messages[0].text == "你好！我們可以幫忙。")

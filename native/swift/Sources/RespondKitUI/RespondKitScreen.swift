@@ -8,7 +8,6 @@
     private let title: String
     private let accentColor: Color?
     @Environment(\.dismiss) private var dismiss
-    @State private var conversation = false
 
     /// Omit accentColor to inherit the host tint (or the system/app accent).
     public init(store: RespondKitStore, title: String = "Support", accentColor: Color? = nil) {
@@ -27,91 +26,35 @@
 
     private var screen: some View {
       NavigationStack {
-        Group {
-          if conversation { ConversationView(store: store) } else { history }
-        }
-        .navigationTitle(title)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-          ToolbarItem(placement: .cancellationAction) {
-            if conversation {
-              Button {
-                conversation = false
-                store.selectThread(nil)
-              } label: {
-                Image(systemName: "chevron.left")
-              }
-              .accessibilityLabel("Conversations")
-            } else {
+        ConversationView(store: store)
+          .navigationTitle(title)
+          .navigationBarTitleDisplayMode(.inline)
+          .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
               Button("Close") { dismiss() }.accessibilityIdentifier("respondkit-close")
             }
           }
-          if conversation {
-            ToolbarItem(placement: .confirmationAction) { Button("Close") { dismiss() } }
-          }
-        }
-        .safeAreaInset(edge: .top, spacing: 0) {
-          if let error = store.errorMessage {
-            HStack {
-              Text(error).font(.footnote)
-              Spacer()
-              Button("Retry") { Task { await store.refresh() } }
+          .safeAreaInset(edge: .top, spacing: 0) {
+            if let error = store.errorMessage {
+              HStack {
+                Text(error).font(.footnote)
+                Spacer()
+                Button("Retry") { Task { await store.refresh() } }
+              }
+              .padding().background(.regularMaterial)
+              .accessibilityIdentifier("respondkit-error")
             }
-            .padding().background(.regularMaterial)
-            .accessibilityIdentifier("respondkit-error")
           }
-        }
-        .overlay {
-          if store.isLoading && store.statuses.isEmpty && !conversation { ProgressView() }
-        }
+          .overlay {
+            if store.isLoading && store.messages.isEmpty && !store.isSending { ProgressView() }
+          }
       }
       .task {
-        store.setScreenVisible(true)
-        await store.refresh()
+        await store.openConversation()
       }
       .onDisappear { store.setScreenVisible(false) }
     }
 
-    private var history: some View {
-      List {
-        Section {
-          Button {
-            store.selectThread(nil)
-            conversation = true
-          } label: {
-            Label("New conversation", systemImage: "square.and.pencil")
-          }
-          .accessibilityIdentifier("respondkit-new")
-        }
-        Section {
-          ForEach(store.statuses, id: \.thread.id) { status in
-            Button {
-              store.selectThread(status.thread.id)
-              conversation = true
-              Task { await store.refresh() }
-            } label: {
-              HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                  Text("Conversation \(String(status.thread.id.suffix(6)))")
-                  Text(status.thread.state == "closed" ? "Closed" : "Open")
-                    .font(.caption).foregroundStyle(.secondary)
-                }
-                Spacer()
-                if store.isUnread(status.thread.id) {
-                  Circle().fill(.red).frame(width: 8, height: 8)
-                    .accessibilityLabel("Unread support reply")
-                }
-                Image(systemName: "chevron.right").foregroundStyle(.secondary)
-              }
-            }
-            .accessibilityIdentifier("respondkit-thread-\(status.thread.id)")
-          }
-        } footer: {
-          Text("Your replies will appear here when you return to the app.")
-        }
-      }
-      .refreshable { await store.refresh() }
-    }
   }
 
   private struct ConversationView: View {
@@ -169,8 +112,10 @@
         }
         Divider()
         if store.activeThread?.state == "closed" {
-          Text("This conversation is closed. Start a new conversation for more help.")
-            .font(.footnote).foregroundStyle(.secondary).padding()
+          VStack {
+            Text("This conversation is closed.").font(.footnote).foregroundStyle(.secondary)
+            Button("Send another message") { store.selectThread(nil) }
+          }.padding()
         } else {
           HStack(alignment: .bottom) {
             TextField(

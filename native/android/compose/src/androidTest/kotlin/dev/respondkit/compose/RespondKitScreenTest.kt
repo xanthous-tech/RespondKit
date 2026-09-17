@@ -120,7 +120,7 @@ class RespondKitScreenTest {
         }
         compose.onNodeWithTag("host-trigger").performClick()
         compose.onNodeWithTag("host-trigger").assertDoesNotExist()
-        compose.onNodeWithTag("respondkit-new").performClick()
+        compose.onNodeWithTag("respondkit-history").assertDoesNotExist()
         compose.onNodeWithTag("respondkit-composer").performTextInput("Please help")
         compose.onNodeWithTag("respondkit-send").performClick()
         compose.waitUntil(5_000) { store.state.value.messages.any { it.text == "We can help" } }
@@ -130,7 +130,6 @@ class RespondKitScreenTest {
         compose.onNodeWithTag("respondkit-close").performClick()
         compose.onNodeWithTag("host-unread").assertDoesNotExist()
         compose.onNodeWithTag("host-trigger").performClick()
-        compose.onNodeWithTag("respondkit-thread-thread_test").performClick()
         compose.onNodeWithTag("respondkit-composer").assertTextContains("Preserved draft")
     }
 
@@ -143,27 +142,35 @@ class RespondKitScreenTest {
             val scope = rememberCoroutineScope()
             val store = remember {
                 RespondKitStore(
-                    RespondKitConfiguration(
-                        "https://support.example.com",
-                        "inbox_test",
-                        "https://example.com",
-                    ),
-                    persistence = MemoryPersistence(),
-                    api = Api(),
-                    scope = scope,
-                )
+                        RespondKitConfiguration(
+                            "https://support.example.com",
+                            "inbox_test",
+                            "https://example.com",
+                        ),
+                        persistence = MemoryPersistence(),
+                        api = Api(),
+                        scope = scope,
+                    )
+                    .also { it.setDraft("Ready to send") }
             }
             MaterialTheme(colorScheme = lightColorScheme(primary = inherited)) {
                 RespondKitScreen(store, onClose = {}, accentColor = accent.value)
             }
         }
         fun assertButtonColor(expected: Color) {
-            val pixels = compose.onNodeWithTag("respondkit-new").captureToImage().toPixelMap()
-            // Interior background, away from rounded corners and the centered label.
-            val actual = pixels[pixels.width / 8, pixels.height / 2]
-            org.junit.Assert.assertEquals(expected.red, actual.red, 0.01f)
-            org.junit.Assert.assertEquals(expected.green, actual.green, 0.01f)
-            org.junit.Assert.assertEquals(expected.blue, actual.blue, 0.01f)
+            compose.onNodeWithTag("respondkit-send").assertIsEnabled()
+            val pixels = compose.onNodeWithTag("respondkit-send").captureToImage().toPixelMap()
+            var matching = 0
+            for (y in 0 until pixels.height) for (x in 0 until pixels.width) {
+                val actual = pixels[x, y]
+                if (
+                    kotlin.math.abs(expected.red - actual.red) < 0.01f &&
+                        kotlin.math.abs(expected.green - actual.green) < 0.01f &&
+                        kotlin.math.abs(expected.blue - actual.blue) < 0.01f
+                )
+                    matching++
+            }
+            org.junit.Assert.assertTrue("Send text uses the selected accent", matching > 5)
         }
         assertButtonColor(inherited)
         compose.runOnIdle { accent.value = override }

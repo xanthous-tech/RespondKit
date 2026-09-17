@@ -1,6 +1,6 @@
 # Native widgets (first version)
 
-RespondKit now includes a Swift Package and Android core/Compose modules in this repository. They use the existing v1 customer API. There is no SDK launcher: your app owns buttons, badge placement, and full-screen presentation. The SDK owns conversations, text messages, drafts, retries, read acknowledgements, and foreground status polling.
+RespondKit now includes a Swift Package and Android core/Compose modules in this repository. They use the existing v1 customer API. There is no SDK launcher: your app owns buttons, badge placement, and full-screen presentation. The SDK opens directly into one conversation, with text messages, drafts, retries, read acknowledgements, and foreground status polling. There is no thread picker or intermediate history screen.
 
 This is source integration for development. No release tags, Maven publication, or Captioner integration are included in this change.
 
@@ -94,7 +94,7 @@ RespondKitScreen(
 )
 ```
 
-Place that destination above/outside your normal tab scaffold. The widget fills the available destination, handles keyboard insets, and returns from conversation to history on Back. Close or Back from the history root calls the host's `onClose`. It installs no global navigation controller. The demo conditionally replaces the whole root screen to show the same contract without a navigation dependency.
+Place that destination above/outside your normal tab scaffold. The widget fills the available destination and handles keyboard insets. Close or Android Back calls the host's `onClose` directly. It installs no global navigation controller. The demo conditionally replaces the whole root screen to show the same contract without a navigation dependency.
 
 ## Accent color
 
@@ -121,6 +121,12 @@ The Compose override changes primary controls and customer bubbles inside the wi
 
 Both example apps include Inherit, Indigo, Rose, and Teal controls on their host screens.
 
+## One conversation screen
+
+Opening the widget resumes the last conversation automatically; on the first launch it falls back to the most recently updated conversation. The selection and draft survive closing the widget and restarting the app. Routine polling never navigates away from the selected conversation. With no existing conversation, the composer appears immediately and the server thread is created only when the first message is sent.
+
+A closed conversation remains readable, with **Send another message** inline to start a follow-up in the same screen. There is no history page, thread picker, or back navigation inside the widget. The built-in screens call `store.openConversation()`; custom UIs can use that same method to resume the conversation.
+
 ## Identity and persistence
 
 - `origin` is required because the current RespondKit API rejects customer requests without an inbox-allowed Origin header. It is routing policy, **not proof of app identity**. Configure its allowlist in RespondKit. Native clients use a separate RespondKit bearer, never the product API's bearer.
@@ -134,7 +140,7 @@ Both example apps include Inherit, Indigo, Rose, and Teal controls on their host
 
 On foreground entry the store refreshes all pages of thread statuses, then polls every 10 seconds by default. It stops polling in the background. Polling creates no empty conversation. The screen's visibility is independent of the store's lifetime, so badges work while chat is closed. The demo polls every two seconds for faster local feedback. Once history or a transcript has loaded (including an empty result), later polls, reopening, and foreground refreshes keep the UI stable without loading indicators or disabling Send. Read acknowledgements are also silent. `isLoading` represents initial loads and explicit operations; `isSending` covers a send/retry from the moment it queues until it finishes.
 
-Unread means `latestReplyCursor > locallyViewedCursor`, compared numerically. Replies in closed conversations count. Opening a launcher or history alone does not read anything. The screen acknowledges the loaded transcript only when its end becomes visible in the foreground. New replies do not force the user away from older history; Latest messages scrolls to the end. Failed read acknowledgements persist and retry, while the local dot stays cleared. Reads on this installation do not clear unread state on another installation.
+Unread means `latestReplyCursor > locallyViewedCursor`, compared numerically. Replies in closed conversations count. Opening the widget alone does not read anything. The screen acknowledges the loaded transcript only when its end becomes visible in the foreground. New replies do not force the user away from older history; Latest messages scrolls to the end. Failed read acknowledgements persist and retry, while the local dot stays cleared. Reads on this installation do not clear unread state on another installation.
 
 Messages have stable client IDs and immutable retry payloads. Drafts and pending IDs survive dismissal and restarts. An uncertain response can be safely retried; it cannot become a second message because the same ID and text are reused. Canonical message revisions replace existing rows. Closed conversations remain viewable and reject new sends. Customer input is limited to 6,000 UTF-16 code units, matching the current protocol.
 
@@ -165,7 +171,7 @@ open native/examples/ios/RespondKitExample.xcodeproj
 native/android/gradlew -p native/android :example:installDebug
 ```
 
-The fixture server binds only to `127.0.0.1:8789`, retains data in memory, and never contacts Discord or Gemini. iOS Simulator uses localhost; Android Emulator uses `10.0.2.2`. Restarting it clears server history. Create a conversation and send text to receive a demo reply. After closing the widget, simulate another reply:
+The fixture server binds only to `127.0.0.1:8789`, retains data in memory, and never contacts Discord or Gemini. iOS Simulator uses localhost; Android Emulator uses `10.0.2.2`. Restarting it clears server history. Open the widget and send text to receive a demo reply. After closing the widget, simulate another reply:
 
 ```sh
 curl -X POST http://127.0.0.1:8789/demo/reply -H 'Content-Type: application/json' -d '{"text":"A reply while chat was closed"}'

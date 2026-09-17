@@ -29,6 +29,7 @@ class RespondKitStore(
     private var epoch = 0L
     private var pollJob: Job? = null
     private var screenVisible = false
+    private var automaticallySelectConversation = false
     private val mutex = Mutex()
     private var hasLoadedHistory = false
 
@@ -68,7 +69,29 @@ class RespondKitStore(
         screenVisible = visible
     }
 
+    /** Opens the single conversation directly, restoring the selection across launches. */
+    suspend fun openConversation() {
+        automaticallySelectConversation = true
+        screenVisible = true
+        resumeConversation()
+        persistOrReport()
+        publish()
+        refresh()
+    }
+
+    private fun resumeConversation() {
+        if (!automaticallySelectConversation || stored.isStartingNewConversation) return
+        val preferred = state.value.activeThreadId ?: stored.selectedThreadId
+        val id =
+            stored.statuses.firstOrNull { it.thread.id == preferred }?.thread?.id
+                ?: stored.statuses.firstOrNull()?.thread?.id
+        stored = stored.copy(selectedThreadId = id)
+        mutableState.update { it.copy(activeThreadId = id) }
+    }
+
     fun selectThread(id: String?) {
+        stored = stored.copy(selectedThreadId = id, isStartingNewConversation = id == null)
+        persistOrReport()
         mutableState.update { it.copy(activeThreadId = id) }
         publish()
     }
@@ -142,6 +165,7 @@ class RespondKitStore(
             } while (after != null)
             hasLoadedHistory = true
             stored = stored.copy(statuses = statuses.sortedByDescending { it.thread.updatedAt })
+            resumeConversation()
             persist()
             publish()
             state.value.activeThreadId
@@ -260,6 +284,8 @@ class RespondKitStore(
                                 (created.id to stored.drafts["new"].orEmpty()),
                         newClientThreadId = newId("cthread"),
                     )
+                stored =
+                    stored.copy(selectedThreadId = created.id, isStartingNewConversation = false)
                 mutableState.update { it.copy(activeThreadId = created.id) }
                 persist()
                 publish()

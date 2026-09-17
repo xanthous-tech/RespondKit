@@ -8,7 +8,9 @@ final class RespondKitExampleUITests: XCTestCase {
     app.launch()
     XCTAssertTrue(app.buttons["host-support"].waitForExistence(timeout: 10))
     app.buttons["host-support"].tap()
-    XCTAssertTrue(app.buttons["respondkit-new"].waitForExistence(timeout: 10))
+    XCTAssertTrue(
+      app.descendants(matching: .any)["respondkit-composer"].firstMatch.waitForExistence(
+        timeout: 10))
   }
 
   func testCustomTriggersFullScreenSendAndDraftPersistence() async throws {
@@ -18,9 +20,11 @@ final class RespondKitExampleUITests: XCTestCase {
     XCTAssertTrue(app.buttons["host-support"].waitForExistence(timeout: 10))
     app.buttons["Rose"].tap()
     app.buttons["host-support"].tap()
-    XCTAssertTrue(app.buttons["respondkit-new"].waitForExistence(timeout: 10))
+    XCTAssertTrue(
+      app.descendants(matching: .any)["respondkit-composer"].firstMatch.waitForExistence(
+        timeout: 10))
     XCTAssertFalse(app.buttons["host-support"].isHittable)
-    app.buttons["respondkit-new"].tap()
+    XCTAssertFalse(app.buttons["respondkit-new"].exists)
     let composer = app.descendants(matching: .any)["respondkit-composer"].firstMatch
     XCTAssertTrue(composer.waitForExistence(timeout: 5))
     composer.tap()
@@ -38,11 +42,7 @@ final class RespondKitExampleUITests: XCTestCase {
     let unread = app.descendants(matching: .any)["host-unread"].firstMatch
     XCTAssertTrue(unread.waitForExistence(timeout: 10))
     app.buttons["host-secondary-trigger"].tap()
-    XCTAssertTrue(
-      app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "respondkit-thread-"))
-        .firstMatch.waitForExistence(timeout: 10))
-    app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "respondkit-thread-"))
-      .firstMatch.tap()
+    XCTAssertTrue(composer.waitForExistence(timeout: 10))
     XCTAssertEqual(composer.value as? String, "Draft survives closing")
     let screenshot = XCTAttachment(screenshot: app.screenshot())
     screenshot.name = "Native SwiftUI conversation"

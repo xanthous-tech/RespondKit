@@ -6,12 +6,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,8 +17,6 @@ import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -82,43 +78,22 @@ private fun RespondKitContent(
     title: String,
 ) {
     val state by store.state.collectAsStateWithLifecycle()
-    var conversation by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     DisposableEffect(store) {
         store.setScreenVisible(true)
         onDispose { store.setScreenVisible(false) }
     }
-    LaunchedEffect(store) { store.refresh() }
-    val back = {
-        if (conversation) {
-            conversation = false
-            store.selectThread(null)
-        } else onClose()
-    }
-    BackHandler(onBack = back)
+    LaunchedEffect(store) { store.openConversation() }
+    BackHandler(onBack = onClose)
     Scaffold(
         modifier.fillMaxSize().imePadding(),
         topBar = {
             TopAppBar(
                 title = { Text(title) },
                 navigationIcon = {
-                    TextButton(onClick = back) {
-                        Text(
-                            stringResource(
-                                if (conversation) R.string.respondkit_conversations
-                                else R.string.respondkit_close
-                            )
-                        )
+                    TextButton(onClick = onClose, modifier = Modifier.testTag("respondkit-close")) {
+                        Text(stringResource(R.string.respondkit_close))
                     }
-                },
-                actions = {
-                    if (conversation)
-                        TextButton(
-                            onClick = onClose,
-                            modifier = Modifier.testTag("respondkit-close"),
-                        ) {
-                            Text(stringResource(R.string.respondkit_close))
-                        }
                 },
             )
         },
@@ -138,73 +113,7 @@ private fun RespondKitContent(
                 }
             }
             if (state.isLoading) LinearProgressIndicator(Modifier.fillMaxWidth())
-            if (conversation) Conversation(store, state, Modifier.weight(1f))
-            else
-                LazyColumn(
-                    Modifier.fillMaxSize().testTag("respondkit-history"),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    item {
-                        Button(
-                            onClick = {
-                                store.selectThread(null)
-                                conversation = true
-                            },
-                            modifier = Modifier.fillMaxWidth().testTag("respondkit-new"),
-                        ) {
-                            Text(stringResource(R.string.respondkit_new))
-                        }
-                    }
-                    items(state.statuses, key = { it.thread.id }) { status ->
-                        Card(
-                            onClick = {
-                                store.selectThread(status.thread.id)
-                                conversation = true
-                                scope.launch { store.refresh() }
-                            },
-                            modifier =
-                                Modifier.fillMaxWidth()
-                                    .testTag("respondkit-thread-${status.thread.id}"),
-                        ) {
-                            Row(
-                                Modifier.padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(
-                                        stringResource(
-                                            R.string.respondkit_conversation,
-                                            status.thread.id.takeLast(6),
-                                        )
-                                    )
-                                    Text(
-                                        stringResource(
-                                            if (status.thread.state == "closed")
-                                                R.string.respondkit_closed
-                                            else R.string.respondkit_open
-                                        ),
-                                        style = MaterialTheme.typography.bodySmall,
-                                    )
-                                }
-                                if (status.thread.id in state.unreadThreadIds) {
-                                    val label = stringResource(R.string.respondkit_unread)
-                                    Box(
-                                        Modifier.size(8.dp)
-                                            .background(Color.Red, CircleShape)
-                                            .semantics { contentDescription = label }
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    item {
-                        Text(
-                            stringResource(R.string.respondkit_return),
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-                }
+            Conversation(store, state, Modifier.weight(1f))
         }
     }
 }
@@ -309,9 +218,14 @@ private fun Conversation(store: RespondKitStore, state: SupportState, modifier: 
             }
         }
         HorizontalDivider()
-        if (state.activeThread?.state == "closed")
-            Text(stringResource(R.string.respondkit_closed_help), Modifier.padding(16.dp))
-        else
+        if (state.activeThread?.state == "closed") {
+            Column(Modifier.padding(16.dp)) {
+                Text(stringResource(R.string.respondkit_closed_help))
+                TextButton(onClick = { store.selectThread(null) }) {
+                    Text(stringResource(R.string.respondkit_another_message))
+                }
+            }
+        } else
             Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.Bottom) {
                 OutlinedTextField(
                     value = state.draft,

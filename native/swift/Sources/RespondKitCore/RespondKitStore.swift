@@ -29,6 +29,7 @@ import Observation
   @ObservationIgnored private var epoch = 0
   @ObservationIgnored private var pollTask: Task<Void, Never>?
   @ObservationIgnored private var screenVisible = false
+  @ObservationIgnored private var automaticallySelectConversation = false
   @ObservationIgnored private var hasLoadedHistory = false
   @ObservationIgnored private var locked = false
   @ObservationIgnored private var waiters: [CheckedContinuation<Void, Never>] = []
@@ -77,8 +78,30 @@ import Observation
     }
   }
   public func setScreenVisible(_ visible: Bool) { screenVisible = visible }
+  /// Opens the single conversation directly, restoring the previous selection across launches.
+  public func openConversation() async {
+    automaticallySelectConversation = true
+    screenVisible = true
+    resumeConversation()
+    persistOrReport()
+    publish()
+    await refresh()
+  }
+
+  private func resumeConversation() {
+    guard automaticallySelectConversation, state.isStartingNewConversation != true else { return }
+    let preferred = activeThreadID ?? state.selectedThreadID
+    activeThreadID =
+      state.statuses.first { $0.thread.id == preferred }?.thread.id
+      ?? state.statuses.first?.thread.id
+    state.selectedThreadID = activeThreadID
+  }
+
   public func selectThread(_ id: String?) {
     activeThreadID = id
+    state.selectedThreadID = id
+    state.isStartingNewConversation = id == nil
+    persistOrReport()
     publish()
   }
   public func setDraft(_ text: String) {
@@ -146,6 +169,7 @@ import Observation
       } while after != nil
       self.hasLoadedHistory = true
       self.state.statuses = all.sorted { $0.thread.updatedAt > $1.thread.updatedAt }
+      self.resumeConversation()
       try self.persist()
       self.publish()
       if self.screenVisible, let id = self.activeThreadID { try await self.loadMessages(id, epoch) }
@@ -227,6 +251,8 @@ import Observation
         state.drafts[created.id] = state.drafts.removeValue(forKey: "new")
         state.newClientThreadID = newID("cthread")
         activeThreadID = created.id
+        state.selectedThreadID = created.id
+        state.isStartingNewConversation = false
         try persist()
         publish()
       }

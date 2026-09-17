@@ -17,7 +17,8 @@
     <string name="respondkit_failed">Failed</string>
     <string name="respondkit_unknown">Not confirmed — retry safely</string>
     <string name="respondkit_latest">Latest messages</string>
-    <string name="respondkit_closed_help">This conversation is closed. Start a new conversation for more help.</string>
+    <string name="respondkit_closed_help">This conversation is closed.</string>
+    <string name="respondkit_another_message">Send another message</string>
     <string name="respondkit_message">Message</string>
     <string name="respondkit_send">Send</string>
 </resources>

@@ -174,6 +174,51 @@ class RespondKitStoreTest {
     }
 
     @Test
+    fun opensAndRestoresOneConversationWithoutASelectionScreen() = runTest {
+        val api = FakeApi().apply { seed() }
+        val storage = MemoryPersistence()
+        val store = store(api, storage)
+        store.openConversation()
+        assertEquals(store.state.value.statuses.first().thread.id, store.state.value.activeThreadId)
+        assertTrue(api.created.isEmpty())
+        val other = store.state.value.statuses.last().thread.id
+        store.selectThread(other)
+        store.setDraft("Keep this draft")
+        store.setScreenVisible(false)
+        store.openConversation()
+        assertEquals(other, store.state.value.activeThreadId)
+        val restored = store(api, storage)
+        restored.openConversation()
+        assertEquals(other, restored.state.value.activeThreadId)
+        assertEquals("Keep this draft", restored.state.value.draft)
+        restored.selectThread(null)
+        restored.setDraft("Follow-up to a closed conversation")
+        val newDraft = store(api, storage)
+        newDraft.openConversation()
+        assertNull(newDraft.state.value.activeThreadId)
+        assertEquals("Follow-up to a closed conversation", newDraft.state.value.draft)
+        assertTrue(api.created.isEmpty())
+    }
+
+    @Test
+    fun firstConversationIsCreatedOnlyOnSendAndRestored() = runTest {
+        val api = FakeApi()
+        val storage = MemoryPersistence()
+        val store = store(api, storage)
+        store.openConversation()
+        assertNull(store.state.value.activeThreadId)
+        assertTrue(api.created.isEmpty())
+        store.setDraft("Hello")
+        store.sendDraft()
+        assertEquals("thread_new", store.state.value.activeThreadId)
+        assertEquals(1, api.created.size)
+        api.failStatuses = true
+        val restored = store(api, storage)
+        restored.openConversation()
+        assertEquals("thread_new", restored.state.value.activeThreadId)
+    }
+
+    @Test
     fun contractAndCursorValidation() {
         assertEquals("你好！我們可以幫忙。", fixture<MessagePage>("messages").messages.single().text)
         assertTrue(replyCursor("10") > replyCursor("2"))
