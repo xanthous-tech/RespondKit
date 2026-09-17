@@ -1,12 +1,25 @@
-plugins { id("com.android.library"); kotlin("android"); id("org.jetbrains.kotlin.plugin.compose") }
+plugins {
+    id("com.android.library")
+    kotlin("android")
+    id("org.jetbrains.kotlin.plugin.compose")
+}
+
 android {
     namespace = "dev.respondkit.compose"
     compileSdk = 36
-    defaultConfig { minSdk = 26; testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
-    compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
+    defaultConfig {
+        minSdk = 26
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
     buildFeatures { compose = true }
 }
+
 kotlin { jvmToolchain(17) }
+
 dependencies {
     api(project(":core"))
     implementation(platform("androidx.compose:compose-bom:2025.06.01"))

@@ -24,10 +24,13 @@
         .toolbar {
           ToolbarItem(placement: .cancellationAction) {
             if conversation {
-              Button("Conversations") {
+              Button {
                 conversation = false
                 store.selectThread(nil)
+              } label: {
+                Image(systemName: "chevron.left")
               }
+              .accessibilityLabel("Conversations")
             } else {
               Button("Close") { dismiss() }.accessibilityIdentifier("respondkit-close")
             }

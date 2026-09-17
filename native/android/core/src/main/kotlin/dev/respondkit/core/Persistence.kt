@@ -2,16 +2,25 @@ package dev.respondkit.core
 
 import kotlinx.serialization.Serializable
 
-/** Use EncryptedFilePersistence on Android. Failures must propagate, never reset identity silently. */
+/**
+ * Use EncryptedFilePersistence on Android. Failures must propagate, never reset identity silently.
+ */
 interface RespondKitPersistence {
     fun load(): String?
+
     fun save(value: String)
 }
+
 class MemoryPersistence : RespondKitPersistence {
     private var value: String? = null
+
     override fun load() = value
-    override fun save(value: String) { this.value = value }
+
+    override fun save(value: String) {
+        this.value = value
+    }
 }
+
 @Serializable
 internal data class StoredState(
     val userId: String? = null,
@@ -25,6 +34,7 @@ internal data class StoredState(
     val drafts: Map<String, String> = emptyMap(),
     val pending: Map<String, List<PendingMessage>> = emptyMap(),
 )
+
 data class SupportState(
     val statuses: List<ThreadStatus> = emptyList(),
     val unreadThreadIds: Set<String> = emptySet(),
@@ -37,6 +47,9 @@ data class SupportState(
     val errorMessage: String? = null,
     val isForeground: Boolean = false,
 ) {
-    val hasUnreadReplies: Boolean get() = unreadThreadIds.isNotEmpty()
-    val activeThread: SupportThread? get() = statuses.firstOrNull { it.thread.id == activeThreadId }?.thread
+    val hasUnreadReplies: Boolean
+        get() = unreadThreadIds.isNotEmpty()
+
+    val activeThread: SupportThread?
+        get() = statuses.firstOrNull { it.thread.id == activeThreadId }?.thread
 }

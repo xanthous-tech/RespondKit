@@ -238,7 +238,7 @@ import Observation
   }
   private func loadMessages(_ id: String, _ epoch: Int) async throws {
     var cursor = state.cursors[id] ?? "0"
-    var byID = Dictionary(uniqueKeysWithValues: (state.messages[id] ?? []).map { ($0.id, $0) })
+    var ordered = state.messages[id] ?? []
     var more: Bool
     repeat {
       let page = try await authorized(epoch) {
@@ -250,13 +250,18 @@ import Observation
       guard next >= previous, !page.hasMore || next > previous else {
         throw RespondKitError("Invalid message pagination.")
       }
-      for message in page.messages { byID[message.id] = message }
+      for message in page.messages {
+        if let index = ordered.firstIndex(where: { $0.id == message.id }) {
+          ordered[index] = message
+        } else {
+          ordered.append(message)
+        }
+      }
       cursor = page.nextCursor
       more = page.hasMore
     } while more
-    state.messages[id] = byID.values.sorted {
-      $0.acceptedAt == $1.acceptedAt ? $0.id < $1.id : $0.acceptedAt < $1.acceptedAt
-    }
+    // Preserve transcript order when two messages have the same acceptance timestamp.
+    state.messages[id] = ordered.sorted { $0.acceptedAt < $1.acceptedAt }
     state.cursors[id] = cursor
     let canonical = Dictionary(
       (state.messages[id] ?? []).compactMap { message in

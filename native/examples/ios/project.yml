@@ -1,0 +1,40 @@
+name: RespondKitExample
+options:
+  bundleIdPrefix: dev.respondkit
+  deploymentTarget:
+    iOS: "18.0"
+packages:
+  RespondKit:
+    path: ../../..
+targets:
+  RespondKitExample:
+    type: application
+    platform: iOS
+    sources: [Sources]
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: dev.respondkit.example
+        SWIFT_VERSION: "6.0"
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking: YES
+    dependencies:
+      - package: RespondKit
+        product: RespondKitUI
+  RespondKitExampleUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "6.0"
+    dependencies:
+      - target: RespondKitExample
+schemes:
+  RespondKitExample:
+    build:
+      targets:
+        RespondKitExample: all
+    test:
+      targets: [RespondKitExampleUITests]

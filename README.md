@@ -4,6 +4,12 @@ RespondKit is a small, multilingual support stack for indie products. The MVP gi
 
 The runtime is one Cloudflare Worker bundle with D1 and Cloudflare Workflows. It deliberately has no control-plane dashboard, Better Auth, Queue, Cron trigger, Durable Object, WebSocket, or Discord Gateway.
 
+## Native widgets
+
+The repo includes a root Swift Package (`RespondKitCore` + `RespondKitUI`, iOS 18+) and Kotlin/Compose modules under `native/android` (API 26+). Apps provide custom triggers and unread indicators, then present the SDK conversation UI full screen. Unread state refreshes in the foreground; native push notifications are outside this version.
+
+See the [native integration and demo guide](docs/native/README.md) for SPM setup, local Android builds, identity/persistence, and simulator tests. Release/distribution work is separate.
+
 ## Repository
 
 ```text
