@@ -1,7 +1,14 @@
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.KotlinJvm
+
 plugins {
     kotlin("jvm")
     kotlin("plugin.serialization")
+    id("org.jetbrains.dokka")
+    id("com.vanniktech.maven.publish")
 }
+
+mavenPublishing { configure(KotlinJvm(javadocJar = JavadocJar.Dokka("dokkaHtml"))) }
 
 kotlin { jvmToolchain(17) }
 

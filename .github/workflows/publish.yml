@@ -1,39 +1,129 @@
-name: Publish npm packages
+name: Release packages
 
 on:
   release:
     types: [published]
+  pull_request:
+    paths:
+      - VERSION
+      - .github/workflows/publish.yml
+      - scripts/validate-npm-release.ts
+      - scripts/check-android-publication.py
+      - native/android/**/*.gradle.kts
+      - packages/*/package.json
+  workflow_dispatch:
+    inputs:
+      stage_android:
+        description: Upload a signed Android deployment to Central for validation, without publishing
+        type: boolean
+        default: false
 
 permissions:
   contents: read
-  id-token: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  RELEASE_TAG: ${{ github.event.release.tag_name }}
 
 jobs:
-  publish:
+  verify-npm:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
-
       - uses: voidzero-dev/setup-vp@v1.18.0
         with:
           node-version: "24"
           cache: true
-
       - run: vp install --frozen-lockfile
+      - run: node scripts/validate-npm-release.ts
       - run: vp run ready
       - run: vp run build:npm
       - run: vp run check:npm
-      - run: vp exec tsx scripts/validate-npm-release.ts "${{ github.event.release.tag_name }}"
       - run: vp run pack:npm
+      - uses: actions/upload-artifact@v4
+        with:
+          name: npm-packages
+          path: artifacts/npm/*.tgz
+          if-no-files-found: error
 
-      - name: Publish @respondkit/protocol
-        working-directory: /tmp
-        run: npm publish "$GITHUB_WORKSPACE/artifacts/npm/respondkit-protocol-${GITHUB_REF_NAME#v}.tgz" --access public
+  verify-swift:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift test
+      - run: xcodebuild -scheme RespondKitUI -destination 'generic/platform=iOS Simulator' build CODE_SIGNING_ALLOWED=NO
 
-      - name: Publish @respondkit/api-client
-        working-directory: /tmp
-        run: npm publish "$GITHUB_WORKSPACE/artifacts/npm/respondkit-api-client-${GITHUB_REF_NAME#v}.tgz" --access public
+  verify-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Test and package both libraries
+        run: native/android/gradlew -p native/android :core:test :compose:lintRelease :core:publishAllPublicationsToVerificationRepository :compose:publishAllPublicationsToVerificationRepository --console=plain
+      - run: python3 scripts/check-android-publication.py
+      - name: Compile a consumer of the Maven artifacts
+        run: native/android/gradlew -p native/android :example:assembleDebug -PpublishedSdkVersion="$(cat VERSION)" --console=plain
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-maven-repository
+          path: native/android/build/verification-repository/
+          if-no-files-found: error
 
-      - name: Publish @respondkit/react
-        working-directory: /tmp
-        run: npm publish "$GITHUB_WORKSPACE/artifacts/npm/respondkit-react-${GITHUB_REF_NAME#v}.tgz" --access public
+  publish-npm:
+    if: github.event_name == 'release'
+    needs: [verify-npm, verify-swift, verify-android]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: actions/download-artifact@v4
+        with:
+          name: npm-packages
+          path: artifacts/npm
+      - name: Publish packages in dependency order
+        run: |
+          for package in protocol api-client react; do
+            npm publish "$GITHUB_WORKSPACE/artifacts/npm/respondkit-${package}-${RELEASE_TAG#v}.tgz" --access public
+          done
+
+  publish-android:
+    if: github.event_name == 'release' || inputs.stage_android == true
+    needs: [verify-npm, verify-swift, verify-android]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Sign and upload to Maven Central
+        env:
+          MAVEN_TASK: ${{ github.event_name == 'release' && 'publishAndReleaseToMavenCentral' || 'publishToMavenCentral' }}
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.MAVEN_SIGNING_KEY }}
+        run: |
+          test -n "$ORG_GRADLE_PROJECT_mavenCentralUsername"
+          test -n "$ORG_GRADLE_PROJECT_mavenCentralPassword"
+          test -n "$ORG_GRADLE_PROJECT_signingInMemoryKey"
+          native/android/gradlew -p native/android "$MAVEN_TASK" --console=plain

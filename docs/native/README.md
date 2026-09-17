@@ -2,17 +2,17 @@
 
 RespondKit now includes a Swift Package and Android core/Compose modules in this repository. They use the existing v1 customer API. There is no SDK launcher: your app owns buttons, badge placement, and full-screen presentation. The SDK opens directly into one conversation, with text messages, drafts, retries, read acknowledgements, and foreground status polling. There is no thread picker or intermediate history screen.
 
-This is source integration for development. No release tags, Maven publication, or Captioner integration are included in this change.
+The shared release process targets version 0.5.0 for npm, SwiftPM, and Maven Central. See [release setup and validation](releases.md). Until that release is published, use a local checkout or the `main` branch. Captioner integration remains a separate change.
 
 ## Swift Package Manager
 
 The root `Package.swift` supports repository URL installation in Xcode or a package dependency. Requirements: Swift 6, iOS 18+. The core also builds on macOS 15 for tests; the SwiftUI screen is iOS-only.
 
-In Xcode, **Add Package Dependencies**, enter `https://github.com/xanthous-tech/RespondKit.git`, and choose the `feat/native-widgets` branch while the PR is under review (or `main` after merge). Add the `RespondKitUI` and `RespondKitCore` products to your app. A local checkout can also be added as a local package.
+In Xcode, **Add Package Dependencies**, enter `https://github.com/xanthous-tech/RespondKit.git`, and choose version 0.5.0 after its release (or `main` during development). Add the `RespondKitUI` and `RespondKitCore` products to your app. A local checkout can also be added as a local package.
 
 ```swift
-// A consuming Package.swift; use the branch only during development.
-.package(url: "https://github.com/xanthous-tech/RespondKit.git", branch: "feat/native-widgets")
+// A consuming Package.swift after v0.5.0 is published.
+.package(url: "https://github.com/xanthous-tech/RespondKit.git", from: "0.5.0")
 
 // Target dependencies:
 .product(name: "RespondKitCore", package: "RespondKit"),
@@ -66,7 +66,17 @@ The example app at `native/examples/ios` consumes the root package locally. It d
 
 ## Android / Compose
 
-Requirements: API 26+, JDK 17. The included build pins Kotlin 2.2.0, AGP 8.11.1, and Compose BOM 2025.06.01 to a compatible toolchain. `native/android/core` is a JVM library; `compose` is the Android UI and encrypted persistence module. The `example` app consumes these via local Gradle project dependencies. Publication coordinates are deliberately not assigned yet.
+Requirements: API 26+, JDK 17. The included build pins Kotlin 2.2.0, AGP 8.11.1, and Compose BOM 2025.06.01 to a compatible toolchain. `native/android/core` is a JVM library; `compose` is the Android UI and encrypted persistence module. The `example` app consumes these via local Gradle project dependencies. After the shared release is published, consume the Compose artifact from Maven Central (it includes core transitively):
+
+```kotlin
+repositories {
+    google()
+    mavenCentral()
+}
+dependencies {
+    implementation("dev.respondkit:respondkit-compose:0.5.0")
+}
+```
 
 Keep the store in an app/activity-level owner with a main-thread coroutine scope. All store methods are main-thread confined. `state` is a `StateFlow<SupportState>`; `state.hasUnreadReplies` is the host's badge input.
 

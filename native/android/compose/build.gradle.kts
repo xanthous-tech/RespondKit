@@ -1,8 +1,22 @@
+import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
+
 plugins {
     id("com.android.library")
     kotlin("android")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("org.jetbrains.dokka")
+    id("com.vanniktech.maven.publish")
 }
+
+mavenPublishing {
+    configure(AndroidSingleVariantLibrary(variant = "release", sourcesJar = true, publishJavadocJar = false))
+}
+
+val dokkaJavadocJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("javadoc")
+    from(tasks.named("dokkaHtml"))
+}
+publishing.publications.withType<MavenPublication>().configureEach { artifact(dokkaJavadocJar) }
 
 android {
     namespace = "dev.respondkit.compose"
