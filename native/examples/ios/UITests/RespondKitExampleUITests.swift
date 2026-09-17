@@ -2,11 +2,21 @@ import XCTest
 
 @MainActor
 final class RespondKitExampleUITests: XCTestCase {
+  func testSimulatorCanLoadSecurePersistence() {
+    let app = XCUIApplication()
+    // No --uitesting flag: exercise the real Keychain rather than MemoryPersistence.
+    app.launch()
+    XCTAssertTrue(app.buttons["host-support"].waitForExistence(timeout: 10))
+    app.buttons["host-support"].tap()
+    XCTAssertTrue(app.buttons["respondkit-new"].waitForExistence(timeout: 10))
+  }
+
   func testCustomTriggersFullScreenSendAndDraftPersistence() async throws {
     let app = XCUIApplication()
     app.launchArguments = ["--uitesting"]
     app.launch()
     XCTAssertTrue(app.buttons["host-support"].waitForExistence(timeout: 10))
+    app.buttons["Rose"].tap()
     app.buttons["host-support"].tap()
     XCTAssertTrue(app.buttons["respondkit-new"].waitForExistence(timeout: 10))
     XCTAssertFalse(app.buttons["host-support"].isHittable)

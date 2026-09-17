@@ -96,6 +96,31 @@ RespondKitScreen(
 
 Place that destination above/outside your normal tab scaffold. The widget fills the available destination, handles keyboard insets, and returns from conversation to history on Back. Close or Back from the history root calls the host's `onClose`. It installs no global navigation controller. The demo conditionally replaces the whole root screen to show the same contract without a navigation dependency.
 
+## Accent color
+
+Both screens inherit the host’s styling when `accentColor` is omitted. The host’s red unread dot remains independent of this theme.
+
+```swift
+// Inherits SwiftUI’s tint, falling back to the app/system accent.
+RespondKitScreen(store: store)
+// Override just this widget, including controls and customer bubbles.
+RespondKitScreen(store: store, accentColor: .indigo)
+// An enclosing host tint also styles the entire widget.
+RespondKitScreen(store: store).tint(.teal)
+```
+
+SwiftUI bubbles use [TintShapeStyle](https://developer.apple.com/documentation/swiftui/shapestyle/tint) so they follow the same tint as the controls.
+
+```kotlin
+// Inherits MaterialTheme.colorScheme, including a host’s dynamic system colors.
+RespondKitScreen(store, onClose = { showSupport = false })
+RespondKitScreen(store, onClose = { showSupport = false }, accentColor = Color(0xFF6366F1))
+```
+
+The Compose override changes primary controls and customer bubbles inside the widget, preserving the host’s typography, shapes, surfaces, and error colors. For complete control, supply your own enclosing `MaterialTheme`. Android system colors are provided by the host using [dynamicLightColorScheme / dynamicDarkColorScheme](https://developer.android.com/develop/ui/compose/designsystems/material3); the example does this on Android 12+. Choose custom accents with sufficient contrast against your app’s surfaces, and check both light and dark mode.
+
+Both example apps include Inherit, Indigo, Rose, and Teal controls on their host screens.
+
 ## Identity and persistence
 
 - `origin` is required because the current RespondKit API rejects customer requests without an inbox-allowed Origin header. It is routing policy, **not proof of app identity**. Configure its allowlist in RespondKit. Native clients use a separate RespondKit bearer, never the product API's bearer.
@@ -146,11 +171,30 @@ The fixture server binds only to `127.0.0.1:8789`, retains data in memory, and n
 curl -X POST http://127.0.0.1:8789/demo/reply -H 'Content-Type: application/json' -d '{"text":"A reply while chat was closed"}'
 ```
 
-Run native UI tests with the local server running for iOS:
+Run native UI tests with the local server running for iOS. Keep simulator ad-hoc signing enabled: the example includes simulator-only Keychain entitlements, and a UI test exercises real secure persistence. Physical devices use your normal team provisioning:
 
 ```sh
-xcodebuild -project native/examples/ios/RespondKitExample.xcodeproj -scheme RespondKitExample -destination 'platform=iOS Simulator,name=<your simulator>' test CODE_SIGNING_ALLOWED=NO
+xcodebuild -project native/examples/ios/RespondKitExample.xcodeproj -scheme RespondKitExample -destination 'platform=iOS Simulator,name=<your simulator>' test
 native/android/gradlew -p native/android :compose:connectedDebugAndroidTest
 ```
 
 Compose instrumentation uses an injected API, so it needs an emulator but no server. Demo tests do not replace a deployment-specific Discord/translation smoke test before integration rollout.
+
+## Testing against the same live instance as the web playground
+
+The examples default to the isolated fixture server above. Override the API URL, inbox, and allowed origin at launch to test a real deployment. These are public configuration values; no operator token or signing secret belongs in either app. Each simulator and the browser retains its own anonymous visitor and conversation history.
+
+For the configured RespondKit test inbox:
+
+```sh
+VITE_RESPONDKIT_API_URL=https://api.respondkit.dev VITE_RESPONDKIT_INBOX_ID=inbox_respondkit_test pnpm dev:widget
+
+# Build/install first using the commands above. Use a booted iOS Simulator:
+xcrun simctl launch --terminate-running-process booted dev.respondkit.example --api-url https://api.respondkit.dev --inbox-id inbox_respondkit_test --origin http://localhost:5173 --open-support
+
+# Android Emulator (adb from your Android SDK platform-tools):
+adb shell am force-stop dev.respondkit.example
+adb shell am start -n dev.respondkit.example/.MainActivity --es apiUrl https://api.respondkit.dev --es inboxId inbox_respondkit_test --es origin http://localhost:5173 --ez openSupport true
+```
+
+Close the widget to select its accent or test the host’s red dot. Send a message, close the widget while keeping the app foregrounded, then reply in the configured Discord test inbox: the dot appears on the next poll. Opening and viewing that conversation clears it. Live sends reach the real support inbox. Reuse these launch commands when restarting a live demo; ordinary launches without overrides use the local fixture configuration. Automated UI tests continue to use the local fixture.

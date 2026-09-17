@@ -15,6 +15,9 @@ targets:
       base:
         GENERATE_INFOPLIST_FILE: YES
         PRODUCT_BUNDLE_IDENTIFIER: dev.respondkit.example
+        # Ad-hoc simulator builds need an application identity to use Keychain.
+        # Physical device builds use the host's normal provisioning profile.
+        "CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]": Simulator.entitlements
         SWIFT_VERSION: "6.0"
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking: YES

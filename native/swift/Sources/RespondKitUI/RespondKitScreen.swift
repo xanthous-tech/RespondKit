@@ -6,15 +6,26 @@
   public struct RespondKitScreen: View {
     private let store: RespondKitStore
     private let title: String
+    private let accentColor: Color?
     @Environment(\.dismiss) private var dismiss
     @State private var conversation = false
 
-    public init(store: RespondKitStore, title: String = "Support") {
+    /// Omit accentColor to inherit the host tint (or the system/app accent).
+    public init(store: RespondKitStore, title: String = "Support", accentColor: Color? = nil) {
       self.store = store
       self.title = title
+      self.accentColor = accentColor
     }
 
     public var body: some View {
+      if let accentColor {
+        screen.tint(accentColor)
+      } else {
+        screen
+      }
+    }
+
+    private var screen: some View {
       NavigationStack {
         Group {
           if conversation { ConversationView(store: store) } else { history }
@@ -200,7 +211,8 @@
         VStack(alignment: customer ? .trailing : .leading, spacing: 4) {
           Text(text).textSelection(.enabled).padding(12)
             .background(
-              customer ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.12),
+              customer
+                ? AnyShapeStyle(.tint.opacity(0.15)) : AnyShapeStyle(Color.secondary.opacity(0.12)),
               in: RoundedRectangle(cornerRadius: 16))
           if let status { Text(status).font(.caption).foregroundStyle(.secondary) }
         }

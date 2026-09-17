@@ -15,6 +15,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -46,13 +48,38 @@ fun RespondKitLifecycle(store: RespondKitStore) {
 }
 
 /** Full-screen content; the host owns its trigger, badge and presentation/navigation. */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RespondKitScreen(
     store: RespondKitStore,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
     title: String = stringResource(R.string.respondkit_support),
+    accentColor: Color? = null,
+) {
+    // Inherit the complete host theme, including dynamic system colors, by default.
+    val inherited = MaterialTheme.colorScheme
+    val colors =
+        if (accentColor == null) inherited
+        else {
+            val opaque = accentColor.compositeOver(inherited.surface)
+            inherited.copy(
+                primary = opaque,
+                onPrimary = if (opaque.luminance() > 0.179f) Color.Black else Color.White,
+                primaryContainer = opaque.copy(alpha = 0.15f).compositeOver(inherited.surface),
+                onPrimaryContainer = inherited.onSurface,
+                surfaceTint = opaque,
+            )
+        }
+    MaterialTheme(colorScheme = colors) { RespondKitContent(store, onClose, modifier, title) }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RespondKitContent(
+    store: RespondKitStore,
+    onClose: () -> Unit,
+    modifier: Modifier,
+    title: String,
 ) {
     val state by store.state.collectAsStateWithLifecycle()
     var conversation by rememberSaveable { mutableStateOf(false) }
@@ -119,7 +146,7 @@ fun RespondKitScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     item {
-                        FilledTonalButton(
+                        Button(
                             onClick = {
                                 store.selectThread(null)
                                 conversation = true
@@ -315,13 +342,17 @@ private fun Bubble(text: String, customer: Boolean, status: String?) {
         SelectionContainer {
             Text(
                 text,
-                Modifier.widthIn(max = 320.dp)
-                    .background(
-                        if (customer) MaterialTheme.colorScheme.primaryContainer
-                        else MaterialTheme.colorScheme.surfaceVariant,
-                        RoundedCornerShape(16.dp),
-                    )
-                    .padding(12.dp),
+                color =
+                    if (customer) MaterialTheme.colorScheme.onPrimaryContainer
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier =
+                    Modifier.widthIn(max = 320.dp)
+                        .background(
+                            if (customer) MaterialTheme.colorScheme.primaryContainer
+                            else MaterialTheme.colorScheme.surfaceVariant,
+                            RoundedCornerShape(16.dp),
+                        )
+                        .padding(12.dp),
             )
         }
         if (status != null) Text(status, style = MaterialTheme.typography.labelSmall)

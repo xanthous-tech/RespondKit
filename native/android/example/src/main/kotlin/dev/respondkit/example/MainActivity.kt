@@ -1,5 +1,6 @@
 package dev.respondkit.example
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -25,20 +26,20 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val apiUrl = intent.getStringExtra("apiUrl") ?: "http://10.0.2.2:8789"
+        val inboxId = intent.getStringExtra("inboxId") ?: "inbox_demo"
+        val origin = intent.getStringExtra("origin") ?: "http://localhost:8789"
         setContent {
-            MaterialTheme(
-                colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()
-            ) {
+            val dark = isSystemInDarkTheme()
+            val colors =
+                if (Build.VERSION.SDK_INT >= 31) {
+                    if (dark) dynamicDarkColorScheme(this) else dynamicLightColorScheme(this)
+                } else if (dark) darkColorScheme() else lightColorScheme()
+            MaterialTheme(colorScheme = colors) {
                 val scope = rememberCoroutineScope()
                 val result = remember {
                     runCatching {
-                        val configuration =
-                            RespondKitConfiguration(
-                                "http://10.0.2.2:8789",
-                                "inbox_demo",
-                                "http://localhost:8789",
-                                2_000,
-                            )
+                        val configuration = RespondKitConfiguration(apiUrl, inboxId, origin, 2_000)
                         RespondKitStore(
                             configuration,
                             CustomerContext(locale = "en"),
@@ -59,12 +60,23 @@ class MainActivity : ComponentActivity() {
                 else {
                     RespondKitLifecycle(store)
                     val state by store.state.collectAsStateWithLifecycle()
-                    var showSupport by rememberSaveable { mutableStateOf(false) }
+                    var showSupport by rememberSaveable {
+                        mutableStateOf(intent.getBooleanExtra("openSupport", false))
+                    }
+                    var accent by rememberSaveable { mutableStateOf("Inherit") }
+                    val accentColor =
+                        when (accent) {
+                            "Indigo" -> Color(0xFF6366F1)
+                            "Rose" -> Color(0xFFF43F5E)
+                            "Teal" -> Color(0xFF14B8A6)
+                            else -> null
+                        }
                     if (showSupport)
                         RespondKitScreen(
                             store,
                             onClose = { showSupport = false },
                             title = "Example support",
+                            accentColor = accentColor,
                         )
                     else
                         Surface(Modifier.fillMaxSize()) {
@@ -98,8 +110,23 @@ class MainActivity : ComponentActivity() {
                                 TextButton(onClick = { showSupport = true }) {
                                     Text("Report a problem")
                                 }
+                                Text("Widget accent", style = MaterialTheme.typography.labelLarge)
+                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    listOf("Inherit", "Indigo", "Rose", "Teal").forEach { name ->
+                                        FilterChip(
+                                            selected = accent == name,
+                                            onClick = { accent = name },
+                                            label = { Text(name) },
+                                        )
+                                    }
+                                }
                                 Text(
-                                    "Local demo · host:8789",
+                                    "Inherit uses the app’s system color theme",
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                                Spacer(Modifier.height(16.dp))
+                                Text(
+                                    "$apiUrl\n$inboxId",
                                     style = MaterialTheme.typography.bodySmall,
                                 )
                             }

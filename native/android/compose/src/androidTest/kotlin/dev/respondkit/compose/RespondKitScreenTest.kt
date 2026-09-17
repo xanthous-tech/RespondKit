@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -130,6 +132,44 @@ class RespondKitScreenTest {
         compose.onNodeWithTag("host-trigger").performClick()
         compose.onNodeWithTag("respondkit-thread-thread_test").performClick()
         compose.onNodeWithTag("respondkit-composer").assertTextContains("Preserved draft")
+    }
+
+    @Test
+    fun screenInheritsHostAccentAndSupportsOverride() {
+        val inherited = Color(0xFF14B8A6)
+        val override = Color(0xFFF43F5E)
+        val accent = mutableStateOf<Color?>(null)
+        compose.setContent {
+            val scope = rememberCoroutineScope()
+            val store = remember {
+                RespondKitStore(
+                    RespondKitConfiguration(
+                        "https://support.example.com",
+                        "inbox_test",
+                        "https://example.com",
+                    ),
+                    persistence = MemoryPersistence(),
+                    api = Api(),
+                    scope = scope,
+                )
+            }
+            MaterialTheme(colorScheme = lightColorScheme(primary = inherited)) {
+                RespondKitScreen(store, onClose = {}, accentColor = accent.value)
+            }
+        }
+        fun assertButtonColor(expected: Color) {
+            val pixels = compose.onNodeWithTag("respondkit-new").captureToImage().toPixelMap()
+            // Interior background, away from rounded corners and the centered label.
+            val actual = pixels[pixels.width / 8, pixels.height / 2]
+            org.junit.Assert.assertEquals(expected.red, actual.red, 0.01f)
+            org.junit.Assert.assertEquals(expected.green, actual.green, 0.01f)
+            org.junit.Assert.assertEquals(expected.blue, actual.blue, 0.01f)
+        }
+        assertButtonColor(inherited)
+        compose.runOnIdle { accent.value = override }
+        assertButtonColor(override)
+        compose.runOnIdle { accent.value = null }
+        assertButtonColor(inherited)
     }
 
     @Test

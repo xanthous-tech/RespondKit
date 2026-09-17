@@ -10,7 +10,24 @@ struct RespondKitExampleApp: App {
 private struct ExampleRoot: View {
   @State private var store: RespondKitStore?
   @State private var error: String?
-  @State private var showingSupport = false
+  @State private var showingSupport = ProcessInfo.processInfo.arguments.contains("--open-support")
+  @State private var accent = "Inherit"
+  private let options = ["Inherit", "Indigo", "Rose", "Teal"]
+  private var accentColor: Color? {
+    switch accent {
+    case "Indigo": Color(red: 0.388, green: 0.400, blue: 0.945)
+    case "Rose": Color(red: 0.957, green: 0.247, blue: 0.369)
+    case "Teal": Color(red: 0.078, green: 0.722, blue: 0.651)
+    default: nil
+    }
+  }
+  private func argument(_ key: String, fallback: String) -> String {
+    let args = ProcessInfo.processInfo.arguments
+    guard let index = args.firstIndex(of: key), index + 1 < args.count else { return fallback }
+    return args[index + 1]
+  }
+  private var apiURL: String { argument("--api-url", fallback: "http://127.0.0.1:8789") }
+  private var inboxID: String { argument("--inbox-id", fallback: "inbox_demo") }
 
   var body: some View {
     Group {
@@ -35,12 +52,18 @@ private struct ExampleRoot: View {
           .buttonStyle(.borderedProminent).accessibilityIdentifier("host-support")
           Button("Report a problem") { showingSupport = true }
             .accessibilityIdentifier("host-secondary-trigger")
-          Text("Local demo · localhost:8789").font(.caption).foregroundStyle(.secondary)
+          Picker("Widget accent", selection: $accent) {
+            ForEach(options, id: \.self) { Text($0).tag($0) }
+          }.pickerStyle(.segmented)
+          Text("Widget accent · Inherit uses the app tint").font(.caption).foregroundStyle(
+            .secondary)
+          Text(apiURL + "\n" + inboxID).font(.caption).foregroundStyle(.secondary)
+            .multilineTextAlignment(.center)
         }
         .padding(32)
         .respondKitLifecycle(store)
         .fullScreenCover(isPresented: $showingSupport) {
-          RespondKitScreen(store: store, title: "Example support")
+          RespondKitScreen(store: store, title: "Example support", accentColor: accentColor)
         }
       } else if let error {
         ContentUnavailableView(
@@ -53,8 +76,9 @@ private struct ExampleRoot: View {
       guard store == nil else { return }
       do {
         let configuration = try RespondKitConfiguration(
-          baseURL: URL(string: "http://127.0.0.1:8789")!, inboxID: "inbox_demo",
-          origin: "http://localhost:8789", pollInterval: .seconds(2))
+          baseURL: URL(string: apiURL)!, inboxID: inboxID,
+          origin: argument("--origin", fallback: "http://localhost:8789"), pollInterval: .seconds(2)
+        )
         store = try RespondKitStore(
           configuration: configuration, context: .init(locale: "en"),
           persistence: ProcessInfo.processInfo.arguments.contains("--uitesting")
