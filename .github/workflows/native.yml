@@ -1,10 +1,10 @@
 name: Native SDKs
 on:
   pull_request:
-    paths: ["Package.swift", "native/**", ".github/workflows/native.yml"]
+    paths: ["Package.swift", "VERSION", "native/**", ".github/workflows/native.yml"]
   push:
     branches: [main]
-    paths: ["Package.swift", "native/**", ".github/workflows/native.yml"]
+    paths: ["Package.swift", "VERSION", "native/**", ".github/workflows/native.yml"]
 permissions:
   contents: read
 jobs:

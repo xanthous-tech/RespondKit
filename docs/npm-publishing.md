@@ -47,4 +47,4 @@ repository gate, tarball checks, matching lockstep versions, and license metadat
 uses npm OIDC and does not require a long-lived npm token. Because the source repository and
 packages are public, trusted publishing also generates npm provenance attestations.
 
-For subsequent releases, update all three package versions together, merge the change, and publish a GitHub release whose tag exactly matches `v<version>`.
+For subsequent releases, run `pnpm version:set <version>` to update every package and `VERSION` together. Merge the change, then publish a GitHub release whose tag exactly matches `v<version>`. The same release distributes Android through Maven Central and SwiftPM through its Git tag; see the [shared release process](native/releases.md).
