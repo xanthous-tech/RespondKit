@@ -315,7 +315,9 @@ import Observation
     session = value
     return value.token
   }
-  private func authorized<T>(_ epoch: Int, _ action: (String) async throws -> T) async throws -> T {
+  private func authorized<T: Sendable>(
+    _ epoch: Int, _ action: @MainActor (String) async throws -> T
+  ) async throws -> T {
     do { return try await action(validToken(epoch)) } catch let error as RespondKitError
       where error.status == 401
     {
@@ -328,7 +330,7 @@ import Observation
     try Task.checkCancellation()
     guard expected == epoch else { throw CancellationError() }
   }
-  private func operate(_ action: (Int) async throws -> Void) async {
+  private func operate(_ action: @MainActor (Int) async throws -> Void) async {
     let expected = epoch
     if locked { await withCheckedContinuation { waiters.append($0) } } else { locked = true }
     defer {
