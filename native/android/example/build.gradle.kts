@@ -12,7 +12,7 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 1
-        versionName = "0.1"
+        versionName = project.version.toString()
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -24,7 +24,12 @@ android {
 kotlin { jvmToolchain(17) }
 
 dependencies {
-    implementation(project(":compose"))
+    val publishedSdkVersion = providers.gradleProperty("publishedSdkVersion").orNull
+    if (publishedSdkVersion == null) {
+        implementation(project(":compose"))
+    } else {
+        implementation("dev.respondkit:respondkit-compose:$publishedSdkVersion")
+    }
     implementation(platform("androidx.compose:compose-bom:2025.06.01"))
     implementation("androidx.compose.material3:material3")
     implementation("androidx.activity:activity-compose:1.10.1")

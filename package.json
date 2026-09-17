@@ -1,10 +1,12 @@
 {
   "name": "respondkit",
-  "version": "0.0.0",
+  "version": "0.5.0",
   "private": true,
   "license": "MIT",
   "type": "module",
   "scripts": {
+    "version:set": "node scripts/set-release-version.ts",
+    "release:check": "node scripts/validate-npm-release.ts",
     "check": "vp check",
     "test:all": "vp run -r test",
     "build:all": "vp run -r build",
