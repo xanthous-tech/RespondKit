@@ -226,7 +226,7 @@
     @ScaledMetric(relativeTo: .caption) private var captionSize = 12
     var body: some View {
       VStack(alignment: row.customer ? .trailing : .leading, spacing: 4) {
-        Text(row.text).font(.system(size: textSize)).lineSpacing(5).textSelection(.enabled)
+        Text(linkedMessage(row.text)).font(.system(size: textSize)).lineSpacing(5).textSelection(.enabled)
           .foregroundStyle(row.failed ? WidgetStyle.failure : WidgetStyle.foreground)
           .padding(.horizontal, 12).padding(.vertical, 10)
           .background(

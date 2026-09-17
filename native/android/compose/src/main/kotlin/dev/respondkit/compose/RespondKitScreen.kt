@@ -367,6 +367,8 @@ private fun Composer(store: RespondKitStore, state: SupportState) {
 
 @Composable
 private fun Bubble(row: TranscriptRow, isSending: Boolean, retry: (String) -> Unit) {
+    val accent = MaterialTheme.colorScheme.primary
+    val message = remember(row.text, accent) { linkedMessage(row.text, accent) }
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         Column(
             Modifier.widthIn(max = maxWidth * 0.84f)
@@ -376,7 +378,7 @@ private fun Bubble(row: TranscriptRow, isSending: Boolean, retry: (String) -> Un
         ) {
             SelectionContainer {
                 Text(
-                    row.text,
+                    message,
                     fontSize = 14.sp,
                     lineHeight = 23.sp,
                     color = if (row.failed) WidgetError else WidgetInk,

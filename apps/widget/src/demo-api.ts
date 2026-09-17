@@ -30,6 +30,15 @@ const messages: DemoMessage[] = [
     acceptedAt: new Date(baseTime + 60_000).toISOString(),
     state: "available",
   },
+  {
+    id: "message_demo_link",
+    threadId: "thread_demo",
+    direction: "operator_to_customer",
+    text: "Our guide is at https://example.com/help?from=support#start.",
+    language: "en",
+    acceptedAt: new Date(baseTime + 65_000).toISOString(),
+    state: "available",
+  },
 ];
 
 let demoThread = {

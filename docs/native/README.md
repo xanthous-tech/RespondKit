@@ -2,17 +2,23 @@
 
 RespondKit now includes a Swift Package and Android core/Compose modules in this repository. They use the existing v1 customer API. There is no SDK launcher: your app owns buttons, badge placement, and full-screen presentation. The SDK opens directly into one conversation, with text messages, drafts, retries, read acknowledgements, and foreground status polling. There is no thread picker or intermediate history screen.
 
-The shared release process targets version 0.5.0 for npm, SwiftPM, and Maven Central. See [release setup and validation](releases.md). Until that release is published, use a local checkout or the `main` branch. Captioner integration remains a separate change.
+The shared release process targets version 0.5.1 for npm, SwiftPM, and Maven Central. See [release setup and validation](releases.md). The URL-link support described below is available from 0.5.1; before that release is published, use a local checkout of the feature branch. Captioner integration remains a separate change.
+
+## Links in messages
+
+Version 0.5.1 makes `https://`, `http://`, and `www.` URLs tappable in both native widgets, matching the web widget. Links are underlined and use the widget accent; `www.` addresses open with HTTPS. Surrounding message text stays literal, and sentence punctuation is excluded from the destination. Other schemes, email addresses, HTML, and Markdown are not interpreted as links.
+
+SwiftUI uses the environment's `openURL` action, and Compose uses `LocalUriHandler`. By default these open the system URL handler; hosts can override them to use an in-app browser or their own routing. Following a link does not dismiss the conversation.
 
 ## Swift Package Manager
 
 The root `Package.swift` supports repository URL installation in Xcode or a package dependency. Requirements: Swift 6, iOS 18+. The core also builds on macOS 15 for tests; the SwiftUI screen is iOS-only.
 
-In Xcode, **Add Package Dependencies**, enter `https://github.com/xanthous-tech/RespondKit.git`, and choose version 0.5.0 after its release (or `main` during development). Add the `RespondKitUI` and `RespondKitCore` products to your app. A local checkout can also be added as a local package.
+In Xcode, **Add Package Dependencies**, enter `https://github.com/xanthous-tech/RespondKit.git`, and choose version 0.5.1 after its release (or `main` during development). Add the `RespondKitUI` and `RespondKitCore` products to your app. A local checkout can also be added as a local package.
 
 ```swift
-// A consuming Package.swift after v0.5.0 is published.
-.package(url: "https://github.com/xanthous-tech/RespondKit.git", from: "0.5.0")
+// A consuming Package.swift after v0.5.1 is published.
+.package(url: "https://github.com/xanthous-tech/RespondKit.git", from: "0.5.1")
 
 // Target dependencies:
 .product(name: "RespondKitCore", package: "RespondKit"),
@@ -74,7 +80,7 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    implementation("dev.respondkit:respondkit-compose:0.5.0")
+    implementation("dev.respondkit:respondkit-compose:0.5.1")
 }
 ```
 

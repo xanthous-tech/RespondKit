@@ -14,7 +14,7 @@ let package = Package(
       name: "RespondKitUI", dependencies: ["RespondKitCore"],
       path: "native/swift/Sources/RespondKitUI"),
     .testTarget(
-      name: "RespondKitTests", dependencies: ["RespondKitCore"], path: "native",
+      name: "RespondKitTests", dependencies: ["RespondKitCore", "RespondKitUI"], path: "native",
       exclude: ["android", "examples", "swift/Sources"],
       sources: ["swift/Tests"], resources: [.copy("fixtures")]),
   ]
