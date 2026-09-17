@@ -7,6 +7,7 @@ import { Skeleton } from "#components/ui/skeleton";
 import { cn } from "#lib/utils";
 
 import type { DisplayMessage, TranscriptState } from "./types";
+import { MessageText } from "./message-text";
 
 interface MessageListProps {
   readonly locale?: string | undefined;
@@ -165,7 +166,7 @@ export function MessageList({
                       failed && "ac:bg-destructive/10 ac:text-destructive",
                     )}
                   >
-                    {message.text}
+                    <MessageText text={message.text} />
                   </p>
                   <div className="ac:flex ac:min-h-5 ac:items-center ac:gap-2 ac:px-1 ac:text-xs ac:text-muted-foreground">
                     <time dateTime={message.acceptedAt}>

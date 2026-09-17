@@ -1,0 +1,43 @@
+[
+  { "text": "A normal reply\nwith two lines.", "links": [] },
+  {
+    "text": "Visit https://example.com/help?plan=pro&lang=en#billing.",
+    "links": [
+      {
+        "text": "https://example.com/help?plan=pro&lang=en#billing",
+        "url": "https://example.com/help?plan=pro&lang=en#billing"
+      }
+    ]
+  },
+  {
+    "text": "Try http://example.com/help or www.example.com/help.",
+    "links": [
+      { "text": "http://example.com/help", "url": "http://example.com/help" },
+      { "text": "www.example.com/help", "url": "https://www.example.com/help" }
+    ]
+  },
+  {
+    "text": "🌈 請看 https://example.com/help。\nThanks!",
+    "links": [{ "text": "https://example.com/help", "url": "https://example.com/help" }]
+  },
+  {
+    "text": "See (https://example.com/a_(b)).",
+    "links": [{ "text": "https://example.com/a_(b)", "url": "https://example.com/a_(b)" }]
+  },
+  {
+    "text": "Repeat https://example.com then https://example.com",
+    "links": [
+      { "text": "https://example.com", "url": "https://example.com" },
+      { "text": "https://example.com", "url": "https://example.com" }
+    ]
+  },
+  {
+    "text": "javascript:alert(1) data:text/html,test file:///tmp/test ftp://example.com support@example.com",
+    "links": []
+  },
+  {
+    "text": "<b>Read</b> https://example.com/?x=1&y=2 <script>alert(1)</script>",
+    "links": [{ "text": "https://example.com/?x=1&y=2", "url": "https://example.com/?x=1&y=2" }]
+  },
+  { "text": "Broken links: https:// and http://", "links": [] }
+]

@@ -30,6 +30,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures { compose = true }
+    sourceSets["androidTest"].assets.srcDir("../../fixtures")
 }
 
 kotlin { jvmToolchain(17) }

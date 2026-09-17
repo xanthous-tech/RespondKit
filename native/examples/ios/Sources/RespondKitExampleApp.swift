@@ -10,6 +10,7 @@ struct RespondKitExampleApp: App {
 private struct ExampleRoot: View {
   @State private var store: RespondKitStore?
   @State private var error: String?
+  @State private var openedURL = ""
   @State private var showingSupport = ProcessInfo.processInfo.arguments.contains("--open-support")
   @State private var accent = "Indigo"
   private let options = ["Inherit", "Indigo", "Rose", "Teal"]
@@ -63,7 +64,18 @@ private struct ExampleRoot: View {
         .padding(32)
         .respondKitLifecycle(store)
         .fullScreenCover(isPresented: $showingSupport) {
-          RespondKitScreen(store: store, title: "Example support", accentColor: accentColor)
+          if ProcessInfo.processInfo.arguments.contains("--uitesting-links") {
+            RespondKitScreen(store: store, title: "Example support", accentColor: accentColor)
+              .environment(\.openURL, OpenURLAction { url in
+                openedURL = url.absoluteString
+                return .handled
+              })
+              .overlay(alignment: .top) {
+                Text(openedURL).accessibilityIdentifier("host-opened-url")
+              }
+          } else {
+            RespondKitScreen(store: store, title: "Example support", accentColor: accentColor)
+          }
         }
       } else if let error {
         ContentUnavailableView(

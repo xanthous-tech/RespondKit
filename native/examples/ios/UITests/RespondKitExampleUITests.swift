@@ -2,6 +2,30 @@ import XCTest
 
 @MainActor
 final class RespondKitExampleUITests: XCTestCase {
+  func testOperatorLinkOpensThroughHostHandler() async throws {
+    let app = XCUIApplication()
+    app.launchArguments = ["--uitesting", "--uitesting-links"]
+    app.launch()
+    XCTAssertTrue(app.buttons["host-support"].waitForExistence(timeout: 10))
+    app.buttons["host-support"].tap()
+    let composer = app.descendants(matching: .any)["respondkit-composer"].firstMatch
+    XCTAssertTrue(composer.waitForExistence(timeout: 10))
+    composer.tap()
+    composer.typeText("Please send the guide")
+    app.buttons["respondkit-send"].tap()
+    XCTAssertTrue(app.staticTexts["Thanks! This is a local demo reply."].waitForExistence(timeout: 10))
+    let destination = "https://example.com/help?from=support#start"
+    var request = URLRequest(url: URL(string: "http://127.0.0.1:8789/demo/reply")!)
+    request.httpMethod = "POST"
+    request.httpBody = try JSONSerialization.data(withJSONObject: ["text": "Read " + destination + "."])
+    _ = try await URLSession.shared.data(for: request)
+    let link = app.links[destination]
+    XCTAssertTrue(link.waitForExistence(timeout: 10))
+    link.tap()
+    XCTAssertEqual(app.staticTexts["host-opened-url"].label, destination)
+    XCTAssertTrue(composer.exists)
+  }
+
   func testSimulatorCanLoadSecurePersistence() {
     let app = XCUIApplication()
     // No --uitesting flag: exercise the real Keychain rather than MemoryPersistence.

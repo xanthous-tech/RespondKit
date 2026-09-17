@@ -165,3 +165,30 @@ test("opens, restores the transcript, and sends a message", async ({ page }, tes
   await openOnLoad.uncheck();
   await expect(dialog).toBeHidden();
 });
+
+test("opens an operator link without losing the conversation or draft", async ({
+  page,
+  context,
+}) => {
+  const destination = "https://example.com/help?from=support#start";
+  await context.route("https://example.com/**", (route) =>
+    route.fulfill({ body: "Support guide" }),
+  );
+  await page.goto("/");
+  await page.getByRole("button", { name: "Open support chat" }).click();
+  const dialog = page.getByRole("dialog");
+  const composer = dialog.getByRole("textbox", { name: "Message" });
+  await composer.fill("My unfinished reply");
+  const link = dialog.getByRole("link", { name: destination, exact: true });
+  await expect(link).toHaveAttribute("href", destination);
+  await expect(link).toHaveCSS("text-decoration-line", "underline");
+  const opened = page.waitForEvent("popup");
+  await link.click();
+  const popup = await opened;
+  await expect(popup).toHaveURL(destination);
+  await expect(popup.locator("body")).toHaveText("Support guide");
+  expect(await popup.evaluate(() => window.opener === null)).toBe(true);
+  await popup.close();
+  await expect(dialog).toBeVisible();
+  await expect(composer).toHaveValue("My unfinished reply");
+});

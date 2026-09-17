@@ -2,17 +2,18 @@
 
 RespondKit has one version across npm, SwiftPM, and Maven Central. `VERSION` is the
 source for Android; every workspace package manifest must match it, and the Swift
-package uses the matching `v<version>` Git tag. The first native release is planned
-as **0.5.0**, alongside npm 0.5.0. This setup does not itself publish that release.
+package uses the matching `v<version>` Git tag. The next shared release is
+**0.5.1**, adding tappable message URLs to web, SwiftUI, and Compose. Preparing a
+version change does not publish it.
 
 ## Coordinates
 
 | Distribution | Package |
 | --- | --- |
-| SwiftPM | `https://github.com/xanthous-tech/RespondKit.git`, tag `v0.5.0` |
-| Maven Central | `dev.respondkit:respondkit-core:0.5.0` (JVM JAR) |
-| Maven Central | `dev.respondkit:respondkit-compose:0.5.0` (Android release AAR) |
-| npm | `@respondkit/protocol`, `@respondkit/api-client`, `@respondkit/react`, all `0.5.0` |
+| SwiftPM | `https://github.com/xanthous-tech/RespondKit.git`, tag `v0.5.1` |
+| Maven Central | `dev.respondkit:respondkit-core:0.5.1` (JVM JAR) |
+| Maven Central | `dev.respondkit:respondkit-compose:0.5.1` (Android release AAR) |
+| npm | `@respondkit/protocol`, `@respondkit/api-client`, `@respondkit/react`, all `0.5.1` |
 
 The Compose package exposes core as a transitive API dependency. Consumers need
 only the Compose dependency, `google()` and `mavenCentral()`; no credentials or
@@ -54,7 +55,7 @@ uses GitHub OIDC. SwiftPM needs no publishing account or signing credential.
 
 ## Prepare a release
 
-1. Run `pnpm version:set 0.5.0` (substitute the next shared version). This updates
+1. Run `pnpm version:set 0.5.1` (substitute the next shared version). This updates
    `VERSION` and every workspace manifest. Run `pnpm install --lockfile-only`.
 2. Run `pnpm release:check`, `pnpm ready`, `pnpm build:npm`, `pnpm check:npm`,
    and `pnpm pack:npm`. Native checks also run in CI.

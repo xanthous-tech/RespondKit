@@ -1,6 +1,6 @@
 {
   "name": "@respondkit/react",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Embeddable React customer-support widget for RespondKit",
   "keywords": [
     "chat-widget",
@@ -26,6 +26,7 @@
     "src/widget/respondkit-widget.tsx",
     "src/widget/message-composer.tsx",
     "src/widget/message-list.tsx",
+    "src/widget/message-text.tsx",
     "src/widget/theme.ts",
     "src/widget/types.ts",
     "src/widget/use-respondkit.ts",
@@ -77,6 +78,7 @@
     "@respondkit/api-client": "workspace:^",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
+    "linkify-it": "catalog:",
     "lucide-react": "catalog:",
     "tailwind-merge": "catalog:",
     "tailwindcss": "catalog:",

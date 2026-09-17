@@ -35,6 +35,10 @@ export function Support() {
 
 The widget can also receive locale, route, PostHog distinct ID, and arbitrary JSON-safe metadata through `context`.
 
+## Links in messages
+
+Version 0.5.1 automatically links `https://`, `http://`, and `www.` URLs in messages. Links use the widget accent and an underline, and open in a new tab without dismissing the conversation or clearing the draft. `www.` addresses use HTTPS. Sentence punctuation is excluded from the destination; surrounding text, HTML, and Markdown stay literal. Email addresses and other URL schemes remain plain text.
+
 ## Verified account history
 
 Version 0.2.0 adds `getIdentityToken`, an async resolver for a short-lived assertion from your authenticated backend, and `identityPending` to pause while host auth loads. These enable anonymous-to-account linking and cross-browser history recovery. `posthogDistinctId` and `posthogSessionId` remain advisory analytics context. See the [identity setup guide](https://github.com/xanthous-tech/RespondKit/blob/main/docs/architecture/customer-identity.md) for the signing contract, logout behavior, and rollout order.
