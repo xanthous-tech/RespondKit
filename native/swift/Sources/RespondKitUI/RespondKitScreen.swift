@@ -15,15 +15,21 @@
     private let store: RespondKitStore
     private let title: String
     private let accentColor: Color?
+    private let accentForegroundColor: Color
     @Environment(\.dismiss) private var dismiss
     @ScaledMetric(relativeTo: .body) private var titleSize = 16
     @ScaledMetric(relativeTo: .body) private var textSize = 14
 
     /// Omit accentColor to inherit the host tint (or system/app accent).
-    public init(store: RespondKitStore, title: String = "Support", accentColor: Color? = nil) {
+    /// Set accentForegroundColor to a dark color when using a light accent.
+    public init(
+      store: RespondKitStore, title: String = "Support", accentColor: Color? = nil,
+      accentForegroundColor: Color = .white
+    ) {
       self.store = store
       self.title = title
       self.accentColor = accentColor
+      self.accentForegroundColor = accentForegroundColor
     }
 
     public var body: some View {
@@ -64,7 +70,7 @@
           .padding(12).background(WidgetStyle.fill)
           .accessibilityIdentifier("respondkit-error")
         }
-        ConversationView(store: store)
+        ConversationView(store: store, accentForegroundColor: accentForegroundColor)
       }
       .foregroundStyle(WidgetStyle.foreground)
       .background(Color.white.ignoresSafeArea())
@@ -75,6 +81,7 @@
 
   private struct ConversationView: View {
     let store: RespondKitStore
+    let accentForegroundColor: Color
     @State private var atBottom = true
     @State private var unseen = 0
     @ScaledMetric(relativeTo: .body) private var textSize = 14
@@ -175,7 +182,7 @@
             Button("Send another message") { store.selectThread(nil) }
           }.font(.system(size: textSize)).padding(12)
         } else {
-          Composer(store: store)
+          Composer(store: store, accentForegroundColor: accentForegroundColor)
         }
       }
     }
@@ -183,6 +190,7 @@
 
   private struct Composer: View {
     let store: RespondKitStore
+    let accentForegroundColor: Color
     @FocusState private var focused: Bool
     @ScaledMetric(relativeTo: .body) private var inputSize = 16
     private var canSend: Bool {
@@ -207,7 +215,7 @@
           Task { await store.sendDraft() }
         } label: {
           Image(systemName: "paperplane").font(.system(size: 16))
-            .foregroundStyle(.white).frame(width: 44, height: 44)
+            .foregroundStyle(accentForegroundColor).frame(width: 44, height: 44)
             .background(.tint, in: RoundedRectangle(cornerRadius: 12))
             .opacity(canSend ? 1 : 0.5)
         }

@@ -125,6 +125,18 @@ RespondKitScreen(store: store, accentColor: .indigo)
 RespondKitScreen(store: store).tint(.teal)
 ```
 
+For a light accent, pass `accentForegroundColor: .black` to keep the Send icon readable. It defaults to white for compatibility. For example:
+
+```swift
+RespondKitScreen(
+    store: store,
+    accentColor: Color(red: 176 / 255, green: 230 / 255, blue: 76 / 255),
+    accentForegroundColor: .black
+)
+```
+
+The foreground option controls content on solid accent buttons. Customer bubbles retain their 10% accent fill and near-black message text, matching the web widget.
+
 SwiftUI bubbles use [TintShapeStyle](https://developer.apple.com/documentation/swiftui/shapestyle/tint) so they follow the same tint as the controls.
 
 ```kotlin
