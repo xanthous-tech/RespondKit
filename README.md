@@ -6,7 +6,7 @@ The runtime is one Cloudflare Worker bundle with D1 and Cloudflare Workflows. It
 
 ## Native widgets
 
-The repo includes a root Swift Package (`RespondKitCore` + `RespondKitUI`, iOS 18+) and Kotlin/Compose modules under `native/android` (API 26+). Apps provide custom triggers and unread indicators, then present the SDK conversation UI full screen. Unread state refreshes in the foreground; native push notifications are outside this version. SwiftUI supports an explicit foreground color for solid accent buttons, including dark icons on light brand colors.
+The repo includes a root Swift Package (`RespondKitCore` + `RespondKitUI`, iOS 18+) and Kotlin/Compose modules under `native/android` (API 26+). Apps provide custom triggers and unread indicators, then present the SDK conversation UI full screen. Visible iOS transcripts acknowledge each newly loaded reply cursor; closed chats remain unread. Unread state refreshes in the foreground; native push notifications are outside this version. SwiftUI supports an explicit foreground color for solid accent buttons, including dark icons on light brand colors.
 
 See the [native integration and demo guide](docs/native/README.md) for SPM setup, local Android builds, identity/persistence, and simulator tests. See the [shared release process](docs/native/releases.md) for versioned SwiftPM and Maven Central distribution.
 

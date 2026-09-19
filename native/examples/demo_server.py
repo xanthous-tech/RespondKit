@@ -47,6 +47,8 @@ class Handler(BaseHTTPRequestHandler):
                 parsed = urlparse(self.path)
                 path = parsed.path
                 body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", "0"))) or "{}")
+                if path == "/demo/reads" and self.command == "GET":
+                    return self.respond({"cursors": {thread_id: cursor for (_, thread_id), cursor in READS.items()}})
                 if path == "/demo/reply" and self.command == "POST":
                     for thread_id in THREADS:
                         reply(thread_id, body.get("text", "A new reply arrived while you were away."))
