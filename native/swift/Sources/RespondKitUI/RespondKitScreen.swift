@@ -131,7 +131,7 @@
                   ) { id in Task { await store.retry(id) } }
                 }
                 if !rows.isEmpty {
-                  Color.clear.frame(height: 2).id("bottom-" + store.loadedCursor)
+                  Color.clear.frame(height: 2)
                     .onScrollVisibilityChange(threshold: 1) { visible in
                       atBottom = visible
                       if visible { unseen = 0 }
@@ -139,6 +139,8 @@
                       let cursor = store.loadedCursor
                       Task { await store.markDisplayed(threadID: id, cursor: cursor) }
                     }
+                    // Recreate the visibility observer when a new transcript cursor loads.
+                    .id("bottom-" + store.loadedCursor)
                 }
               }
               .frame(
