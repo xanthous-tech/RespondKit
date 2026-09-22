@@ -4,7 +4,7 @@ description: Use a Discord forum channel as the operator-side support inbox.
 icon: MessagesSquare
 ---
 
-RespondKit maps one customer conversation to one Discord forum post. Operators can read translated customer messages and keep the entire support history in the thread.
+RespondKit maps one customer conversation to one Discord forum post. Original customer messages appear immediately. Operators can request translations and keep the entire support history in the thread.
 
 ## Required channel permissions
 
@@ -16,7 +16,8 @@ The RespondKit bot needs permission to:
 - read post history;
 - manage posts;
 - add reactions;
-- use application commands.
+- use application commands;
+- attach files for long private translation previews.
 
 ## Customer read receipts
 
@@ -32,4 +33,24 @@ Run the command inside the relevant support thread:
 /reply message:Please reopen the app and try the export again.
 ```
 
-RespondKit acknowledges the command immediately, translates the English reply into the customer language, and publishes the result to the widget. The bot also mirrors the operator reply into the thread so the conversation is easy to scan.
+The customer receives exactly the text you enter. Translation is optional:
+
+```text
+/reply message:Please reopen the app. translate:customer
+/reply message:Please reopen the app. translate:hi
+```
+
+`customer` uses a reliably detected language from the conversation. If it is unknown, translate an incoming message first or supply a language code. Browser locale is not treated as proof of the customer's language. A requested translation must succeed before the reply becomes available to the customer. If it needs review, RespondKit shows a private preview and a **Send this translation** button; nothing is sent until you confirm. `/status reference:<interaction ID>` restores a pending preview.
+
+## Translate an incoming message
+
+Right-click or long-press a customer message and choose **Apps → Translate to English**. Alternatively:
+
+```text
+/translate
+/translate message:<Discord message link> to:en
+```
+
+Without a link, `/translate` selects the latest customer message in the current thread. A translation appears as a reply to its original message. Repeated requests reuse the saved result. Translation failures are private and do not mark the original message as failed.
+
+Translation must be enabled for the inbox using `TRANSLATION_ENABLED_INBOXES`, with a working Gemini credential. The new commands also need access enabled for your operator role under **Server Settings → Integrations → RespondKit**. No additional Discord OAuth scope or Message Content intent is needed.

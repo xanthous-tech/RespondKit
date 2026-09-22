@@ -1,5 +1,7 @@
 # RespondKit base architecture v1
 
+> Translation update: incoming messages now project their original text, and new `/reply` commands send as written unless translation is requested. See [optional translation](optional-translation.md) for the current flows, persistence, and rollout.
+
 Identity update (0.2.0): see [persistent visitors and verified customer history](customer-identity.md) for account linking, alias persistence, authentication, and migration. That guide supersedes the anonymous-only identity behavior described here.
 
 Status: Implemented MVP foundation; external Gemini/Discord soak testing pending

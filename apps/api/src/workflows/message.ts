@@ -2,6 +2,7 @@ import {
   acceptCustomerIngress,
   findThreadById,
   loadEnglishTranslationContext,
+  loadMessageTranslationContext,
   markCustomerMessageProjected,
   markOperatorAuditProjected,
   publishOperatorReply,
@@ -319,7 +320,15 @@ async function loadTranslationContext(
       envelope.direction === "customer_to_operator"
         ? "en"
         : (envelope.replyTranslation ?? thread.customerLanguage ?? inbox.defaultLocale ?? "en"),
-    turns: turns.map((turn) => ({ role: turn.role, text: turn.englishText })),
+    turns:
+      envelope.direction === "operator_to_customer" && envelope.replyTranslation !== undefined
+        ? await loadMessageTranslationContext(db, {
+            workspaceId: envelope.workspaceId,
+            inboxId: envelope.inboxId,
+            threadId: envelope.threadId,
+            before: new Date(envelope.acceptedAt),
+          })
+        : turns.map((turn) => ({ role: turn.role, text: turn.englishText })),
   };
 }
 
@@ -340,7 +349,7 @@ async function translate(
       targetLanguage: context.targetLanguage,
       context: context.turns,
     };
-    if (envelope.direction === "operator_to_customer") {
+    if (envelope.direction === "operator_to_customer" && envelope.replyTranslation === undefined) {
       return await translator.translate({ ...input, sourceLanguage: "en" });
     }
     // Browser locale is useful operator context, but it is not proof of the
@@ -622,6 +631,7 @@ function availableAuditContent(
   return formatOperatorReplyAuditContent({
     originalText: envelope.originalText,
     targetLanguage: translation.targetLanguage,
+    sourceLanguage: translation.sourceLanguage,
     translatedText: translation.translatedText,
     needsReview: translation.needsReview,
   });

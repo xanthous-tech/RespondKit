@@ -1258,3 +1258,38 @@ export async function publishUntranslatedReply(
   ]);
   return requireMessageGeneration(db, input, "publish its untranslated reply");
 }
+
+/** Bounded original-language context for on-demand translation; unsent replies are excluded. */
+export async function loadMessageTranslationContext(
+  db: DrizzleD1Database,
+  input: { workspaceId: WorkspaceId; inboxId: InboxId; threadId: ThreadId; before: Date },
+) {
+  const rows = await db
+    .select({
+      direction: messages.direction,
+      originalText: messages.originalText,
+      visibleText: messages.customerVisibleText,
+    })
+    .from(messages)
+    .where(
+      and(
+        eq(messages.workspaceId, input.workspaceId),
+        eq(messages.inboxId, input.inboxId),
+        eq(messages.threadId, input.threadId),
+        sql`${messages.acceptedAt} < ${input.before.getTime()}`,
+        or(
+          eq(messages.direction, "customer_to_operator"),
+          eq(messages.customerAvailability, "available"),
+        ),
+      ),
+    )
+    .orderBy(desc(messages.acceptedAt), desc(messages.id))
+    .limit(20);
+  return rows.reverse().map((row) => ({
+    role: row.direction === "customer_to_operator" ? ("customer" as const) : ("operator" as const),
+    text:
+      row.direction === "customer_to_operator"
+        ? row.originalText
+        : (row.visibleText ?? row.originalText),
+  }));
+}

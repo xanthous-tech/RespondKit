@@ -14,6 +14,9 @@ import {
   splitDiscordMessage,
 } from "@respondkit/discord";
 import type { Env } from "../env";
+import { loadMessageTranslationContext } from "@respondkit/conversations";
+import { createDatabase } from "../db";
+import { WorkspaceIdSchema, InboxIdSchema, ThreadIdSchema } from "@respondkit/protocol";
 import {
   requireTranslationEnabled,
   translationResult,
@@ -52,12 +55,18 @@ export class TranslationWorkflow extends WorkflowEntrypoint<Env, TranslationWork
     try {
       const source = await step.do("load-source", DATABASE_STEP, async () => {
         const message = await this.env.DB.prepare(
-          "SELECT original_text FROM message WHERE id = ? AND workspace_id = ? AND inbox_id = ? AND thread_id = ? AND direction = 'customer_to_operator'",
+          "SELECT original_text, accepted_at FROM message WHERE id = ? AND workspace_id = ? AND inbox_id = ? AND thread_id = ? AND direction = 'customer_to_operator'",
         )
           .bind(job.message_id, job.workspace_id, job.inbox_id, job.thread_id)
-          .first<{ original_text: string }>();
+          .first<{ original_text: string; accepted_at: number }>();
         if (!message) throw new NonRetryableError("Customer message is missing");
-        return message.original_text;
+        const context = await loadMessageTranslationContext(createDatabase(this.env.DB), {
+          workspaceId: WorkspaceIdSchema.parse(job.workspace_id),
+          inboxId: InboxIdSchema.parse(job.inbox_id),
+          threadId: ThreadIdSchema.parse(job.thread_id),
+          before: new Date(message.accepted_at),
+        });
+        return { text: message.original_text, context };
       });
       const result = await step.do("translate-message", PROVIDER_STEP, async () => {
         try {
@@ -66,7 +75,7 @@ export class TranslationWorkflow extends WorkflowEntrypoint<Env, TranslationWork
               apiKey: this.env.GEMINI_API_KEY,
               modelId: this.env.GEMINI_MODEL,
             }),
-          }).translate({ text: source, targetLanguage: job.target_language });
+          }).translate({ ...source, targetLanguage: job.target_language });
         } catch (error) {
           const classified = classifyTranslationError(error);
           // Record only safe diagnostics, never provider response bodies or credentials.
