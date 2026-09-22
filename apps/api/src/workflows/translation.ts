@@ -1,4 +1,9 @@
-import { WorkflowEntrypoint, type WorkflowEvent, type WorkflowStep } from "cloudflare:workers";
+import {
+  WorkflowEntrypoint,
+  type WorkflowEvent,
+  type WorkflowStep,
+  type WorkflowDynamicDelayContext,
+} from "cloudflare:workers";
 import { NonRetryableError } from "cloudflare:workflows";
 import {
   createGeminiTranslationModel,
@@ -33,7 +38,14 @@ const PROVIDER_STEP = {
   timeout: "2 minutes",
 } as const;
 const DISCORD_STEP = {
-  retries: { limit: 5, delay: "5 seconds", backoff: "exponential" },
+  retries: {
+    limit: 5,
+    delay: ({ ctx, error }: WorkflowDynamicDelayContext) =>
+      error instanceof DiscordRestError && error.retryAfterMs !== undefined
+        ? error.retryAfterMs
+        : Math.min(2_000 * 2 ** Math.max(0, ctx.attempt - 1), 30_000),
+    backoff: "constant",
+  },
   timeout: "1 minute",
 } as const;
 

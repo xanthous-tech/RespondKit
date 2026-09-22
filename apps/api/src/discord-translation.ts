@@ -43,11 +43,17 @@ export async function updatePrivateInteraction(
     form.set("files[0]", new Blob([reply.file], { type: "text/plain" }), "translation.txt");
     body = form;
   }
-  const response = await fetch(
-    `${env.DISCORD_API_BASE_URL}/webhooks/${interaction.applicationId}/${encodeURIComponent(interaction.token)}/messages/@original`,
-    { method: "PATCH", headers, body },
-  );
-  if (!response.ok) throw new Error(`Discord private response failed (${response.status})`);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const response = await fetch(
+      `${env.DISCORD_API_BASE_URL}/webhooks/${interaction.applicationId}/${encodeURIComponent(interaction.token)}/messages/@original`,
+      { method: "PATCH", headers, body, signal: AbortSignal.timeout(5_000) },
+    );
+    if (response.ok) return;
+    // A very fast job can finish before Discord has processed the initial acknowledgment.
+    if (response.status !== 404 || attempt === 2)
+      throw new Error(`Discord private response failed (${response.status})`);
+    await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+  }
 }
 
 export async function resolveTranslationMessage(
