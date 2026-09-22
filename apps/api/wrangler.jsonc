@@ -10,6 +10,7 @@
   "vars": {
     "ENVIRONMENT": "development",
     "GEMINI_MODEL": "gemini-3.1-flash-lite",
+    "TRANSLATION_ENABLED_INBOXES": "[]",
     "DISCORD_API_BASE_URL": "https://discord.com/api/v10",
   },
   "d1_databases": [
@@ -21,6 +22,11 @@
     },
   ],
   "workflows": [
+    {
+      "name": "respondkit-translation",
+      "binding": "TRANSLATION_WORKFLOW",
+      "class_name": "TranslationWorkflow",
+    },
     {
       "name": "respondkit-message",
       "binding": "MESSAGE_WORKFLOW",
@@ -40,6 +46,7 @@
       "vars": {
         "ENVIRONMENT": "staging",
         "GEMINI_MODEL": "gemini-3.1-flash-lite",
+        "TRANSLATION_ENABLED_INBOXES": "[\"inbox_respondkit_test\",\"inbox_captioner_public\"]",
         "DISCORD_API_BASE_URL": "https://discord.com/api/v10",
       },
       "d1_databases": [
@@ -51,6 +58,11 @@
         },
       ],
       "workflows": [
+        {
+          "name": "respondkit-translation-staging",
+          "binding": "TRANSLATION_WORKFLOW",
+          "class_name": "TranslationWorkflow",
+        },
         {
           "name": "respondkit-message-staging",
           "binding": "MESSAGE_WORKFLOW",

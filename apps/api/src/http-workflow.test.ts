@@ -143,7 +143,7 @@ beforeEach(async () => {
 });
 
 describe("customer HTTP ingress and MessageWorkflow", () => {
-  it("persists, translates, projects, and exposes a customer message without live APIs", async () => {
+  it("persists and projects the original customer message without invoking translation", async () => {
     const customer = await createCustomerFixture();
     await seedReadyDiscordThread(customer.threadId);
     const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
@@ -198,7 +198,7 @@ describe("customer HTTP ingress and MessageWorkflow", () => {
         }>();
       expect(row).toEqual({
         processing_status: "succeeded",
-        operator_visible_text: incomingTranslation.translatedText,
+        operator_visible_text: "စာတမ်းကို export မလုပ်နိုင်ပါ။",
         operator_projection_status: "projected",
       });
 
@@ -228,7 +228,7 @@ describe("customer HTTP ingress and MessageWorkflow", () => {
     }
   });
 
-  it("records a terminal translation failure and keeps the original pollable", async () => {
+  it("records a Discord delivery failure and keeps the original pollable", async () => {
     const customer = await createCustomerFixture();
     await seedReadyDiscordThread(customer.threadId);
     const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
@@ -236,8 +236,8 @@ describe("customer HTTP ingress and MessageWorkflow", () => {
       await workflows.modifyAll(async (modifier) => {
         await modifier.disableRetryDelays();
         await modifier.mockStepError(
-          { name: "translate-message" },
-          new Error("Gemini is temporarily unavailable"),
+          { name: "project-customer-message-0" },
+          new Error("Discord is temporarily unavailable"),
         );
         await modifier.mockStepResult(
           { name: "post-failure-audit-0" },
@@ -257,7 +257,7 @@ describe("customer HTTP ingress and MessageWorkflow", () => {
       await instance.waitForStatus("errored");
       await expect(instance.getError()).resolves.toMatchObject({
         name: "Error",
-        message: "Gemini is temporarily unavailable",
+        message: "Discord is temporarily unavailable",
       });
 
       const row = await env.DB.prepare(
@@ -272,7 +272,7 @@ describe("customer HTTP ingress and MessageWorkflow", () => {
         }>();
       expect(row).toEqual({
         processing_status: "failed",
-        failure_stage: "translation",
+        failure_stage: "discord_projection",
         failure_code: "Error",
         operator_projection_status: "failed",
       });
@@ -714,7 +714,7 @@ describe("customer HTTP ingress and MessageWorkflow", () => {
     }
   });
 
-  it("projects the first persisted translation when a recreated Workflow proposes a new one", async () => {
+  it("projects the original when recreating a legacy translated customer workflow", async () => {
     const customer = await createCustomerFixture();
     await seedReadyDiscordThread(customer.threadId);
     const db = createDatabase(env.DB);
@@ -831,20 +831,13 @@ describe("customer HTTP ingress and MessageWorkflow", () => {
 
       const instance = await oneCapturedWorkflow(workflows);
       await instance.waitForStatus("complete");
-      expect(await instance.waitForStepResult({ name: "store-translation" })).toEqual({
-        sourceLanguage: canonical.sourceLanguage,
-        targetLanguage: canonical.targetLanguage,
-        translatedText: canonical.translatedText,
-        mixedLanguage: canonical.mixedLanguage,
-        needsReview: canonical.needsReview,
-      });
       expect(postedBodies).toEqual([
         expect.objectContaining({
-          content: expect.stringContaining(canonical.translatedText),
+          content: expect.stringContaining(originalText),
         }),
       ]);
       expect(JSON.stringify(postedBodies)).not.toContain(laterCandidate.translatedText);
-      expect(JSON.stringify(postedBodies)).toContain("Translation needs review");
+      expect(JSON.stringify(postedBodies)).not.toContain("Translation needs review");
     } finally {
       vi.unstubAllGlobals();
       await workflows.dispose();
@@ -953,6 +946,58 @@ describe("signed Discord interaction ingress", () => {
     expect(changed.status).toBe(401);
   });
 
+  it("sends /reply as written even when translation is unavailable", async () => {
+    const customer = await createCustomerFixture();
+    await seedReadyDiscordThread(customer.threadId);
+    const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+    try {
+      await workflows.modifyAll(async (modifier) => {
+        await modifier.mockStepError(
+          { name: "translate-message" },
+          new Error("Must not call Gemini"),
+        );
+        await modifier.mockStepResult(
+          { name: "post-available-audit-0" },
+          { discordMessageId: "100000000000000079" },
+        );
+      });
+      const reference = snowflakeAt();
+      const response = await sendSignedCommand(
+        commandPayload(reference, "reply", [{ name: "message", value: "  Send exactly this.  " }]),
+      );
+      expect(await response.json()).toMatchObject({
+        data: { content: expect.stringContaining("delivery as written") },
+      });
+      const instance = await oneCapturedWorkflow(workflows);
+      await instance.waitForStatus("complete");
+      expect((await pollMessages(customer)).messages).toEqual([
+        expect.objectContaining({ text: "  Send exactly this.  ", state: "available" }),
+      ]);
+      expect(
+        await env.DB.prepare("SELECT count(*) AS count FROM message_translation").first(),
+      ).toEqual({ count: 0 });
+    } finally {
+      await workflows.dispose();
+    }
+  });
+
+  it("does not treat browser locale as a known customer translation language", async () => {
+    const customer = await createCustomerFixture({ locale: "my-MM" });
+    await seedReadyDiscordThread(customer.threadId);
+    const response = await sendSignedCommand(
+      commandPayload(snowflakeAt(), "reply", [
+        { name: "message", value: "Hello" },
+        { name: "translate", value: "customer" },
+      ]),
+    );
+    expect(await response.json()).toMatchObject({
+      data: { content: expect.stringContaining("Customer language is unknown") },
+    });
+    expect(await env.DB.prepare("SELECT count(*) AS count FROM message").first()).toEqual({
+      count: 0,
+    });
+  });
+
   it("translates an authorized /reply and publishes it to the customer transcript", async () => {
     const customer = await createCustomerFixture();
     await seedReadyDiscordThread(customer.threadId);
@@ -971,13 +1016,14 @@ describe("signed Discord interaction ingress", () => {
       const response = await sendSignedCommand(
         commandPayload(interactionId, "reply", [
           { name: "message", value: "Please reopen the app." },
+          { name: "translate", value: "my-MM" },
         ]),
       );
       expect(response.status).toBe(200);
       await expect(response.json()).resolves.toEqual({
         type: 4,
         data: {
-          content: "Queued for translation and delivery.",
+          content: expect.stringContaining("Queued for translation and delivery."),
           flags: 64,
           allowed_mentions: { parse: [] },
         },
@@ -1013,6 +1059,7 @@ describe("signed Discord interaction ingress", () => {
       const replay = await sendSignedCommand(
         commandPayload(interactionId, "reply", [
           { name: "message", value: "Please reopen the app." },
+          { name: "translate", value: "my-MM" },
         ]),
       );
       expect(replay.status).toBe(200);
@@ -1076,11 +1123,12 @@ describe("signed Discord interaction ingress", () => {
       const response = await sendSignedCommand(
         commandPayload(interactionId, "reply", [
           { name: "message", value: "This must not leak to the customer in English." },
+          { name: "translate", value: "my-MM" },
         ]),
       );
       expect(response.status).toBe(200);
       await expect(response.json()).resolves.toMatchObject({
-        data: { content: "Queued for translation and delivery." },
+        data: { content: expect.stringContaining("Queued for translation and delivery.") },
       });
 
       const instance = await oneCapturedWorkflow(workflows);
@@ -1130,6 +1178,7 @@ describe("signed Discord interaction ingress", () => {
       const response = await sendSignedCommand(
         commandPayload(interactionId, "reply", [
           { name: "message", value: "Please reopen the app." },
+          { name: "translate", value: "my-MM" },
         ]),
       );
       expect(response.status).toBe(200);

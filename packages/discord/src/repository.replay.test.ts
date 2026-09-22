@@ -55,6 +55,8 @@ function createTestDatabase(): DrizzleD1Database {
       direction text not null,
       original_text text not null,
       original_language text,
+      reply_translation text,
+      reply_translation_request text,
       customer_visible_text text,
       customer_visible_language text,
       operator_visible_text text,

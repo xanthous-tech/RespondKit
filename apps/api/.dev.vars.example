@@ -8,3 +8,6 @@ SESSION_SIGNING_KEY=
 
 # Optional: per-inbox product-backend identity secrets (at least 32 characters each).
 # IDENTITY_SIGNING_KEYS={"inbox_example_public":"replace-with-a-random-backend-secret"}
+
+# Optional translation capability: enable only the inboxes that should call Gemini.
+TRANSLATION_ENABLED_INBOXES=["inbox_example_public"]

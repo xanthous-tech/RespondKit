@@ -1,13 +1,13 @@
-import type { DiscordCommandName } from "./commands";
-
 export const DiscordInteractionType = {
   Ping: 1,
   ApplicationCommand: 2,
+  MessageComponent: 3,
 } as const;
 
 export const DiscordInteractionResponseType = {
   Pong: 1,
   ChannelMessageWithSource: 4,
+  DeferredChannelMessageWithSource: 5,
 } as const;
 
 export const DiscordMessageFlag = {
@@ -125,6 +125,7 @@ interface ParsedDiscordCommandBase extends ParsedDiscordInteractionBase {
 export interface ParsedDiscordReplyInteraction extends ParsedDiscordCommandBase {
   readonly command: "reply";
   readonly message: string;
+  readonly translate?: string;
 }
 
 export interface ParsedDiscordStatusInteraction extends ParsedDiscordCommandBase {
@@ -138,7 +139,22 @@ export interface ParsedDiscordRetryInteraction extends ParsedDiscordCommandBase 
   readonly message: string;
 }
 
+export interface ParsedDiscordTranslateInteraction extends ParsedDiscordCommandBase {
+  readonly command: "translate";
+  readonly targetLanguage: string;
+  readonly targetMessageId?: string;
+  readonly messageLink?: string;
+}
+
+export interface ParsedDiscordConfirmInteraction extends ParsedDiscordCommandBase {
+  readonly command: "confirm_translation";
+  readonly reference: string;
+  readonly generation: number;
+}
+
 export type ParsedDiscordCommandInteraction =
+  | ParsedDiscordTranslateInteraction
+  | ParsedDiscordConfirmInteraction
   | ParsedDiscordReplyInteraction
   | ParsedDiscordRetryInteraction
   | ParsedDiscordStatusInteraction;
@@ -194,6 +210,7 @@ function requiredSnowflake(
 function parseOptions(
   data: Record<string, unknown>,
 ): ReadonlyMap<string, { readonly type: number; readonly value: string }> {
+  if (data.options === undefined) return new Map();
   if (!Array.isArray(data.options)) {
     throw new DiscordInteractionParseError(
       "invalid_payload",
@@ -264,7 +281,7 @@ function parseCommandInteraction(
       "Discord command requires data, member, and channel objects",
     );
   }
-  if (data.type !== 1) {
+  if (payload.type !== 3 && data.type !== 1 && data.type !== 3) {
     throw new DiscordInteractionParseError(
       "invalid_payload",
       "Discord interaction is not a chat input command",
@@ -288,15 +305,15 @@ function parseCommandInteraction(
     return role;
   });
 
-  const commandName = requiredString(data, "name", "command name");
-  if (commandName !== "reply" && commandName !== "retry" && commandName !== "status") {
-    throw new DiscordInteractionParseError(
-      "unsupported_command",
-      `Unsupported Discord command: ${commandName}`,
-    );
+  const commandName =
+    payload.type === 3 ? "confirm_translation" : requiredString(data, "name", "command name");
+  const command = commandName === "Translate to English" ? "translate" : commandName;
+  if (!["reply", "retry", "status", "translate", "confirm_translation"].includes(command)) {
+    throw new DiscordInteractionParseError("unsupported_command", "Unsupported Discord command");
   }
-  const command: DiscordCommandName = commandName;
-
+  if ((commandName === "Translate to English") !== (data.type === 3) && payload.type !== 3) {
+    throw new DiscordInteractionParseError("invalid_payload", "Invalid command type");
+  }
   const options = parseOptions(data);
   const threadType = channel.type;
   if (typeof threadType !== "number") {
@@ -318,12 +335,42 @@ function parseCommandInteraction(
     operatorUserId: requiredSnowflake(user, "id", "operator user ID"),
     operatorRoleIds,
   };
+  if (command === "confirm_translation") {
+    const match = /^confirm-translation:(\d{1,32}):(\d{1,9})$/.exec(
+      requiredString(data, "custom_id"),
+    );
+    if (payload.type !== 3 || match === null)
+      throw new DiscordInteractionParseError("invalid_payload", "Invalid confirmation");
+    return { ...commandBase, command, reference: match[1]!, generation: Number(match[2]) };
+  }
+  if (command === "translate") {
+    if (commandName === "Translate to English") {
+      return {
+        ...commandBase,
+        command,
+        targetLanguage: "en",
+        targetMessageId: requiredSnowflake(data, "target_id"),
+      };
+    }
+    requireAllowedOptions(options, [], ["message", "to"]);
+    return {
+      ...commandBase,
+      command,
+      targetLanguage: normalizeTranslationLanguage(
+        options.has("to") ? optionValue(options, "to", 35) : "en",
+      ),
+      ...(options.has("message") ? { messageLink: optionValue(options, "message", 200) } : {}),
+    };
+  }
   if (command === "reply") {
-    requireExactOptions(options, ["message"]);
+    requireAllowedOptions(options, ["message"], ["translate"]);
     return {
       ...commandBase,
       command,
       message: optionValue(options, "message", 6_000),
+      translate: normalizeReplyTranslation(
+        options.has("translate") ? optionValue(options, "translate", 35) : "off",
+      ),
     };
   }
   if (command === "status") {
@@ -348,7 +395,7 @@ function parseCommandInteraction(
   }
   return {
     ...commandBase,
-    command,
+    command: "retry",
     reference,
     message: optionValue(options, "message", 6_000),
   };
@@ -377,7 +424,10 @@ export function parseDiscordInteraction(rawBody: string): ParsedDiscordInteracti
   if (payload.type === DiscordInteractionType.Ping) {
     return { ...base, kind: "ping" };
   }
-  if (payload.type === DiscordInteractionType.ApplicationCommand) {
+  if (
+    payload.type === DiscordInteractionType.ApplicationCommand ||
+    payload.type === DiscordInteractionType.MessageComponent
+  ) {
     return parseCommandInteraction(payload, base);
   }
   throw new DiscordInteractionParseError(
@@ -445,9 +495,17 @@ export interface NormalizedDiscordCommandBase {
 }
 
 export type NormalizedDiscordCommand =
+  | (NormalizedDiscordCommandBase &
+      Pick<
+        ParsedDiscordTranslateInteraction,
+        "command" | "targetLanguage" | "targetMessageId" | "messageLink"
+      >)
+  | (NormalizedDiscordCommandBase &
+      Pick<ParsedDiscordConfirmInteraction, "command" | "reference" | "generation">)
   | (NormalizedDiscordCommandBase & {
       readonly command: "reply";
       readonly message: string;
+      readonly translate?: string;
     })
   | (NormalizedDiscordCommandBase & {
       readonly command: "retry";
@@ -470,8 +528,31 @@ export function normalizeDiscordCommand(
     operatorUserId: interaction.operatorUserId,
     operatorRoleIds: [...interaction.operatorRoleIds],
   };
+  if (interaction.command === "translate") {
+    return {
+      ...base,
+      command: interaction.command,
+      targetLanguage: interaction.targetLanguage,
+      ...(interaction.targetMessageId === undefined
+        ? {}
+        : { targetMessageId: interaction.targetMessageId }),
+      ...(interaction.messageLink === undefined ? {} : { messageLink: interaction.messageLink }),
+    };
+  }
+  if (interaction.command === "confirm_translation")
+    return {
+      ...base,
+      command: interaction.command,
+      reference: interaction.reference,
+      generation: interaction.generation,
+    };
   if (interaction.command === "reply") {
-    return { ...base, command: interaction.command, message: interaction.message };
+    return {
+      ...base,
+      command: interaction.command,
+      message: interaction.message,
+      translate: interaction.translate ?? "off",
+    };
   }
   if (interaction.command === "status") {
     return { ...base, command: interaction.command, reference: interaction.reference };
@@ -505,3 +586,42 @@ export function createEphemeralInteractionResponse(content: string): {
 export const DISCORD_PONG_RESPONSE = {
   type: DiscordInteractionResponseType.Pong,
 } as const;
+
+function requireAllowedOptions(
+  options: ReadonlyMap<string, unknown>,
+  required: readonly string[],
+  optional: readonly string[],
+) {
+  if (
+    required.some((name) => !options.has(name)) ||
+    [...options.keys()].some((name) => !required.includes(name) && !optional.includes(name))
+  ) {
+    throw new DiscordInteractionParseError(
+      "invalid_payload",
+      "Unexpected or missing command options",
+    );
+  }
+}
+
+export function normalizeTranslationLanguage(value: string): string {
+  try {
+    if (!/^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/i.test(value) || value.length > 35) throw new Error();
+    return new Intl.Locale(value).baseName;
+  } catch {
+    throw new DiscordInteractionParseError(
+      "invalid_payload",
+      "Use a language code such as en, hi, or my",
+    );
+  }
+}
+
+function normalizeReplyTranslation(value: string): string {
+  return value === "off" || value === "customer" ? value : normalizeTranslationLanguage(value);
+}
+
+export function createDeferredEphemeralResponse() {
+  return {
+    type: DiscordInteractionResponseType.DeferredChannelMessageWithSource,
+    data: { flags: DiscordMessageFlag.Ephemeral },
+  } as const;
+}

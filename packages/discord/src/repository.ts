@@ -44,6 +44,8 @@ export interface DiscordReplyIngressInput {
   readonly operatorRoleIds: readonly string[];
   readonly acceptedAt: Date;
   readonly originalEnglishText: string;
+  readonly replyTranslation?: string;
+  readonly replyTranslationRequest?: string;
 }
 
 export interface DiscordReplyIngressAcceptance {
@@ -141,7 +143,9 @@ function loadCanonicalAcceptance(
     interaction.normalizedMessage === input.originalEnglishText &&
     message.id === input.messageId &&
     message.workflowInstanceId === input.workflowInstanceId &&
-    message.originalText === input.originalEnglishText;
+    message.originalText === input.originalEnglishText &&
+    message.replyTranslation === (input.replyTranslation ?? null) &&
+    message.replyTranslationRequest === (input.replyTranslationRequest ?? null);
 
   return {
     kind,
@@ -190,6 +194,10 @@ export async function acceptReplyIngress(
     workflowInstanceId: input.workflowInstanceId,
     acceptedAt: input.acceptedAt,
     originalEnglishText: input.originalEnglishText,
+    ...(input.replyTranslation === undefined ? {} : { replyTranslation: input.replyTranslation }),
+    ...(input.replyTranslationRequest === undefined
+      ? {}
+      : { replyTranslationRequest: input.replyTranslationRequest }),
   });
   const receiptStatement = db
     .insert(discordInteractions)
@@ -757,6 +765,8 @@ export type DiscordRecoveryInteractionInput =
   | (DiscordRecoveryInteractionBase & {
       readonly commandName: "retry";
       readonly originalEnglishText: string;
+      readonly replyTranslation?: string;
+      readonly replyTranslationRequest?: string;
     });
 
 export async function recordRecoveryInteraction(

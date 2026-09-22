@@ -114,7 +114,7 @@ describe("DiscordRestClient", () => {
       content: "hello @everyone",
       nonce: "ac-0-0123456789abcdef",
       enforce_nonce: true,
-      allowed_mentions: { parse: [] },
+      allowed_mentions: { parse: [], replied_user: false },
     });
   });
 

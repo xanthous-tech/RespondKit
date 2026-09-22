@@ -14,6 +14,8 @@ import {
 } from "@respondkit/conversations";
 import {
   DISCORD_PONG_RESPONSE,
+  acceptReplyIngress,
+  createDeferredEphemeralResponse,
   DiscordChannelType,
   DiscordInteractionParseError,
   createEphemeralInteractionResponse,
@@ -55,6 +57,13 @@ import { z } from "zod";
 
 import { verifyCustomerIdentity } from "./customer-identity";
 import { createDatabase } from "./db";
+import {
+  handleTranslationInteraction,
+  notifyReplyProgress,
+  replyReview,
+  updatePrivateInteraction,
+} from "./discord-translation";
+import { requireTranslationEnabled } from "./translation-service";
 import { syncDiscordReadReceipts } from "./read-receipts";
 import type { Env } from "./env";
 import {
@@ -375,6 +384,8 @@ function customerEnvelope(input: {
   readonly clientMessageId: string;
   readonly originalText: string;
   readonly acceptedAt: Date;
+  readonly replyTranslation?: string;
+  readonly replyTranslationRequest?: string;
 }): MessageWorkflowEnvelope {
   return {
     schema: "respondkit.workflow-message/1",
@@ -423,6 +434,8 @@ function operatorEnvelope(input: {
   readonly messageId: string;
   readonly workflowInstanceId: string;
   readonly acceptedAt: Date;
+  readonly replyTranslation?: string;
+  readonly replyTranslationRequest?: string;
 }): MessageWorkflowEnvelope {
   return {
     schema: "respondkit.workflow-message/1",
@@ -435,6 +448,10 @@ function operatorEnvelope(input: {
     workflowInstanceId: input.workflowInstanceId,
     acceptedAt: input.acceptedAt.toISOString(),
     originalText: input.command.message,
+    ...(input.replyTranslationRequest === undefined
+      ? {}
+      : { replyTranslationRequest: input.replyTranslationRequest }),
+    ...(input.replyTranslation === undefined ? {} : { replyTranslation: input.replyTranslation }),
     discord: {
       integrationId: input.integrationId,
       interactionId: input.command.interactionId,
@@ -665,7 +682,7 @@ export function createHttpApp() {
       visitorId: auth.claims.visitorId,
       clientThreadId: request.clientThreadId,
       createdAt,
-      customerLanguage: auth.visitor.locale,
+      customerLanguage: null,
     });
     return context.json(
       {
@@ -857,7 +874,13 @@ export function createHttpApp() {
     }
     if (interaction.kind === "ping") return context.json(DISCORD_PONG_RESPONSE);
 
+    if (interaction.command === "translate" || interaction.command === "confirm_translation") {
+      context.executionCtx.waitUntil(handleTranslationInteraction(context.env, interaction));
+      return context.json(createDeferredEphemeralResponse());
+    }
     const command = normalizeDiscordCommand(interaction);
+    if (command.command === "translate" || command.command === "confirm_translation")
+      throw new Error("Unexpected command");
     const commandPromise = (async () => {
       const authorized = await discordCommandContext(context, interaction);
       if (authorized === null) {
@@ -893,7 +916,11 @@ export function createHttpApp() {
               ),
             );
           }
-          if (canonical.message.originalText !== command.message) {
+          if (
+            canonical.message.originalText !== command.message ||
+            (canonical.message.replyTranslationRequest !== null &&
+              canonical.message.replyTranslationRequest !== (command.translate ?? "off"))
+          ) {
             return context.json(
               createEphemeralInteractionResponse(
                 "That interaction ID already belongs to another immutable reply.",
@@ -905,7 +932,69 @@ export function createHttpApp() {
           );
         }
 
+        let replyTranslation = command.translate ?? "off";
+        if (replyTranslation !== "off") {
+          try {
+            requireTranslationEnabled(context.env, thread.inboxId);
+          } catch (error) {
+            return context.json(
+              createEphemeralInteractionResponse(
+                error instanceof Error ? error.message : "Translation is disabled.",
+              ),
+            );
+          }
+          if (replyTranslation === "customer") {
+            // This value comes from reliable message detection, never the browser locale.
+            const detected = await context.env.DB.prepare(`
+              SELECT source_language FROM (
+                SELECT mt.source_language, m.accepted_at FROM message_translation mt JOIN message m ON m.id = mt.message_id
+                WHERE m.workspace_id = ? AND m.inbox_id = ? AND m.thread_id = ? AND m.direction = 'customer_to_operator' AND mt.needs_review = 0
+                UNION ALL
+                SELECT json_extract(tj.result_json, '$.sourceLanguage') AS source_language, m.accepted_at FROM translation_job tj JOIN message m ON m.id = tj.message_id
+                WHERE tj.workspace_id = ? AND tj.inbox_id = ? AND tj.thread_id = ? AND tj.status = 'succeeded' AND json_extract(tj.result_json, '$.needsReview') = 0
+              ) ORDER BY accepted_at DESC LIMIT 1`)
+              .bind(
+                thread.workspaceId,
+                thread.inboxId,
+                thread.id,
+                thread.workspaceId,
+                thread.inboxId,
+                thread.id,
+              )
+              .first<{ source_language: string }>();
+            if (detected === null)
+              return context.json(
+                createEphemeralInteractionResponse(
+                  "Customer language is unknown. Translate a customer message first, or specify translate:hi (or another language code).",
+                ),
+              );
+            replyTranslation = detected.source_language;
+          }
+        }
         const identity = await deriveOperatorMessageIdentity(command);
+        const persisted = await acceptReplyIngress(db, {
+          integrationId: authorized.integration.id,
+          interactionId: command.interactionId,
+          workspaceId: thread.workspaceId,
+          inboxId: thread.inboxId,
+          threadId: thread.id,
+          ...identity,
+          applicationId: command.applicationId,
+          guildId: command.guildId,
+          discordThreadId: command.discordThreadId,
+          operatorUserId: command.operatorUserId,
+          operatorRoleIds: command.operatorRoleIds,
+          acceptedAt,
+          originalEnglishText: command.message,
+          replyTranslation,
+          replyTranslationRequest: command.translate ?? "off",
+        });
+        if (!persisted.immutablePayloadMatches)
+          return context.json(
+            createEphemeralInteractionResponse(
+              "That interaction already belongs to another reply or language.",
+            ),
+          );
         const envelope = operatorEnvelope({
           command,
           integrationId: authorized.integration.id,
@@ -914,6 +1003,8 @@ export function createHttpApp() {
           thread,
           ...identity,
           acceptedAt,
+          replyTranslation,
+          replyTranslationRequest: command.translate ?? "off",
         });
         const accepted = await acceptWorkflow(
           context.env.MESSAGE_WORKFLOW,
@@ -940,8 +1031,21 @@ export function createHttpApp() {
             ),
           );
         }
+        if (replyTranslation !== "off")
+          context.executionCtx.waitUntil(
+            notifyReplyProgress(
+              context.env,
+              interaction,
+              identity.messageId,
+              command.interactionId,
+            ),
+          );
         return context.json(
-          createEphemeralInteractionResponse("Queued for translation and delivery."),
+          createEphemeralInteractionResponse(
+            replyTranslation === "off"
+              ? `Queued for delivery as written. Reference: ${command.interactionId}`
+              : `Queued for translation and delivery. Reference: ${command.interactionId}`,
+          ),
         );
       }
 
@@ -991,10 +1095,25 @@ export function createHttpApp() {
       );
 
       if (command.command === "status") {
+        if (original !== null) {
+          const review = await replyReview(context.env, original.message.id, command.reference);
+          if (review !== null) {
+            context.executionCtx.waitUntil(
+              updatePrivateInteraction(context.env, interaction, review).catch(() => undefined),
+            );
+            return context.json(createDeferredEphemeralResponse());
+          }
+        }
         return context.json(
           createEphemeralInteractionResponse(workflowStatusText(status, original?.message ?? null)),
         );
       }
+      if (original === null)
+        return context.json(
+          createEphemeralInteractionResponse(
+            "The original reply options could not be recovered. Check /status before submitting a new reply.",
+          ),
+        );
       if (original !== null && original.message.originalText !== command.message) {
         return context.json(
           createEphemeralInteractionResponse(
@@ -1026,24 +1145,16 @@ export function createHttpApp() {
         );
       }
 
-      const retryCommand =
-        original === null
-          ? {
-              ...command,
-              command: "reply" as const,
-              interactionId: command.reference,
-              message: command.message,
-            }
-          : {
-              command: "reply" as const,
-              interactionId: original.interaction.interactionId,
-              applicationId: original.interaction.applicationId,
-              guildId: original.interaction.guildId,
-              discordThreadId: original.interaction.discordThreadId,
-              operatorUserId: original.interaction.operatorUserId,
-              operatorRoleIds: original.interaction.operatorRoleIds,
-              message: original.message.originalText,
-            };
+      const retryCommand = {
+        command: "reply" as const,
+        interactionId: original.interaction.interactionId,
+        applicationId: original.interaction.applicationId,
+        guildId: original.interaction.guildId,
+        discordThreadId: original.interaction.discordThreadId,
+        operatorUserId: original.interaction.operatorUserId,
+        operatorRoleIds: original.interaction.operatorRoleIds,
+        message: original.message.originalText,
+      };
       const retryEnvelope = operatorEnvelope({
         command: retryCommand,
         integrationId: authorized.integration.id,
@@ -1051,7 +1162,13 @@ export function createHttpApp() {
         inboxId: authorized.integration.inboxId,
         thread,
         ...originalIdentity,
-        acceptedAt: original?.message.acceptedAt ?? discordInteractionAcceptedAt(command.reference),
+        acceptedAt: original.message.acceptedAt,
+        ...(original.message.replyTranslationRequest === null
+          ? {}
+          : { replyTranslationRequest: original.message.replyTranslationRequest }),
+        ...(original.message.replyTranslation === null
+          ? {}
+          : { replyTranslation: original.message.replyTranslation }),
       });
       const retried = await acceptWorkflow(
         context.env.MESSAGE_WORKFLOW,

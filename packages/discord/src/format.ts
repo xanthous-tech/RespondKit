@@ -6,6 +6,7 @@ export interface CustomerProjectionContent {
 }
 
 export interface OperatorReplyAuditContent {
+  readonly sourceLanguage?: string;
   readonly originalText: string;
   readonly targetLanguage: string;
   readonly translatedText: string;
@@ -55,7 +56,7 @@ export function formatCustomerProjectionContent(input: CustomerProjectionContent
 export function formatOperatorReplyAuditContent(input: OperatorReplyAuditContent): string {
   const targetLanguage = languageDisplayName(input.targetLanguage);
   return [
-    `**Reply sent · English → ${targetLanguage}**`,
+    `**Reply sent · ${languageDisplayName(input.sourceLanguage ?? "en")} → ${targetLanguage}**`,
     input.needsReview
       ? "⚠️ **Translation needs review.** Check the customer-facing text."
       : undefined,
