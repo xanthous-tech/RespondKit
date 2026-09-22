@@ -54,3 +54,9 @@ Right-click or long-press a customer message and choose **Apps → Translate to 
 Without a link, `/translate` selects the latest customer message in the current thread. A translation appears as a reply to its original message. Repeated requests reuse the saved result. Translation failures are private and do not mark the original message as failed.
 
 Translation must be enabled for the inbox using `TRANSLATION_ENABLED_INBOXES`, with a working Gemini credential. The new commands also need access enabled for your operator role under **Server Settings → Integrations → RespondKit**. No additional Discord OAuth scope or Message Content intent is needed.
+
+## Customer activity
+
+When PostHog is configured for the inbox, `/activity` posts the customer's latest 20 pageviews and product events in the Discord thread. Use `count:50`, `minutes:30`, `kind:pageviews`, or `until:last_message` to narrow the snapshot. Supplying minutes without count allows up to 100 events. Long timelines include a text attachment.
+
+Activity stays in Discord and is not sent to the customer. PostHog failures do not affect replies. The bot needs Attach Files permission for long timelines; hosts already supplying a PostHog distinct ID need no client update.

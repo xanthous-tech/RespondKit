@@ -1,3 +1,4 @@
+import { handleActivityInteraction } from "./discord-activity";
 import {
   acknowledgeCustomerRead,
   createThread,
@@ -874,12 +875,20 @@ export function createHttpApp() {
     }
     if (interaction.kind === "ping") return context.json(DISCORD_PONG_RESPONSE);
 
+    if (interaction.command === "activity") {
+      context.executionCtx.waitUntil(handleActivityInteraction(context.env, interaction));
+      return context.json(createDeferredEphemeralResponse());
+    }
     if (interaction.command === "translate" || interaction.command === "confirm_translation") {
       context.executionCtx.waitUntil(handleTranslationInteraction(context.env, interaction));
       return context.json(createDeferredEphemeralResponse());
     }
     const command = normalizeDiscordCommand(interaction);
-    if (command.command === "translate" || command.command === "confirm_translation")
+    if (
+      command.command === "translate" ||
+      command.command === "confirm_translation" ||
+      command.command === "activity"
+    )
       throw new Error("Unexpected command");
     const commandPromise = (async () => {
       const authorized = await discordCommandContext(context, interaction);

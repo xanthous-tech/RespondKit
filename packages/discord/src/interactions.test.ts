@@ -258,3 +258,44 @@ describe("Discord interaction parsing and authorization", () => {
     });
   });
 });
+
+describe("activity command options", () => {
+  function parse(options: unknown[] = []) {
+    return parseDiscordInteraction(
+      JSON.stringify({ ...replyPayload(), data: { type: 1, name: "activity", options } }),
+    );
+  }
+  it("defaults to the latest 20 events and supports native integer options", () => {
+    expect(parse()).toMatchObject({
+      command: "activity",
+      count: 20,
+      minutes: 10080,
+      activityKind: "all",
+      until: "now",
+    });
+    expect(parse([{ name: "minutes", type: 4, value: 30 }])).toMatchObject({
+      count: 100,
+      minutes: 30,
+    });
+    const parsed = parse([
+      { name: "count", type: 4, value: 50 },
+      { name: "kind", type: 3, value: "pageviews" },
+      { name: "until", type: 3, value: "last_message" },
+    ]);
+    expect(parsed).toMatchObject({ count: 50, activityKind: "pageviews", until: "last_message" });
+    if (parsed.kind === "command")
+      expect(normalizeDiscordCommand(parsed)).toMatchObject({ command: "activity", count: 50 });
+  });
+  it.each([
+    [{ name: "count", type: 4, value: 0 }],
+    [{ name: "count", type: 4, value: 101 }],
+    [{ name: "count", type: 4, value: 1.5 }],
+    [{ name: "count", type: 3, value: "20" }],
+    [{ name: "minutes", type: 4, value: 10081 }],
+    [{ name: "kind", type: 3, value: "raw" }],
+    [{ name: "until", type: 3, value: "yesterday" }],
+    [{ name: "project", type: 3, value: "other" }],
+  ])("rejects invalid or extra activity options: %j", (option) => {
+    expect(() => parse([option])).toThrow(DiscordInteractionParseError);
+  });
+});
