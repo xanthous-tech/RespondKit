@@ -6,6 +6,9 @@ export interface Env {
   readonly TRANSLATION_WORKFLOW: Workflow<TranslationWorkflowParams>;
   /** JSON array of inbox IDs with optional translation enabled. */
   readonly TRANSLATION_ENABLED_INBOXES?: string;
+  /** JSON mapping of inbox IDs to fixed PostHog activity endpoints. */
+  readonly POSTHOG_ACTIVITY_INBOXES?: string;
+  readonly [key: `POSTHOG_API_KEY_${string}`]: string | undefined;
   readonly DB: D1Database;
   readonly MESSAGE_WORKFLOW: Workflow<MessageWorkflowEnvelope>;
   readonly ENVIRONMENT: string;

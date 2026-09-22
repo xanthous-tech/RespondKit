@@ -5,6 +5,7 @@ export const DiscordApplicationCommandType = {
 
 export const DiscordApplicationCommandOptionType = {
   String: 3,
+  Integer: 4,
 } as const;
 
 export interface DiscordStringCommandOptionDefinition {
@@ -14,6 +15,16 @@ export interface DiscordStringCommandOptionDefinition {
   readonly required: boolean;
   readonly min_length: number;
   readonly max_length: number;
+  readonly choices?: readonly { readonly name: string; readonly value: string }[];
+}
+
+export interface DiscordIntegerCommandOptionDefinition {
+  readonly type: 4;
+  readonly name: string;
+  readonly description: string;
+  readonly required: boolean;
+  readonly min_value: number;
+  readonly max_value: number;
 }
 
 export interface DiscordChatInputCommandDefinition {
@@ -21,10 +32,13 @@ export interface DiscordChatInputCommandDefinition {
   readonly name: DiscordCommandName;
   readonly description: string;
   readonly default_member_permissions: "0";
-  readonly options: readonly DiscordStringCommandOptionDefinition[];
+  readonly options: readonly (
+    | DiscordStringCommandOptionDefinition
+    | DiscordIntegerCommandOptionDefinition
+  )[];
 }
 
-export type DiscordCommandName = "reply" | "retry" | "status" | "translate";
+export type DiscordCommandName = "reply" | "retry" | "status" | "translate" | "activity";
 
 export const DISCORD_REPLY_COMMAND = {
   type: DiscordApplicationCommandType.ChatInput,
@@ -124,10 +138,61 @@ export const DISCORD_RETRY_COMMAND = {
   ],
 } as const satisfies DiscordChatInputCommandDefinition;
 
+export const DISCORD_ACTIVITY_COMMAND = {
+  type: 1,
+  name: "activity",
+  description: "Show this customer's PostHog pageviews and events in the support thread",
+  default_member_permissions: "0",
+  options: [
+    {
+      type: 4,
+      name: "count",
+      description: "Latest events to show (1–100; default 20, or 100 with minutes)",
+      required: false,
+      min_value: 1,
+      max_value: 100,
+    },
+    {
+      type: 4,
+      name: "minutes",
+      description: "Look back this many minutes (1–10080; default seven days)",
+      required: false,
+      min_value: 1,
+      max_value: 10080,
+    },
+    {
+      type: 3,
+      name: "kind",
+      description: "Activity to include (default all)",
+      required: false,
+      min_length: 3,
+      max_length: 9,
+      choices: [
+        { name: "Pageviews and product activity", value: "all" },
+        { name: "Pageviews only", value: "pageviews" },
+        { name: "Product events only", value: "events" },
+      ],
+    },
+    {
+      type: 3,
+      name: "until",
+      description: "End the window now or at the latest customer message (default now)",
+      required: false,
+      min_length: 3,
+      max_length: 12,
+      choices: [
+        { name: "Now", value: "now" },
+        { name: "Last customer message", value: "last_message" },
+      ],
+    },
+  ],
+} as const satisfies DiscordChatInputCommandDefinition;
+
 export const DISCORD_GUILD_COMMANDS = [
   DISCORD_REPLY_COMMAND,
   DISCORD_STATUS_COMMAND,
   DISCORD_RETRY_COMMAND,
   DISCORD_TRANSLATE_COMMAND,
   DISCORD_TRANSLATE_MESSAGE_COMMAND,
+  DISCORD_ACTIVITY_COMMAND,
 ] as const;

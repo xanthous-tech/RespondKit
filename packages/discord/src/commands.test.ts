@@ -15,6 +15,7 @@ describe("Discord guild commands", () => {
       "retry",
       "translate",
       "Translate to English",
+      "activity",
     ]);
     expect(
       DISCORD_GUILD_COMMANDS.every((command) => command.default_member_permissions === "0"),

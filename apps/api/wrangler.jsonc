@@ -9,6 +9,7 @@
   },
   "vars": {
     "ENVIRONMENT": "development",
+    "POSTHOG_ACTIVITY_INBOXES": "{}",
     "GEMINI_MODEL": "gemini-3.1-flash-lite",
     "TRANSLATION_ENABLED_INBOXES": "[]",
     "DISCORD_API_BASE_URL": "https://discord.com/api/v10",
@@ -45,6 +46,7 @@
       ],
       "vars": {
         "ENVIRONMENT": "staging",
+        "POSTHOG_ACTIVITY_INBOXES": "{\"inbox_captioner_public\":{\"host\":\"https://eu.posthog.com\",\"projectId\":57374,\"endpoint\":\"respondkit_customer_activity_v1\",\"version\":2}}",
         "GEMINI_MODEL": "gemini-3.1-flash-lite",
         "TRANSLATION_ENABLED_INBOXES": "[\"inbox_respondkit_test\",\"inbox_captioner_public\"]",
         "DISCORD_API_BASE_URL": "https://discord.com/api/v10",

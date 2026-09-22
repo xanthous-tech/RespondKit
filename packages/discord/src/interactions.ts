@@ -146,6 +146,14 @@ export interface ParsedDiscordTranslateInteraction extends ParsedDiscordCommandB
   readonly messageLink?: string;
 }
 
+export interface ParsedDiscordActivityInteraction extends ParsedDiscordCommandBase {
+  readonly command: "activity";
+  readonly count: number;
+  readonly minutes: number;
+  readonly activityKind: "all" | "pageviews" | "events";
+  readonly until: "now" | "last_message";
+}
+
 export interface ParsedDiscordConfirmInteraction extends ParsedDiscordCommandBase {
   readonly command: "confirm_translation";
   readonly reference: string;
@@ -153,6 +161,7 @@ export interface ParsedDiscordConfirmInteraction extends ParsedDiscordCommandBas
 }
 
 export type ParsedDiscordCommandInteraction =
+  | ParsedDiscordActivityInteraction
   | ParsedDiscordTranslateInteraction
   | ParsedDiscordConfirmInteraction
   | ParsedDiscordReplyInteraction
@@ -209,7 +218,7 @@ function requiredSnowflake(
 
 function parseOptions(
   data: Record<string, unknown>,
-): ReadonlyMap<string, { readonly type: number; readonly value: string }> {
+): ReadonlyMap<string, { readonly type: number; readonly value: string | number }> {
   if (data.options === undefined) return new Map();
   if (!Array.isArray(data.options)) {
     throw new DiscordInteractionParseError(
@@ -218,7 +227,7 @@ function parseOptions(
     );
   }
 
-  const parsed = new Map<string, { readonly type: number; readonly value: string }>();
+  const parsed = new Map<string, { readonly type: number; readonly value: string | number }>();
   for (const rawOption of data.options) {
     if (!isRecord(rawOption)) {
       throw new DiscordInteractionParseError("invalid_payload", "Invalid Discord command option");
@@ -230,10 +239,17 @@ function parseOptions(
         `Duplicate Discord command option: ${name}`,
       );
     }
-    if (rawOption.type !== 3 || typeof rawOption.value !== "string") {
+    if (
+      !(
+        (rawOption.type === 3 && typeof rawOption.value === "string") ||
+        (rawOption.type === 4 &&
+          typeof rawOption.value === "number" &&
+          Number.isSafeInteger(rawOption.value))
+      )
+    ) {
       throw new DiscordInteractionParseError(
         "invalid_payload",
-        `Discord command option ${name} must be a string option`,
+        `Discord command option ${name} must be a string or integer option`,
       );
     }
     parsed.set(name, { type: rawOption.type, value: rawOption.value });
@@ -242,7 +258,7 @@ function parseOptions(
 }
 
 function requireExactOptions(
-  options: ReadonlyMap<string, { readonly type: number; readonly value: string }>,
+  options: ReadonlyMap<string, { readonly type: number; readonly value: string | number }>,
   names: readonly string[],
 ): void {
   if (options.size !== names.length || names.some((name) => !options.has(name))) {
@@ -254,12 +270,12 @@ function requireExactOptions(
 }
 
 function optionValue(
-  options: ReadonlyMap<string, { readonly type: number; readonly value: string }>,
+  options: ReadonlyMap<string, { readonly type: number; readonly value: string | number }>,
   name: string,
   maximumLength: number,
 ): string {
   const value = options.get(name)?.value;
-  if (value === undefined || value.trim().length === 0 || value.length > maximumLength) {
+  if (typeof value !== "string" || value.trim().length === 0 || value.length > maximumLength) {
     throw new DiscordInteractionParseError(
       "invalid_payload",
       `Discord command option ${name} must contain 1-${maximumLength} characters`,
@@ -308,7 +324,9 @@ function parseCommandInteraction(
   const commandName =
     payload.type === 3 ? "confirm_translation" : requiredString(data, "name", "command name");
   const command = commandName === "Translate to English" ? "translate" : commandName;
-  if (!["reply", "retry", "status", "translate", "confirm_translation"].includes(command)) {
+  if (
+    !["reply", "retry", "status", "translate", "confirm_translation", "activity"].includes(command)
+  ) {
     throw new DiscordInteractionParseError("unsupported_command", "Unsupported Discord command");
   }
   if ((commandName === "Translate to English") !== (data.type === 3) && payload.type !== 3) {
@@ -335,6 +353,44 @@ function parseCommandInteraction(
     operatorUserId: requiredSnowflake(user, "id", "operator user ID"),
     operatorRoleIds,
   };
+  if (command === "activity") {
+    requireAllowedOptions(options, [], ["count", "minutes", "kind", "until"]);
+    const integer = (name: string, fallback: number, max: number) => {
+      const option = options.get(name);
+      if (option === undefined) return fallback;
+      if (
+        option.type !== 4 ||
+        typeof option.value !== "number" ||
+        option.value < 1 ||
+        option.value > max
+      )
+        throw new DiscordInteractionParseError(
+          "invalid_payload",
+          `${name} must be an integer from 1 to ${max}.`,
+        );
+      return option.value;
+    };
+    const activityKind = options.has("kind") ? optionValue(options, "kind", 9) : "all";
+    const until = options.has("until") ? optionValue(options, "until", 12) : "now";
+    if (activityKind !== "all" && activityKind !== "pageviews" && activityKind !== "events")
+      throw new DiscordInteractionParseError(
+        "invalid_payload",
+        "kind must be all, pageviews, or events.",
+      );
+    if (until !== "now" && until !== "last_message")
+      throw new DiscordInteractionParseError(
+        "invalid_payload",
+        "until must be now or last_message.",
+      );
+    return {
+      ...commandBase,
+      command,
+      count: integer("count", options.has("minutes") ? 100 : 20, 100),
+      minutes: integer("minutes", 10080, 10080),
+      activityKind,
+      until,
+    };
+  }
   if (command === "confirm_translation") {
     const match = /^confirm-translation:(\d{1,32}):(\d{1,9})$/.exec(
       requiredString(data, "custom_id"),
@@ -497,6 +553,11 @@ export interface NormalizedDiscordCommandBase {
 export type NormalizedDiscordCommand =
   | (NormalizedDiscordCommandBase &
       Pick<
+        ParsedDiscordActivityInteraction,
+        "command" | "count" | "minutes" | "activityKind" | "until"
+      >)
+  | (NormalizedDiscordCommandBase &
+      Pick<
         ParsedDiscordTranslateInteraction,
         "command" | "targetLanguage" | "targetMessageId" | "messageLink"
       >)
@@ -528,6 +589,15 @@ export function normalizeDiscordCommand(
     operatorUserId: interaction.operatorUserId,
     operatorRoleIds: [...interaction.operatorRoleIds],
   };
+  if (interaction.command === "activity")
+    return {
+      ...base,
+      command: interaction.command,
+      count: interaction.count,
+      minutes: interaction.minutes,
+      activityKind: interaction.activityKind,
+      until: interaction.until,
+    };
   if (interaction.command === "translate") {
     return {
       ...base,
