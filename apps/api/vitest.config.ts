@@ -10,6 +10,7 @@ export default defineConfig(async () => ({
       miniflare: {
         bindings: {
           GEMINI_API_KEY: "test-only",
+          TRANSLATION_ENABLED_INBOXES: '["inbox_public_test"]',
           DISCORD_BOT_TOKEN: "test-only",
           DISCORD_APPLICATION_ID: "100000000000000002",
           DISCORD_PUBLIC_KEY: "00".repeat(32),

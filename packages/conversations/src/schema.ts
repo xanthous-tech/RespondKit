@@ -126,6 +126,8 @@ export const messages = sqliteTable(
     direction: text("direction", { enum: messageDirections }).$type<MessageDirection>().notNull(),
     originalText: text("original_text").notNull(),
     originalLanguage: text("original_language"),
+    replyTranslation: text("reply_translation"),
+    replyTranslationRequest: text("reply_translation_request"),
     customerVisibleText: text("customer_visible_text"),
     customerVisibleLanguage: text("customer_visible_language"),
     operatorVisibleText: text("operator_visible_text"),
@@ -349,3 +351,79 @@ export type CustomerTranscriptEntryRow = typeof customerTranscriptEntries.$infer
 export type NewCustomerTranscriptEntryRow = typeof customerTranscriptEntries.$inferInsert;
 export type MessageTranslationRow = typeof messageTranslations.$inferSelect;
 export type NewMessageTranslationRow = typeof messageTranslations.$inferInsert;
+
+/** Optional enrichment jobs never change the message delivery state. */
+export const translationJobs = sqliteTable(
+  "translation_job",
+  {
+    id: text("id").primaryKey(),
+    workspaceId: text("workspace_id").notNull(),
+    inboxId: text("inbox_id").notNull(),
+    threadId: text("thread_id").notNull(),
+    messageId: text("message_id").notNull(),
+    targetLanguage: text("target_language").notNull(),
+    promptVersion: text("prompt_version").notNull(),
+    generation: integer("generation").notNull().default(1),
+    status: text("status", { enum: ["pending", "succeeded", "failed"] })
+      .notNull()
+      .default("pending"),
+    resultJson: text("result_json"),
+    errorCode: text("error_code"),
+    providerStatus: integer("provider_status"),
+    createdAt: integer("created_at").notNull(),
+    updatedAt: integer("updated_at").notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.messageId, table.workspaceId, table.inboxId, table.threadId],
+      foreignColumns: [messages.id, messages.workspaceId, messages.inboxId, messages.threadId],
+    }).onDelete("cascade"),
+    uniqueIndex("translation_job_identity_uq").on(
+      table.messageId,
+      table.targetLanguage,
+      table.promptVersion,
+    ),
+  ],
+);
+
+export const translationPosts = sqliteTable(
+  "translation_post",
+  {
+    id: text("id").primaryKey(),
+    jobId: text("job_id")
+      .notNull()
+      .references(() => translationJobs.id, { onDelete: "cascade" }),
+    chunkIndex: integer("chunk_index").notNull(),
+    discordMessageId: text("discord_message_id").notNull(),
+  },
+  (table) => [uniqueIndex("translation_post_chunk_uq").on(table.jobId, table.chunkIndex)],
+);
+
+export const replyReviews = sqliteTable("reply_review", {
+  messageId: text("message_id")
+    .primaryKey()
+    .references(() => messages.id, { onDelete: "cascade" }),
+  generation: integer("generation").notNull(),
+  resultJson: text("result_json").notNull(),
+  confirmedBy: text("confirmed_by"),
+  createdAt: integer("created_at").notNull(),
+});
+
+/** Freezes a Discord request's target before any model or workflow side effect. */
+export const translationSelections = sqliteTable(
+  "translation_selection",
+  {
+    interactionId: text("interaction_id").primaryKey(),
+    workspaceId: text("workspace_id").notNull(),
+    inboxId: text("inbox_id").notNull(),
+    threadId: text("thread_id").notNull(),
+    messageId: text("message_id").notNull(),
+    targetLanguage: text("target_language").notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.messageId, table.workspaceId, table.inboxId, table.threadId],
+      foreignColumns: [messages.id, messages.workspaceId, messages.inboxId, messages.threadId],
+    }).onDelete("cascade"),
+  ],
+);

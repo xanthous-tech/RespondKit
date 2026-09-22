@@ -28,6 +28,8 @@ export const TEST_TOPOLOGY = {
 export function createTestEnv(overrides: Partial<Env> = {}): Env {
   return {
     DB: env.DB,
+    TRANSLATION_WORKFLOW: env.TRANSLATION_WORKFLOW,
+    TRANSLATION_ENABLED_INBOXES: JSON.stringify([TEST_TOPOLOGY.inboxId]),
     MESSAGE_WORKFLOW: env.MESSAGE_WORKFLOW,
     ENVIRONMENT: "test",
     GEMINI_MODEL: "gemini-3.1-flash-lite-preview",

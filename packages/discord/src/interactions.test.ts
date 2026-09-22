@@ -138,8 +138,61 @@ describe("Discord interaction parsing and authorization", () => {
       operatorUserId: ids.operator,
       operatorRoleIds: [ids.role],
       message: "Please reopen the app",
+      translate: "off",
     });
     expect(normalized).not.toHaveProperty("token");
+  });
+
+  it("parses message actions, optional translation arguments, and approval buttons", () => {
+    const base = replyPayload();
+    expect(
+      parseDiscordInteraction(
+        JSON.stringify({
+          ...base,
+          data: { type: 3, name: "Translate to English", target_id: "12345" },
+        }),
+      ),
+    ).toMatchObject({ command: "translate", targetMessageId: "12345", targetLanguage: "en" });
+    expect(
+      parseDiscordInteraction(JSON.stringify({ ...base, data: { type: 1, name: "translate" } })),
+    ).toMatchObject({ command: "translate", targetLanguage: "en" });
+    expect(
+      parseDiscordInteraction(
+        JSON.stringify({
+          ...base,
+          data: {
+            type: 1,
+            name: "reply",
+            options: [
+              { type: 3, name: "message", value: "Hello" },
+              { type: 3, name: "translate", value: "hi" },
+            ],
+          },
+        }),
+      ),
+    ).toMatchObject({ command: "reply", translate: "hi" });
+    expect(
+      parseDiscordInteraction(
+        JSON.stringify({ ...base, type: 3, data: { custom_id: "confirm-translation:12345:2" } }),
+      ),
+    ).toMatchObject({ command: "confirm_translation", reference: "12345", generation: 2 });
+    expect(() =>
+      parseDiscordInteraction(
+        JSON.stringify({
+          ...base,
+          data: {
+            type: 1,
+            name: "translate",
+            options: [{ type: 3, name: "to", value: "en; DROP TABLE message" }],
+          },
+        }),
+      ),
+    ).toThrow(DiscordInteractionParseError);
+    expect(() =>
+      parseDiscordInteraction(
+        JSON.stringify({ ...base, data: { type: 3, name: "reply", target_id: "12345" } }),
+      ),
+    ).toThrow(DiscordInteractionParseError);
   });
 
   it("denies commands from the wrong forum even when the operator is allowed", () => {

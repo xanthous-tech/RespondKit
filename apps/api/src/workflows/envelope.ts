@@ -32,6 +32,9 @@ export const customerWorkflowEnvelopeSchema = sharedEnvelopeSchema.extend({
 
 export const operatorWorkflowEnvelopeSchema = sharedEnvelopeSchema.extend({
   direction: z.literal("operator_to_customer"),
+  // Missing only for workflows accepted before optional translation was introduced.
+  replyTranslation: z.string().min(2).max(35).optional(),
+  replyTranslationRequest: z.string().min(2).max(35).optional(),
   originalText: z.string().min(1).max(6_000),
   discord: z.object({
     integrationId: z.string().min(1).max(128),

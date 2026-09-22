@@ -426,6 +426,7 @@ export interface DiscordForumThreadResult {
 }
 
 export interface SendDiscordMessageInput {
+  readonly replyToMessageId?: string;
   readonly channelId: string;
   readonly content: string;
   readonly nonce: string;
@@ -721,6 +722,8 @@ export class DiscordRestClient {
     assertIdentifier(input.channelId, "Discord channel ID");
     assertMessageContent(input.content);
     assertNonce(input.nonce);
+    if (input.replyToMessageId !== undefined)
+      assertIdentifier(input.replyToMessageId, "Reply message ID");
     return this.#request(
       "POST",
       `/channels/${input.channelId}/messages`,
@@ -737,7 +740,12 @@ export class DiscordRestClient {
         content: input.content,
         nonce: input.nonce,
         enforce_nonce: true,
-        allowed_mentions: DISCORD_ALLOWED_MENTIONS_NONE,
+        ...(input.replyToMessageId === undefined
+          ? {}
+          : {
+              message_reference: { message_id: input.replyToMessageId, fail_if_not_exists: false },
+            }),
+        allowed_mentions: { ...DISCORD_ALLOWED_MENTIONS_NONE, replied_user: false },
       },
     );
   }

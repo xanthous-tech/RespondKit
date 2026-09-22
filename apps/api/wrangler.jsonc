@@ -22,6 +22,11 @@
   ],
   "workflows": [
     {
+      "name": "respondkit-translation",
+      "binding": "TRANSLATION_WORKFLOW",
+      "class_name": "TranslationWorkflow",
+    },
+    {
       "name": "respondkit-message",
       "binding": "MESSAGE_WORKFLOW",
       "class_name": "MessageWorkflow",
@@ -51,6 +56,11 @@
         },
       ],
       "workflows": [
+        {
+          "name": "respondkit-translation-staging",
+          "binding": "TRANSLATION_WORKFLOW",
+          "class_name": "TranslationWorkflow",
+        },
         {
           "name": "respondkit-message-staging",
           "binding": "MESSAGE_WORKFLOW",

@@ -5,6 +5,7 @@ import {
   markCustomerMessageProjected,
   markOperatorAuditProjected,
   publishOperatorReply,
+  publishUntranslatedReply,
   recordTerminalFailure,
   reopenMessageForRetry,
   storeCustomerTranslation,
@@ -21,7 +22,6 @@ import {
   finalizeDiscordThreadClaim,
   findDiscordIntegrationForInbox,
   findDiscordThread,
-  formatCustomerProjectionContent,
   formatOperatorReplyAuditContent,
   languageDisplayName,
   markDiscordProjectionFailed,
@@ -130,7 +130,11 @@ function throwDatabaseError(error: unknown, operation: string): never {
 
 function throwTranslationError(error: unknown): never {
   const classified = classifyTranslationError(error);
-  if (!classified.retryable) permanent(classified, `translation/${classified.code}`);
+  if (!classified.retryable)
+    permanent(
+      classified,
+      `translation/${classified.code}${classified.statusCode === undefined ? "" : `/http_${classified.statusCode}`}`,
+    );
   throw classified;
 }
 
@@ -247,6 +251,12 @@ async function persistIngress(
             operatorRoleIds: envelope.discord.operatorRoleIds,
             acceptedAt: new Date(envelope.acceptedAt),
             originalEnglishText: envelope.originalText,
+            ...(envelope.replyTranslationRequest === undefined
+              ? {}
+              : { replyTranslationRequest: envelope.replyTranslationRequest }),
+            ...(envelope.replyTranslation === undefined
+              ? {}
+              : { replyTranslation: envelope.replyTranslation }),
           });
 
     if (!acceptance.immutablePayloadMatches) {
@@ -308,7 +318,7 @@ async function loadTranslationContext(
     targetLanguage:
       envelope.direction === "customer_to_operator"
         ? "en"
-        : (thread.customerLanguage ?? inbox.defaultLocale ?? "en"),
+        : (envelope.replyTranslation ?? thread.customerLanguage ?? inbox.defaultLocale ?? "en"),
     turns: turns.map((turn) => ({ role: turn.role, text: turn.englishText })),
   };
 }
@@ -605,18 +615,6 @@ async function projectDiscordChunks(
   }
 }
 
-function customerProjectionContent(
-  envelope: MessageWorkflowEnvelope & { readonly direction: "customer_to_operator" },
-  translation: CanonicalTranslationResult,
-): string {
-  return formatCustomerProjectionContent({
-    originalText: envelope.originalText,
-    sourceLanguage: translation.sourceLanguage,
-    translatedText: translation.translatedText,
-    needsReview: translation.needsReview,
-  });
-}
-
 function availableAuditContent(
   envelope: MessageWorkflowEnvelope & { readonly direction: "operator_to_customer" },
   translation: CanonicalTranslationResult,
@@ -699,19 +697,6 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
         return { messageId: envelope.messageId, status: "already_succeeded" };
       }
 
-      stage = "translation";
-      const context = await step.do("load-translation-context", DATABASE_STEP, () =>
-        loadTranslationContext(this.env, envelope, generation),
-      );
-      const translation = await step.do("translate-message", TRANSLATION_STEP, () =>
-        translate(this.env, envelope, context),
-      );
-
-      stage = "publish";
-      const canonicalTranslation = await step.do("store-translation", DATABASE_STEP, () =>
-        storeTranslation(this.env, envelope, generation, translation),
-      );
-
       if (envelope.direction === "customer_to_operator") {
         stage = "discord_thread";
         const target = await ensureDiscordThread(step, this.env, envelope);
@@ -722,10 +707,60 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
           envelope,
           target,
           "customer_projection",
-          customerProjectionContent(envelope, canonicalTranslation),
+          `**Customer**\n${envelope.originalText}`,
           "project-customer-message",
         );
       } else {
+        let auditContent: string;
+        if (envelope.replyTranslation === "off") {
+          stage = "publish";
+          await step.do("publish-original-reply", DATABASE_STEP, () =>
+            publishUntranslatedReply(database(this.env), {
+              workspaceId: envelope.workspaceId,
+              inboxId: envelope.inboxId,
+              threadId: envelope.threadId,
+              messageId: envelope.messageId,
+              generation,
+              transitionedAt: new Date(),
+            }),
+          );
+          auditContent = `**Available in chat · sent as written**\n${envelope.originalText}`;
+        } else {
+          stage = "translation";
+          const context = await step.do("load-translation-context", DATABASE_STEP, () =>
+            loadTranslationContext(this.env, envelope, generation),
+          );
+          const translation = await step.do("translate-message", TRANSLATION_STEP, () =>
+            translate(this.env, envelope, context),
+          );
+          if (translation.needsReview && envelope.replyTranslation !== undefined) {
+            await step.do("save-reply-review", DATABASE_STEP, async () => {
+              await this.env.DB.prepare(
+                "INSERT INTO reply_review (message_id, generation, result_json, created_at) VALUES (?, ?, ?, ?) ON CONFLICT(message_id) DO UPDATE SET generation = excluded.generation, result_json = excluded.result_json, confirmed_by = NULL, created_at = excluded.created_at WHERE reply_review.generation < excluded.generation",
+              )
+                .bind(envelope.messageId, generation, JSON.stringify(translation), Date.now())
+                .run();
+            });
+            await step.waitForEvent(`review-translation-${generation}`, {
+              type: `translation-approved-${generation}`,
+              timeout: "1 day",
+            });
+            await step.do("verify-reply-approval", DATABASE_STEP, async () => {
+              const approval = await this.env.DB.prepare(
+                "SELECT confirmed_by FROM reply_review WHERE message_id = ? AND generation = ?",
+              )
+                .bind(envelope.messageId, generation)
+                .first<{ confirmed_by: string | null }>();
+              if (!approval?.confirmed_by)
+                permanent(new Error("Translation approval is missing"), "review");
+            });
+          }
+          stage = "publish";
+          const canonicalTranslation = await step.do("store-translation", DATABASE_STEP, () =>
+            storeTranslation(this.env, envelope, generation, translation),
+          );
+          auditContent = availableAuditContent(envelope, canonicalTranslation);
+        }
         stage = "discord_audit";
         const target = await step.do("load-discord-thread", DATABASE_STEP, () =>
           loadReadyDiscordThread(this.env, envelope),
@@ -736,7 +771,7 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
           envelope,
           target,
           "available_audit",
-          availableAuditContent(envelope, canonicalTranslation),
+          auditContent,
           "post-available-audit",
         );
       }

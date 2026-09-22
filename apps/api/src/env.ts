@@ -1,6 +1,11 @@
 import type { MessageWorkflowEnvelope } from "./workflows/envelope";
 
+import type { TranslationWorkflowParams } from "./translation-service";
+
 export interface Env {
+  readonly TRANSLATION_WORKFLOW: Workflow<TranslationWorkflowParams>;
+  /** JSON array of inbox IDs with optional translation enabled. */
+  readonly TRANSLATION_ENABLED_INBOXES?: string;
   readonly DB: D1Database;
   readonly MESSAGE_WORKFLOW: Workflow<MessageWorkflowEnvelope>;
   readonly ENVIRONMENT: string;

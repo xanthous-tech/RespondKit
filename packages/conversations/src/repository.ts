@@ -171,6 +171,8 @@ export interface OperatorMessageInput {
   readonly workflowInstanceId: WorkflowInstanceId;
   readonly acceptedAt: Date;
   readonly originalEnglishText: string;
+  readonly replyTranslation?: string;
+  readonly replyTranslationRequest?: string;
 }
 
 export type IngressAcceptanceKind =
@@ -206,7 +208,9 @@ export function prepareOperatorMessageStatements(
         workflowInstanceId: input.workflowInstanceId,
         direction: "operator_to_customer",
         originalText: input.originalEnglishText,
-        originalLanguage: "en",
+        originalLanguage: input.replyTranslation === "off" ? null : "en",
+        replyTranslation: input.replyTranslation ?? null,
+        replyTranslationRequest: input.replyTranslationRequest ?? null,
         customerVisibleText: null,
         customerVisibleLanguage: null,
         operatorVisibleText: input.originalEnglishText,
@@ -244,7 +248,7 @@ export async function acceptCustomerIngress(
         originalLanguage: null,
         customerVisibleText: input.originalText,
         customerVisibleLanguage: input.localeHint,
-        operatorVisibleText: null,
+        operatorVisibleText: input.originalText,
         acceptedAt: input.acceptedAt,
         processingGeneration: 1,
         processingStatus: "processing",
@@ -978,6 +982,7 @@ export async function loadEnglishTranslationContext(
         eq(messages.inboxId, input.inboxId),
         eq(messages.threadId, input.threadId),
         sql`${messages.operatorVisibleText} is not null`,
+        sql`(${messages.direction} = 'operator_to_customer' or exists (select 1 from ${messageTranslations} where ${messageTranslations.messageId} = ${messages.id} and ${messageTranslations.targetLanguage} = 'en'))`,
         or(
           eq(messages.direction, "customer_to_operator"),
           eq(messages.customerAvailability, "available"),
@@ -1224,4 +1229,32 @@ export async function acknowledgeCustomerRead(
       ),
     );
   return true;
+}
+
+/** Publish exactly the supplied reply, without fabricating a translation record. */
+export async function publishUntranslatedReply(
+  db: DrizzleD1Database,
+  input: MessageTransitionInput,
+) {
+  await db.batch([
+    db
+      .update(messages)
+      .set({
+        customerVisibleText: messages.originalText,
+        customerVisibleLanguage: null,
+        customerAvailability: "available",
+        discordAuditStatus: "pending",
+        updatedAt: input.transitionedAt,
+      })
+      .where(
+        and(
+          messageScope(input),
+          eq(messages.direction, "operator_to_customer"),
+          eq(messages.processingGeneration, input.generation),
+          inArray(messages.processingStatus, activeProcessingStatuses),
+        ),
+      ),
+    prepareCustomerTranscriptEventStatement(db, { ...input, eventKind: "available" }),
+  ]);
+  return requireMessageGeneration(db, input, "publish its untranslated reply");
 }
