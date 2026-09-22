@@ -88,6 +88,9 @@ export async function fetchActivity(input: {
   const end = Math.floor(input.end / 1000) * 1000;
   const start = end - minutes * 60_000;
   const utc = (value: number) => new Date(value).toISOString().slice(0, 19).replace("T", " ");
+  const timeout = AbortSignal.timeout(12_000);
+  const timedOut = (error: unknown) =>
+    timeout.aborted || (error instanceof DOMException && error.name === "TimeoutError");
   let response: Response;
   try {
     response = await fetch(
@@ -95,8 +98,9 @@ export async function fetchActivity(input: {
       {
         method: "POST",
         headers: { authorization: `Bearer ${input.apiKey}`, "content-type": "application/json" },
-        redirect: "error",
-        signal: AbortSignal.timeout(12_000),
+        // workerd supports manual/follow only. Reject 3xx below without forwarding credentials.
+        redirect: "manual",
+        signal: timeout,
         body: JSON.stringify({
           version: input.connection.version,
           refresh: "force",
@@ -110,8 +114,16 @@ export async function fetchActivity(input: {
         }),
       },
     );
-  } catch {
-    throw new ActivityError("PostHog did not respond in time. Run /activity again to retry.");
+  } catch (error) {
+    const isTimeout = timedOut(error);
+    console.warn("posthog_activity_request_failed", {
+      reason: isTimeout ? "timeout" : "request_failed",
+    });
+    throw new ActivityError(
+      isTimeout
+        ? "PostHog did not respond in time. Run /activity again to retry."
+        : "The server could not send the PostHog request. Run /activity again; if it persists, ask the server administrator to check the connection.",
+    );
   }
   if (!response.ok) {
     const guidance =
@@ -213,7 +225,9 @@ export async function fetchActivity(input: {
       count,
       kind: activityKind,
     };
-  } catch {
+  } catch (error) {
+    if (timedOut(error))
+      throw new ActivityError("PostHog did not respond in time. Run /activity again to retry.");
     throw new ActivityError(
       "PostHog returned unexpected activity data. No activity was posted; check the endpoint configuration.",
     );

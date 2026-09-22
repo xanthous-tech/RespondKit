@@ -104,13 +104,15 @@ beforeEach(async () => {
 
 describe("PostHog activity service", () => {
   it("pins the configured endpoint, uses a fresh bounded window and returns the latest N chronologically", async () => {
-    const fetchMock = vi.fn(async () =>
-      Response.json({
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      // Exercise workerd Request validation even though the provider response is mocked.
+      new Request(url, init);
+      return Response.json({
         columns,
         endpoint_version: 2,
         results: [row("new", now - 1000), row("old", now - 2000), row("overflow", now - 3000)],
-      }),
-    );
+      });
+    });
     vi.stubGlobal("fetch", fetchMock);
     const result = await fetchActivity(input());
     expect(result.events.map((x) => x.id)).toEqual(["old", "new"]);
@@ -128,7 +130,7 @@ describe("PostHog activity service", () => {
         respondkit_start_time: new Date(now - 1800000).toISOString().slice(0, 19).replace("T", " "),
       },
     });
-    expect(init.redirect).toBe("error");
+    expect(init.redirect).toBe("manual");
   });
   it.each(
     [
@@ -193,6 +195,27 @@ describe("PostHog activity service", () => {
       }),
     );
     await expect(fetchActivity(input())).rejects.toThrow("Run /activity again");
+  });
+  it("distinguishes request failures from real timeouts", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new TypeError("Invalid request option");
+      }),
+    );
+    await expect(fetchActivity(input())).rejects.toThrow("could not send the PostHog request");
+  });
+  it("rejects redirects without forwarding the credential", async () => {
+    const mock = vi.fn(async (url: string, init?: RequestInit) => {
+      expect(new Request(url, init).redirect).toBe("manual");
+      return new Response(null, {
+        status: 302,
+        headers: { location: "https://unrelated.example/" },
+      });
+    });
+    vi.stubGlobal("fetch", mock);
+    await expect(fetchActivity(input())).rejects.toThrow("HTTP 302");
+    expect(mock).toHaveBeenCalledTimes(1);
   });
   it("formats large timelines safely with a complete attachment and UTC fallback", () => {
     const formatted = formatActivity(
