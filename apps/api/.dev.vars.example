@@ -11,3 +11,7 @@ SESSION_SIGNING_KEY=
 
 # Optional translation capability: enable only the inboxes that should call Gemini.
 TRANSLATION_ENABLED_INBOXES=["inbox_example_public"]
+
+# Optional PostHog activity: JSON inbox-to-endpoint mapping; credentials stay server-side.
+# POSTHOG_ACTIVITY_INBOXES={"inbox_example":{"host":"https://eu.posthog.com","projectId":123,"endpoint":"respondkit_customer_activity_v1","version":2}}
+# POSTHOG_API_KEY_inbox_example=replace-with-endpoint-read-only-key
