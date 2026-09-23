@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import {
   ActivityError,
   activityConnection,
+  activityUrl,
   fetchActivity,
   formatActivity,
 } from "./activity-service";
@@ -103,7 +104,7 @@ beforeEach(async () => {
 });
 
 describe("PostHog activity service", () => {
-  it("pins the configured endpoint, uses a fresh bounded window and returns the latest N chronologically", async () => {
+  it("pins the configured endpoint, uses a fresh bounded window and returns the latest N newest first", async () => {
     const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
       // Exercise workerd Request validation even though the provider response is mocked.
       new Request(url, init);
@@ -115,7 +116,7 @@ describe("PostHog activity service", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
     const result = await fetchActivity(input());
-    expect(result.events.map((x) => x.id)).toEqual(["old", "new"]);
+    expect(result.events.map((x) => x.id)).toEqual(["new", "old"]);
     expect(result.truncated).toBe(true);
     expect(result.events[0]?.path).toBe("/editor");
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
@@ -217,6 +218,93 @@ describe("PostHog activity service", () => {
     await expect(fetchActivity(input())).rejects.toThrow("HTTP 302");
     expect(mock).toHaveBeenCalledTimes(1);
   });
+  it.each(["all", "pageviews", "events"])(
+    "links the same identity, inclusive window, count and %s filter",
+    (kind) => {
+      const result = {
+        events: [],
+        truncated: false,
+        start: now - 1800000,
+        end: now,
+        count: 7,
+        kind,
+      };
+      const id = "customer'\\\n OR 1=1 --";
+      const url = new URL(activityUrl(connection, result, id));
+      const query = JSON.parse(decodeURIComponent(url.hash.slice(3))).source;
+      expect(url.origin).toBe(connection.host);
+      expect(url.pathname).toBe("/project/57374/activity/explore");
+      expect(query.where[0]).toBe("distinct_id = 'customer\\'\\\\\\n OR 1=1 --'");
+      expect(query.where[1]).toBe(
+        `timestamp >= toDateTime(${result.start / 1000}) AND timestamp <= toDateTime(${result.end / 1000})`,
+      );
+      expect(Date.parse(query.after)).toBeLessThan(result.start);
+      expect(Date.parse(query.before)).toBeGreaterThan(result.end);
+      expect(query.limit).toBe(7);
+      expect(query.orderBy).toEqual(["timestamp DESC", "uuid DESC"]);
+      expect(query.filterTestAccounts).toBe(false);
+      if (kind === "pageviews") expect(query.where[2]).toBe("(event = '$pageview')");
+      else {
+        expect(query.where[2]).toContain("not startsWith(event, '$')");
+        expect(query.where[2]).toContain("'$exception', '$rageclick'");
+        expect(query.where[2].includes("'$pageview'")).toBe(kind === "all");
+      }
+    },
+  );
+  it("groups pageviews by local date and removes redundant boilerplate", () => {
+    const result = {
+      events: [
+        {
+          id: "new",
+          timestamp: Date.parse("2026-09-21T01:00:00Z"),
+          event: "$pageview",
+          path: "/new",
+          details: "",
+        },
+        {
+          id: "old",
+          timestamp: Date.parse("2026-09-20T01:00:00Z"),
+          event: "$pageview",
+          path: "/old",
+          details: "",
+        },
+      ],
+      start: now - 604800000,
+      end: now,
+      count: 20,
+      kind: "pageviews",
+      truncated: false,
+    };
+    const formatted = formatActivity(
+      result,
+      "customer",
+      "America/Bogota",
+      activityUrl(connection, result, "customer"),
+    );
+    const embed = formatted.embeds[0]!;
+    expect(embed.title).toContain("2 pageviews");
+    expect(embed.description).toContain("**20 Sept 2026**\n`20:00:00`  `/new`");
+    expect(embed.description.indexOf("/new")).toBeLessThan(embed.description.indexOf("/old"));
+    expect(embed.description).not.toMatch(
+      /All matching|Snapshot|Recently captured|\$pageview|PostHog ID/,
+    );
+    expect(formatted.file).toBeUndefined();
+  });
+  it("keeps unusually long links in an attachment without exceeding embed limits", () => {
+    const result = {
+      events: [],
+      truncated: false,
+      start: now - 60000,
+      end: now,
+      count: 20,
+      kind: "all",
+    };
+    const link = activityUrl(connection, result, "用".repeat(512));
+    const formatted = formatActivity(result, "用".repeat(512), "UTC", link);
+    expect(formatted.embeds[0]!.url).toBeUndefined();
+    expect(formatted.embeds[0]!.description.length).toBeLessThanOrEqual(4096);
+    expect(formatted.file).toContain(link);
+  });
   it("formats large timelines safely with a complete attachment and UTC fallback", () => {
     const formatted = formatActivity(
       {
@@ -237,9 +325,9 @@ describe("PostHog activity service", () => {
       "invalid-zone",
       "https://eu.posthog.com/project/57374/activity/explore",
     );
-    expect(formatted.content.length).toBeLessThanOrEqual(2000);
-    expect(formatted.content).toContain("(UTC)");
-    expect(formatted.content).not.toContain("@everyone");
+    expect(formatted.embeds[0]!.description.length).toBeLessThanOrEqual(4096);
+    expect(formatted.embeds[0]!.footer.text).toContain("UTC");
+    expect(JSON.stringify(formatted.embeds)).not.toContain("@everyone");
     expect(formatted.file?.match(/video_failed/g)).toHaveLength(100);
   });
 });
@@ -284,8 +372,9 @@ describe("Discord activity", () => {
     expect(post.url).toContain(TEST_TOPOLOGY.discordThreadId);
     expect(payload.allowed_mentions).toEqual({ parse: [] });
     expect(payload.enforce_nonce).toBe(true);
-    expect(payload.content).toContain("/editor");
-    expect(payload.content).not.toContain("token=private");
+    expect(payload.embeds[0].description).toContain("/editor");
+    expect(payload.embeds[0].url).toContain("/activity/explore#q=");
+    expect(payload.embeds[0].description).not.toContain("token=private");
     const count = await env.DB.prepare("SELECT count(*) as n FROM message").first<{ n: number }>();
     expect(count?.n).toBe(0);
     expect(calls.at(-1)?.init?.body).toContain("Activity posted:");
@@ -313,7 +402,7 @@ describe("Discord activity", () => {
     await handleActivityInteraction(apiEnv(), { ...command(), count: 100 });
     const form = calls.find((c) => c.url.includes("/channels/"))!.init!.body as FormData;
     const payload = JSON.parse(form.get("payload_json") as string);
-    expect(payload.content.length).toBeLessThanOrEqual(2000);
+    expect(payload.embeds[0].description.length).toBeLessThanOrEqual(4096);
     expect(payload.attachments).toEqual([{ id: 0, filename: "customer-activity.txt" }]);
     const attachment = form.get("files[0]") as File;
     expect((await attachment.text()).match(/\$pageview/g)).toHaveLength(100);

@@ -218,7 +218,7 @@ export async function fetchActivity(input: {
     }
     events.sort((a, b) => b.timestamp - a.timestamp || b.id.localeCompare(a.id));
     return {
-      events: events.slice(0, count).reverse(),
+      events: events.slice(0, count),
       truncated: data.results.length > count,
       start,
       end,
@@ -234,6 +234,53 @@ export async function fetchActivity(input: {
   }
 }
 
+/** PostHog's Activity scene accepts a DataTableNode in the URL's q fragment. */
+export function activityUrl(
+  connection: ActivityConnection,
+  result: ActivityResult,
+  distinctId: string,
+): string {
+  // Match PostHog's HogQL string escaping; identity is data, never an expression.
+  const escapes: Record<string, string> = {
+    "\\": "\\\\",
+    "'": "\\'",
+    "\b": "\\b",
+    "\f": "\\f",
+    "\r": "\\r",
+    "\n": "\\n",
+    "\t": "\\t",
+    "\0": "\\0",
+    "\x07": "\\a",
+    "\v": "\\v",
+  };
+  const literal = (value: string) => `'${Array.from(value, (c) => escapes[c] ?? c).join("")}'`;
+  const kinds =
+    result.kind === "pageviews"
+      ? "event = '$pageview'"
+      : result.kind === "events"
+        ? "not startsWith(event, '$') OR event IN ('$exception', '$rageclick')"
+        : "not startsWith(event, '$') OR event IN ('$pageview', '$pageleave', '$screen', '$exception', '$rageclick')";
+  const query = {
+    kind: "DataTableNode",
+    source: {
+      kind: "EventsQuery",
+      select: ["*", "event", "timestamp", "properties.$current_url", "distinct_id"],
+      where: [
+        `distinct_id = ${literal(distinctId)}`,
+        `timestamp >= toDateTime(${result.start / 1000}) AND timestamp <= toDateTime(${result.end / 1000})`,
+        `(${kinds})`,
+      ],
+      // EventsQuery's after/before are exclusive; the predicates above preserve our inclusive bounds.
+      after: new Date(result.start - 1000).toISOString(),
+      before: new Date(result.end + 1000).toISOString(),
+      orderBy: ["timestamp DESC", "uuid DESC"],
+      limit: result.count,
+      filterTestAccounts: false,
+    },
+  };
+  return `${connection.host}/project/${connection.projectId}/activity/explore#q=${encodeURIComponent(JSON.stringify(query))}`;
+}
+
 export function formatActivity(
   result: ActivityResult,
   distinctId: string,
@@ -246,33 +293,53 @@ export function formatActivity(
   } catch {
     zone = "UTC";
   }
-  const date = new Intl.DateTimeFormat("en-GB", {
+  const day = new Intl.DateTimeFormat("en-GB", {
     timeZone: zone,
     year: "numeric",
-    month: "2-digit",
+    month: "short",
     day: "2-digit",
+  });
+  const time = new Intl.DateTimeFormat("en-GB", {
+    timeZone: zone,
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
     hourCycle: "h23",
   });
-  const header = `**Customer activity · ${result.events.length} events · ${result.kind}**\n${date.format(result.start)} → ${date.format(result.end)} (${zone})\nPostHog ID: ${activityText(distinctId, 256)} · browser-reported\n${result.truncated ? `Showing the latest ${result.count}; more events exist in this window.` : "All matching events returned for this window."}\n`;
-  const lines = result.events.map(
-    (event) =>
-      `${date.format(event.timestamp)}  ${event.event}${event.path ? `  ${event.path}` : ""}${event.details ? `\n  ${event.details}` : ""}`,
-  );
-  const footer = `\nPostHog: <${projectUrl}>\nSnapshot as of the window end. Recently captured events may still be arriving.`;
-  const full = `${header}\n${lines.length ? lines.join("\n") : "No matching activity found. This does not prove the customer was inactive."}${footer}`;
-  if (full.length <= 1900) return { content: full };
-  let preview = header;
-  let shown = 0;
+  const stamp = (value: number) => `${day.format(value)} ${time.format(value)}`;
+  const title = `Customer activity · ${result.events.length} ${result.kind === "pageviews" ? "pageviews" : "events"}`;
+  const header = `${stamp(result.start)} → ${stamp(result.end)}\n${result.truncated ? `Latest ${result.count} · more matching events available\n` : ""}`;
+  let previousDay = "";
+  const lines = result.events.map((event) => {
+    const date = day.format(event.timestamp);
+    const heading = date !== previousDay ? `\n**${date}**\n` : "";
+    previousDay = date;
+    const label = result.kind === "pageviews" ? "" : ` **${event.event}**`;
+    return `${heading}\`${time.format(event.timestamp)}\`${label}${event.path ? `  \`${event.path}\`` : ""}${event.details ? `\n${event.details}` : ""}`;
+  });
+  const timeline = lines.length ? lines.join("\n") : "\nNo matching activity found.";
+  // Keep unusually long encoded identities out of Discord's embed URL field.
+  const linkFits = projectUrl.length <= 2048;
+  const full = `${title}\n${header}${zone}\nPostHog ID: ${activityText(distinctId, 512)}\n${timeline}\n\nPostHog: ${projectUrl}`;
+  const needsFile = header.length + timeline.length > 3800 || !linkFits;
+  const preview: string[] = [];
   for (const line of lines) {
-    if (shown === 5 || preview.length + line.length > 1450) break;
-    preview += `\n${line}`;
-    shown++;
+    if (preview.length === 5 || preview.join("\n").length + line.length > 3500) break;
+    preview.push(line);
   }
+  const description = needsFile
+    ? `${header}${preview.join("\n")}\n\nFull activity (${result.events.length} events) attached.${!linkFits ? " PostHog link included in attachment." : ""}`
+    : `${header}${timeline}`;
   return {
-    content: `${preview}\n\nFull timeline (${result.events.length} events) attached.${footer}`,
-    file: full.replaceAll("**", ""),
+    embeds: [
+      {
+        title: `${title}${linkFits ? " ↗" : ""}`,
+        ...(linkFits ? { url: projectUrl } : {}),
+        description,
+        color: 0x5865f2,
+        footer: { text: `${zone} · Newest first${linkFits ? " · Open title in PostHog" : ""}` },
+      },
+    ],
+    ...(needsFile ? { file: full.replaceAll("**", "").replaceAll("`", "") } : {}),
   };
 }
