@@ -6,6 +6,7 @@ import {
 import {
   ActivityError,
   activityConnection,
+  activityUrl,
   fetchActivity,
   formatActivity,
 } from "./activity-service";
@@ -71,10 +72,10 @@ export async function handleActivityInteraction(
       result,
       visitor.posthog_distinct_id,
       visitor.timezone,
-      `${connection.host}/project/${connection.projectId}/activity/explore`,
+      activityUrl(connection, result, visitor.posthog_distinct_id),
     );
     const payload = {
-      content: formatted.content,
+      embeds: formatted.embeds,
       allowed_mentions: { parse: [] },
       nonce: createDiscordNonce(`activity:${interaction.interactionId}`, 0),
       enforce_nonce: true,
@@ -107,7 +108,7 @@ export async function handleActivityInteraction(
     }
     if (!posted?.ok)
       throw new ActivityError(
-        `Activity was fetched, but Discord could not post it (HTTP ${posted?.status ?? "unknown"}).${formatted.file ? " Check Send Messages in Threads and Attach Files permissions." : " Check Send Messages in Threads permission."} Run /activity again to retry.`,
+        `Activity was fetched, but Discord could not post it (HTTP ${posted?.status ?? "unknown"}).${formatted.file ? " Check Send Messages in Threads, Embed Links and Attach Files permissions." : " Check Send Messages in Threads and Embed Links permissions."} Run /activity again to retry.`,
       );
     const message = (await posted.json()) as { id?: string };
     if (!message.id || !/^\d{1,32}$/.test(message.id))

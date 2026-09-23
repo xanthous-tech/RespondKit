@@ -11,9 +11,9 @@ Run `/activity` in a mapped support thread. The server resolves the customer and
 | `/activity minutes:30 kind:pageviews` | Pageviews in the last 30 minutes |
 | `/activity minutes:30 until:last_message` | Activity in the 30 minutes before the latest customer message |
 
-Count is 1–100. Minutes is 1–10080. `kind` is `all` (default), `pageviews`, or `events`. `until` is `now` (default) or `last_message`. Both bounds and the timezone appear in the result. Latest events are selected before being displayed chronologically. Long timelines have a short preview and a complete `customer-activity.txt` attachment. Truncation is explicit. No results means no matching captured events, not proof of inactivity.
+Count is 1–100. Minutes is 1–10080. `kind` is `all` (default), `pageviews`, or `events`. `until` is `now` (default) or `last_message`. Both bounds and the timezone appear in the result. Results appear newest first in a Discord card, grouped by local date. The card title opens PostHog Activity with the same distinct ID, inclusive UTC time window, event-kind filter, requested count, and newest-first ordering. This reruns the query when opened, so late-arriving events can change the results. PostHog requires the operator’s own login; the link contains no API credential. Unusually long links are included in the attachment instead. Long timelines have a short preview and a complete `customer-activity.txt` attachment. Truncation is explicit. No results means no matching captured events, not proof of inactivity.
 
-The exact thread visitor's PostHog distinct ID is used, labelled browser-reported. There is no email fallback or automatic expansion across person aliases. Hosts already supplying `posthogDistinctId` need no client update; hosts without it must provide it in customer context. This command does not infer a website departure from chat presence or `lastSeenAt`.
+The exact thread visitor's browser-reported PostHog distinct ID is used. There is no email fallback or automatic expansion across person aliases. Hosts already supplying `posthogDistinctId` need no client update; hosts without it must provide it in customer context. This command does not infer a website departure from chat presence or `lastSeenAt`.
 
 ## Configuration
 
@@ -50,7 +50,7 @@ The server uses the interaction snowflake for the `now` anchor. `last_message` s
 2. Provision the per-inbox Worker secret and `POSTHOG_ACTIVITY_INBOXES` setting.
 3. Deploy the API. No database migration is required.
 4. Run `pnpm discord:commands:apply --dry-run`, then `pnpm discord:commands:apply` with the existing bot credentials.
-5. Allow `/activity` for operators under Server Settings → Integrations → RespondKit. Keep Send Messages in Threads and **Attach Files** enabled. No additional OAuth scope or privileged Gateway intent is needed.
+5. Allow `/activity` for operators under Server Settings → Integrations → RespondKit. Keep Send Messages in Threads, **Embed Links**, and **Attach Files** enabled. No additional OAuth scope or privileged Gateway intent is needed.
 
 ## Verification
 
