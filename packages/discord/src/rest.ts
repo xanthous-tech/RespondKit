@@ -299,7 +299,9 @@ function assertMessageResponse(
   if (expected.id !== undefined && message.id !== expected.id) {
     throw new TypeError(`${description}.id does not match the requested message`);
   }
-  if (expected.content !== undefined && message.content !== expected.content) {
+  // Discord trims surrounding whitespace when storing messages. Compare the
+  // rendered text without changing the original customer text or nonce checks.
+  if (expected.content !== undefined && message.content.trim() !== expected.content.trim()) {
     throw new TypeError(`${description}.content does not match the submitted content`);
   }
   if (expected.nonce !== undefined && String(message.nonce) !== expected.nonce) {

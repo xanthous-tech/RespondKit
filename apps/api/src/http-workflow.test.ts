@@ -29,6 +29,7 @@ import {
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { createDatabase } from "./db";
+import { resolveTranslationMessage } from "./discord-translation";
 import type { Env as ApiEnv } from "./env";
 import { createHttpApp } from "./http";
 import { deriveOperatorMessageIdentity, translationRecordId } from "./identity";
@@ -143,6 +144,79 @@ beforeEach(async () => {
 });
 
 describe("customer HTTP ingress and MessageWorkflow", () => {
+  it("keeps a customer post translatable when Discord trims its trailing whitespace", async () => {
+    const customer = await createCustomerFixture();
+    await seedReadyDiscordThread(customer.threadId);
+    const text = "Kan je ook link doorsturen om te samen vatten en vertalen ";
+    const discordMessageId = "1554171622695501925";
+    const postedContent: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof globalThis.fetch>(async (_request, init) => {
+        if (init?.method === "GET") return Response.json([]);
+        if (init?.method !== "POST" || typeof init.body !== "string")
+          throw new Error("Unexpected Discord request");
+        const body = JSON.parse(init.body) as { content: string; nonce: string };
+        postedContent.push(body.content);
+        return Response.json({
+          id: discordMessageId,
+          channel_id: TEST_TOPOLOGY.discordThreadId,
+          content: body.content.trim(),
+          nonce: body.nonce,
+        });
+      }),
+    );
+    const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+    try {
+      await workflows.modifyAll(async (modifier) => modifier.disableRetryDelays());
+      const response = await sendCustomerMessage({
+        ...customer,
+        clientMessageId: `client_${crypto.randomUUID()}` as ClientMessageId,
+        text,
+      });
+      expect(response.status).toBe(202);
+      const { acceptance } = SendMessageResponseV1Schema.parse(await response.json());
+      await (await oneCapturedWorkflow(workflows)).waitForStatus("complete");
+      expect(postedContent).toEqual([`**Customer**\n${text}`]);
+      expect(
+        await env.DB.prepare("SELECT original_text, processing_status FROM message WHERE id = ?")
+          .bind(acceptance.messageId)
+          .first(),
+      ).toEqual({
+        original_text: text,
+        processing_status: "succeeded",
+      });
+      expect(
+        await resolveTranslationMessage(
+          createTestEnv(),
+          {
+            workspaceId: TEST_TOPOLOGY.workspaceId,
+            inboxId: TEST_TOPOLOGY.inboxId,
+            threadId: customer.threadId,
+          },
+          {
+            kind: "command",
+            command: "translate",
+            interactionId: snowflakeAt(),
+            applicationId: TEST_TOPOLOGY.applicationId,
+            token: "test-only",
+            guildId: TEST_TOPOLOGY.guildId,
+            discordThreadId: TEST_TOPOLOGY.discordThreadId,
+            forumChannelId: TEST_TOPOLOGY.forumChannelId,
+            threadType: 11,
+            operatorUserId: TEST_TOPOLOGY.operatorId,
+            operatorRoleIds: [TEST_TOPOLOGY.operatorRoleId],
+            targetLanguage: "en",
+            targetMessageId: discordMessageId,
+          },
+        ),
+      ).toBe(acceptance.messageId);
+    } finally {
+      vi.unstubAllGlobals();
+      await workflows.dispose();
+    }
+  });
+
   it("persists and projects the original customer message without invoking translation", async () => {
     const customer = await createCustomerFixture();
     await seedReadyDiscordThread(customer.threadId);

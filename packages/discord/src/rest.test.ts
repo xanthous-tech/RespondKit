@@ -148,6 +148,30 @@ describe("DiscordRestClient", () => {
     expect(postCount).toBe(1);
   });
 
+  it.each([false, true])(
+    "accepts Discord trimming surrounding whitespace (reconciled: %s)",
+    async (reconciled) => {
+      const content = "**Customer**\nKan je ook link doorsturen om te samen vatten en vertalen ";
+      const message = {
+        id: ids.message,
+        channel_id: ids.thread,
+        content: content.trim(),
+        nonce: "ac-0-bbfda8a7e816dfb1",
+      };
+      const requests: string[] = [];
+      const fakeFetch: typeof fetch = async (_input, init) => {
+        requests.push(init?.method ?? "GET");
+        return json(init?.method === "POST" ? message : reconciled ? [message] : []);
+      };
+      const client = new DiscordRestClient({ botToken: "test-token", fetch: fakeFetch });
+
+      await expect(
+        client.sendMessageReconciled({ channelId: ids.thread, content, nonce: message.nonce }),
+      ).resolves.toEqual({ message, reconciled });
+      expect(requests).toEqual(reconciled ? ["GET"] : ["GET", "POST"]);
+    },
+  );
+
   it("reconciles a message when its successful response body cannot be read", async () => {
     let committed = false;
     const message = {
