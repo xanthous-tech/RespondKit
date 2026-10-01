@@ -29,7 +29,11 @@ public struct RespondKitConfiguration: Sendable {
   }
 }
 
+public struct ContactInfo: Codable, Sendable { public let email: String? }
+
 public protocol RespondKitAPI: Sendable {
+  func contact(token: String) async throws -> ContactInfo
+  func saveContact(token: String, email: String, threadID: String?) async throws -> ContactInfo
   func createSession(installationID: String, context: CustomerContext, identityToken: String?)
     async throws -> ClientSession
   func statuses(token: String, after: String?) async throws -> StatusPage
@@ -39,6 +43,13 @@ public protocol RespondKitAPI: Sendable {
     -> Acceptance
   func markRead(token: String, threadID: String, cursor: String) async throws
   func logout(token: String) async throws
+}
+
+public extension RespondKitAPI {
+  func contact(token: String) async throws -> ContactInfo { ContactInfo(email: nil) }
+  func saveContact(token: String, email: String, threadID: String?) async throws -> ContactInfo {
+    throw RespondKitError("Contact capture is not implemented by this API adapter.")
+  }
 }
 
 public final class RespondKitClient: RespondKitAPI, Sendable {
@@ -101,6 +112,14 @@ public final class RespondKitClient: RespondKitAPI, Sendable {
       throw RespondKitError("Invalid support session.")
     }
     return response.session
+  }
+  public func contact(token: String) async throws -> ContactInfo {
+    try await request("client/contact", token: token)
+  }
+  public func saveContact(token: String, email: String, threadID: String?) async throws -> ContactInfo {
+    var body: [String: JSONValue] = ["email": .string(email)]
+    if let threadID { body["threadId"] = .string(threadID) }
+    return try await request("client/contact", method: "POST", token: token, body: body)
   }
   public func statuses(token: String, after: String?) async throws -> StatusPage {
     try await request("thread-statuses", token: token, after: after)

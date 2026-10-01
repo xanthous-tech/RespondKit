@@ -104,6 +104,16 @@ class RespondKitStore(
         publish()
     }
 
+    suspend fun saveEmail(email: String) {
+        operate {
+            generation ->
+            val contact = authorized(generation) { api.saveContact(it, email.trim(), state.value.activeThreadId) }
+            check(generation)
+            context = context.copy(email = contact.email)
+            publish()
+        }
+    }
+
     fun clearError() {
         mutableState.update { it.copy(errorMessage = null) }
     }
@@ -389,6 +399,15 @@ class RespondKitStore(
         val created = api.createSession(stored.installationId, context, assertion)
         check(generation)
         session = created
+        if (context.email == null) {
+            val contact = try { api.contact(created.token) } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                null
+            }
+            check(generation)
+            context = context.copy(email = contact?.email)
+        }
+        publish()
         return created.token
     }
 
@@ -463,6 +482,7 @@ class RespondKitStore(
         mutableState.update {
             it.copy(
                 isFreshConversation = hasLoadedHistory && (it.activeThreadId == null || it.activeThreadId in freshThreadIds),
+                emailAddress = context.email,
                 statuses = stored.statuses,
                 unreadThreadIds =
                     stored.statuses

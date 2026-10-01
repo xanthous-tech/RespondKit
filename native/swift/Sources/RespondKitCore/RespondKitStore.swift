@@ -3,6 +3,7 @@ import Observation
 
 /// Retain one store in the host app, independently of the presented screen.
 @MainActor @Observable public final class RespondKitStore {
+  public private(set) var emailAddress: String?
   public private(set) var isFreshConversation = false
   @ObservationIgnored private var freshThreadIDs: Set<String> = []
   public private(set) var statuses: [ThreadStatus] = []
@@ -114,6 +115,16 @@ import Observation
   public func isUnread(_ threadID: String) -> Bool {
     guard let status = statuses.first(where: { $0.thread.id == threadID }) else { return false }
     return (Int64(status.latestReplyCursor) ?? 0) > (Int64(state.readCursors[threadID] ?? "0") ?? 0)
+  }
+  public func saveEmail(_ email: String) async {
+    await operate { epoch in
+      let contact = try await self.authorized(epoch) {
+        try await self.api.saveContact(token: $0, email: email.trimmingCharacters(in: .whitespacesAndNewlines), threadID: self.activeThreadID)
+      }
+      try self.check(epoch)
+      self.context.email = contact.email
+      self.emailAddress = contact.email
+    }
   }
   public func clearError() { errorMessage = nil }
 
@@ -361,6 +372,12 @@ import Observation
       installationID: state.installationID, context: context, identityToken: assertion)
     try check(epoch)
     session = value
+    if context.email == nil {
+      let contact = try? await api.contact(token: value.token)
+      try check(epoch)
+      context.email = contact?.email
+    }
+    emailAddress = context.email
     return value.token
   }
   private func authorized<T: Sendable>(
@@ -410,6 +427,7 @@ import Observation
   }
   private func publish() {
     isFreshConversation = hasLoadedHistory && (activeThreadID == nil || freshThreadIDs.contains(activeThreadID!))
+    emailAddress = context.email
     statuses = state.statuses
     hasUnreadReplies = statuses.contains { isUnread($0.thread.id) }
     let key = activeThreadID ?? "new"

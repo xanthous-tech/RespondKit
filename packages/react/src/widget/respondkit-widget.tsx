@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "#components/ui/alert";
 import { Button } from "#components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "#components/ui/tooltip";
 
+import { EmailPrompt } from "./email-prompt";
 import { MessageComposer } from "./message-composer";
 import { MessageList } from "./message-list";
 import { respondKitAccentPalette, type RespondKitAccentColor } from "./theme";
@@ -63,6 +64,8 @@ export function RespondKitWidget({
   const titleRef = useRef<HTMLHeadingElement>(null);
   const {
     isFreshConversation,
+    emailAddress,
+    saveEmail,
     bootstrapError,
     bootstrapState,
     messages,
@@ -222,6 +225,12 @@ export function RespondKitWidget({
                   onRetry={retryMessage}
                   transcriptState={transcriptState}
                 />
+                {bootstrapState === "ready" && !emailAddress ? (
+                  <EmailPrompt
+                    key={`${context.inboxId}:${context.userId ?? "anonymous"}`}
+                    onSave={saveEmail}
+                  />
+                ) : null}
                 <MessageComposer disabled={bootstrapState !== "ready"} onSend={sendMessage} />
               </>
             )}

@@ -8,6 +8,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.*
@@ -309,7 +311,24 @@ private fun Conversation(store: RespondKitStore, state: SupportState, modifier: 
                     Text(stringResource(R.string.respondkit_another_message))
                 }
             }
-        } else Composer(store, state)
+        } else {
+            if (state.emailAddress == null) EmailCapture(store, state.isLoading)
+            Composer(store, state)
+        }
+    }
+}
+
+@Composable
+private fun EmailCapture(store: RespondKitStore, saving: Boolean) {
+    var email by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+    Column(Modifier.fillMaxWidth().padding(12.dp)) {
+        Text("Where can we email you a reply?", fontSize = 14.sp, color = WidgetMuted)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            OutlinedTextField(email, { email = it }, Modifier.weight(1f), singleLine = true,
+                label = { Text("Email address") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email))
+            TextButton(onClick = { scope.launch { store.saveEmail(email) } }, enabled = email.isNotBlank() && !saving) { Text("Save email") }
+        }
     }
 }
 

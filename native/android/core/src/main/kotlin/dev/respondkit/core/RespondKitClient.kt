@@ -47,6 +47,10 @@ class RespondKitConfiguration(
 }
 
 interface RespondKitApi {
+    suspend fun contact(token: String): ContactInfo = ContactInfo()
+    suspend fun saveContact(token: String, email: String, threadId: String?): ContactInfo =
+        throw RespondKitException("Contact capture is not implemented by this API adapter.")
+
     suspend fun createSession(
         installationId: String,
         context: CustomerContext,
@@ -245,6 +249,14 @@ class RespondKitClient(
         )
             throw RespondKitException("Read acknowledgement failed.")
     }
+
+    override suspend fun contact(token: String): ContactInfo = request("client/contact", token)
+
+    override suspend fun saveContact(token: String, email: String, threadId: String?): ContactInfo =
+        request("client/contact", token, buildJsonObject {
+            put("email", email)
+            threadId?.let { put("threadId", it) }
+        })
 
     override suspend fun logout(token: String) {
         if (!request<Ok>("client/logout", token, post = true).ok)

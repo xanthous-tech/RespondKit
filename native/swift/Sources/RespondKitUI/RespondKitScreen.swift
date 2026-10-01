@@ -194,9 +194,28 @@
             Button("Send another message") { store.selectThread(nil) }
           }.font(.system(size: textSize)).padding(12)
         } else {
+          if store.emailAddress == nil { EmailCapture(store: store) }
           Composer(store: store, accentForegroundColor: accentForegroundColor)
         }
       }
+    }
+  }
+
+  private struct EmailCapture: View {
+    let store: RespondKitStore
+    @State private var email = ""
+    var body: some View {
+      VStack(alignment: .leading, spacing: 8) {
+        Text("Where can we email you a reply?").font(.subheadline).foregroundStyle(WidgetStyle.muted)
+        HStack {
+          TextField("you@example.com", text: $email)
+            .textContentType(.emailAddress).keyboardType(.emailAddress)
+            .textInputAutocapitalization(.never).autocorrectionDisabled()
+            .textFieldStyle(.roundedBorder).accessibilityLabel("Email address")
+          Button("Save email") { Task { await store.saveEmail(email) } }
+            .disabled(email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || store.isLoading)
+        }
+      }.padding(12)
     }
   }
 

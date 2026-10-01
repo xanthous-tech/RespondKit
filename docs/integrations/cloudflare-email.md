@@ -27,3 +27,7 @@ Automated replies, closed-thread replies, attachments, HTML-only bodies, missing
 `pnpm --dir apps/api test src/email.test.ts` exercises D1 migrations, outbox deduplication, ambiguous sends, missing addresses, inbound routing, immutable redelivery, wrong senders, and loop rejection. Before enabling for customers, send a staging operator reply to a mailbox you control, reply from that mailbox, and verify the text appears in both Discord and the in-app transcript. These live DNS/provider checks require configured Email Service access.
 
 References: [Workers sending API](https://developers.cloudflare.com/email-service/api/send-emails/workers-api/), [Email Service](https://developers.cloudflare.com/email-service/).
+
+## Collecting contact addresses
+
+React, SwiftUI, and Compose show an email text input when no address was supplied by the host or restored from the server. Saving uses authenticated `POST /v1/client/contact` with `{email, threadId?}`; `GET /v1/client/contact` restores the current visitor's contact. The optional thread ID is ownership-checked and also updates that thread owner's contact, covering account history restored on another device. Contact changes never verify an account or create chat messages. Input remains available after a save error, and customers can chat without completing the email prompt.

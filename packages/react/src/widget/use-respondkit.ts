@@ -163,6 +163,7 @@ export function useRespondKit({
   const [transcriptState, setTranscriptState] = useState<TranscriptState>("idle");
   const [bootstrapError, setBootstrapError] = useState<string>();
   const [pollError, setPollError] = useState<string>();
+  const [emailAddress, setEmailAddress] = useState<string>();
   const [session, setSession] = useState<ClientSessionV1>();
   const [thread, setThread] = useState<ThreadV1>();
   const [freshThreadId, setFreshThreadId] = useState<string>();
@@ -322,6 +323,20 @@ export function useRespondKit({
         }
         if (!active) return;
         setSession(sessionResponse.session);
+        let savedEmail = currentContext.email;
+        if (!savedEmail) {
+          try {
+            savedEmail = (
+              await client.getContact(sessionResponse.session.token, {
+                signal: abortController.signal,
+              })
+            ).email;
+          } catch {
+            /* Older servers can still chat; saving contact shows its own error. */
+          }
+        }
+        if (!active) return;
+        setEmailAddress(savedEmail);
 
         browser.session = sessionResponse.session;
         saveBrowserIdentity(storageKey, browser);
@@ -651,6 +666,7 @@ export function useRespondKit({
               message.state === "failed",
           );
           if (failed === undefined) return undefined;
+
           return {
             clientMessageId,
             text: failed.text,
@@ -663,9 +679,21 @@ export function useRespondKit({
     [pendingMessages, serverMessages, submitPending],
   );
 
+  async function saveEmail(email: string) {
+    if (!session || !contextMatches) throw new Error("Support is still connecting.");
+    const epoch = identityEpochRef.current;
+    const contact = await client.saveContact(session.token, {
+      email,
+      ...(thread ? { threadId: thread.id } : {}),
+    });
+    if (epoch === identityEpochRef.current) setEmailAddress(contact.email);
+  }
+
   return {
     unreadThreadIds,
     threads: contextMatches ? threads : [],
+    emailAddress: contextMatches ? emailAddress : undefined,
+    saveEmail,
     selectedThreadId: contextMatches ? thread?.id : undefined,
     isFreshConversation: contextMatches && thread !== undefined && freshThreadId === thread.id,
     reconnect: () => (storageBlocked ? window.location.reload() : setRefresh((value) => value + 1)),

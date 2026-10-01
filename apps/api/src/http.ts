@@ -30,6 +30,7 @@ import {
 } from "@respondkit/discord";
 import {
   MarkThreadReadRequestV1Schema,
+  SaveContactRequestV1Schema,
   ApiErrorResponseV1Schema,
   CreateClientSessionRequestV1Schema,
   CreateThreadRequestV1Schema,
@@ -621,6 +622,29 @@ export function createHttpApp() {
       },
       201,
     );
+  });
+
+  app.get("/v1/client/contact", async (context) => {
+    context.header("Cache-Control", "private, no-store");
+    const auth = await authenticateCustomer(context);
+    return context.json(auth.visitor.email ? { email: auth.visitor.email } : {});
+  });
+
+  app.post("/v1/client/contact", async (context) => {
+    const auth = await authenticateCustomer(context);
+    const request = SaveContactRequestV1Schema.parse(await parseRequestJson(context));
+    const thread = request.threadId
+      ? await requireOwnedThread(context, auth, request.threadId)
+      : null;
+    const visitorIds = [...new Set([auth.visitor.id, ...(thread ? [thread.visitorId] : [])])];
+    await context.env.DB.batch(
+      visitorIds.map((id) =>
+        context.env.DB.prepare(
+          "UPDATE visitor SET email = ?, updated_at = ? WHERE id = ? AND workspace_id = ? AND inbox_id = ?",
+        ).bind(request.email, Date.now(), id, auth.inbox.workspaceId, auth.inbox.inboxId),
+      ),
+    );
+    return context.json({ email: request.email });
   });
 
   app.post("/v1/client/logout", async (context) => {

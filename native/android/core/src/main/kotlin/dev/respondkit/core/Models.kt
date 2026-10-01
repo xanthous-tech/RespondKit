@@ -104,3 +104,5 @@ fun replyCursor(value: String): Long {
 internal fun newId(prefix: String) = prefix + "_" + UUID.randomUUID().toString().replace("-", "")
 
 internal fun now() = Instant.now().toString()
+
+@Serializable data class ContactInfo(val email: String? = null)

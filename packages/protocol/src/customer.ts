@@ -318,3 +318,10 @@ export type SendMessageResponseV1 = z.infer<typeof SendMessageResponseV1Schema>;
 export const MarkThreadReadRequestV1Schema = z.object({ cursor: CursorSchema });
 export const MarkThreadReadResponseV1Schema = z.object({ ok: z.literal(true) });
 export type MarkThreadReadRequestV1 = z.infer<typeof MarkThreadReadRequestV1Schema>;
+
+/** Contact information remains advisory and never links accounts. */
+export const SaveContactRequestV1Schema = z.strictObject({
+  email: z.string().trim().pipe(z.email().max(320)),
+  threadId: ThreadIdSchema.optional(),
+});
+export const ContactV1Schema = z.strictObject({ email: z.email().max(320).optional() });
