@@ -10,6 +10,10 @@ The repo includes a root Swift Package (`RespondKitCore` + `RespondKitUI`, iOS 1
 
 See the [native integration and demo guide](docs/native/README.md) for SPM setup, local Android builds, identity/persistence, and simulator tests. See the [shared release process](docs/native/releases.md) for versioned SwiftPM and Maven Central distribution.
 
+## React Native
+
+`@respondkit/react-native` provides a native iOS/Android screen with the same conversation features, greeting, email capture, and device diagnostics. See the [React Native integration guide](packages/react-native/README.md) and [runnable example](apps/native-example/README.md).
+
 ## Repository
 
 ```text

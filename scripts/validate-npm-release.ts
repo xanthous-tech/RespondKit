@@ -2,7 +2,12 @@ import { access, glob, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const workspaceRoot = resolve(import.meta.dirname, "..");
-const packageDirectories = ["packages/protocol", "packages/api-client", "packages/react"] as const;
+const packageDirectories = [
+  "packages/protocol",
+  "packages/api-client",
+  "packages/react",
+  "packages/react-native",
+] as const;
 const version = (await readFile(resolve(workspaceRoot, "VERSION"), "utf8")).trim();
 const releaseTag = process.argv[2] ?? (process.env.RELEASE_TAG || `v${version}`);
 
