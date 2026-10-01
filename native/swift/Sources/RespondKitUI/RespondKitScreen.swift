@@ -14,6 +14,7 @@
   public struct RespondKitScreen: View {
     private let store: RespondKitStore
     private let title: String
+    private let greeting: String?
     private let accentColor: Color?
     private let accentForegroundColor: Color
     @Environment(\.dismiss) private var dismiss
@@ -24,10 +25,11 @@
     /// Set accentForegroundColor to a dark color when using a light accent.
     public init(
       store: RespondKitStore, title: String = "Support", accentColor: Color? = nil,
-      accentForegroundColor: Color = .white
+      accentForegroundColor: Color = .white, greeting: String? = nil
     ) {
       self.store = store
       self.title = title
+      self.greeting = greeting
       self.accentColor = accentColor
       self.accentForegroundColor = accentForegroundColor
     }
@@ -70,7 +72,7 @@
           .padding(12).background(WidgetStyle.fill)
           .accessibilityIdentifier("respondkit-error")
         }
-        ConversationView(store: store, accentForegroundColor: accentForegroundColor)
+        ConversationView(store: store, accentForegroundColor: accentForegroundColor, greeting: greeting)
       }
       .foregroundStyle(WidgetStyle.foreground)
       .background(Color.white.ignoresSafeArea())
@@ -82,18 +84,26 @@
   private struct ConversationView: View {
     let store: RespondKitStore
     let accentForegroundColor: Color
+    let greeting: String?
     @State private var atBottom = true
     @State private var unseen = 0
     @ScaledMetric(relativeTo: .body) private var textSize = 14
 
     var body: some View {
       let rows = TranscriptRow.rows(store)
+      let welcome = store.isFreshConversation ? greeting?.trimmingCharacters(in: .whitespacesAndNewlines) : nil
       VStack(spacing: 0) {
         GeometryReader { geometry in
           ScrollViewReader { reader in
             ScrollView {
               LazyVStack(spacing: 12) {
-                if rows.isEmpty {
+                if let welcome, !welcome.isEmpty {
+                  Text(linkedMessage(welcome)).font(.system(size: textSize))
+                    .padding(12).background(WidgetStyle.fill, in: RoundedRectangle(cornerRadius: 12))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier("respondkit-greeting")
+                }
+                if rows.isEmpty && (welcome?.isEmpty ?? true) {
                   if store.isLoading && !store.isSending {
                     VStack(spacing: 16) {
                       ForEach(0..<3) { index in

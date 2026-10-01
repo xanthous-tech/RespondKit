@@ -232,3 +232,7 @@ adb shell am start -n dev.respondkit.example/.MainActivity --es apiUrl https://a
 ```
 
 Close the widget to select its accent or test the host’s red dot. Send a message, close the widget while keeping the app foregrounded, then reply in the configured Discord test inbox: the dot appears on the next poll. Opening and viewing that conversation clears it. Live sends reach the real support inbox. Reuse these launch commands when restarting a live demo; ordinary launches without overrides use the local fixture configuration. Automated UI tests continue to use the local fixture.
+
+### Client greeting
+
+SwiftUI `RespondKitScreen(store: store, greeting: "Hi! How can we help?")` and Compose `RespondKitScreen(store, onClose, greeting = "Hi! How can we help?")` accept an optional client-only greeting. It starts fresh conversations and stays above the messages during that store session. Restored history does not gain a synthetic message; greetings never reach Discord, email, or unread counts.

@@ -754,3 +754,47 @@ describe("RespondKitWidget", () => {
     expect(screen.queryByText("Message from the old account")).not.toBeInTheDocument();
   });
 });
+
+it("shows a client-only greeting for an empty transcript and retains it after sending", async () => {
+  const base = createApiFetch();
+  const api = vi.fn<typeof fetch>(async (input, init) => {
+    if (requestUrl(input).includes("/messages") && init?.method === "GET") {
+      return json({ threadId: "thread_test", messages: [], nextCursor: "0", hasMore: false });
+    }
+    return base(input, init);
+  });
+  render(
+    <RespondKitWidget
+      apiBaseUrl="https://api.example.test"
+      context={{ inboxId: "inbox_greeting" }}
+      fetch={api}
+      initiallyOpen
+      greeting="Welcome to Acme support."
+    />,
+  );
+  expect(await screen.findByTestId("respondkit-greeting")).toHaveTextContent(
+    "Welcome to Acme support.",
+  );
+  await userEvent.type(screen.getByRole("textbox", { name: "Message" }), "Hello");
+  await userEvent.click(screen.getByRole("button", { name: "Send message" }));
+  expect(screen.getByTestId("respondkit-greeting")).toBeInTheDocument();
+  const sent = api.mock.calls.filter(
+    ([input, init]) => requestUrl(input).includes("/messages") && init?.method === "POST",
+  );
+  expect(sent).toHaveLength(1);
+  expect(JSON.parse(requestBody(sent[0]?.[1]?.body)).text).toBe("Hello");
+});
+
+it("does not add a greeting to restored conversations", async () => {
+  render(
+    <RespondKitWidget
+      apiBaseUrl="https://api.example.test"
+      context={{ inboxId: "inbox_restored_greeting" }}
+      fetch={createApiFetch()}
+      initiallyOpen
+      greeting="Welcome to Acme support."
+    />,
+  );
+  await screen.findByText("How can I help?");
+  expect(screen.queryByTestId("respondkit-greeting")).not.toBeInTheDocument();
+});

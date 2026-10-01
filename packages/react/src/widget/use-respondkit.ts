@@ -165,6 +165,7 @@ export function useRespondKit({
   const [pollError, setPollError] = useState<string>();
   const [session, setSession] = useState<ClientSessionV1>();
   const [thread, setThread] = useState<ThreadV1>();
+  const [freshThreadId, setFreshThreadId] = useState<string>();
   const [serverMessages, setServerMessages] = useState<MessageV1[]>([]);
   const [pendingMessages, setPendingMessages] = useState<ReadonlyMap<string, PendingMessage>>(
     () => new Map(),
@@ -518,6 +519,11 @@ export function useRespondKit({
             { signal: abortController.signal },
           );
           if (!active || abortController.signal.aborted) return;
+          if (!hasLoadedTranscriptRef.current && previousCursor === "0") {
+            setFreshThreadId(
+              response.messages.length === 0 && !response.hasMore ? activeThread.id : undefined,
+            );
+          }
           mergeMessages(response.messages);
           cursorRef.current = response.nextCursor;
           hasMore = response.hasMore && response.nextCursor !== previousCursor;
@@ -661,6 +667,7 @@ export function useRespondKit({
     unreadThreadIds,
     threads: contextMatches ? threads : [],
     selectedThreadId: contextMatches ? thread?.id : undefined,
+    isFreshConversation: contextMatches && thread !== undefined && freshThreadId === thread.id,
     reconnect: () => (storageBlocked ? window.location.reload() : setRefresh((value) => value + 1)),
     selectThread,
     loadMoreThreads,

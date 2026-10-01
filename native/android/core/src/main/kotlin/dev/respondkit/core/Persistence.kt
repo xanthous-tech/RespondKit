@@ -38,6 +38,7 @@ internal data class StoredState(
 )
 
 data class SupportState(
+    val isFreshConversation: Boolean = false,
     val statuses: List<ThreadStatus> = emptyList(),
     val unreadThreadIds: Set<String> = emptySet(),
     val activeThreadId: String? = null,

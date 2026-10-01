@@ -37,6 +37,8 @@ export interface RespondKitWidgetProps {
   readonly identityPending?: boolean | undefined;
   readonly fetch?: typeof globalThis.fetch | undefined;
   readonly title?: string | undefined;
+  /** Client-only first message, shown only for a fresh conversation. */
+  readonly greeting?: string | undefined;
   /** Replace the floating launcher. May return a portal into a host toolbar, or null. */
   readonly renderLauncher?: ((props: RespondKitLauncherProps) => ReactNode) | undefined;
   readonly initiallyOpen?: boolean | undefined;
@@ -50,6 +52,7 @@ export function RespondKitWidget({
   getIdentityToken,
   identityPending,
   title = "Support",
+  greeting,
   initiallyOpen = false,
   renderLauncher,
   accentColor = "indigo",
@@ -59,6 +62,7 @@ export function RespondKitWidget({
   const launcherRef = useRef<HTMLButtonElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const {
+    isFreshConversation,
     bootstrapError,
     bootstrapState,
     messages,
@@ -212,6 +216,7 @@ export function RespondKitWidget({
                   </div>
                 ) : null}
                 <MessageList
+                  greeting={isFreshConversation ? greeting : undefined}
                   locale={context.locale}
                   messages={messages}
                   onRetry={retryMessage}

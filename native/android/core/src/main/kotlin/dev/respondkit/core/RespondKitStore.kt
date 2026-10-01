@@ -32,6 +32,7 @@ class RespondKitStore(
     private var automaticallySelectConversation = false
     private val mutex = Mutex()
     private var hasLoadedHistory = false
+    private val freshThreadIds = mutableSetOf<String>()
 
     init {
         if (stored.userId != context.userId) stored = StoredState(userId = context.userId)
@@ -119,6 +120,7 @@ class RespondKitStore(
         this.identityToken = identityToken
         session = null
         if (changed) {
+            freshThreadIds.clear()
             hasLoadedHistory = false
             stored = StoredState(userId = context.userId)
             mutableState.update { it.copy(activeThreadId = null) }
@@ -284,6 +286,7 @@ class RespondKitStore(
                                 (created.id to stored.drafts["new"].orEmpty()),
                         newClientThreadId = newId("cthread"),
                     )
+                freshThreadIds.add(created.id)
                 stored =
                     stored.copy(selectedThreadId = created.id, isStartingNewConversation = false)
                 mutableState.update { it.copy(activeThreadId = created.id) }
@@ -459,6 +462,7 @@ class RespondKitStore(
         val key = state.value.activeThreadId ?: "new"
         mutableState.update {
             it.copy(
+                isFreshConversation = hasLoadedHistory && (it.activeThreadId == null || it.activeThreadId in freshThreadIds),
                 statuses = stored.statuses,
                 unreadThreadIds =
                     stored.statuses

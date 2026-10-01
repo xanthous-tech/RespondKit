@@ -3,6 +3,8 @@ import Observation
 
 /// Retain one store in the host app, independently of the presented screen.
 @MainActor @Observable public final class RespondKitStore {
+  public private(set) var isFreshConversation = false
+  @ObservationIgnored private var freshThreadIDs: Set<String> = []
   public private(set) var statuses: [ThreadStatus] = []
   public private(set) var hasUnreadReplies = false
   public private(set) var activeThreadID: String?
@@ -126,6 +128,7 @@ import Observation
     self.identityToken = identityToken
     session = nil
     if changed {
+      freshThreadIDs.removeAll()
       hasLoadedHistory = false
       state = StoredState(userID: context.userId)
       activeThreadID = nil
@@ -245,6 +248,7 @@ import Observation
         }
         try check(epoch)
         id = created.id
+        freshThreadIDs.insert(created.id)
         state.statuses.removeAll { $0.thread.id == created.id }
         state.statuses.insert(ThreadStatus(thread: created, latestReplyCursor: "0"), at: 0)
         state.pending[created.id, default: []] += state.pending.removeValue(forKey: "new") ?? []
@@ -405,6 +409,7 @@ import Observation
     do { try persist() } catch { errorMessage = error.localizedDescription }
   }
   private func publish() {
+    isFreshConversation = hasLoadedHistory && (activeThreadID == nil || freshThreadIDs.contains(activeThreadID!))
     statuses = state.statuses
     hasUnreadReplies = statuses.contains { isUnread($0.thread.id) }
     let key = activeThreadID ?? "new"

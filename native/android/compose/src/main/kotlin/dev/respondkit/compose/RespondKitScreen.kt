@@ -73,6 +73,7 @@ fun RespondKitScreen(
     modifier: Modifier = Modifier,
     title: String = stringResource(R.string.respondkit_support),
     accentColor: Color? = null,
+    greeting: String? = null,
 ) {
     val accent = (accentColor ?: MaterialTheme.colorScheme.primary).compositeOver(Color.White)
     MaterialTheme(
@@ -91,7 +92,7 @@ fun RespondKitScreen(
                 error = WidgetError,
             )
     ) {
-        RespondKitContent(store, onClose, modifier, title)
+        RespondKitContent(store, onClose, modifier, title, greeting)
     }
 }
 
@@ -101,6 +102,7 @@ private fun RespondKitContent(
     onClose: () -> Unit,
     modifier: Modifier,
     title: String,
+    greeting: String?,
 ) {
     val state by store.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -149,12 +151,14 @@ private fun RespondKitContent(
                 TextButton(onClick = { scope.launch { store.refresh() } }) { Text("Retry") }
             }
         }
-        Conversation(store, state, Modifier.weight(1f))
+        Conversation(store, state, Modifier.weight(1f), greeting)
     }
 }
 
 @Composable
-private fun Conversation(store: RespondKitStore, state: SupportState, modifier: Modifier) {
+private fun Conversation(store: RespondKitStore, state: SupportState, modifier: Modifier, greeting: String?) {
+    val welcome = greeting?.takeIf { state.isFreshConversation && it.isNotBlank() }
+    val greetingRows = if (welcome == null) 0 else 1
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val rows = remember(state.messages, state.pendingMessages) { transcriptRows(state) }
@@ -166,7 +170,7 @@ private fun Conversation(store: RespondKitStore, state: SupportState, modifier: 
     LaunchedEffect(state.activeThreadId, ids) {
         if (ids.isNotEmpty()) {
             if (previousIds.isEmpty() || atBottom) {
-                listState.scrollToItem(rows.size)
+                listState.scrollToItem(rows.size + greetingRows)
                 unseen = 0
             } else {
                 unseen += ids.count { it !in previousIds }
@@ -201,6 +205,11 @@ private fun Conversation(store: RespondKitStore, state: SupportState, modifier: 
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Bottom),
             ) {
+                if (welcome != null) item(key = "greeting") {
+                    Text(welcome, fontSize = 14.sp, color = WidgetInk, modifier = Modifier
+                        .fillMaxWidth(0.84f).background(WidgetFill, RoundedCornerShape(12.dp))
+                        .padding(12.dp).testTag("respondkit-greeting"))
+                }
                 itemsIndexed(rows, key = { _, row -> row.id }) { index, row ->
                     Column {
                         if (
@@ -226,7 +235,7 @@ private fun Conversation(store: RespondKitStore, state: SupportState, modifier: 
                 }
                 item(key = bottomKey) { Spacer(Modifier.height(2.dp)) }
             }
-            if (rows.isEmpty()) {
+            if (rows.isEmpty() && welcome == null) {
                 if (state.isLoading && !state.isSending) {
                     Column(
                         Modifier.fillMaxWidth().align(Alignment.TopStart).padding(16.dp).semantics {
@@ -269,7 +278,7 @@ private fun Conversation(store: RespondKitStore, state: SupportState, modifier: 
                 OutlinedButton(
                     onClick = {
                         scope.launch {
-                            listState.animateScrollToItem(rows.size)
+                            listState.animateScrollToItem(rows.size + greetingRows)
                             unseen = 0
                         }
                     },
