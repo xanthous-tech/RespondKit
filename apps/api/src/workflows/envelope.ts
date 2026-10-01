@@ -1,3 +1,4 @@
+import { DeviceContextV1Schema } from "@respondkit/protocol";
 import { z } from "zod";
 
 const boundedContextSchema = z.object({
@@ -6,6 +7,7 @@ const boundedContextSchema = z.object({
   posthogDistinctId: z.string().max(256).optional(),
   externalUserId: z.string().max(256).optional(),
   email: z.email().max(320).optional(),
+  device: DeviceContextV1Schema.optional(),
   userAgent: z.string().max(1_024).optional(),
   country: z.string().length(2).optional(),
   region: z.string().max(128).optional(),

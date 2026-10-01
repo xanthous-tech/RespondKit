@@ -1,6 +1,7 @@
 import Foundation
 
 public struct CustomerContext: Codable, Sendable, Equatable {
+  public var device: DeviceContext?
   public var userId: String?
   public var email: String?
   public var posthogDistinctId: String?
@@ -12,8 +13,9 @@ public struct CustomerContext: Codable, Sendable, Equatable {
   public init(
     userId: String? = nil, email: String? = nil, locale: String? = nil,
     timezone: String? = nil, posthogDistinctId: String? = nil,
-    posthogSessionId: String? = nil, metadata: [String: JSONValue]? = nil
+    posthogSessionId: String? = nil, metadata: [String: JSONValue]? = nil, device: DeviceContext? = nil
   ) {
+    self.device = device
     self.userId = userId
     self.email = email
     self.locale = locale
@@ -151,4 +153,33 @@ func timestamp(_ value: String) -> Date? {
 }
 func newID(_ prefix: String) -> String {
   prefix + "_" + UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
+}
+
+/// Diagnostic hardware model, not a persistent device or advertising identifier.
+public struct DeviceContext: Codable, Sendable, Equatable {
+  public var platform: String
+  public var model: String
+  public var osVersion: String
+  public var appVersion: String?
+  public var sdk: String = "swift"
+  public init(platform: String, model: String, osVersion: String, appVersion: String? = nil) {
+    self.platform = platform; self.model = model; self.osVersion = osVersion; self.appVersion = appVersion
+  }
+  public static func current() -> DeviceContext {
+    var info = utsname()
+    uname(&info)
+    let model = withUnsafeBytes(of: &info.machine) { bytes in
+      String(decoding: bytes.prefix(while: { $0 != 0 }), as: UTF8.self)
+    }
+    #if os(iOS)
+    let platform = "ios"
+    #else
+    let platform = "macos"
+    #endif
+    let version = ProcessInfo.processInfo.operatingSystemVersion
+    return DeviceContext(platform: platform,
+      model: ProcessInfo.processInfo.environment["SIMULATOR_MODEL_IDENTIFIER"] ?? model,
+      osVersion: "\(version.majorVersion).\(version.minorVersion).\(version.patchVersion)",
+      appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String)
+  }
 }

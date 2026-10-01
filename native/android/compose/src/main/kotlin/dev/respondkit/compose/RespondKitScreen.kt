@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -51,6 +52,8 @@ private val WidgetError = Color(0xFFDC2626)
 /** Mount once at the app root, not inside the conditionally presented support destination. */
 @Composable
 fun RespondKitLifecycle(store: RespondKitStore) {
+    val context = LocalContext.current
+    SideEffect { store.setDeviceContext(androidDeviceContext(context)) }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     DisposableEffect(store, lifecycle) {
         val observer = LifecycleEventObserver { _, _ ->
@@ -112,7 +115,11 @@ private fun RespondKitContent(
         store.setScreenVisible(true)
         onDispose { store.setScreenVisible(false) }
     }
-    LaunchedEffect(store) { store.openConversation() }
+    val context = LocalContext.current
+    LaunchedEffect(store) {
+        store.setDeviceContext(androidDeviceContext(context))
+        store.openConversation()
+    }
     BackHandler(onBack = onClose)
     Column(modifier.fillMaxSize().background(Color.White).safeDrawingPadding().imePadding()) {
         Row(

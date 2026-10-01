@@ -44,6 +44,7 @@ import Observation
   ) throws {
     self.configuration = configuration
     self.context = context
+    self.context.device = context.device ?? .current()
     self.identityToken = identityToken
     self.api = api ?? RespondKitClient(configuration: configuration)
     let storage = persistence ?? KeychainPersistence(scope: configuration.storageScope)
@@ -136,6 +137,7 @@ import Observation
     let oldSession = session
     let changed = self.context.userId != context.userId
     self.context = context
+    self.context.device = context.device ?? .current()
     self.identityToken = identityToken
     session = nil
     if changed {

@@ -1,3 +1,4 @@
+import type { DeviceContextV1 } from "@respondkit/protocol";
 import type {
   InboxId,
   InstallationId,
@@ -133,6 +134,7 @@ export const visitors = sqliteTable(
     timezone: text("timezone"),
     region: text("region"),
     userAgent: text("user_agent"),
+    device: text("device", { mode: "json" }).$type<DeviceContextV1>(),
     metadata: text("metadata", { mode: "json" })
       .$type<Record<string, JsonValue>>()
       .notNull()

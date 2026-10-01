@@ -1,3 +1,4 @@
+import { DeviceContextV1Schema } from "@respondkit/protocol";
 import {
   InboxIdSchema,
   InstallationIdSchema,
@@ -99,6 +100,7 @@ export const visitorContextSchema = z.strictObject({
   locale: LanguageTagSchema.nullish(),
   timezone: z.string().trim().min(1).max(64).nullish(),
   region: z.string().trim().min(2).max(80).nullish(),
+  device: DeviceContextV1Schema.nullish(),
   userAgent: z.string().trim().min(1).max(1024).nullish(),
   metadata: metadataSchema.optional(),
 });

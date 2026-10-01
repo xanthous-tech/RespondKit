@@ -14,6 +14,7 @@ data class CustomerContext(
     val locale: String? = null,
     val timezone: String? = null,
     val metadata: Map<String, JsonElement>? = null,
+    val device: DeviceContext? = null,
 )
 
 @Serializable
@@ -106,3 +107,11 @@ internal fun newId(prefix: String) = prefix + "_" + UUID.randomUUID().toString()
 internal fun now() = Instant.now().toString()
 
 @Serializable data class ContactInfo(val email: String? = null)
+
+@Serializable data class DeviceContext(
+    val platform: String,
+    val model: String,
+    val osVersion: String,
+    val appVersion: String? = null,
+    val sdk: String = "android",
+)

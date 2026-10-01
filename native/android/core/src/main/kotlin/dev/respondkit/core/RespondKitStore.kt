@@ -51,6 +51,13 @@ class RespondKitStore(
         publish()
     }
 
+    fun setDeviceContext(device: DeviceContext) {
+        if (context.device == null) {
+            context = context.copy(device = device)
+            session = null
+        }
+    }
+
     fun setForeground(active: Boolean) {
         if (state.value.isForeground == active) return
         mutableState.update { it.copy(isForeground = active) }
@@ -126,7 +133,7 @@ class RespondKitStore(
         epoch++
         val previous = session
         val changed = this.context.userId != context.userId
-        this.context = context
+        this.context = context.copy(device = context.device ?: this.context.device)
         this.identityToken = identityToken
         session = null
         if (changed) {

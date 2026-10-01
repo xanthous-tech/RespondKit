@@ -59,8 +59,18 @@ const MetadataSchema = z
     }
   });
 
+export const DeviceContextV1Schema = z.strictObject({
+  platform: z.enum(["ios", "android", "macos", "windows", "linux"]),
+  model: z.string().trim().min(1).max(128),
+  osVersion: z.string().trim().min(1).max(64),
+  appVersion: z.string().trim().min(1).max(64).optional(),
+  sdk: z.enum(["swift", "android", "react-native"]).optional(),
+});
+export type DeviceContextV1 = z.infer<typeof DeviceContextV1Schema>;
+
 export const CustomerContextV1Schema = z
   .object({
+    device: DeviceContextV1Schema.optional(),
     userId: z.string().min(1).max(256).optional(),
     email: z.email().max(320).optional(),
     posthogDistinctId: z.string().min(1).max(256).optional(),

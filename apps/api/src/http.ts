@@ -329,6 +329,7 @@ function visitorWorkflowContext(visitor: VisitorRow) {
     ...(visitor.posthogDistinctId === null ? {} : { posthogDistinctId: visitor.posthogDistinctId }),
     ...(visitor.externalUserId === null ? {} : { externalUserId: visitor.externalUserId }),
     ...(visitor.email === null ? {} : { email: visitor.email }),
+    ...(visitor.device === null ? {} : { device: visitor.device }),
     ...(visitor.userAgent === null ? {} : { userAgent: visitor.userAgent }),
     ...(visitor.region === null ? {} : { region: visitor.region }),
   };
@@ -589,6 +590,7 @@ export function createHttpApp() {
       locale: request.context?.locale,
       timezone: request.context?.timezone,
       region: observedRegion,
+      device: request.context?.device,
       userAgent: context.req.header("user-agent")?.slice(0, 1_024),
       metadata: request.context?.metadata,
     });

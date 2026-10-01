@@ -209,7 +209,10 @@ function starterContent(envelope: MessageWorkflowEnvelope, marker: string): stri
       ? `Region: ${envelope.context.region}`
       : undefined,
     envelope.direction === "customer_to_operator" && envelope.context.userAgent !== undefined
-      ? `Device: ${envelope.context.userAgent}`
+      ? `User-Agent: ${envelope.context.userAgent}`
+      : undefined,
+    envelope.direction === "customer_to_operator" && envelope.context.device !== undefined
+      ? `Device: ${envelope.context.device.model} · ${envelope.context.device.platform} ${envelope.context.device.osVersion}${envelope.context.device.appVersion ? ` · App ${envelope.context.device.appVersion}` : ""}${envelope.context.device.sdk ? ` · ${envelope.context.device.sdk}` : ""}`
       : undefined,
   ].filter((line): line is string => line !== undefined);
   const maximumPrefixLength = 2_000 - marker.length - 1;
