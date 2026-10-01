@@ -1,3 +1,4 @@
+import { enqueueReplyEmail } from "../email";
 import {
   acceptCustomerIngress,
   findThreadById,
@@ -771,6 +772,9 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
           );
           auditContent = availableAuditContent(envelope, canonicalTranslation);
         }
+        await step.do("enqueue-reply-email", DATABASE_STEP, () =>
+          enqueueReplyEmail(this.env, envelope.messageId),
+        );
         stage = "discord_audit";
         const target = await step.do("load-discord-thread", DATABASE_STEP, () =>
           loadReadyDiscordThread(this.env, envelope),

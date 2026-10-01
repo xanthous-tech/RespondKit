@@ -1,3 +1,4 @@
+import { deliverPendingEmails, receiveThreadEmail } from "./email";
 import { createHttpApp } from "./http";
 import type { Env } from "./env";
 import { syncDiscordReadReceipts } from "./read-receipts";
@@ -10,7 +11,8 @@ const app = createHttpApp();
 
 export default {
   fetch: app.fetch,
+  email: receiveThreadEmail,
   async scheduled(_event: ScheduledController, env: Env) {
-    await syncDiscordReadReceipts(env);
+    await Promise.all([syncDiscordReadReceipts(env), deliverPendingEmails(env)]);
   },
 };

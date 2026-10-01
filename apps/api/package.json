@@ -23,6 +23,7 @@
     "@respondkit/workspaces": "workspace:*",
     "drizzle-orm": "catalog:",
     "hono": "catalog:",
+    "postal-mime": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

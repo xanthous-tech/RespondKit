@@ -3,6 +3,18 @@ import type { MessageWorkflowEnvelope } from "./workflows/envelope";
 import type { TranslationWorkflowParams } from "./translation-service";
 
 export interface Env {
+  /** Per-inbox Email Service configuration; absent means disabled. */
+  readonly EMAIL_INBOXES?: string;
+  readonly EMAIL?: {
+    send(message: {
+      from: string;
+      to: string;
+      replyTo: string;
+      subject: string;
+      text: string;
+      headers: Record<string, string>;
+    }): Promise<{ messageId: string }>;
+  };
   readonly TRANSLATION_WORKFLOW: Workflow<TranslationWorkflowParams>;
   /** JSON array of inbox IDs with optional translation enabled. */
   readonly TRANSLATION_ENABLED_INBOXES?: string;

@@ -96,6 +96,9 @@ catalogs:
     lucide-react:
       specifier: 1.34.0
       version: 1.34.0
+    postal-mime:
+      specifier: ^4.0.2
+      version: 4.0.2
     publint:
       specifier: ^0.3.24
       version: 0.3.24
@@ -186,6 +189,9 @@ importers:
       hono:
         specifier: 'catalog:'
         version: 4.13.4
+      postal-mime:
+        specifier: 'catalog:'
+        version: 4.0.2
       zod:
         specifier: 'catalog:'
         version: 4.4.3
@@ -4140,6 +4146,10 @@ packages:
   pngjs@7.0.0:
     resolution: {integrity: sha512-LKWqWJRhstyYo9pGvgor/ivk2w94eSjE3RGVuzLGlr3NmD8bf7RcYGze1mNdEHRP6TRP6rMuDHk5t44hnTRyow==}
     engines: {node: '>=14.19.0'}
+
+  postal-mime@4.0.2:
+    resolution: {integrity: sha512-b/FqJGdS+Y+leh30r2ord1gWZNPfYcTiFBR1BIPvZYvQrKJjYYqGeECh9sQ5BpkWtcjSj39ngIAiE2w6XNfMjA==}
+    engines: {node: '>=20'}
 
   postcss@8.5.26:
     resolution: {integrity: sha512-u82N74LFzG8ca+dD8puPnplTXoGH4fTPpVGuIbt36G3qvNlkvfD0lEAZSxaly3KX8TS/L1A1gsCEmvKmBcVbkQ==}
@@ -8174,6 +8184,8 @@ snapshots:
       fsevents: 2.3.2
 
   pngjs@7.0.0: {}
+
+  postal-mime@4.0.2: {}
 
   postcss@8.5.26:
     dependencies:

@@ -35,6 +35,7 @@ catalog:
   linkify-it: ^6.1.0
   lucide-react: 1.34.0
   msw: 2.15.0
+  postal-mime: ^4.0.2
   publint: ^0.3.24
   react: 19.2.8
   react-dom: 19.2.8
