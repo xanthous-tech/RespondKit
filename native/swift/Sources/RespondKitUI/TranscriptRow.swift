@@ -10,6 +10,7 @@
     let status: String?
     let retryID: String?
     let failed: Bool
+    var attachments: [SupportAttachment] = []
 
     @MainActor static func rows(_ store: RespondKitStore) -> [Self] {
       let canonical = Set(store.messages.compactMap(\.clientMessageId))
@@ -23,7 +24,7 @@
           retryID: pending.flatMap {
             ["failed", "acceptance_unknown"].contains($0.delivery) ? $0.id : nil
           },
-          failed: message.state == "failed")
+          failed: message.state == "failed", attachments: message.attachments ?? [])
       }
         + store.pendingMessages.filter { !canonical.contains($0.id) }.map { pending in
           Self(
@@ -33,7 +34,7 @@
               : pending.delivery == "accepted"
                 ? "Sent" : pending.delivery == "failed" ? "Failed" : "Confirming…",
             retryID: ["failed", "acceptance_unknown"].contains(pending.delivery) ? pending.id : nil,
-            failed: pending.delivery == "failed")
+            failed: pending.delivery == "failed", attachments: pending.attachments ?? [])
         }
     }
 

@@ -120,7 +120,9 @@ import Observation
   public func saveEmail(_ email: String) async {
     await operate { epoch in
       let contact = try await self.authorized(epoch) {
-        try await self.api.saveContact(token: $0, email: email.trimmingCharacters(in: .whitespacesAndNewlines), threadID: self.activeThreadID)
+        try await self.api.saveContact(
+          token: $0, email: email.trimmingCharacters(in: .whitespacesAndNewlines),
+          threadID: self.activeThreadID)
       }
       try self.check(epoch)
       self.context.email = contact.email
@@ -193,11 +195,22 @@ import Observation
     }
   }
 
-  public func sendDraft() async {
+  public var attachmentScope: String { "\(epoch):\(activeThreadID ?? "new")" }
+  public func upload(fileURL: URL, clientUploadID: String) async throws -> SupportAttachment {
+    let current = epoch
+    let result = try await authorized(current) {
+      try await self.api.upload(token: $0, fileURL: fileURL, clientUploadID: clientUploadID)
+    }
+    try check(current)
+    return result
+  }
+  public func sendDraft(attachments: [SupportAttachment] = []) async {
     guard !isSending else { return }
     isSending = true
     defer { isSending = false }
-    let text = draft
+    let text =
+      draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !attachments.isEmpty
+      ? "Attached files" : draft
     let threadID = activeThreadID
     guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, text.utf16.count <= 6_000
     else {
@@ -211,8 +224,9 @@ import Observation
         throw RespondKitError("This conversation is closed. Start a new conversation.")
       }
       let key = threadID ?? "new"
-      let pending = PendingMessage(
+      var pending = PendingMessage(
         id: newID("cmsg"), text: text, acceptedAt: Date().ISO8601Format(), delivery: "sending")
+      pending.attachments = attachments
       self.state.pending[key, default: []].append(pending)
       // Preserve edits made while another operation was finishing.
       if self.state.drafts[key] == text { self.state.drafts[key] = "" }
@@ -279,7 +293,8 @@ import Observation
       publish()
       let accepted = try await authorized(epoch) {
         try await self.api.send(
-          token: $0, threadID: id, clientMessageID: pending.id, text: pending.text)
+          token: $0, threadID: id, clientMessageID: pending.id, text: pending.text,
+          attachmentIDs: (pending.attachments ?? []).map(\.id))
       }
       try check(epoch)
       setDelivery(
@@ -342,7 +357,8 @@ import Observation
       {
         state.pending[id, default: []].append(
           PendingMessage(
-            id: clientID, text: message.text, acceptedAt: message.acceptedAt, delivery: "failed"))
+            id: clientID, text: message.text, attachments: message.attachments,
+            acceptedAt: message.acceptedAt, delivery: "failed"))
       }
     }
     try persist()
@@ -428,7 +444,8 @@ import Observation
     do { try persist() } catch { errorMessage = error.localizedDescription }
   }
   private func publish() {
-    isFreshConversation = hasLoadedHistory && (activeThreadID == nil || freshThreadIDs.contains(activeThreadID!))
+    isFreshConversation =
+      hasLoadedHistory && (activeThreadID == nil || freshThreadIDs.contains(activeThreadID!))
     emailAddress = context.email
     statuses = state.statuses
     hasUnreadReplies = statuses.contains { isUnread($0.thread.id) }

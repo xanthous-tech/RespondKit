@@ -27,6 +27,9 @@ data class SupportThread(
 )
 
 @Serializable
+data class SupportAttachment(val id: String, val name: String, val contentType: String, val size: Long, val downloadUrl: String)
+
+@Serializable
 data class SupportMessage(
     val id: String,
     val threadId: String,
@@ -36,6 +39,7 @@ data class SupportMessage(
     val language: String? = null,
     val acceptedAt: String,
     val state: String,
+    val attachments: List<SupportAttachment> = emptyList(),
 ) {
     val isReply: Boolean
         get() = direction == "operator_to_customer" && state == "available"
@@ -83,6 +87,7 @@ data class PendingMessage(
     val text: String,
     val acceptedAt: String,
     val delivery: String,
+    val attachments: List<SupportAttachment> = emptyList(),
 )
 
 class RespondKitException(

@@ -13,7 +13,8 @@ public struct CustomerContext: Codable, Sendable, Equatable {
   public init(
     userId: String? = nil, email: String? = nil, locale: String? = nil,
     timezone: String? = nil, posthogDistinctId: String? = nil,
-    posthogSessionId: String? = nil, metadata: [String: JSONValue]? = nil, device: DeviceContext? = nil
+    posthogSessionId: String? = nil, metadata: [String: JSONValue]? = nil,
+    device: DeviceContext? = nil
   ) {
     self.device = device
     self.userId = userId
@@ -69,12 +70,20 @@ public struct SupportThread: Codable, Sendable, Equatable, Identifiable {
   public let createdAt: String
   public let updatedAt: String
 }
+public struct SupportAttachment: Codable, Sendable, Equatable, Identifiable {
+  public let id: String
+  public let name: String
+  public let contentType: String
+  public let size: Int64
+  public let downloadUrl: URL
+}
 public struct SupportMessage: Codable, Sendable, Equatable, Identifiable {
   public let id: String
   public let threadId: String
   public let clientMessageId: String?
   public let direction: String
   public let text: String
+  public var attachments: [SupportAttachment]? = nil
   public let language: String?
   public let acceptedAt: String
   public let state: String
@@ -114,6 +123,7 @@ public struct SendResponse: Codable, Sendable { public let acceptance: Acceptanc
 public struct PendingMessage: Codable, Sendable, Equatable, Identifiable {
   public let id: String
   public let text: String
+  public var attachments: [SupportAttachment]? = nil
   public let acceptedAt: String
   public var delivery: String
 }
@@ -163,7 +173,10 @@ public struct DeviceContext: Codable, Sendable, Equatable {
   public var appVersion: String?
   public var sdk: String = "swift"
   public init(platform: String, model: String, osVersion: String, appVersion: String? = nil) {
-    self.platform = platform; self.model = model; self.osVersion = osVersion; self.appVersion = appVersion
+    self.platform = platform
+    self.model = model
+    self.osVersion = osVersion
+    self.appVersion = appVersion
   }
   public static func current() -> DeviceContext {
     var info = utsname()
@@ -172,12 +185,13 @@ public struct DeviceContext: Codable, Sendable, Equatable {
       String(decoding: bytes.prefix(while: { $0 != 0 }), as: UTF8.self)
     }
     #if os(iOS)
-    let platform = "ios"
+      let platform = "ios"
     #else
-    let platform = "macos"
+      let platform = "macos"
     #endif
     let version = ProcessInfo.processInfo.operatingSystemVersion
-    return DeviceContext(platform: platform,
+    return DeviceContext(
+      platform: platform,
       model: ProcessInfo.processInfo.environment["SIMULATOR_MODEL_IDENTIFIER"] ?? model,
       osVersion: "\(version.majorVersion).\(version.minorVersion).\(version.patchVersion)",
       appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String)

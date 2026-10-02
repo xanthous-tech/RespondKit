@@ -193,11 +193,16 @@ class RespondKitStore(
             flushReads(generation)
         }
 
-    suspend fun sendDraft() {
+    val attachmentScope: String get() = "$epoch:${state.value.activeThreadId ?: "new"}"
+    suspend fun upload(file: java.io.File, contentType: String, clientUploadId: String): SupportAttachment {
+        val generation = epoch
+        return authorized(generation) { api.upload(it, file, contentType, clientUploadId) }
+    }
+    suspend fun sendDraft(attachments: List<SupportAttachment> = emptyList()) {
         if (state.value.isSending) return
         mutableState.update { it.copy(isSending = true) }
         try {
-            val text = state.value.draft
+            val text = state.value.draft.ifBlank { if (attachments.isNotEmpty()) "Attached files" else "" }
             val id = state.value.activeThreadId
             if (text.isBlank() || text.length > 6_000) {
                 mutableState.update {
@@ -215,7 +220,7 @@ class RespondKitStore(
                         "This conversation is closed. Start a new conversation."
                     )
                 val key = id ?: "new"
-                val pending = PendingMessage(newId("cmsg"), text, now(), "sending")
+                val pending = PendingMessage(newId("cmsg"), text, now(), "sending", attachments)
                 stored =
                     stored.copy(
                         pending =
@@ -315,7 +320,7 @@ class RespondKitStore(
             persist()
             publish()
             val accepted =
-                authorized(generation) { api.send(it, actualId, pending.id, pending.text) }
+                authorized(generation) { api.send(it, actualId, pending.id, pending.text, pending.attachments.map { file -> file.id }) }
             check(generation)
             setDelivery(
                 pending.id,
@@ -372,7 +377,7 @@ class RespondKitStore(
                         it.clientMessageId != null &&
                         pending.none { p -> p.id == it.clientMessageId }
                 }
-                .map { PendingMessage(it.clientMessageId!!, it.text, it.acceptedAt, "failed") }
+                .map { PendingMessage(it.clientMessageId!!, it.text, it.acceptedAt, "failed", it.attachments) }
         stored =
             stored.copy(
                 messages = stored.messages + (id to messages.values.sortedBy { it.acceptedAt }),

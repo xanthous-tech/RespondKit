@@ -1,4 +1,5 @@
 import Foundation
+import UniformTypeIdentifiers
 
 public struct RespondKitConfiguration: Sendable {
   public let baseURL: URL
@@ -32,6 +33,10 @@ public struct RespondKitConfiguration: Sendable {
 public struct ContactInfo: Codable, Sendable { public let email: String? }
 
 public protocol RespondKitAPI: Sendable {
+  func upload(token: String, fileURL: URL, clientUploadID: String) async throws -> SupportAttachment
+  func send(
+    token: String, threadID: String, clientMessageID: String, text: String, attachmentIDs: [String]
+  ) async throws -> Acceptance
   func contact(token: String) async throws -> ContactInfo
   func saveContact(token: String, email: String, threadID: String?) async throws -> ContactInfo
   func createSession(installationID: String, context: CustomerContext, identityToken: String?)
@@ -45,9 +50,25 @@ public protocol RespondKitAPI: Sendable {
   func logout(token: String) async throws
 }
 
-public extension RespondKitAPI {
-  func contact(token: String) async throws -> ContactInfo { ContactInfo(email: nil) }
-  func saveContact(token: String, email: String, threadID: String?) async throws -> ContactInfo {
+extension RespondKitAPI {
+  public func upload(token: String, fileURL: URL, clientUploadID: String) async throws
+    -> SupportAttachment
+  {
+    throw RespondKitError("Attachments are not implemented by this API adapter.")
+  }
+  public func send(
+    token: String, threadID: String, clientMessageID: String, text: String, attachmentIDs: [String]
+  ) async throws -> Acceptance {
+    guard attachmentIDs.isEmpty else {
+      throw RespondKitError("Attachments are not implemented by this API adapter.")
+    }
+    return try await send(
+      token: token, threadID: threadID, clientMessageID: clientMessageID, text: text)
+  }
+  public func contact(token: String) async throws -> ContactInfo { ContactInfo(email: nil) }
+  public func saveContact(token: String, email: String, threadID: String?) async throws
+    -> ContactInfo
+  {
     throw RespondKitError("Contact capture is not implemented by this API adapter.")
   }
 }
@@ -67,7 +88,7 @@ public final class RespondKitClient: RespondKitAPI, Sendable {
   }
   private func request<T: Decodable & Sendable>(
     _ path: String, method: String = "GET", token: String? = nil,
-    body: [String: JSONValue]? = nil, after: String? = nil
+    body: [String: JSONValue]? = nil, after: String? = nil, bytes: Data? = nil
   ) async throws -> T {
     var components = URLComponents(
       url: configuration.baseURL.appendingPathComponent("v1/" + path),
@@ -81,6 +102,10 @@ public final class RespondKitClient: RespondKitAPI, Sendable {
     request.setValue(configuration.origin, forHTTPHeaderField: "Origin")
     if let token { request.setValue("Bearer " + token, forHTTPHeaderField: "Authorization") }
     if let body { request.httpBody = try JSONEncoder().encode(body) }
+    if let bytes {
+      request.httpBody = bytes
+      request.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
+    }
     let (data, response) = try await session.data(for: request)
     guard let response = response as? HTTPURLResponse else {
       throw RespondKitError("Invalid HTTP response.")
@@ -116,7 +141,9 @@ public final class RespondKitClient: RespondKitAPI, Sendable {
   public func contact(token: String) async throws -> ContactInfo {
     try await request("client/contact", token: token)
   }
-  public func saveContact(token: String, email: String, threadID: String?) async throws -> ContactInfo {
+  public func saveContact(token: String, email: String, threadID: String?) async throws
+    -> ContactInfo
+  {
     var body: [String: JSONValue] = ["email": .string(email)]
     if let threadID { body["threadId"] = .string(threadID) }
     return try await request("client/contact", method: "POST", token: token, body: body)
@@ -154,9 +181,21 @@ public final class RespondKitClient: RespondKitAPI, Sendable {
   public func send(token: String, threadID: String, clientMessageID: String, text: String)
     async throws -> Acceptance
   {
+    try await send(
+      token: token, threadID: threadID, clientMessageID: clientMessageID, text: text,
+      attachmentIDs: [])
+  }
+  public func send(
+    token: String, threadID: String, clientMessageID: String, text: String, attachmentIDs: [String]
+  )
+    async throws -> Acceptance
+  {
     let response: SendResponse = try await request(
       try threadPath(threadID) + "/messages", method: "POST", token: token,
-      body: ["clientMessageId": .string(clientMessageID), "text": .string(text)])
+      body: [
+        "clientMessageId": .string(clientMessageID), "text": .string(text),
+        "attachmentIds": .array(attachmentIDs.map { .string($0) }),
+      ])
     let a = response.acceptance
     guard a.clientMessageId == clientMessageID,
       ["accepted", "already_accepted", "acceptance_unknown", "processing", "available", "failed"]
@@ -168,6 +207,46 @@ public final class RespondKitClient: RespondKitAPI, Sendable {
       throw RespondKitError("Mismatched message acceptance.")
     }
     return a
+  }
+  private struct Upload: Decodable, Sendable {
+    let id: String
+    let partSize: Int
+    let completed: SupportAttachment?
+  }
+  public func upload(token: String, fileURL: URL, clientUploadID: String) async throws
+    -> SupportAttachment
+  {
+    let scoped = fileURL.startAccessingSecurityScopedResource()
+    defer { if scoped { fileURL.stopAccessingSecurityScopedResource() } }
+    let values = try fileURL.resourceValues(forKeys: [.fileSizeKey, .contentTypeKey])
+    guard let size = values.fileSize else { throw RespondKitError("Cannot read file size.") }
+    let created: Upload = try await request(
+      "attachments", method: "POST", token: token,
+      body: [
+        "clientUploadId": .string(clientUploadID), "name": .string(fileURL.lastPathComponent),
+        "size": .number(Double(size)),
+        "contentType": .string(values.contentType?.preferredMIMEType ?? "application/octet-stream"),
+      ])
+    if let completed = created.completed { return completed }
+    guard created.id.hasPrefix("att_"), created.id.dropFirst(4).allSatisfy({ $0.isHexDigit }),
+      created.partSize > 0
+    else { throw RespondKitError("Invalid upload response.") }
+    let file = try FileHandle(forReadingFrom: fileURL)
+    defer { try? file.close() }
+    var offset = 0
+    var part = 1
+    while offset < size {
+      try Task.checkCancellation()
+      let count = min(created.partSize, size - offset)
+      guard let data = try file.read(upToCount: count), data.count == count else {
+        throw RespondKitError("File changed during upload.")
+      }
+      let _: OK = try await request(
+        "attachments/\(created.id)/parts/\(part)", method: "PUT", token: token, bytes: data)
+      offset += count
+      part += 1
+    }
+    return try await request("attachments/\(created.id)/complete", method: "POST", token: token)
   }
   private struct OK: Decodable, Sendable { let ok: Bool }
   public func markRead(token: String, threadID: String, cursor: String) async throws {

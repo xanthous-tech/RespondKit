@@ -13,6 +13,7 @@ internal data class TranscriptRow(
     val status: String?,
     val retryId: String?,
     val failed: Boolean,
+    val attachments: List<dev.respondkit.core.SupportAttachment> = emptyList(),
 )
 
 internal fun transcriptRows(state: SupportState): List<TranscriptRow> {
@@ -30,6 +31,7 @@ internal fun transcriptRows(state: SupportState): List<TranscriptRow> {
             if (customer) if (message.state == "failed") "Failed" else "Sent" else null,
             pending?.takeIf { it.delivery in listOf("failed", "acceptance_unknown") }?.id,
             message.state == "failed",
+            message.attachments,
         )
     } +
         state.pendingMessages
@@ -50,6 +52,7 @@ internal fun transcriptRows(state: SupportState): List<TranscriptRow> {
                         pending.delivery in listOf("failed", "acceptance_unknown")
                     },
                     pending.delivery == "failed",
+                    pending.attachments,
                 )
             }
 }

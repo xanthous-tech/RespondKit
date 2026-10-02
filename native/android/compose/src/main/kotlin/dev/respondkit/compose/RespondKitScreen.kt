@@ -342,12 +342,17 @@ private fun EmailCapture(store: RespondKitStore, saving: Boolean) {
 @Composable
 private fun Composer(store: RespondKitStore, state: SupportState) {
     val scope = rememberCoroutineScope()
+    var attachments by remember { mutableStateOf(emptyList<SupportAttachment>()) }
+    var uploading by remember { mutableStateOf(false) }
+    var clearAttachments by remember { mutableIntStateOf(0) }
     var focused by remember { mutableStateOf(false) }
     val canSend =
         !state.isLoading &&
             !state.isSending &&
-            state.draft.isNotBlank() &&
+            (state.draft.isNotBlank() || attachments.isNotEmpty()) && !uploading &&
             state.draft.length <= 6_000
+    Column {
+    AttachmentPicker(store, clearAttachments) { files, busy -> attachments = files; uploading = busy }
     Row(
         Modifier.fillMaxWidth().padding(12.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -384,7 +389,7 @@ private fun Composer(store: RespondKitStore, state: SupportState) {
             },
         )
         Button(
-            onClick = { scope.launch { store.sendDraft() } },
+            onClick = { val files = attachments; scope.launch { store.sendDraft(files) }; attachments = emptyList(); clearAttachments++ },
             enabled = canSend,
             modifier = Modifier.size(44.dp).testTag("respondkit-send"),
             shape = RoundedCornerShape(12.dp),
@@ -399,9 +404,11 @@ private fun Composer(store: RespondKitStore, state: SupportState) {
         }
     }
 }
+}
 
 @Composable
 private fun Bubble(row: TranscriptRow, isSending: Boolean, retry: (String) -> Unit) {
+    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
     val accent = MaterialTheme.colorScheme.primary
     val message = remember(row.text, accent) { linkedMessage(row.text, accent) }
     BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -431,6 +438,9 @@ private fun Bubble(row: TranscriptRow, isSending: Boolean, retry: (String) -> Un
                             )
                             .padding(horizontal = 12.dp, vertical = 10.dp),
                 )
+            }
+            row.attachments.forEach { file ->
+                TextButton(onClick = { uriHandler.openUri(file.downloadUrl) }) { Text("📎 " + file.name) }
             }
             Row(
                 Modifier.heightIn(min = 20.dp).padding(horizontal = 4.dp),
