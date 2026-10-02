@@ -1,37 +1,42 @@
 import { deriveCustomerMessageIdentity } from "@respondkit/protocol";
+import { emailConfigurationSchema } from "@respondkit/workspaces";
 import PostalMime from "postal-mime";
 import { z } from "zod";
 import type { Env } from "./env";
 import { acceptWorkflow } from "./workflow-binding";
 import { customerWorkflowEnvelopeSchema, type MessageWorkflowEnvelope } from "./workflows/envelope";
 
-const settingsSchema = z.record(
-  z.string(),
-  z.object({
-    from: z.email(),
-    replyDomain: z.string().regex(/^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/),
-    name: z
-      .string()
-      .min(1)
-      .max(100)
-      .regex(/^[^\r\n]+$/),
-  }),
-);
-
-function settings(env: Env) {
-  return settingsSchema.parse(JSON.parse(env.EMAIL_INBOXES ?? "{}"));
+async function settings(env: Env, inboxId: string) {
+  const row = await env.DB.prepare(
+    "SELECT email_config FROM inbox WHERE id = ? AND status = 'active'",
+  )
+    .bind(inboxId)
+    .first<{ email_config: string | null }>();
+  return row?.email_config
+    ? emailConfigurationSchema.parse(JSON.parse(row.email_config))
+    : undefined;
 }
 
-/** Persist the exact recipient and customer-visible text before any external send. */
+/** Snapshot a published reply. Retrying enqueue never moves its original deadline. */
 export async function enqueueReplyEmail(env: Env, messageId: string): Promise<void> {
-  if (!env.EMAIL_INBOXES) return;
   const row = await env.DB.prepare(`SELECT m.thread_id, m.inbox_id, m.customer_visible_text AS body,
-    v.email FROM message m JOIN thread t ON t.id = m.thread_id JOIN visitor v ON v.id = t.visitor_id
-    WHERE m.id = ? AND m.direction = 'operator_to_customer' AND m.customer_availability = 'available'`)
+    v.email, e.row_id AS cursor, e.event_at, t.customer_read_cursor FROM message m
+    JOIN thread t ON t.id=m.thread_id JOIN visitor v ON v.id=t.visitor_id
+    JOIN customer_transcript_entry e ON e.message_id=m.id AND e.event_kind='available'
+      AND e.processing_generation=m.processing_generation
+    WHERE m.id=? AND m.direction='operator_to_customer' AND m.customer_availability='available'`)
     .bind(messageId)
-    .first<{ thread_id: string; inbox_id: string; body: string; email: string | null }>();
+    .first<{
+      thread_id: string;
+      inbox_id: string;
+      body: string;
+      email: string | null;
+      cursor: number;
+      event_at: number;
+      customer_read_cursor: number;
+    }>();
   if (!row?.email) return;
-  const config = settings(env)[row.inbox_id];
+  const config = await settings(env, row.inbox_id);
   if (!config) return;
   const recipient = z.email().parse(row.email).toLowerCase();
   await env.DB.prepare(
@@ -40,13 +45,15 @@ export async function enqueueReplyEmail(env: Env, messageId: string): Promise<vo
     .bind(crypto.randomUUID().replaceAll("-", ""), row.thread_id, recipient)
     .run();
   const route = await env.DB.prepare(
-    "SELECT token FROM thread_email_route WHERE thread_id = ? AND recipient = ?",
+    "SELECT token FROM thread_email_route WHERE thread_id=? AND recipient=?",
   )
     .bind(row.thread_id, recipient)
     .first<{ token: string }>();
   if (!route) throw new Error("Email route missing");
   await env.DB.prepare(`INSERT OR IGNORE INTO email_delivery
-    (message_id, route_token, sender, reply_to, subject, body, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`)
+    (message_id,route_token,sender,reply_to,subject,body,updated_at,due_at,transcript_cursor,status)
+    SELECT ?,?,?,?,?,?,?,?,?, CASE WHEN customer_read_cursor >= ? THEN 'cancelled' ELSE 'pending' END
+    FROM thread WHERE id=?`)
     .bind(
       messageId,
       route.token,
@@ -55,57 +62,87 @@ export async function enqueueReplyEmail(env: Env, messageId: string): Promise<vo
       `${config.name} · Support ${row.thread_id.slice(-8)}`,
       row.body,
       Date.now(),
+      row.event_at + config.unreadDelaySeconds * 1000,
+      row.cursor,
+      row.cursor,
+      row.thread_id,
     )
     .run();
 }
 
-/** An ambiguous send is held for reconciliation, never automatically duplicated. */
+/** An ambiguous provider acceptance is held for reconciliation rather than automatically duplicated. */
 export async function deliverPendingEmails(env: Env): Promise<void> {
-  if (!env.EMAIL || !env.EMAIL_INBOXES) return;
+  if (!env.EMAIL) return;
   await env.DB.prepare(
-    "UPDATE email_delivery SET status = 'unknown' WHERE status = 'sending' AND updated_at < ?",
+    "UPDATE email_delivery SET status='unknown' WHERE status='sending' AND updated_at < ?",
   )
     .bind(Date.now() - 600_000)
     .run();
-  const pending = await env.DB.prepare(`SELECT d.*, r.recipient, t.inbox_id FROM email_delivery d
-    JOIN thread_email_route r ON r.token = d.route_token JOIN thread t ON t.id = r.thread_id
-    WHERE d.status = 'pending' ORDER BY d.updated_at LIMIT 25`).all<{
-    message_id: string;
-    sender: string;
-    reply_to: string;
-    subject: string;
-    body: string;
-    recipient: string;
-    inbox_id: string;
-  }>();
-  const enabled = settings(env);
-  for (const mail of pending.results) {
-    if (!enabled[mail.inbox_id]) continue;
-    const claim = await env.DB.prepare(
-      "UPDATE email_delivery SET status = 'sending', updated_at = ? WHERE message_id = ? AND status = 'pending'",
-    )
-      .bind(Date.now(), mail.message_id)
+  const groups =
+    await env.DB.prepare(`SELECT d.route_token,d.sender,d.reply_to,d.subject,r.recipient,t.inbox_id
+    FROM email_delivery d JOIN thread_email_route r ON r.token=d.route_token JOIN thread t ON t.id=r.thread_id
+    JOIN inbox i ON i.id=t.inbox_id
+    WHERE d.status='pending' AND d.due_at<=? AND i.email_config IS NOT NULL AND i.status='active'
+    GROUP BY d.route_token,d.sender,d.reply_to,d.subject ORDER BY min(d.due_at) LIMIT 25`)
+      .bind(Date.now())
+      .all<{
+        route_token: string;
+        sender: string;
+        reply_to: string;
+        subject: string;
+        recipient: string;
+        inbox_id: string;
+      }>();
+  for (const mail of groups.results) {
+    const config = await settings(env, mail.inbox_id);
+    if (!config) continue;
+    const batch = crypto.randomUUID();
+    await env.DB.prepare(`UPDATE email_delivery SET status='sending',batch_id=?,updated_at=?
+      WHERE status='pending' AND route_token=? AND sender=? AND reply_to=? AND subject=? AND due_at<=?`)
+      .bind(
+        batch,
+        Date.now(),
+        mail.route_token,
+        mail.sender,
+        mail.reply_to,
+        mail.subject,
+        Date.now(),
+      )
       .run();
-    if (claim.meta.changes !== 1) continue;
+    // Fresh, uncached read immediately before handing the remaining messages to the provider.
+    // Also suppress mail to a stale contact address when the customer has changed it.
+    await env.DB.prepare(`UPDATE email_delivery SET status='cancelled',updated_at=? WHERE batch_id=?
+      AND EXISTS (SELECT 1 FROM thread_email_route r JOIN thread t ON t.id=r.thread_id
+        JOIN visitor v ON v.id=t.visitor_id JOIN message m ON m.id=email_delivery.message_id
+        WHERE r.token=email_delivery.route_token AND (t.customer_read_cursor>=email_delivery.transcript_cursor
+          OR lower(coalesce(v.email,''))<>r.recipient OR m.customer_availability<>'available'))`)
+      .bind(Date.now(), batch)
+      .run();
+    const remaining = await env.DB.prepare(
+      "SELECT body FROM email_delivery WHERE batch_id=? AND status='sending' ORDER BY transcript_cursor",
+    )
+      .bind(batch)
+      .all<{ body: string }>();
+    if (!remaining.results.length) continue;
     try {
       const sent = await env.EMAIL.send({
         from: mail.sender,
         to: mail.recipient,
         replyTo: mail.reply_to,
         subject: mail.subject,
-        text: mail.body,
+        text: remaining.results.map((row) => row.body).join("\n\n—\n\n"),
         headers: { "Auto-Submitted": "auto-generated" },
       });
       await env.DB.prepare(
-        "UPDATE email_delivery SET status = 'sent', provider_id = ?, updated_at = ? WHERE message_id = ?",
+        "UPDATE email_delivery SET status='sent',provider_id=?,updated_at=? WHERE batch_id=? AND status='sending'",
       )
-        .bind(sent.messageId, Date.now(), mail.message_id)
+        .bind(sent.messageId, Date.now(), batch)
         .run();
     } catch {
       await env.DB.prepare(
-        "UPDATE email_delivery SET status = 'unknown', updated_at = ? WHERE message_id = ?",
+        "UPDATE email_delivery SET status='unknown',updated_at=? WHERE batch_id=? AND status='sending'",
       )
-        .bind(Date.now(), mail.message_id)
+        .bind(Date.now(), batch)
         .run();
     }
   }
@@ -132,7 +169,7 @@ export async function receiveThreadEmail(message: IncomingEmail, env: Env): Prom
         visitor_id: string;
         status: string;
       }>();
-  const config = route ? settings(env)[route.inbox_id] : undefined;
+  const config = route ? await settings(env, route.inbox_id) : undefined;
   if (
     !route ||
     !config ||

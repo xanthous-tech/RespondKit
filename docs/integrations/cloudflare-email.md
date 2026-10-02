@@ -1,16 +1,18 @@
 # Thread email with Cloudflare Email Service
 
-Operator replies are also emailed when the thread owner has an email and the inbox is enabled. The body is the same customer-visible text (including approved translations). Customers can reply to that email; their plain-text reply enters the existing thread and Discord workflow. No separate email conversation is created. Browser and native polling see these messages normally.
+Operator replies still unread after ten minutes (configurable per inbox) are emailed when the thread owner has an email and the inbox is enabled. The body is the same customer-visible text (including approved translations). Customers can reply to that email; their plain-text reply enters the existing thread and Discord workflow. No separate email conversation is created. Browser and native polling see these messages normally.
 
 ## Setup
 
-1. Apply D1 migrations, including `0004_thread_email.sql`, in your target environment.
+1. Apply D1 migrations, including `0006_email_schedule.sql`, in your target environment.
 2. Onboard and verify a sending domain in Cloudflare Email Service. Arbitrary customer recipients need Email Sending access; the legacy verified-destination-only Email Routing binding is insufficient.
 3. Add `"send_email": [{ "name": "EMAIL" }]` to the target Wrangler environment.
-4. Set `EMAIL_INBOXES` to a JSON map, for example `{"inbox_example_public":{"from":"support@example.com","replyDomain":"reply.example.com","name":"Example Support"}}`.
-5. Enable Email Routing on the reply domain and route its catch-all to this Worker. Retain the existing once-per-minute scheduled trigger, which drains up to 25 pending emails per run.
+4. Add `email` to each site/app inbox in your topology configuration: `{"from":"support@example.com","replyDomain":"reply.example.com","name":"Example Support","unreadDelaySeconds":600}`. Apply with `config:apply`. Omit `email` to disable delivery. The sending domain must be verified with Cloudflare.
+5. Enable Email Routing on the reply domain and route its catch-all to this Worker. Retain the existing once-per-minute scheduled trigger, which drains up to 25 overdue thread/recipient groups per run.
 
-Configuration is deliberately absent from checked-in live environments. Setting it enables email for new published replies, not historical replies. Removing an inbox from the map pauses its queued deliveries and inbound routing. Never expose `thread_email_route.token` or full reply addresses in public logs: they authorize email ingress for the associated recipient and conversation.
+Email configuration lives in D1 alongside the inbox's other settings. Removing `email` pauses pending deliveries and disables inbound routing. Existing `EMAIL_INBOXES` deployments must migrate settings into the topology file. Deadlines are snapshotted at publication and are not reset by configuration changes or enqueue retries. A ten-minute delay normally means delivery at ten to eleven minutes, later during backlog/outages.
+
+Each read acknowledgement atomically cancels pending emails through a D1 trigger. The scheduled sender checks again immediately before provider handoff; accepted emails cannot be recalled. Only overdue unread messages are batched, in transcript order. Newer messages keep their original deadlines. Changing the customer's contact suppresses pending delivery to the old address. Reply addresses authorize ingress for their associated recipient and must not be exposed in public logs.
 
 ## Delivery and recovery
 

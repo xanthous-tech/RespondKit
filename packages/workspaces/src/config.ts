@@ -105,11 +105,25 @@ export const visitorContextSchema = z.strictObject({
   metadata: metadataSchema.optional(),
 });
 
+export const emailConfigurationSchema = z.strictObject({
+  from: z.email(),
+  name: z
+    .string()
+    .trim()
+    .min(1)
+    .max(100)
+    .regex(/^[^\r\n]+$/),
+  replyDomain: z.string().regex(/^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/),
+  unreadDelaySeconds: z.number().int().positive().default(600),
+});
+export type EmailConfiguration = z.infer<typeof emailConfigurationSchema>;
+
 export const inboxConfigurationSchema = z.strictObject({
   id: InboxIdSchema,
   name: z.string().trim().min(1).max(160),
   defaultLocale: LanguageTagSchema.optional(),
   allowedOrigins: z.array(allowedOriginConfigSchema).min(1).max(100),
+  email: emailConfigurationSchema.optional(),
 });
 
 export const productConfigurationSchema = z.strictObject({

@@ -3,8 +3,6 @@ import type { MessageWorkflowEnvelope } from "./workflows/envelope";
 import type { TranslationWorkflowParams } from "./translation-service";
 
 export interface Env {
-  /** Per-inbox Email Service configuration; absent means disabled. */
-  readonly EMAIL_INBOXES?: string;
   readonly EMAIL?: {
     send(message: {
       from: string;
