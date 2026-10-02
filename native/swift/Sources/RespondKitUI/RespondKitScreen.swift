@@ -316,7 +316,7 @@
         .fileImporter(
           isPresented: $showFiles, allowedContentTypes: [.item], allowsMultipleSelection: true
         ) { result in
-          let scope = store.attachmentScope
+          let scope = pickerScope
           Task {
             do {
               for url in try result.get() {
@@ -327,7 +327,7 @@
           }
         }
         .onChange(of: photos) { _, selection in
-          let scope = store.attachmentScope
+          let scope = pickerScope
           Task {
             do {
               for photo in selection {

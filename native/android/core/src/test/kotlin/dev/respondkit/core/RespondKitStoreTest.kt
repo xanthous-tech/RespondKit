@@ -312,6 +312,7 @@ class RespondKitStoreTest {
         val attachment = SupportAttachment("att_one", "photo.jpg", "image/jpeg", 42, "https://support.example.com/v1/files/token")
         store.sendDraft(listOf(attachment))
         val restored = store(api, storage)
+        restored.selectThread("thread_new")
         val pending = restored.state.value.pendingMessages.single()
         assertEquals(listOf(attachment), pending.attachments)
         assertEquals("Attached files", pending.text)
