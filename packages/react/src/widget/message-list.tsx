@@ -177,6 +177,18 @@ export function MessageList({
                     )}
                   >
                     <MessageText text={message.text} />
+                    {message.attachments?.map((file) => (
+                      <a
+                        key={file.id}
+                        href={file.downloadUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="ac:block ac:break-all ac:text-primary ac:underline"
+                        download={file.name}
+                      >
+                        📎 {file.name}
+                      </a>
+                    ))}
                   </p>
                   <div className="ac:flex ac:min-h-5 ac:items-center ac:gap-2 ac:px-1 ac:text-xs ac:text-muted-foreground">
                     <time dateTime={message.acceptedAt}>

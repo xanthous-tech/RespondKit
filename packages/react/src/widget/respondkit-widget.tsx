@@ -72,6 +72,7 @@ export function RespondKitWidget({
     pollError,
     retryMessage,
     sendMessage,
+    uploadFile,
     transcriptState,
     threads,
     selectedThreadId,
@@ -231,7 +232,12 @@ export function RespondKitWidget({
                     onSave={saveEmail}
                   />
                 ) : null}
-                <MessageComposer disabled={bootstrapState !== "ready"} onSend={sendMessage} />
+                <MessageComposer
+                  scope={`${context.userId ?? "anonymous"}:${selectedThreadId ?? "new"}`}
+                  disabled={bootstrapState !== "ready"}
+                  onSend={sendMessage}
+                  onUpload={uploadFile}
+                />
               </>
             )}
           </section>

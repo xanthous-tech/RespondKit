@@ -1,5 +1,8 @@
 import {
   RespondKitClientError,
+  uploadAttachment,
+  fileUploadSource,
+  type AttachmentV1,
   createRespondKitClient,
   createClientMessageId,
   type ClientSessionV1,
@@ -33,6 +36,7 @@ const POLL_INTERVAL_MS = 2_000;
 const INITIAL_CURSOR = "0" as Cursor;
 
 interface PendingMessage {
+  readonly attachments?: AttachmentV1[] | undefined;
   readonly clientMessageId: string;
   readonly text: string;
   readonly acceptedAt: string;
@@ -103,6 +107,7 @@ function displayMessages(
     ...(message.clientMessageId === undefined ? {} : { clientMessageId: message.clientMessageId }),
     direction: message.direction,
     text: message.text,
+    attachments: message.attachments,
     acceptedAt: message.acceptedAt,
     state: message.state,
   }));
@@ -114,6 +119,7 @@ function displayMessages(
       clientMessageId: pending.clientMessageId,
       direction: "customer_to_operator",
       text: pending.text,
+      attachments: pending.attachments,
       acceptedAt: pending.acceptedAt,
       state: "processing",
       localDelivery: pending.delivery,
@@ -609,6 +615,9 @@ export function useRespondKit({
         const response = await client.sendMessage(session.token, thread.id, {
           clientMessageId: pending.clientMessageId,
           text: pending.text,
+          ...(pending.attachments?.length
+            ? { attachmentIds: pending.attachments.map((a) => a.id) }
+            : {}),
         });
         if (identityEpochRef.current !== identityEpoch) return;
         if (response.acceptance.message !== undefined) {
@@ -640,13 +649,14 @@ export function useRespondKit({
   );
 
   const sendMessage = useCallback(
-    (text: string) => {
-      const normalizedText = text.trim();
+    (text: string, attachments: AttachmentV1[] = []) => {
+      const normalizedText = text.trim() || (attachments.length ? "Attached files" : "");
       if (normalizedText.length === 0 || bootstrapState !== "ready") return;
 
       void submitPending({
         clientMessageId: createClientMessageId(),
         text: normalizedText,
+        attachments,
         acceptedAt: new Date().toISOString(),
         delivery: "optimistic",
       });
@@ -670,6 +680,7 @@ export function useRespondKit({
           return {
             clientMessageId,
             text: failed.text,
+            attachments: failed.attachments,
             acceptedAt: failed.acceptedAt,
             delivery: "failed_retryable" as const,
           };
@@ -690,6 +701,30 @@ export function useRespondKit({
   }
 
   return {
+    uploadFile: async (
+      file: File,
+      id: string,
+      signal: AbortSignal,
+      onProgress: (sent: number, total: number) => void,
+    ) => {
+      const epoch = identityEpochRef.current;
+      if (!session || !contextMatches) throw new Error("Reconnect before uploading.");
+      const attachment = await uploadAttachment(
+        { baseUrl: apiBaseUrl, fetch },
+        fileUploadSource(file),
+        {
+          clientUploadId: id,
+          signal,
+          onProgress,
+          getToken: async () => {
+            if (epoch !== identityEpochRef.current) throw new Error("Support identity changed.");
+            return session.token;
+          },
+        },
+      );
+      if (epoch !== identityEpochRef.current) throw new Error("Support identity changed.");
+      return attachment;
+    },
     unreadThreadIds,
     threads: contextMatches ? threads : [],
     emailAddress: contextMatches ? emailAddress : undefined,

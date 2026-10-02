@@ -1,4 +1,4 @@
-import type { MessageDirection, MessageState } from "@respondkit/api-client";
+import type { AttachmentV1, MessageDirection, MessageState } from "@respondkit/api-client";
 
 export type RespondKitMetadataValue = string | number | boolean | null;
 
@@ -36,6 +36,7 @@ export interface DisplayMessage {
   readonly clientMessageId?: string | undefined;
   readonly direction: MessageDirection;
   readonly text: string;
+  readonly attachments?: AttachmentV1[] | undefined;
   readonly acceptedAt: string;
   readonly state: MessageState;
   readonly localDelivery?: LocalDeliveryState | undefined;
