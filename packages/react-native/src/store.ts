@@ -1,5 +1,8 @@
 import {
   createRespondKitClient,
+  uploadAttachment,
+  type UploadSource,
+  type AttachmentV1,
   RespondKitClientError,
   type RespondKitClient,
   type ClientSessionV1,
@@ -7,7 +10,12 @@ import {
   type MessageV1,
   type ThreadV1,
 } from "@respondkit/api-client";
-import { CursorSchema, MessageV1Schema, ThreadV1Schema } from "@respondkit/protocol";
+import {
+  AttachmentV1Schema,
+  CursorSchema,
+  MessageV1Schema,
+  ThreadV1Schema,
+} from "@respondkit/protocol";
 import { z } from "zod";
 
 export interface RespondKitPersistence {
@@ -42,6 +50,7 @@ export function memoryPersistence(): RespondKitPersistence {
 const pendingSchema = z.object({
   id: z.string(),
   text: z.string(),
+  attachments: z.array(AttachmentV1Schema).optional(),
   acceptedAt: z.string(),
   delivery: z.enum(["sending", "acceptance_unknown", "accepted", "failed"]),
 });
@@ -428,8 +437,35 @@ export class RespondKitStore {
       this.publish();
     }
   }
-  sendDraft(): Promise<void> {
-    const text = this.snapshot.draft.trim();
+  get attachmentScope() {
+    return `${this.epoch}:${this.data.selected ?? "new"}`;
+  }
+  async upload(
+    source: UploadSource,
+    id: string,
+    signal: AbortSignal,
+    onProgress: (sent: number, total: number) => void,
+  ): Promise<AttachmentV1> {
+    const epoch = this.epoch;
+    const file = await uploadAttachment(
+      {
+        baseUrl: this.options.apiBaseUrl,
+        fetch: this.options.fetch,
+        headers: { Origin: this.options.origin },
+      },
+      source,
+      {
+        clientUploadId: id,
+        signal,
+        onProgress,
+        getToken: () => this.token(epoch),
+      },
+    );
+    this.check(epoch);
+    return file;
+  }
+  sendDraft(attachments: AttachmentV1[] = []): Promise<void> {
+    const text = this.snapshot.draft.trim() || (attachments.length ? "Attached files" : "");
     if (
       !text ||
       text.length > 6_000 ||
@@ -441,6 +477,7 @@ export class RespondKitStore {
     const key = this.data.selected ?? "new";
     const pending: PendingMessage = {
       id: this.options.createId("cmsg"),
+      attachments,
       text,
       acceptedAt: new Date().toISOString(),
       delivery: "sending",
@@ -476,7 +513,13 @@ export class RespondKitStore {
         (m) => m.clientMessageId === id && m.state === "failed",
       );
       if (failed)
-        pending = { id, text: failed.text, acceptedAt: failed.acceptedAt, delivery: "failed" };
+        pending = {
+          id,
+          text: failed.text,
+          attachments: failed.attachments,
+          acceptedAt: failed.acceptedAt,
+          delivery: "failed",
+        };
     }
     if (!pending) return Promise.resolve();
     const payload = pending;
@@ -521,6 +564,9 @@ export class RespondKitStore {
         this.client.sendMessage(token, threadId, {
           clientMessageId: pending.id,
           text: pending.text,
+          ...(pending.attachments?.length
+            ? { attachmentIds: pending.attachments.map((a) => a.id) }
+            : {}),
         }),
       );
       this.replacePending(threadId, {

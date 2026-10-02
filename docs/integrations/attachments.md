@@ -16,3 +16,12 @@ The bucket stays private. Download URLs contain 256-bit random capabilities and 
 A completed upload is retained if removed from the draft; it is inaccessible through its download URL until associated with a message. Explicit cancellation aborts only an unfinished multipart upload. There is no automatic object deletion.
 
 HTTP flow: authenticated `POST /v1/attachments` with a stable client upload ID and metadata; `PUT /v1/attachments/:id/parts/:part` for binary chunks; `POST /v1/attachments/:id/complete`; send the returned ID in `attachmentIds` with the message. Repeat the same upload ID/file to recover a lost completion response. The API returns links in `message.attachments` and mirrors them to Discord. Operator/email-originated binary uploads are not part of the client import flow.
+
+## Client import UI
+
+- Web: unrestricted `<input type="file" multiple>` with progress, retry, and removal. No `accept` filter.
+- SwiftUI: PhotosPicker for photos/videos and `.fileImporter` with `.item` and multiple selection. Security-scoped resources are copied into temporary storage before the grant ends.
+- Android Compose: `PickMultipleVisualMedia` and `OpenMultipleDocuments`. Content URIs are streamed into the app cache before uploading.
+- React Native: the SDK's autolinked RespondKitFiles module uses PHPicker/UIDocumentPicker on iOS and system Photo Picker/Open Document intents on Android. Hosts do not need a separate picker dependency.
+
+No camera access is requested and no broad storage/photo permission is added. Native source files are read in bounded chunks. The UI retains failed uploads for retry and disables sending until all remaining attachments finish. File-only messages use “Attached files”. Links are visible in optimistic/canonical messages and immutable pending sends retain the same attachment IDs after restart. Upload selections are scoped to the current account/conversation; completed files remain in R2 without expiration. Selecting files does not itself send a chat message.

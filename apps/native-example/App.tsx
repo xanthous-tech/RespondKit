@@ -61,6 +61,9 @@ export default function App() {
       persistence: storagePersistence(AsyncStorage, "respondkit:demo:v1"),
       pollIntervalMs: 1000,
       client: demoClient(),
+      fetch: async () => {
+        throw new Error("Configure a real inbox and R2 to test file uploads.");
+      },
     })
       .then((value) => {
         current = value;

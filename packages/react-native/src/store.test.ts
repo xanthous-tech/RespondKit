@@ -293,3 +293,25 @@ it("starts a new conversation after a closed thread and retains drafts per conve
   await store.sendDraft();
   expect(client.createThread).toHaveBeenCalledTimes(1);
 });
+
+it("keeps attachment IDs and file metadata on immutable retries after restart", async () => {
+  const client = api();
+  const persistence = memoryPersistence();
+  const store = await make(client, persistence);
+  await store.openConversation();
+  const attachment = {
+    id: `att_${"a".repeat(64)}`,
+    name: "report.pdf",
+    contentType: "application/pdf",
+    size: 10,
+    downloadUrl: "https://api.example.com/v1/files/token",
+  };
+  client.sendMessage.mockRejectedValueOnce(new Error("connection lost"));
+  await store.sendDraft([attachment]);
+  const first = client.sendMessage.mock.calls[0];
+  expect(first?.[2]).toMatchObject({ text: "Attached files", attachmentIds: [attachment.id] });
+  const restored = await make(client, persistence);
+  expect(restored.getSnapshot().pending[0]?.attachments).toEqual([attachment]);
+  await restored.retry(restored.getSnapshot().pending[0]!.id);
+  expect(client.sendMessage.mock.calls[1]).toEqual(first);
+});

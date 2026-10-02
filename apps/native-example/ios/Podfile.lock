@@ -1695,6 +1695,8 @@ PODS:
     - React-utils (= 0.87.1)
     - ReactNativeDependencies
   - ReactNativeDependencies (0.87.1)
+  - RespondKitFiles (0.5.3):
+    - React-Core
   - RNCAsyncStorage (2.2.0):
     - hermes-engine
     - RCTRequired
@@ -1811,6 +1813,7 @@ DEPENDENCIES:
   - ReactCodegen (from `build/generated/ios/ReactCodegen`)
   - ReactCommon/turbomodule/core (from `../../../node_modules/react-native/ReactCommon`)
   - ReactNativeDependencies (from `../../../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec`)
+  - "RespondKitFiles (from `../node_modules/@respondkit/react-native`)"
   - "RNCAsyncStorage (from `../../../node_modules/@react-native-async-storage/async-storage`)"
   - RNDeviceInfo (from `../../../node_modules/react-native-device-info`)
   - SocketRocket (from `build/rndeps-facades/SocketRocket`)
@@ -1988,6 +1991,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/react-native/ReactCommon"
   ReactNativeDependencies:
     :podspec: "../../../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec"
+  RespondKitFiles:
+    :path: "../node_modules/@respondkit/react-native"
   RNCAsyncStorage:
     :path: "../../../node_modules/@react-native-async-storage/async-storage"
   RNDeviceInfo:
@@ -2083,6 +2088,7 @@ SPEC CHECKSUMS:
   ReactCodegen: f03daf0e1d33809884e7c018cdde02e96925fcb7
   ReactCommon: 749169e12aa3461a3df3656a00e48dbe0456b2d6
   ReactNativeDependencies: 94c922c39e0e6150ee9ad05e2ca1946e0ef55783
+  RespondKitFiles: 989efe2191178edac0e8b3c0868b05d55d63ab0c
   RNCAsyncStorage: 2f5e3ddbfb3d3168345311b25fb3c470edf36d9d
   RNDeviceInfo: 4c852998208b60dc192ae3529e5867817719ad1e
   SocketRocket: 37aec555668fb852ec12e3c0de59a86ca58f0871

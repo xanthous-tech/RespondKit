@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import type { AttachmentV1 } from "@respondkit/api-client";
+import { AttachmentPicker } from "./attachment-picker";
+import { useEffect, useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   AppState,
@@ -34,6 +36,7 @@ export interface RespondKitScreenProps {
 interface Row {
   id: string;
   text: string;
+  attachments?: AttachmentV1[] | undefined;
   customer: boolean;
   date: string;
   status?: string;
@@ -46,6 +49,7 @@ export function transcriptRows(state: SupportSnapshot): Row[] {
     ...state.messages.map((m) => ({
       id: m.id,
       text: m.text,
+      attachments: m.attachments,
       customer: m.direction === "customer_to_operator",
       date: m.acceptedAt,
       ...(m.direction === "customer_to_operator"
@@ -59,6 +63,7 @@ export function transcriptRows(state: SupportSnapshot): Row[] {
       .map((m) => ({
         id: m.id,
         text: m.text,
+        attachments: m.attachments,
         customer: true,
         date: m.acceptedAt,
         status:
@@ -133,6 +138,13 @@ export function RespondKitScreen({
   accentForegroundColor = "#ffffff",
 }: RespondKitScreenProps) {
   const state = useRespondKit(store);
+  const [attachments, setAttachments] = useState<AttachmentV1[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [attachmentReset, setAttachmentReset] = useState(0);
+  const onAttachments = useCallback((files: AttachmentV1[], busy: boolean) => {
+    setAttachments(files);
+    setUploading(busy);
+  }, []);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   const accentFill = useMemo(() => {
@@ -163,7 +175,8 @@ export function RespondKitScreen({
   const canSend =
     !state.loading &&
     !state.sending &&
-    state.draft.trim().length > 0 &&
+    (state.draft.trim().length > 0 || attachments.length > 0) &&
+    !uploading &&
     state.draft.trim().length <= 6_000;
 
   useEffect(() => {
@@ -345,6 +358,18 @@ export function RespondKitScreen({
                     >
                       <Text style={[styles.text, item.failed && { color: "#dc2626" }]}>
                         <MessageText text={item.text} accent={accentColor} />
+                        {item.attachments?.map((file) => (
+                          <Text
+                            key={file.id}
+                            accessibilityRole="link"
+                            style={{ color: accentColor, textDecorationLine: "underline" }}
+                            onPress={() =>
+                              void Linking.openURL(file.downloadUrl).catch(() => undefined)
+                            }
+                          >
+                            📎 {file.name}
+                          </Text>
+                        ))}
                       </Text>
                     </View>
                     <View
@@ -419,6 +444,11 @@ export function RespondKitScreen({
                 </View>
               </View>
             ) : null}
+            <AttachmentPicker
+              key={`${store.attachmentScope}:${attachmentReset}`}
+              store={store}
+              onChange={onAttachments}
+            />
             <View style={styles.composer}>
               <TextInput
                 accessibilityLabel="Message"
@@ -441,7 +471,11 @@ export function RespondKitScreen({
                 accessibilityRole="button"
                 accessibilityLabel="Send message"
                 disabled={!canSend}
-                onPress={() => void store.sendDraft()}
+                onPress={() => {
+                  void store.sendDraft(attachments);
+                  setAttachments([]);
+                  setAttachmentReset((value) => value + 1);
+                }}
                 style={[styles.send, { backgroundColor: accentColor, opacity: canSend ? 1 : 0.5 }]}
               >
                 {state.sending ? (

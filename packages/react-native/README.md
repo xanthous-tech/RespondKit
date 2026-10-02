@@ -1,6 +1,6 @@
 # @respondkit/react-native
 
-A native React Native support screen for iOS and Android, sharing the RespondKit API and matching the React/SwiftUI/Compose clients. It includes conversation history, persisted drafts and retryable sends, foreground unread refresh, visible-transcript read acknowledgements, link detection, custom colors, a local greeting, email capture, and native device diagnostics.
+A native React Native support screen for iOS and Android, sharing the RespondKit API and matching the React/SwiftUI/Compose clients. It includes system photo/file import, multiple R2 attachments, conversation history, persisted drafts and retryable sends, foreground unread refresh, visible-transcript read acknowledgements, link detection, custom colors, a local greeting, email capture, and native device diagnostics.
 
 ## Install
 
@@ -9,7 +9,7 @@ npm install @respondkit/react-native react-native-device-info react-native-get-r
 cd ios && pod install
 ```
 
-React Native 0.81+ and React 19.1+ are supported; the example is built against 0.87.1. Native modules require a native build (Expo development builds work; Expo Go does not include all these modules).
+React Native 0.81+ and React 19.1+ are supported; the example is built against 0.87.1. The package includes the RespondKitFiles native module; rebuild the host and run `pod install` after upgrading. Native modules require a native build (Expo development builds work; Expo Go does not include all these modules).
 
 For the React Native CLI Babel preset, add `@babel/plugin-transform-export-namespace-from` to your dev dependencies and `plugins` in `babel.config.js`. This handles namespace exports in Zod, which validates the shared wire protocol. Expo's Babel preset may already include it.
 
@@ -97,3 +97,9 @@ pnpm --dir apps/native-example android
 The example's injected transport is key-free and replies locally; it does not send mail or contact a production inbox. Remove its `client` option and configure a real inbox to exercise the deployed API. The example Android build resolves native packages from this repository's hoisted `node_modules`.
 
 `pnpm --dir packages/react-native test` checks restart-safe retries, account isolation, expired sessions, history/transcript paging, read acknowledgements, email capture, storage failures, and duplicate taps. `pnpm --dir packages/react-native build:npm` emits JS and declarations and runs package lint. `pnpm --dir apps/native-example bundle:android` checks Metro compatibility.
+
+## File attachments
+
+The screen's attachment menu imports multiple photos/videos or arbitrary files using native system pickers. No broad photo-library or storage permission is required, and the SDK adds no permission entries. Imported files are staged in the app's temporary/cache directory and read in chunks for multipart R2 upload. Failed uploads retain their selection for Retry; pending message retries retain the same completed attachment IDs across restarts. A draft's unfinished selections clear when changing accounts/conversations or closing the screen. Removing an uploaded file from the draft does not expire its R2 object.
+
+Run CocoaPods and rebuild the native app after installing this version so `RespondKitFiles` is autolinked. `pickSupportFiles("photos" | "files")` and `nativeFileSource(file)` are exported for custom host UI. The key-free example permits picker review but reports an explicit setup error for uploads until a real API/R2 inbox is configured. See [R2 setup](../../docs/integrations/attachments.md).
