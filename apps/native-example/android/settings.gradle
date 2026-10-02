@@ -1,6 +1,14 @@
-pluginManagement { includeBuild("../../../node_modules/@react-native/gradle-plugin") }
+pluginManagement {
+    includeBuild(providers.exec {
+        workingDir(settingsDir)
+        commandLine("node", "resolve-react-native.cjs", "@react-native/gradle-plugin")
+    }.standardOutput.asText.get().trim())
+}
 plugins { id("com.facebook.react.settings") }
 extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
 rootProject.name = 'RespondKitExample'
 include ':app'
-includeBuild('../../../node_modules/@react-native/gradle-plugin')
+includeBuild(providers.exec {
+    workingDir(settingsDir)
+    commandLine("node", "resolve-react-native.cjs", "@react-native/gradle-plugin")
+}.standardOutput.asText.get().trim())
