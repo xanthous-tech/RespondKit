@@ -94,7 +94,7 @@ pnpm --dir apps/native-example android
 # pnpm --dir apps/native-example ios
 ```
 
-The example's injected transport is key-free and replies locally; it does not send mail or contact a production inbox. Remove its `client` option and configure a real inbox to exercise the deployed API. The example Android build resolves native packages from this repository's hoisted `node_modules`.
+The example's injected transport is key-free and replies locally; it does not send mail or contact a production inbox. Remove its `client` option and configure a real inbox to exercise the deployed API. The example Android build resolves React Native from the app and build tools from React Native's dependencies, supporting both hoisted and isolated pnpm installs.
 
 `pnpm --dir packages/react-native test` checks restart-safe retries, account isolation, expired sessions, history/transcript paging, read acknowledgements, email capture, storage failures, and duplicate taps. `pnpm --dir packages/react-native build:npm` emits JS and declarations and runs package lint. `pnpm --dir apps/native-example bundle:android` checks Metro compatibility.
 
