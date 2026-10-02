@@ -3,6 +3,7 @@ import type { MessageWorkflowEnvelope } from "./workflows/envelope";
 import type { TranslationWorkflowParams } from "./translation-service";
 
 export interface Env {
+  readonly ATTACHMENTS?: R2Bucket;
   readonly EMAIL?: {
     send(message: {
       from: string;

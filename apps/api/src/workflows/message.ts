@@ -239,6 +239,7 @@ async function persistIngress(
             workflowInstanceId: envelope.workflowInstanceId,
             acceptedAt: new Date(envelope.acceptedAt),
             originalText: envelope.originalText,
+            ...(envelope.attachments ? { attachments: envelope.attachments } : {}),
             ...(envelope.localeHint === undefined ? {} : { localeHint: envelope.localeHint }),
           })
         : await acceptReplyIngress(db, {
@@ -721,7 +722,7 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
           envelope,
           target,
           "customer_projection",
-          `**Customer**\n${envelope.originalText}`,
+          `**Customer**\n${envelope.originalText}${(envelope.attachments ?? []).map((file) => `\n📎 ${file.name.replace(/[\r\n]/g, " ")}\n${file.downloadUrl}`).join("")}`,
           "project-customer-message",
         );
       } else {

@@ -1,3 +1,10 @@
+import {
+  registerAttachmentRoutes,
+  resolveAttachments,
+  persistAttachmentIngress,
+} from "./attachments";
+import { HTTPException } from "hono/http-exception";
+import type { AttachmentV1 } from "@respondkit/protocol";
 import { handleActivityInteraction } from "./discord-activity";
 import {
   acknowledgeCustomerRead,
@@ -130,7 +137,7 @@ function applyCorsHeaders(context: ApiContext): void {
   if (origin === undefined) return;
   context.header("access-control-allow-origin", origin);
   context.header("access-control-allow-headers", "authorization, content-type");
-  context.header("access-control-allow-methods", "GET, POST, OPTIONS");
+  context.header("access-control-allow-methods", "GET, POST, PUT, DELETE, OPTIONS");
   context.header("access-control-max-age", "86400");
   context.header("vary", "Origin");
 }
@@ -386,6 +393,7 @@ function customerEnvelope(input: {
   readonly workflowInstanceId: string;
   readonly clientMessageId: string;
   readonly originalText: string;
+  readonly attachments?: AttachmentV1[];
   readonly acceptedAt: Date;
   readonly replyTranslation?: string;
   readonly replyTranslationRequest?: string;
@@ -402,6 +410,7 @@ function customerEnvelope(input: {
     acceptedAt: input.acceptedAt.toISOString(),
     clientMessageId: input.clientMessageId,
     originalText: input.originalText,
+    ...(input.attachments?.length ? { attachments: input.attachments } : {}),
     ...(input.auth.visitor.locale === null ? {} : { localeHint: input.auth.visitor.locale }),
     context: visitorWorkflowContext(input.auth.visitor),
   };
@@ -479,6 +488,21 @@ export function createHttpApp() {
   });
 
   app.onError((error, context) => {
+    if (error instanceof HTTPException)
+      return apiError(
+        context,
+        new ApiHttpError(
+          error.status as ApiStatus,
+          error.status === 404
+            ? "not_found"
+            : error.status === 409
+              ? "conflict"
+              : error.status === 503
+                ? "unavailable"
+                : "invalid_request",
+          error.message,
+        ),
+      );
     if (error instanceof ApiHttpError) return apiError(context, error);
     if (error instanceof z.ZodError) {
       return apiError(
@@ -492,6 +516,8 @@ export function createHttpApp() {
       new ApiHttpError(500, "internal_error", "RespondKit could not process the request", true),
     );
   });
+
+  registerAttachmentRoutes(app, async (c) => (await authenticateCustomer(c)).claims);
 
   app.options("/v1/*", (context) => {
     const origin = requestOrigin(context);
@@ -784,7 +810,11 @@ export function createHttpApp() {
       clientMessageId: request.clientMessageId,
     });
     if (existing !== null) {
-      if (existing.originalText !== request.text) {
+      if (
+        existing.originalText !== request.text ||
+        JSON.stringify(existing.attachments.map((a) => a.id)) !==
+          JSON.stringify(request.attachmentIds ?? [])
+      ) {
         throw new ApiHttpError(
           409,
           "conflict",
@@ -815,6 +845,7 @@ export function createHttpApp() {
           ...identity,
           clientMessageId: request.clientMessageId,
           originalText: existing.originalText,
+          attachments: existing.attachments,
           acceptedAt: existing.acceptedAt,
         }),
       });
@@ -841,14 +872,24 @@ export function createHttpApp() {
       clientMessageId: request.clientMessageId,
     });
     const acceptedAt = new Date();
-    const envelope = customerEnvelope({
-      auth,
-      thread,
-      ...identity,
-      clientMessageId: request.clientMessageId,
-      originalText: request.text,
-      acceptedAt,
-    });
+    const attachments = await resolveAttachments(
+      context.env,
+      auth.claims,
+      request.attachmentIds ?? [],
+      identity.messageId,
+    );
+    const envelope = await persistAttachmentIngress(
+      context.env,
+      customerEnvelope({
+        auth,
+        thread,
+        ...identity,
+        clientMessageId: request.clientMessageId,
+        originalText: request.text,
+        attachments,
+        acceptedAt,
+      }),
+    );
     const workflow = await acceptWorkflow(
       context.env.MESSAGE_WORKFLOW,
       identity.workflowInstanceId,

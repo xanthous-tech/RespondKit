@@ -1,4 +1,4 @@
-import { DeviceContextV1Schema } from "@respondkit/protocol";
+import { DeviceContextV1Schema, AttachmentV1Schema } from "@respondkit/protocol";
 import { z } from "zod";
 
 const boundedContextSchema = z.object({
@@ -27,6 +27,7 @@ const sharedEnvelopeSchema = z.object({
 export const customerWorkflowEnvelopeSchema = sharedEnvelopeSchema.extend({
   direction: z.literal("customer_to_operator"),
   clientMessageId: z.string().min(1).max(128),
+  attachments: z.array(AttachmentV1Schema).optional(),
   originalText: z.string().min(1).max(6_000),
   localeHint: z.string().max(64).optional(),
   context: boundedContextSchema,

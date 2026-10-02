@@ -42,3 +42,7 @@ export type {
   ThreadId,
   ThreadV1,
 } from "@respondkit/protocol";
+
+export { uploadAttachment, fileUploadSource } from "./uploads";
+export type { UploadSource, UploadOptions } from "./uploads";
+export type { AttachmentV1 } from "@respondkit/protocol";

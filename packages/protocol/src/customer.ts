@@ -1,3 +1,4 @@
+import { AttachmentV1Schema, AttachmentIdSchema } from "./attachments";
 import { z } from "zod";
 
 import {
@@ -171,6 +172,7 @@ export const MessageV1Schema = z
     threadId: ThreadIdSchema,
     clientMessageId: ClientMessageIdSchema.optional(),
     direction: MessageDirectionSchema,
+    attachments: z.array(AttachmentV1Schema).optional(),
     // A translated operator reply can expand beyond Discord's 6,000-character
     // command input even though new customer input is capped below.
     text: z.string().min(1).max(24_000),
@@ -236,6 +238,7 @@ export const SendMessageRequestV1Schema = z
   .object({
     clientMessageId: ClientMessageIdSchema,
     text: nonBlankMessageText,
+    attachmentIds: z.array(AttachmentIdSchema).optional(),
   })
   .strict();
 export type SendMessageRequestV1 = z.infer<typeof SendMessageRequestV1Schema>;

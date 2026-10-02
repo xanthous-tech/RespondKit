@@ -1,3 +1,4 @@
+import type { AttachmentV1 } from "@respondkit/protocol";
 import type {
   ClientMessageId,
   ClientThreadId,
@@ -124,6 +125,10 @@ export const messages = sqliteTable(
     clientMessageId: text("client_message_id").$type<ClientMessageId>(),
     workflowInstanceId: text("workflow_instance_id").$type<WorkflowInstanceId>().notNull(),
     direction: text("direction", { enum: messageDirections }).$type<MessageDirection>().notNull(),
+    attachments: text("attachments", { mode: "json" })
+      .$type<AttachmentV1[]>()
+      .notNull()
+      .default(sql`'[]'`),
     originalText: text("original_text").notNull(),
     originalLanguage: text("original_language"),
     replyTranslation: text("reply_translation"),
