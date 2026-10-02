@@ -196,7 +196,9 @@ class RespondKitStore(
     val attachmentScope: String get() = "$epoch:${state.value.activeThreadId ?: "new"}"
     suspend fun upload(file: java.io.File, contentType: String, clientUploadId: String): SupportAttachment {
         val generation = epoch
-        return authorized(generation) { api.upload(it, file, contentType, clientUploadId) }
+        val result = authorized(generation) { api.upload(it, file, contentType, clientUploadId) }
+        check(generation)
+        return result
     }
     suspend fun sendDraft(attachments: List<SupportAttachment> = emptyList()) {
         if (state.value.isSending) return
@@ -398,6 +400,7 @@ class RespondKitStore(
     }
 
     private suspend fun validToken(generation: Long): String {
+        check(generation)
         persist()
         session
             ?.takeIf { Instant.parse(it.expiresAt).isAfter(Instant.now().plusSeconds(15)) }

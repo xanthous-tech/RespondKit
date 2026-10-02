@@ -375,6 +375,7 @@ import Observation
     }
   }
   private func validToken(_ epoch: Int) async throws -> String {
+    try check(epoch)
     try persist()
     if let session, let expiry = timestamp(session.expiresAt),
       expiry > Date().addingTimeInterval(15)

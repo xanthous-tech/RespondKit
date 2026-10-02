@@ -235,6 +235,7 @@
     @State private var photos: [PhotosPickerItem] = []
     @State private var showPhotos = false
     @State private var showFiles = false
+    @State private var pickerScope: String?
     @State private var importError: String?
     @FocusState private var focused: Bool
     @ScaledMetric(relativeTo: .body) private var inputSize = 16
@@ -272,8 +273,14 @@
         }
         HStack(alignment: .bottom, spacing: 8) {
           Menu {
-            Button("Photo library", systemImage: "photo.on.rectangle") { showPhotos = true }
-            Button("Files", systemImage: "folder") { showFiles = true }
+            Button("Photo library", systemImage: "photo.on.rectangle") {
+              pickerScope = store.attachmentScope
+              showPhotos = true
+            }
+            Button("Files", systemImage: "folder") {
+              pickerScope = store.attachmentScope
+              showFiles = true
+            }
           } label: {
             Image(systemName: "paperclip").frame(width: 44, height: 44)
           }
@@ -341,6 +348,7 @@
       for task in tasks.values { task.cancel() }
       tasks = [:]
       picked = []
+      pickerScope = nil
     }
     private func add(_ url: URL) {
       let file = PickedFile(url: url)

@@ -257,6 +257,7 @@ export class RespondKitStore {
     return task;
   }
   private async token(epoch: number): Promise<string> {
+    this.check(epoch);
     if (this.session && Date.parse(this.session.expiresAt) > Date.now() + 15_000)
       return this.session.token;
     const identityToken = await this.getIdentityToken?.();

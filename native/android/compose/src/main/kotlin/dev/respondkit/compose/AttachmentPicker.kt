@@ -28,6 +28,7 @@ internal fun AttachmentPicker(store: RespondKitStore, clear: Int, onChange: (Lis
     val scope = rememberCoroutineScope()
     var picked by remember(store.attachmentScope, clear) { mutableStateOf(emptyList<PickedFile>()) }
     var expanded by remember { mutableStateOf(false) }
+    var requestedScope by remember { mutableStateOf<String?>(null) }
     val jobs = remember { mutableMapOf<String, Job>() }
     DisposableEffect(store.attachmentScope, clear) { onDispose { jobs.values.forEach { it.cancel() }; jobs.clear() } }
     LaunchedEffect(picked) { onChange(picked.mapNotNull { it.attachment }, picked.any { it.attachment == null }) }
@@ -64,16 +65,16 @@ internal fun AttachmentPicker(store: RespondKitStore, clear: Int, onChange: (Lis
         picked = picked + items
         items.forEach { upload(it) }
     }
-    val photos = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { select(it) }
-    val files = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { select(it) }
+    val photos = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { if (requestedScope == store.attachmentScope) select(it); requestedScope = null }
+    val files = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { if (requestedScope == store.attachmentScope) select(it); requestedScope = null }
     Column(Modifier.fillMaxWidth()) {
         Box {
             TextButton(onClick = { expanded = true }, enabled = !store.state.value.isSending) { Text("Attach files") }
             DropdownMenu(expanded, onDismissRequest = { expanded = false }) {
                 DropdownMenuItem(text = { Text("Photo library") }, onClick = {
-                    expanded = false; photos.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
+                    expanded = false; requestedScope = store.attachmentScope; photos.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
                 })
-                DropdownMenuItem(text = { Text("Files") }, onClick = { expanded = false; files.launch(arrayOf("*/*")) })
+                DropdownMenuItem(text = { Text("Files") }, onClick = { expanded = false; requestedScope = store.attachmentScope; files.launch(arrayOf("*/*")) })
             }
         }
         Column(Modifier.heightIn(max = 128.dp).verticalScroll(rememberScrollState())) {

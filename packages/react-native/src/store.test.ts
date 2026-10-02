@@ -315,3 +315,41 @@ it("keeps attachment IDs and file metadata on immutable retries after restart", 
   await restored.retry(restored.getSnapshot().pending[0]!.id);
   expect(client.sendMessage.mock.calls[1]).toEqual(first);
 });
+
+it("stops an upload before sending another chunk after an account switch", async () => {
+  const client = api();
+  const fetcher = vi
+    .fn()
+    .mockResolvedValue(Response.json({ id: `att_${"b".repeat(64)}`, partSize: 3 }));
+  const store = await RespondKitStore.create({
+    apiBaseUrl: "https://api.example.com",
+    inboxId: "inbox_test",
+    origin: "https://app.example.com",
+    persistence: memoryPersistence(),
+    createId: (prefix) => `${prefix}_${++counter}`,
+    client,
+    fetch: fetcher,
+    context: { userId: "alice" },
+  });
+  stores.push(store);
+  let resume!: (data: Uint8Array<ArrayBuffer>) => void;
+  const read = vi.fn(
+    () =>
+      new Promise<Uint8Array<ArrayBuffer>>((resolve) => {
+        resume = resolve;
+      }),
+  );
+  const task = store.upload(
+    { name: "private.zip", size: 3, contentType: "application/zip", read },
+    "upload_private",
+    new AbortController().signal,
+    () => {},
+  );
+  const rejected = expect(task).rejects.toThrow("identity changed");
+  await vi.waitFor(() => expect(read).toHaveBeenCalled());
+  await store.updateIdentity({ userId: "bob" });
+  await store.refresh();
+  resume(new Uint8Array(3));
+  await rejected;
+  expect(fetcher).toHaveBeenCalledTimes(1);
+});
