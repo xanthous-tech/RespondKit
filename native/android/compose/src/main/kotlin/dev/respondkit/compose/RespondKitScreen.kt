@@ -352,7 +352,7 @@ private fun Composer(store: RespondKitStore, state: SupportState) {
             (state.draft.isNotBlank() || attachments.isNotEmpty()) && !uploading &&
             state.draft.length <= 6_000
     Column {
-    AttachmentPicker(store, clearAttachments) { files, busy -> attachments = files; uploading = busy }
+    AttachmentPicker(store, clearAttachments, state.isSending) { files, busy -> attachments = files; uploading = busy }
     Row(
         Modifier.fillMaxWidth().padding(12.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),

@@ -23,7 +23,7 @@ private data class PickedFile(val id: String, val uri: Uri, val name: String, va
     val type: String = "application/octet-stream", val attachment: SupportAttachment? = null, val error: String? = null)
 
 @Composable
-internal fun AttachmentPicker(store: RespondKitStore, clear: Int, onChange: (List<SupportAttachment>, Boolean) -> Unit) {
+internal fun AttachmentPicker(store: RespondKitStore, clear: Int, isSending: Boolean, onChange: (List<SupportAttachment>, Boolean) -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var picked by remember(store.attachmentScope, clear) { mutableStateOf(emptyList<PickedFile>()) }
@@ -69,7 +69,7 @@ internal fun AttachmentPicker(store: RespondKitStore, clear: Int, onChange: (Lis
     val files = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { if (requestedScope == store.attachmentScope) select(it); requestedScope = null }
     Column(Modifier.fillMaxWidth()) {
         Box {
-            TextButton(onClick = { expanded = true }, enabled = !store.state.value.isSending) { Text("Attach files") }
+            TextButton(onClick = { expanded = true }, enabled = !isSending) { Text("Attach files") }
             DropdownMenu(expanded, onDismissRequest = { expanded = false }) {
                 DropdownMenuItem(text = { Text("Photo library") }, onClick = {
                     expanded = false; requestedScope = store.attachmentScope; photos.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
