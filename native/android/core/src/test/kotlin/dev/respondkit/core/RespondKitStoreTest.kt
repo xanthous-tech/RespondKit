@@ -21,6 +21,7 @@ private inline fun <reified T> fixture(key: String): T {
 private class FakeApi : RespondKitApi {
     var sessionCalls = 0
     val sent = mutableListOf<Pair<String, String>>()
+    val sentFiles = mutableListOf<List<String>>()
     val reads = mutableListOf<Pair<String, String>>()
     val created = mutableListOf<String>()
     var failSend = false
@@ -98,6 +99,11 @@ private class FakeApi : RespondKitApi {
         if (failSend)
             throw RespondKitException("Connection lost after acceptance", retryable = true)
         return Acceptance("message_new", clientMessageId, "accepted")
+    }
+
+    override suspend fun send(token: String, threadId: String, clientMessageId: String, text: String, attachmentIds: List<String>): Acceptance {
+        sentFiles += attachmentIds
+        return send(token, threadId, clientMessageId, text)
     }
 
     override suspend fun markRead(token: String, threadId: String, cursor: String) {
@@ -296,6 +302,24 @@ class RespondKitStoreTest {
         api.failRead = false
         restored.refresh()
         assertTrue(api.reads.size >= 2)
+    }
+
+    @Test
+    fun attachmentsRetryWithTheSameIdsAfterRestart() = runTest {
+        val api = FakeApi().apply { failSend = true }
+        val storage = MemoryPersistence()
+        val store = store(api, storage)
+        val attachment = SupportAttachment("att_one", "photo.jpg", "image/jpeg", 42, "https://support.example.com/v1/files/token")
+        store.sendDraft(listOf(attachment))
+        val restored = store(api, storage)
+        restored.selectThread("thread_new")
+        val pending = restored.state.value.pendingMessages.single()
+        assertEquals(listOf(attachment), pending.attachments)
+        assertEquals("Attached files", pending.text)
+        api.failSend = false
+        restored.retry(pending.id)
+        assertEquals(listOf(listOf("att_one"), listOf("att_one")), api.sentFiles)
+        assertEquals(api.sent[0], api.sent[1])
     }
 
     @Test

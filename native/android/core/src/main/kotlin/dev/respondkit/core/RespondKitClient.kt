@@ -47,6 +47,16 @@ class RespondKitConfiguration(
 }
 
 interface RespondKitApi {
+    suspend fun upload(token: String, file: java.io.File, contentType: String, clientUploadId: String): SupportAttachment =
+        throw RespondKitException("Attachments are not implemented by this API adapter.")
+    suspend fun send(token: String, threadId: String, clientMessageId: String, text: String, attachmentIds: List<String>): Acceptance {
+        if (attachmentIds.isNotEmpty()) throw RespondKitException("Attachments are not implemented by this API adapter.")
+        return send(token, threadId, clientMessageId, text)
+    }
+    suspend fun contact(token: String): ContactInfo = ContactInfo()
+    suspend fun saveContact(token: String, email: String, threadId: String?): ContactInfo =
+        throw RespondKitException("Contact capture is not implemented by this API adapter.")
+
     suspend fun createSession(
         installationId: String,
         context: CustomerContext,
@@ -200,11 +210,15 @@ class RespondKitClient(
         return result
     }
 
+    override suspend fun send(token: String, threadId: String, clientMessageId: String, text: String): Acceptance =
+        send(token, threadId, clientMessageId, text, emptyList())
+
     override suspend fun send(
         token: String,
         threadId: String,
         clientMessageId: String,
         text: String,
+        attachmentIds: List<String>,
     ): Acceptance {
         val result =
             request<SendResponse>(
@@ -213,6 +227,7 @@ class RespondKitClient(
                     buildJsonObject {
                         put("clientMessageId", clientMessageId)
                         put("text", text)
+                        put("attachmentIds", JsonArray(attachmentIds.map { JsonPrimitive(it) }))
                     },
                 )
                 .acceptance
@@ -237,6 +252,38 @@ class RespondKitClient(
         return result
     }
 
+    @Serializable private data class Upload(val id: String, val partSize: Int, val completed: SupportAttachment? = null)
+    override suspend fun upload(token: String, file: java.io.File, contentType: String, clientUploadId: String): SupportAttachment = withContext(Dispatchers.IO) {
+        val size = file.length()
+        val created = request<Upload>("attachments", token, buildJsonObject {
+            put("clientUploadId", clientUploadId); put("name", file.name); put("size", size)
+            put("contentType", contentType.ifEmpty { "application/octet-stream" })
+        })
+        created.completed?.let { return@withContext it }
+        require(Regex("att_[a-f0-9]{64}").matches(created.id) && created.partSize > 0)
+        file.inputStream().use { input ->
+            var offset = 0L; var part = 1
+            while (offset < size) {
+                val count = minOf(created.partSize.toLong(), size - offset).toInt()
+                val bytes = ByteArray(count)
+                var read = 0
+                while (read < count) {
+                    val next = input.read(bytes, read, count - read)
+                    if (next < 0) throw RespondKitException("File changed during upload.")
+                    read += next
+                }
+                val request = Request.Builder().url(configuration.baseUrl.trimEnd('/') + "/v1/attachments/${created.id}/parts/$part")
+                    .header("Origin", configuration.origin).header("Authorization", "Bearer $token")
+                    .put(bytes.toRequestBody("application/octet-stream".toMediaType())).build()
+                execute(request).use { response ->
+                    if (!response.isSuccessful) throw RespondKitException("File upload failed (${response.code}). Try again.", status = response.code)
+                }
+                offset += count; part++
+            }
+        }
+        request<SupportAttachment>("attachments/${created.id}/complete", token, post = true)
+    }
+
     override suspend fun markRead(token: String, threadId: String, cursor: String) {
         replyCursor(cursor)
         if (
@@ -245,6 +292,14 @@ class RespondKitClient(
         )
             throw RespondKitException("Read acknowledgement failed.")
     }
+
+    override suspend fun contact(token: String): ContactInfo = request("client/contact", token)
+
+    override suspend fun saveContact(token: String, email: String, threadId: String?): ContactInfo =
+        request("client/contact", token, buildJsonObject {
+            put("email", email)
+            threadId?.let { put("threadId", it) }
+        })
 
     override suspend fun logout(token: String) {
         if (!request<Ok>("client/logout", token, post = true).ok)

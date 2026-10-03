@@ -1,0 +1,7 @@
+plugins { id 'com.android.library'; id 'org.jetbrains.kotlin.android' }
+android {
+    namespace 'dev.respondkit.files'
+    compileSdk rootProject.ext.has('compileSdkVersion') ? rootProject.ext.compileSdkVersion : 36
+    defaultConfig { minSdk 24 }
+}
+dependencies { implementation 'com.facebook.react:react-android' }

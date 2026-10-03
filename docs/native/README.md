@@ -232,3 +232,13 @@ adb shell am start -n dev.respondkit.example/.MainActivity --es apiUrl https://a
 ```
 
 Close the widget to select its accent or test the host’s red dot. Send a message, close the widget while keeping the app foregrounded, then reply in the configured Discord test inbox: the dot appears on the next poll. Opening and viewing that conversation clears it. Live sends reach the real support inbox. Reuse these launch commands when restarting a live demo; ordinary launches without overrides use the local fixture configuration. Automated UI tests continue to use the local fixture.
+
+### Client greeting
+
+SwiftUI `RespondKitScreen(store: store, greeting: "Hi! How can we help?")` and Compose `RespondKitScreen(store, onClose, greeting = "Hi! How can we help?")` accept an optional client-only greeting. It starts fresh conversations and stays above the messages during that store session. Restored history does not gain a synthetic message; greetings never reach Discord, email, or unread counts.
+
+### Native device context
+
+Session context now accepts `device: {platform, model, osVersion, appVersion?, sdk?}`. Swift stores automatically collect the hardware model identifier (for example `iPhone17,3`), OS version, and host app version. Compose's screen/lifecycle adapter collects Android manufacturer/model, OS release, and host app version. Headless Android users can supply `CustomerContext(device = ...)` or call `store.setDeviceContext(androidDeviceContext(context))` before refreshing. Host-supplied values override defaults.
+
+The API validates and stores these fields independently from the transport User-Agent and shows both in the Discord thread starter. Web clients keep their existing User-Agent behavior. Device context is advisory diagnostics; it contains no serial number, advertising ID, or unique hardware identifier. Apply `0005_native_device.sql` before deploying the updated Worker.

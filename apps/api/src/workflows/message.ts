@@ -1,3 +1,4 @@
+import { enqueueReplyEmail } from "../email";
 import {
   acceptCustomerIngress,
   findThreadById,
@@ -208,7 +209,10 @@ function starterContent(envelope: MessageWorkflowEnvelope, marker: string): stri
       ? `Region: ${envelope.context.region}`
       : undefined,
     envelope.direction === "customer_to_operator" && envelope.context.userAgent !== undefined
-      ? `Device: ${envelope.context.userAgent}`
+      ? `User-Agent: ${envelope.context.userAgent}`
+      : undefined,
+    envelope.direction === "customer_to_operator" && envelope.context.device !== undefined
+      ? `Device: ${envelope.context.device.model} · ${envelope.context.device.platform} ${envelope.context.device.osVersion}${envelope.context.device.appVersion ? ` · App ${envelope.context.device.appVersion}` : ""}${envelope.context.device.sdk ? ` · ${envelope.context.device.sdk}` : ""}`
       : undefined,
   ].filter((line): line is string => line !== undefined);
   const maximumPrefixLength = 2_000 - marker.length - 1;
@@ -235,6 +239,7 @@ async function persistIngress(
             workflowInstanceId: envelope.workflowInstanceId,
             acceptedAt: new Date(envelope.acceptedAt),
             originalText: envelope.originalText,
+            ...(envelope.attachments ? { attachments: envelope.attachments } : {}),
             ...(envelope.localeHint === undefined ? {} : { localeHint: envelope.localeHint }),
           })
         : await acceptReplyIngress(db, {
@@ -717,7 +722,7 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
           envelope,
           target,
           "customer_projection",
-          `**Customer**\n${envelope.originalText}`,
+          `**Customer**\n${envelope.originalText}${(envelope.attachments ?? []).map((file) => `\n📎 ${file.name.replace(/[\r\n]/g, " ")}\n${file.downloadUrl}`).join("")}`,
           "project-customer-message",
         );
       } else {
@@ -771,6 +776,9 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
           );
           auditContent = availableAuditContent(envelope, canonicalTranslation);
         }
+        await step.do("enqueue-reply-email", DATABASE_STEP, () =>
+          enqueueReplyEmail(this.env, envelope.messageId),
+        );
         stage = "discord_audit";
         const target = await step.do("load-discord-thread", DATABASE_STEP, () =>
           loadReadyDiscordThread(this.env, envelope),

@@ -4,7 +4,12 @@ import { resolve } from "node:path";
 
 const workspaceRoot = resolve(import.meta.dirname, "..");
 const outputDirectory = resolve(workspaceRoot, "artifacts/npm");
-const packageDirectories = ["packages/protocol", "packages/api-client", "packages/react"] as const;
+const packageDirectories = [
+  "packages/protocol",
+  "packages/api-client",
+  "packages/react",
+  "packages/react-native",
+] as const;
 
 await rm(outputDirectory, { force: true, recursive: true });
 await mkdir(outputDirectory, { recursive: true });

@@ -88,3 +88,10 @@ export type {
   WorkflowInstanceId,
   WorkspaceId,
 } from "./ids";
+
+export { ContactV1Schema, SaveContactRequestV1Schema } from "./customer";
+
+export { DeviceContextV1Schema } from "./customer";
+export type { DeviceContextV1 } from "./customer";
+
+export * from "./attachments";

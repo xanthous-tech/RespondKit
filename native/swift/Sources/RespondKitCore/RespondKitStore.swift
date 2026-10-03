@@ -3,6 +3,9 @@ import Observation
 
 /// Retain one store in the host app, independently of the presented screen.
 @MainActor @Observable public final class RespondKitStore {
+  public private(set) var emailAddress: String?
+  public private(set) var isFreshConversation = false
+  @ObservationIgnored private var freshThreadIDs: Set<String> = []
   public private(set) var statuses: [ThreadStatus] = []
   public private(set) var hasUnreadReplies = false
   public private(set) var activeThreadID: String?
@@ -41,6 +44,7 @@ import Observation
   ) throws {
     self.configuration = configuration
     self.context = context
+    self.context.device = context.device ?? .current()
     self.identityToken = identityToken
     self.api = api ?? RespondKitClient(configuration: configuration)
     let storage = persistence ?? KeychainPersistence(scope: configuration.storageScope)
@@ -113,6 +117,18 @@ import Observation
     guard let status = statuses.first(where: { $0.thread.id == threadID }) else { return false }
     return (Int64(status.latestReplyCursor) ?? 0) > (Int64(state.readCursors[threadID] ?? "0") ?? 0)
   }
+  public func saveEmail(_ email: String) async {
+    await operate { epoch in
+      let contact = try await self.authorized(epoch) {
+        try await self.api.saveContact(
+          token: $0, email: email.trimmingCharacters(in: .whitespacesAndNewlines),
+          threadID: self.activeThreadID)
+      }
+      try self.check(epoch)
+      self.context.email = contact.email
+      self.emailAddress = contact.email
+    }
+  }
   public func clearError() { errorMessage = nil }
 
   /// Call only after host authentication settles. A subject change isolates all cached state immediately.
@@ -123,9 +139,11 @@ import Observation
     let oldSession = session
     let changed = self.context.userId != context.userId
     self.context = context
+    self.context.device = context.device ?? .current()
     self.identityToken = identityToken
     session = nil
     if changed {
+      freshThreadIDs.removeAll()
       hasLoadedHistory = false
       state = StoredState(userID: context.userId)
       activeThreadID = nil
@@ -177,11 +195,22 @@ import Observation
     }
   }
 
-  public func sendDraft() async {
+  public var attachmentScope: String { "\(epoch):\(activeThreadID ?? "new")" }
+  public func upload(fileURL: URL, clientUploadID: String) async throws -> SupportAttachment {
+    let current = epoch
+    let result = try await authorized(current) {
+      try await self.api.upload(token: $0, fileURL: fileURL, clientUploadID: clientUploadID)
+    }
+    try check(current)
+    return result
+  }
+  public func sendDraft(attachments: [SupportAttachment] = []) async {
     guard !isSending else { return }
     isSending = true
     defer { isSending = false }
-    let text = draft
+    let text =
+      draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !attachments.isEmpty
+      ? "Attached files" : draft
     let threadID = activeThreadID
     guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, text.utf16.count <= 6_000
     else {
@@ -195,8 +224,9 @@ import Observation
         throw RespondKitError("This conversation is closed. Start a new conversation.")
       }
       let key = threadID ?? "new"
-      let pending = PendingMessage(
+      var pending = PendingMessage(
         id: newID("cmsg"), text: text, acceptedAt: Date().ISO8601Format(), delivery: "sending")
+      pending.attachments = attachments
       self.state.pending[key, default: []].append(pending)
       // Preserve edits made while another operation was finishing.
       if self.state.drafts[key] == text { self.state.drafts[key] = "" }
@@ -245,6 +275,7 @@ import Observation
         }
         try check(epoch)
         id = created.id
+        freshThreadIDs.insert(created.id)
         state.statuses.removeAll { $0.thread.id == created.id }
         state.statuses.insert(ThreadStatus(thread: created, latestReplyCursor: "0"), at: 0)
         state.pending[created.id, default: []] += state.pending.removeValue(forKey: "new") ?? []
@@ -262,7 +293,8 @@ import Observation
       publish()
       let accepted = try await authorized(epoch) {
         try await self.api.send(
-          token: $0, threadID: id, clientMessageID: pending.id, text: pending.text)
+          token: $0, threadID: id, clientMessageID: pending.id, text: pending.text,
+          attachmentIDs: (pending.attachments ?? []).map(\.id))
       }
       try check(epoch)
       setDelivery(
@@ -325,7 +357,8 @@ import Observation
       {
         state.pending[id, default: []].append(
           PendingMessage(
-            id: clientID, text: message.text, acceptedAt: message.acceptedAt, delivery: "failed"))
+            id: clientID, text: message.text, attachments: message.attachments,
+            acceptedAt: message.acceptedAt, delivery: "failed"))
       }
     }
     try persist()
@@ -342,6 +375,7 @@ import Observation
     }
   }
   private func validToken(_ epoch: Int) async throws -> String {
+    try check(epoch)
     try persist()
     if let session, let expiry = timestamp(session.expiresAt),
       expiry > Date().addingTimeInterval(15)
@@ -357,6 +391,12 @@ import Observation
       installationID: state.installationID, context: context, identityToken: assertion)
     try check(epoch)
     session = value
+    if context.email == nil {
+      let contact = try? await api.contact(token: value.token)
+      try check(epoch)
+      context.email = contact?.email
+    }
+    emailAddress = context.email
     return value.token
   }
   private func authorized<T: Sendable>(
@@ -405,6 +445,9 @@ import Observation
     do { try persist() } catch { errorMessage = error.localizedDescription }
   }
   private func publish() {
+    isFreshConversation =
+      hasLoadedHistory && (activeThreadID == nil || freshThreadIDs.contains(activeThreadID!))
+    emailAddress = context.email
     statuses = state.statuses
     hasUnreadReplies = statuses.contains { isUnread($0.thread.id) }
     let key = activeThreadID ?? "new"

@@ -14,6 +14,7 @@ data class CustomerContext(
     val locale: String? = null,
     val timezone: String? = null,
     val metadata: Map<String, JsonElement>? = null,
+    val device: DeviceContext? = null,
 )
 
 @Serializable
@@ -26,6 +27,9 @@ data class SupportThread(
 )
 
 @Serializable
+data class SupportAttachment(val id: String, val name: String, val contentType: String, val size: Long, val downloadUrl: String)
+
+@Serializable
 data class SupportMessage(
     val id: String,
     val threadId: String,
@@ -35,6 +39,7 @@ data class SupportMessage(
     val language: String? = null,
     val acceptedAt: String,
     val state: String,
+    val attachments: List<SupportAttachment> = emptyList(),
 ) {
     val isReply: Boolean
         get() = direction == "operator_to_customer" && state == "available"
@@ -82,6 +87,7 @@ data class PendingMessage(
     val text: String,
     val acceptedAt: String,
     val delivery: String,
+    val attachments: List<SupportAttachment> = emptyList(),
 )
 
 class RespondKitException(
@@ -104,3 +110,13 @@ fun replyCursor(value: String): Long {
 internal fun newId(prefix: String) = prefix + "_" + UUID.randomUUID().toString().replace("-", "")
 
 internal fun now() = Instant.now().toString()
+
+@Serializable data class ContactInfo(val email: String? = null)
+
+@Serializable data class DeviceContext(
+    val platform: String,
+    val model: String,
+    val osVersion: String,
+    val appVersion: String? = null,
+    val sdk: String = "android",
+)

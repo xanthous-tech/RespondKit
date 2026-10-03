@@ -1,3 +1,4 @@
+import type { AttachmentV1 } from "@respondkit/protocol";
 import type {
   ClientMessageId,
   ClientThreadId,
@@ -160,6 +161,7 @@ export interface CustomerIngressInput {
   readonly workflowInstanceId: WorkflowInstanceId;
   readonly acceptedAt: Date;
   readonly originalText: string;
+  readonly attachments?: AttachmentV1[];
   readonly localeHint?: string | null;
 }
 
@@ -245,6 +247,7 @@ export async function acceptCustomerIngress(
         workflowInstanceId: input.workflowInstanceId,
         direction: "customer_to_operator",
         originalText: input.originalText,
+        attachments: input.attachments ?? [],
         originalLanguage: null,
         customerVisibleText: input.originalText,
         customerVisibleLanguage: input.localeHint,
@@ -289,7 +292,8 @@ export async function acceptCustomerIngress(
 
   const immutablePayloadMatches =
     canonical.workflowInstanceId === input.workflowInstanceId &&
-    canonical.originalText === input.originalText;
+    canonical.originalText === input.originalText &&
+    JSON.stringify(canonical.attachments) === JSON.stringify(input.attachments ?? []);
 
   return {
     kind: inserted.length > 0 ? "inserted" : ingressKindFromMessage(canonical),
@@ -1079,6 +1083,7 @@ export function toCustomerMessageV1(message: MessageRow): MessageV1 {
     ...(message.clientMessageId == null ? {} : { clientMessageId: message.clientMessageId }),
     direction: message.direction,
     text: message.customerVisibleText,
+    ...(message.attachments.length ? { attachments: message.attachments } : {}),
     ...(message.customerVisibleLanguage == null
       ? {}
       : { language: message.customerVisibleLanguage }),

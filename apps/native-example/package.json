@@ -1,0 +1,39 @@
+{
+  "name": "@respondkit/native-example",
+  "version": "0.5.3",
+  "private": true,
+  "scripts": {
+    "start": "react-native start",
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "bundle:android": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output ../../artifacts/react-native/index.android.bundle --assets-dest ../../artifacts/react-native/assets",
+    "bundle:ios": "react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ../../artifacts/react-native/index.ios.bundle --assets-dest ../../artifacts/react-native/assets"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.2.0",
+    "@respondkit/api-client": "workspace:*",
+    "@respondkit/react-native": "workspace:*",
+    "react": "catalog:",
+    "react-native": "0.87.1",
+    "react-native-device-info": "15.0.2",
+    "react-native-get-random-values": "2.0.0",
+    "react-native-safe-area-context": "^5.5.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@babel/plugin-transform-export-namespace-from": "^7.27.1",
+    "@babel/preset-env": "^7.25.3",
+    "@babel/runtime": "^7.25.0",
+    "@react-native-community/cli": "20.2.0",
+    "@react-native-community/cli-platform-android": "20.2.0",
+    "@react-native-community/cli-platform-ios": "20.2.0",
+    "@react-native/babel-preset": "0.87.1",
+    "@react-native/metro-config": "0.87.1",
+    "@react-native/typescript-config": "0.87.1",
+    "@types/react": "catalog:",
+    "typescript": "catalog:"
+  },
+  "engines": {
+    "node": ">= 22.11.0"
+  }
+}

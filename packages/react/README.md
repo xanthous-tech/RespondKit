@@ -74,3 +74,7 @@ Custom launchers own their appearance and should show `hasUnreadReplies`; the su
 ### Discord read receipts
 
 Starting with 0.4.1, an open, visible conversation acknowledges its committed transcript to the API. RespondKit adds ✅ to read operator replies in Discord. Unread polling alone does not mark a reply read. Local unread indicators update immediately; failed server acknowledgements retry during polling and after reload. Deploy the matching API read-receipt endpoint and migration before upgrading the widget.
+
+### First message
+
+Pass `greeting="Hi! How can we help?"` to `RespondKitWidget` to show a local support bubble at the beginning of a fresh, empty conversation. It remains above messages during that client session. Loading existing messages does not inject a greeting. Omit it (or pass blank text) to keep the existing empty state. The greeting is never sent to the API, Discord, or email and does not affect unread cursors.

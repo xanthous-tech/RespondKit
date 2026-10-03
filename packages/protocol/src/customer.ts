@@ -1,3 +1,4 @@
+import { AttachmentV1Schema, AttachmentIdSchema } from "./attachments";
 import { z } from "zod";
 
 import {
@@ -59,8 +60,18 @@ const MetadataSchema = z
     }
   });
 
+export const DeviceContextV1Schema = z.strictObject({
+  platform: z.enum(["ios", "android", "macos", "windows", "linux"]),
+  model: z.string().trim().min(1).max(128),
+  osVersion: z.string().trim().min(1).max(64),
+  appVersion: z.string().trim().min(1).max(64).optional(),
+  sdk: z.enum(["swift", "android", "react-native"]).optional(),
+});
+export type DeviceContextV1 = z.infer<typeof DeviceContextV1Schema>;
+
 export const CustomerContextV1Schema = z
   .object({
+    device: DeviceContextV1Schema.optional(),
     userId: z.string().min(1).max(256).optional(),
     email: z.email().max(320).optional(),
     posthogDistinctId: z.string().min(1).max(256).optional(),
@@ -161,6 +172,7 @@ export const MessageV1Schema = z
     threadId: ThreadIdSchema,
     clientMessageId: ClientMessageIdSchema.optional(),
     direction: MessageDirectionSchema,
+    attachments: z.array(AttachmentV1Schema).optional(),
     // A translated operator reply can expand beyond Discord's 6,000-character
     // command input even though new customer input is capped below.
     text: z.string().min(1).max(24_000),
@@ -226,6 +238,7 @@ export const SendMessageRequestV1Schema = z
   .object({
     clientMessageId: ClientMessageIdSchema,
     text: nonBlankMessageText,
+    attachmentIds: z.array(AttachmentIdSchema).optional(),
   })
   .strict();
 export type SendMessageRequestV1 = z.infer<typeof SendMessageRequestV1Schema>;
@@ -318,3 +331,10 @@ export type SendMessageResponseV1 = z.infer<typeof SendMessageResponseV1Schema>;
 export const MarkThreadReadRequestV1Schema = z.object({ cursor: CursorSchema });
 export const MarkThreadReadResponseV1Schema = z.object({ ok: z.literal(true) });
 export type MarkThreadReadRequestV1 = z.infer<typeof MarkThreadReadRequestV1Schema>;
+
+/** Contact information remains advisory and never links accounts. */
+export const SaveContactRequestV1Schema = z.strictObject({
+  email: z.string().trim().pipe(z.email().max(320)),
+  threadId: ThreadIdSchema.optional(),
+});
+export const ContactV1Schema = z.strictObject({ email: z.email().max(320).optional() });

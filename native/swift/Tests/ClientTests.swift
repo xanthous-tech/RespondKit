@@ -15,7 +15,20 @@ private final class HTTPFixture: @unchecked Sendable {
   }
   func respond(_ request: URLRequest) -> (Int, String) {
     lock.withLock {
-      requests.append(request)
+      var captured = request
+      if captured.httpBody == nil, let stream = request.httpBodyStream {
+        stream.open()
+        defer { stream.close() }
+        var body = Data()
+        var buffer = [UInt8](repeating: 0, count: 4096)
+        while stream.hasBytesAvailable {
+          let count = stream.read(&buffer, maxLength: buffer.count)
+          if count <= 0 { break }
+          body.append(contentsOf: buffer.prefix(count))
+        }
+        captured.httpBody = body
+      }
+      requests.append(captured)
       return result
     }
   }
@@ -47,6 +60,20 @@ struct ClientTests {
       origin: "https://captioner.io")
     return RespondKitClient(
       configuration: configuration, session: URLSession(configuration: urlSession))
+  }
+  @Test func sendsImmutableAttachmentIDs() async throws {
+    let client = try client()
+    FixtureURLProtocol.fixture.configure(
+      202,
+      "{\"acceptance\":{\"messageId\":\"msg_file\",\"clientMessageId\":\"cmsg_file\",\"status\":\"accepted\"}}"
+    )
+    _ = try await client.send(
+      token: "respondkit_session", threadID: "thread_test", clientMessageID: "cmsg_file",
+      text: "Attached files", attachmentIDs: ["att_one", "att_two"])
+    let request = try #require(FixtureURLProtocol.fixture.lastRequest())
+    let body = try #require(request.httpBody)
+    let object = try #require(JSONSerialization.jsonObject(with: body) as? [String: Any])
+    #expect(object["attachmentIds"] as? [String] == ["att_one", "att_two"])
   }
   @Test func nativeOriginBearerAndErrorEnvelope() async throws {
     let client = try client()

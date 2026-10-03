@@ -32,6 +32,7 @@ class RespondKitStore(
     private var automaticallySelectConversation = false
     private val mutex = Mutex()
     private var hasLoadedHistory = false
+    private val freshThreadIds = mutableSetOf<String>()
 
     init {
         if (stored.userId != context.userId) stored = StoredState(userId = context.userId)
@@ -48,6 +49,13 @@ class RespondKitStore(
         hasLoadedHistory = stored.statuses.isNotEmpty()
         persist()
         publish()
+    }
+
+    fun setDeviceContext(device: DeviceContext) {
+        if (context.device == null) {
+            context = context.copy(device = device)
+            session = null
+        }
     }
 
     fun setForeground(active: Boolean) {
@@ -103,6 +111,16 @@ class RespondKitStore(
         publish()
     }
 
+    suspend fun saveEmail(email: String) {
+        operate {
+            generation ->
+            val contact = authorized(generation) { api.saveContact(it, email.trim(), state.value.activeThreadId) }
+            check(generation)
+            context = context.copy(email = contact.email)
+            publish()
+        }
+    }
+
     fun clearError() {
         mutableState.update { it.copy(errorMessage = null) }
     }
@@ -115,10 +133,11 @@ class RespondKitStore(
         epoch++
         val previous = session
         val changed = this.context.userId != context.userId
-        this.context = context
+        this.context = context.copy(device = context.device ?: this.context.device)
         this.identityToken = identityToken
         session = null
         if (changed) {
+            freshThreadIds.clear()
             hasLoadedHistory = false
             stored = StoredState(userId = context.userId)
             mutableState.update { it.copy(activeThreadId = null) }
@@ -174,11 +193,18 @@ class RespondKitStore(
             flushReads(generation)
         }
 
-    suspend fun sendDraft() {
+    val attachmentScope: String get() = "$epoch:${state.value.activeThreadId ?: "new"}"
+    suspend fun upload(file: java.io.File, contentType: String, clientUploadId: String): SupportAttachment {
+        val generation = epoch
+        val result = authorized(generation) { api.upload(it, file, contentType, clientUploadId) }
+        check(generation)
+        return result
+    }
+    suspend fun sendDraft(attachments: List<SupportAttachment> = emptyList()) {
         if (state.value.isSending) return
         mutableState.update { it.copy(isSending = true) }
         try {
-            val text = state.value.draft
+            val text = state.value.draft.ifBlank { if (attachments.isNotEmpty()) "Attached files" else "" }
             val id = state.value.activeThreadId
             if (text.isBlank() || text.length > 6_000) {
                 mutableState.update {
@@ -196,7 +222,7 @@ class RespondKitStore(
                         "This conversation is closed. Start a new conversation."
                     )
                 val key = id ?: "new"
-                val pending = PendingMessage(newId("cmsg"), text, now(), "sending")
+                val pending = PendingMessage(newId("cmsg"), text, now(), "sending", attachments)
                 stored =
                     stored.copy(
                         pending =
@@ -284,6 +310,7 @@ class RespondKitStore(
                                 (created.id to stored.drafts["new"].orEmpty()),
                         newClientThreadId = newId("cthread"),
                     )
+                freshThreadIds.add(created.id)
                 stored =
                     stored.copy(selectedThreadId = created.id, isStartingNewConversation = false)
                 mutableState.update { it.copy(activeThreadId = created.id) }
@@ -295,7 +322,7 @@ class RespondKitStore(
             persist()
             publish()
             val accepted =
-                authorized(generation) { api.send(it, actualId, pending.id, pending.text) }
+                authorized(generation) { api.send(it, actualId, pending.id, pending.text, pending.attachments.map { file -> file.id }) }
             check(generation)
             setDelivery(
                 pending.id,
@@ -352,7 +379,7 @@ class RespondKitStore(
                         it.clientMessageId != null &&
                         pending.none { p -> p.id == it.clientMessageId }
                 }
-                .map { PendingMessage(it.clientMessageId!!, it.text, it.acceptedAt, "failed") }
+                .map { PendingMessage(it.clientMessageId!!, it.text, it.acceptedAt, "failed", it.attachments) }
         stored =
             stored.copy(
                 messages = stored.messages + (id to messages.values.sortedBy { it.acceptedAt }),
@@ -373,6 +400,7 @@ class RespondKitStore(
     }
 
     private suspend fun validToken(generation: Long): String {
+        check(generation)
         persist()
         session
             ?.takeIf { Instant.parse(it.expiresAt).isAfter(Instant.now().plusSeconds(15)) }
@@ -386,6 +414,15 @@ class RespondKitStore(
         val created = api.createSession(stored.installationId, context, assertion)
         check(generation)
         session = created
+        if (context.email == null) {
+            val contact = try { api.contact(created.token) } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                null
+            }
+            check(generation)
+            context = context.copy(email = contact?.email)
+        }
+        publish()
         return created.token
     }
 
@@ -459,6 +496,8 @@ class RespondKitStore(
         val key = state.value.activeThreadId ?: "new"
         mutableState.update {
             it.copy(
+                isFreshConversation = hasLoadedHistory && (it.activeThreadId == null || it.activeThreadId in freshThreadIds),
+                emailAddress = context.email,
                 statuses = stored.statuses,
                 unreadThreadIds =
                     stored.statuses

@@ -193,7 +193,7 @@ export function buildTopologySeedSql(configuration: TopologyConfiguration): stri
 
       for (const inbox of product.inboxes) {
         statements.push(
-          `INSERT INTO inbox (id, workspace_id, product_id, name, status, default_locale) VALUES (${sqlText(inbox.id)}, ${sqlText(workspace.id)}, ${sqlText(product.id)}, ${sqlText(inbox.name)}, 'active', ${sqlNullableText(inbox.defaultLocale)}) ON CONFLICT(id) DO UPDATE SET workspace_id = excluded.workspace_id, product_id = excluded.product_id, name = excluded.name, status = 'active', default_locale = excluded.default_locale, updated_at = unixepoch() * 1000;`,
+          `INSERT INTO inbox (id, workspace_id, product_id, name, status, default_locale, email_config) VALUES (${sqlText(inbox.id)}, ${sqlText(workspace.id)}, ${sqlText(product.id)}, ${sqlText(inbox.name)}, 'active', ${sqlNullableText(inbox.defaultLocale)}, ${sqlNullableText(inbox.email ? JSON.stringify(inbox.email) : undefined)}) ON CONFLICT(id) DO UPDATE SET workspace_id = excluded.workspace_id, product_id = excluded.product_id, name = excluded.name, status = 'active', default_locale = excluded.default_locale, email_config = excluded.email_config, updated_at = unixepoch() * 1000;`,
         );
 
         const originValues = inbox.allowedOrigins.map((origin) => sqlText(origin)).join(", ");

@@ -3,6 +3,17 @@ import type { MessageWorkflowEnvelope } from "./workflows/envelope";
 import type { TranslationWorkflowParams } from "./translation-service";
 
 export interface Env {
+  readonly ATTACHMENTS?: R2Bucket;
+  readonly EMAIL?: {
+    send(message: {
+      from: string;
+      to: string;
+      replyTo: string;
+      subject: string;
+      text: string;
+      headers: Record<string, string>;
+    }): Promise<{ messageId: string }>;
+  };
   readonly TRANSLATION_WORKFLOW: Workflow<TranslationWorkflowParams>;
   /** JSON array of inbox IDs with optional translation enabled. */
   readonly TRANSLATION_ENABLED_INBOXES?: string;

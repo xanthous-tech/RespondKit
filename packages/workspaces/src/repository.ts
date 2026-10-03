@@ -193,6 +193,7 @@ export async function upsertVisitor(
     ...(input.locale !== undefined && { locale: input.locale }),
     ...(input.timezone !== undefined && { timezone: input.timezone }),
     ...(input.region !== undefined && { region: input.region }),
+    ...(input.device !== undefined && { device: input.device }),
     ...(input.userAgent !== undefined && { userAgent: input.userAgent }),
     ...(input.metadata !== undefined && { metadata: input.metadata }),
   };
@@ -220,6 +221,7 @@ export async function upsertVisitor(
         timezone: input.timezone,
         region: input.region,
         userAgent: input.userAgent,
+        device: input.device,
         metadata: input.metadata ?? {},
         createdAt: input.observedAt,
         updatedAt: input.observedAt,

@@ -97,7 +97,7 @@ jobs:
           path: artifacts/npm
       - name: Publish packages in dependency order
         run: |
-          for package in protocol api-client react; do
+          for package in protocol api-client react react-native; do
             npm publish "$GITHUB_WORKSPACE/artifacts/npm/respondkit-${package}-${RELEASE_TAG#v}.tgz" --access public
           done
 

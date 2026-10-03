@@ -1,5 +1,8 @@
 import {
   RespondKitClientError,
+  uploadAttachment,
+  fileUploadSource,
+  type AttachmentV1,
   createRespondKitClient,
   createClientMessageId,
   type ClientSessionV1,
@@ -33,6 +36,7 @@ const POLL_INTERVAL_MS = 2_000;
 const INITIAL_CURSOR = "0" as Cursor;
 
 interface PendingMessage {
+  readonly attachments?: AttachmentV1[] | undefined;
   readonly clientMessageId: string;
   readonly text: string;
   readonly acceptedAt: string;
@@ -103,6 +107,7 @@ function displayMessages(
     ...(message.clientMessageId === undefined ? {} : { clientMessageId: message.clientMessageId }),
     direction: message.direction,
     text: message.text,
+    attachments: message.attachments,
     acceptedAt: message.acceptedAt,
     state: message.state,
   }));
@@ -114,6 +119,7 @@ function displayMessages(
       clientMessageId: pending.clientMessageId,
       direction: "customer_to_operator",
       text: pending.text,
+      attachments: pending.attachments,
       acceptedAt: pending.acceptedAt,
       state: "processing",
       localDelivery: pending.delivery,
@@ -163,8 +169,10 @@ export function useRespondKit({
   const [transcriptState, setTranscriptState] = useState<TranscriptState>("idle");
   const [bootstrapError, setBootstrapError] = useState<string>();
   const [pollError, setPollError] = useState<string>();
+  const [emailAddress, setEmailAddress] = useState<string>();
   const [session, setSession] = useState<ClientSessionV1>();
   const [thread, setThread] = useState<ThreadV1>();
+  const [freshThreadId, setFreshThreadId] = useState<string>();
   const [serverMessages, setServerMessages] = useState<MessageV1[]>([]);
   const [pendingMessages, setPendingMessages] = useState<ReadonlyMap<string, PendingMessage>>(
     () => new Map(),
@@ -321,6 +329,20 @@ export function useRespondKit({
         }
         if (!active) return;
         setSession(sessionResponse.session);
+        let savedEmail = currentContext.email;
+        if (!savedEmail) {
+          try {
+            savedEmail = (
+              await client.getContact(sessionResponse.session.token, {
+                signal: abortController.signal,
+              })
+            ).email;
+          } catch {
+            /* Older servers can still chat; saving contact shows its own error. */
+          }
+        }
+        if (!active) return;
+        setEmailAddress(savedEmail);
 
         browser.session = sessionResponse.session;
         saveBrowserIdentity(storageKey, browser);
@@ -518,6 +540,11 @@ export function useRespondKit({
             { signal: abortController.signal },
           );
           if (!active || abortController.signal.aborted) return;
+          if (!hasLoadedTranscriptRef.current && previousCursor === "0") {
+            setFreshThreadId(
+              response.messages.length === 0 && !response.hasMore ? activeThread.id : undefined,
+            );
+          }
           mergeMessages(response.messages);
           cursorRef.current = response.nextCursor;
           hasMore = response.hasMore && response.nextCursor !== previousCursor;
@@ -588,6 +615,9 @@ export function useRespondKit({
         const response = await client.sendMessage(session.token, thread.id, {
           clientMessageId: pending.clientMessageId,
           text: pending.text,
+          ...(pending.attachments?.length
+            ? { attachmentIds: pending.attachments.map((a) => a.id) }
+            : {}),
         });
         if (identityEpochRef.current !== identityEpoch) return;
         if (response.acceptance.message !== undefined) {
@@ -619,13 +649,14 @@ export function useRespondKit({
   );
 
   const sendMessage = useCallback(
-    (text: string) => {
-      const normalizedText = text.trim();
+    (text: string, attachments: AttachmentV1[] = []) => {
+      const normalizedText = text.trim() || (attachments.length ? "Attached files" : "");
       if (normalizedText.length === 0 || bootstrapState !== "ready") return;
 
       void submitPending({
         clientMessageId: createClientMessageId(),
         text: normalizedText,
+        attachments,
         acceptedAt: new Date().toISOString(),
         delivery: "optimistic",
       });
@@ -645,9 +676,11 @@ export function useRespondKit({
               message.state === "failed",
           );
           if (failed === undefined) return undefined;
+
           return {
             clientMessageId,
             text: failed.text,
+            attachments: failed.attachments,
             acceptedAt: failed.acceptedAt,
             delivery: "failed_retryable" as const,
           };
@@ -657,10 +690,47 @@ export function useRespondKit({
     [pendingMessages, serverMessages, submitPending],
   );
 
+  async function saveEmail(email: string) {
+    if (!session || !contextMatches) throw new Error("Support is still connecting.");
+    const epoch = identityEpochRef.current;
+    const contact = await client.saveContact(session.token, {
+      email,
+      ...(thread ? { threadId: thread.id } : {}),
+    });
+    if (epoch === identityEpochRef.current) setEmailAddress(contact.email);
+  }
+
   return {
+    uploadFile: async (
+      file: File,
+      id: string,
+      signal: AbortSignal,
+      onProgress: (sent: number, total: number) => void,
+    ) => {
+      const epoch = identityEpochRef.current;
+      if (!session || !contextMatches) throw new Error("Reconnect before uploading.");
+      const attachment = await uploadAttachment(
+        { baseUrl: apiBaseUrl, fetch },
+        fileUploadSource(file),
+        {
+          clientUploadId: id,
+          signal,
+          onProgress,
+          getToken: async () => {
+            if (epoch !== identityEpochRef.current) throw new Error("Support identity changed.");
+            return session.token;
+          },
+        },
+      );
+      if (epoch !== identityEpochRef.current) throw new Error("Support identity changed.");
+      return attachment;
+    },
     unreadThreadIds,
     threads: contextMatches ? threads : [],
+    emailAddress: contextMatches ? emailAddress : undefined,
+    saveEmail,
     selectedThreadId: contextMatches ? thread?.id : undefined,
+    isFreshConversation: contextMatches && thread !== undefined && freshThreadId === thread.id,
     reconnect: () => (storageBlocked ? window.location.reload() : setRefresh((value) => value + 1)),
     selectThread,
     loadMoreThreads,

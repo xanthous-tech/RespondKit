@@ -8,6 +8,7 @@ export default defineConfig(async () => ({
         configPath: "./wrangler.jsonc",
       },
       miniflare: {
+        r2Buckets: ["ATTACHMENTS"],
         bindings: {
           GEMINI_API_KEY: "test-only",
           TRANSLATION_ENABLED_INBOXES: '["inbox_public_test"]',

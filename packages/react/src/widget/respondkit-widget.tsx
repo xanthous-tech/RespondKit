@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "#components/ui/alert";
 import { Button } from "#components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "#components/ui/tooltip";
 
+import { EmailPrompt } from "./email-prompt";
 import { MessageComposer } from "./message-composer";
 import { MessageList } from "./message-list";
 import { respondKitAccentPalette, type RespondKitAccentColor } from "./theme";
@@ -37,6 +38,8 @@ export interface RespondKitWidgetProps {
   readonly identityPending?: boolean | undefined;
   readonly fetch?: typeof globalThis.fetch | undefined;
   readonly title?: string | undefined;
+  /** Client-only first message, shown only for a fresh conversation. */
+  readonly greeting?: string | undefined;
   /** Replace the floating launcher. May return a portal into a host toolbar, or null. */
   readonly renderLauncher?: ((props: RespondKitLauncherProps) => ReactNode) | undefined;
   readonly initiallyOpen?: boolean | undefined;
@@ -50,6 +53,7 @@ export function RespondKitWidget({
   getIdentityToken,
   identityPending,
   title = "Support",
+  greeting,
   initiallyOpen = false,
   renderLauncher,
   accentColor = "indigo",
@@ -59,12 +63,16 @@ export function RespondKitWidget({
   const launcherRef = useRef<HTMLButtonElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const {
+    isFreshConversation,
+    emailAddress,
+    saveEmail,
     bootstrapError,
     bootstrapState,
     messages,
     pollError,
     retryMessage,
     sendMessage,
+    uploadFile,
     transcriptState,
     threads,
     selectedThreadId,
@@ -212,12 +220,24 @@ export function RespondKitWidget({
                   </div>
                 ) : null}
                 <MessageList
+                  greeting={isFreshConversation ? greeting : undefined}
                   locale={context.locale}
                   messages={messages}
                   onRetry={retryMessage}
                   transcriptState={transcriptState}
                 />
-                <MessageComposer disabled={bootstrapState !== "ready"} onSend={sendMessage} />
+                {bootstrapState === "ready" && !emailAddress ? (
+                  <EmailPrompt
+                    key={`${context.inboxId}:${context.userId ?? "anonymous"}`}
+                    onSave={saveEmail}
+                  />
+                ) : null}
+                <MessageComposer
+                  scope={`${context.userId ?? "anonymous"}:${selectedThreadId ?? "new"}`}
+                  disabled={bootstrapState !== "ready"}
+                  onSend={sendMessage}
+                  onUpload={uploadFile}
+                />
               </>
             )}
           </section>

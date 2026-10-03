@@ -754,3 +754,100 @@ describe("RespondKitWidget", () => {
     expect(screen.queryByText("Message from the old account")).not.toBeInTheDocument();
   });
 });
+
+it("shows a client-only greeting for an empty transcript and retains it after sending", async () => {
+  const base = createApiFetch();
+  const api = vi.fn<typeof fetch>(async (input, init) => {
+    if (requestUrl(input).includes("/messages") && init?.method === "GET") {
+      return json({ threadId: "thread_test", messages: [], nextCursor: "0", hasMore: false });
+    }
+    return base(input, init);
+  });
+  render(
+    <RespondKitWidget
+      apiBaseUrl="https://api.example.test"
+      context={{ inboxId: "inbox_greeting" }}
+      fetch={api}
+      initiallyOpen
+      greeting="Welcome to Acme support."
+    />,
+  );
+  expect(await screen.findByTestId("respondkit-greeting")).toHaveTextContent(
+    "Welcome to Acme support.",
+  );
+  await userEvent.type(screen.getByRole("textbox", { name: "Message" }), "Hello");
+  await userEvent.click(screen.getByRole("button", { name: "Send message" }));
+  expect(screen.getByTestId("respondkit-greeting")).toBeInTheDocument();
+  const sent = api.mock.calls.filter(
+    ([input, init]) => requestUrl(input).includes("/messages") && init?.method === "POST",
+  );
+  expect(sent).toHaveLength(1);
+  expect(JSON.parse(requestBody(sent[0]?.[1]?.body)).text).toBe("Hello");
+});
+
+it("does not add a greeting to restored conversations", async () => {
+  render(
+    <RespondKitWidget
+      apiBaseUrl="https://api.example.test"
+      context={{ inboxId: "inbox_restored_greeting" }}
+      fetch={createApiFetch()}
+      initiallyOpen
+      greeting="Welcome to Acme support."
+    />,
+  );
+  await screen.findByText("How can I help?");
+  expect(screen.queryByTestId("respondkit-greeting")).not.toBeInTheDocument();
+});
+
+it("collects missing email, shows save failures, and never sends the address as a message", async () => {
+  const base = createApiFetch();
+  let fail = true;
+  const api = vi.fn<typeof fetch>(async (input, init) => {
+    if (requestUrl(input).endsWith("/client/contact")) {
+      if (init?.method === "GET") return json({});
+      if (fail)
+        return json(
+          { error: { code: "unavailable", message: "Offline", retryable: true } },
+          { status: 503 },
+        );
+      return json({ email: "customer@example.com" });
+    }
+    return base(input, init);
+  });
+  render(
+    <RespondKitWidget
+      apiBaseUrl="https://api.example.test"
+      context={{ inboxId: "inbox_contact" }}
+      fetch={api}
+      initiallyOpen
+    />,
+  );
+  const input = await screen.findByLabelText("Where can we email you a reply?");
+  await userEvent.type(input, "customer@example.com");
+  await userEvent.click(screen.getByRole("button", { name: "Save email" }));
+  await screen.findByText(/We couldn't save your email/);
+  expect(input).toHaveValue("customer@example.com");
+  fail = false;
+  await userEvent.click(screen.getByRole("button", { name: "Save email" }));
+  await waitFor(() =>
+    expect(screen.queryByLabelText("Where can we email you a reply?")).not.toBeInTheDocument(),
+  );
+  expect(
+    api.mock.calls.filter(
+      ([url, init]) => requestUrl(url).includes("/messages") && init?.method === "POST",
+    ),
+  ).toHaveLength(0);
+});
+
+it("skips the email prompt when the host supplied an address", async () => {
+  render(
+    <RespondKitWidget
+      apiBaseUrl="https://api.example.test"
+      context={{ inboxId: "inbox_known_contact", email: "known@example.com" }}
+      fetch={createApiFetch()}
+      initiallyOpen
+    />,
+  );
+  await screen.findByText("How can I help?");
+  expect(screen.queryByLabelText("Where can we email you a reply?")).not.toBeInTheDocument();
+});

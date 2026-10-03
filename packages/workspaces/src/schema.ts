@@ -1,3 +1,5 @@
+import type { EmailConfiguration } from "./config";
+import type { DeviceContextV1 } from "@respondkit/protocol";
 import type {
   InboxId,
   InstallationId,
@@ -73,6 +75,7 @@ export const inboxes = sqliteTable(
     name: text("name").notNull(),
     status: text("status", { enum: inboxStatuses }).notNull().default("active"),
     defaultLocale: text("default_locale"),
+    emailConfig: text("email_config", { mode: "json" }).$type<EmailConfiguration>(),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().default(nowInMilliseconds),
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull().default(nowInMilliseconds),
   },
@@ -133,6 +136,7 @@ export const visitors = sqliteTable(
     timezone: text("timezone"),
     region: text("region"),
     userAgent: text("user_agent"),
+    device: text("device", { mode: "json" }).$type<DeviceContextV1>(),
     metadata: text("metadata", { mode: "json" })
       .$type<Record<string, JsonValue>>()
       .notNull()

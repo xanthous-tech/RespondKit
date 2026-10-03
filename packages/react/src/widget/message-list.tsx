@@ -10,6 +10,7 @@ import type { DisplayMessage, TranscriptState } from "./types";
 import { MessageText } from "./message-text";
 
 interface MessageListProps {
+  readonly greeting?: string | undefined;
   readonly locale?: string | undefined;
   readonly messages: readonly DisplayMessage[];
   readonly onRetry: (clientMessageId: string) => void;
@@ -56,6 +57,7 @@ function scrollToBottom(viewport: HTMLDivElement) {
 
 export function MessageList({
   locale = "en",
+  greeting,
   messages,
   onRetry,
   transcriptState,
@@ -122,7 +124,15 @@ export function MessageList({
           aria-live="polite"
           aria-relevant="additions text"
         >
-          {messages.length === 0 ? (
+          {greeting?.trim() ? (
+            <p
+              data-testid="respondkit-greeting"
+              className="ac:m-0 ac:max-w-[84%] ac:self-start ac:whitespace-pre-wrap ac:rounded-xl ac:rounded-bl-[4px] ac:bg-muted ac:px-3 ac:py-2.5 ac:text-sm ac:leading-relaxed"
+            >
+              <MessageText text={greeting} />
+            </p>
+          ) : null}
+          {messages.length === 0 && !greeting?.trim() ? (
             <div className="ac:my-auto ac:flex ac:flex-col ac:gap-1 ac:py-16 ac:text-center">
               <p className="ac:text-sm ac:font-medium ac:text-foreground">How can we help?</p>
               <p className="ac:text-sm ac:text-muted-foreground">
@@ -167,6 +177,18 @@ export function MessageList({
                     )}
                   >
                     <MessageText text={message.text} />
+                    {message.attachments?.map((file) => (
+                      <a
+                        key={file.id}
+                        href={file.downloadUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="ac:block ac:break-all ac:text-primary ac:underline"
+                        download={file.name}
+                      >
+                        📎 {file.name}
+                      </a>
+                    ))}
                   </p>
                   <div className="ac:flex ac:min-h-5 ac:items-center ac:gap-2 ac:px-1 ac:text-xs ac:text-muted-foreground">
                     <time dateTime={message.acceptedAt}>

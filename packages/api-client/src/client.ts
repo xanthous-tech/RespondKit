@@ -3,6 +3,8 @@ import {
   MarkThreadReadResponseV1Schema,
   type MarkThreadReadRequestV1,
   API_VERSION,
+  ContactV1Schema,
+  SaveContactRequestV1Schema,
   ApiErrorResponseV1Schema,
   CreateClientSessionRequestV1Schema,
   CreateClientSessionResponseV1Schema,
@@ -57,6 +59,15 @@ export interface RequestOptions {
 }
 
 export interface RespondKitClient {
+  getContact(
+    sessionToken: SessionToken,
+    options?: RequestOptions,
+  ): Promise<{ email?: string | undefined }>;
+  saveContact(
+    sessionToken: SessionToken,
+    input: { email: string; threadId?: string },
+    options?: RequestOptions,
+  ): Promise<{ email?: string | undefined }>;
   createSession(
     input: CreateClientSessionRequestV1,
     options?: RequestOptions,
@@ -320,6 +331,25 @@ export function createRespondKitClient(options: RespondKitClientOptions): Respon
   }
 
   return {
+    async getContact(sessionToken, options) {
+      return request({
+        path: `/${API_VERSION}/client/contact`,
+        method: "GET",
+        token: SessionTokenSchema.parse(sessionToken),
+        responseSchema: ContactV1Schema,
+        signal: options?.signal,
+      });
+    },
+    async saveContact(sessionToken, input, options) {
+      return request({
+        path: `/${API_VERSION}/client/contact`,
+        method: "POST",
+        token: SessionTokenSchema.parse(sessionToken),
+        responseSchema: ContactV1Schema,
+        body: JSON.stringify(SaveContactRequestV1Schema.parse(input)),
+        signal: options?.signal,
+      });
+    },
     async createSession(input, requestOptions) {
       const body = JSON.stringify(CreateClientSessionRequestV1Schema.parse(input));
       return request({

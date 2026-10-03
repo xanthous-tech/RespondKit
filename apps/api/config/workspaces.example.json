@@ -15,6 +15,12 @@
               "name": "Customer support",
               "defaultLocale": "en",
               "allowedOrigins": ["http://localhost:*", "https://example-product.example.com"],
+              "email": {
+                "from": "support@example.com",
+                "name": "Example Support",
+                "replyDomain": "reply.example.com",
+                "unreadDelaySeconds": 600
+              },
               "discord": {
                 "id": "discord_example",
                 "applicationId": "111111111111111111",

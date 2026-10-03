@@ -8,6 +8,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.*
@@ -19,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -49,6 +52,8 @@ private val WidgetError = Color(0xFFDC2626)
 /** Mount once at the app root, not inside the conditionally presented support destination. */
 @Composable
 fun RespondKitLifecycle(store: RespondKitStore) {
+    val context = LocalContext.current
+    SideEffect { store.setDeviceContext(androidDeviceContext(context)) }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     DisposableEffect(store, lifecycle) {
         val observer = LifecycleEventObserver { _, _ ->
@@ -73,6 +78,7 @@ fun RespondKitScreen(
     modifier: Modifier = Modifier,
     title: String = stringResource(R.string.respondkit_support),
     accentColor: Color? = null,
+    greeting: String? = null,
 ) {
     val accent = (accentColor ?: MaterialTheme.colorScheme.primary).compositeOver(Color.White)
     MaterialTheme(
@@ -91,7 +97,7 @@ fun RespondKitScreen(
                 error = WidgetError,
             )
     ) {
-        RespondKitContent(store, onClose, modifier, title)
+        RespondKitContent(store, onClose, modifier, title, greeting)
     }
 }
 
@@ -101,6 +107,7 @@ private fun RespondKitContent(
     onClose: () -> Unit,
     modifier: Modifier,
     title: String,
+    greeting: String?,
 ) {
     val state by store.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -108,7 +115,11 @@ private fun RespondKitContent(
         store.setScreenVisible(true)
         onDispose { store.setScreenVisible(false) }
     }
-    LaunchedEffect(store) { store.openConversation() }
+    val context = LocalContext.current
+    LaunchedEffect(store) {
+        store.setDeviceContext(androidDeviceContext(context))
+        store.openConversation()
+    }
     BackHandler(onBack = onClose)
     Column(modifier.fillMaxSize().background(Color.White).safeDrawingPadding().imePadding()) {
         Row(
@@ -149,12 +160,14 @@ private fun RespondKitContent(
                 TextButton(onClick = { scope.launch { store.refresh() } }) { Text("Retry") }
             }
         }
-        Conversation(store, state, Modifier.weight(1f))
+        Conversation(store, state, Modifier.weight(1f), greeting)
     }
 }
 
 @Composable
-private fun Conversation(store: RespondKitStore, state: SupportState, modifier: Modifier) {
+private fun Conversation(store: RespondKitStore, state: SupportState, modifier: Modifier, greeting: String?) {
+    val welcome = greeting?.takeIf { state.isFreshConversation && it.isNotBlank() }
+    val greetingRows = if (welcome == null) 0 else 1
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val rows = remember(state.messages, state.pendingMessages) { transcriptRows(state) }
@@ -166,7 +179,7 @@ private fun Conversation(store: RespondKitStore, state: SupportState, modifier: 
     LaunchedEffect(state.activeThreadId, ids) {
         if (ids.isNotEmpty()) {
             if (previousIds.isEmpty() || atBottom) {
-                listState.scrollToItem(rows.size)
+                listState.scrollToItem(rows.size + greetingRows)
                 unseen = 0
             } else {
                 unseen += ids.count { it !in previousIds }
@@ -201,6 +214,11 @@ private fun Conversation(store: RespondKitStore, state: SupportState, modifier: 
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Bottom),
             ) {
+                if (welcome != null) item(key = "greeting") {
+                    Text(welcome, fontSize = 14.sp, color = WidgetInk, modifier = Modifier
+                        .fillMaxWidth(0.84f).background(WidgetFill, RoundedCornerShape(12.dp))
+                        .padding(12.dp).testTag("respondkit-greeting"))
+                }
                 itemsIndexed(rows, key = { _, row -> row.id }) { index, row ->
                     Column {
                         if (
@@ -226,7 +244,7 @@ private fun Conversation(store: RespondKitStore, state: SupportState, modifier: 
                 }
                 item(key = bottomKey) { Spacer(Modifier.height(2.dp)) }
             }
-            if (rows.isEmpty()) {
+            if (rows.isEmpty() && welcome == null) {
                 if (state.isLoading && !state.isSending) {
                     Column(
                         Modifier.fillMaxWidth().align(Alignment.TopStart).padding(16.dp).semantics {
@@ -269,7 +287,7 @@ private fun Conversation(store: RespondKitStore, state: SupportState, modifier: 
                 OutlinedButton(
                     onClick = {
                         scope.launch {
-                            listState.animateScrollToItem(rows.size)
+                            listState.animateScrollToItem(rows.size + greetingRows)
                             unseen = 0
                         }
                     },
@@ -300,19 +318,41 @@ private fun Conversation(store: RespondKitStore, state: SupportState, modifier: 
                     Text(stringResource(R.string.respondkit_another_message))
                 }
             }
-        } else Composer(store, state)
+        } else {
+            if (state.emailAddress == null) EmailCapture(store, state.isLoading)
+            Composer(store, state)
+        }
+    }
+}
+
+@Composable
+private fun EmailCapture(store: RespondKitStore, saving: Boolean) {
+    var email by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+    Column(Modifier.fillMaxWidth().padding(12.dp)) {
+        Text("Where can we email you a reply?", fontSize = 14.sp, color = WidgetMuted)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            OutlinedTextField(email, { email = it }, Modifier.weight(1f), singleLine = true,
+                label = { Text("Email address") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email))
+            TextButton(onClick = { scope.launch { store.saveEmail(email) } }, enabled = email.isNotBlank() && !saving) { Text("Save email") }
+        }
     }
 }
 
 @Composable
 private fun Composer(store: RespondKitStore, state: SupportState) {
     val scope = rememberCoroutineScope()
+    var attachments by remember { mutableStateOf(emptyList<SupportAttachment>()) }
+    var uploading by remember { mutableStateOf(false) }
+    var clearAttachments by remember { mutableIntStateOf(0) }
     var focused by remember { mutableStateOf(false) }
     val canSend =
         !state.isLoading &&
             !state.isSending &&
-            state.draft.isNotBlank() &&
+            (state.draft.isNotBlank() || attachments.isNotEmpty()) && !uploading &&
             state.draft.length <= 6_000
+    Column {
+    AttachmentPicker(store, clearAttachments, state.isSending) { files, busy -> attachments = files; uploading = busy }
     Row(
         Modifier.fillMaxWidth().padding(12.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -349,7 +389,7 @@ private fun Composer(store: RespondKitStore, state: SupportState) {
             },
         )
         Button(
-            onClick = { scope.launch { store.sendDraft() } },
+            onClick = { val files = attachments; scope.launch { store.sendDraft(files) }; attachments = emptyList(); clearAttachments++ },
             enabled = canSend,
             modifier = Modifier.size(44.dp).testTag("respondkit-send"),
             shape = RoundedCornerShape(12.dp),
@@ -364,9 +404,11 @@ private fun Composer(store: RespondKitStore, state: SupportState) {
         }
     }
 }
+}
 
 @Composable
 private fun Bubble(row: TranscriptRow, isSending: Boolean, retry: (String) -> Unit) {
+    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
     val accent = MaterialTheme.colorScheme.primary
     val message = remember(row.text, accent) { linkedMessage(row.text, accent) }
     BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -396,6 +438,9 @@ private fun Bubble(row: TranscriptRow, isSending: Boolean, retry: (String) -> Un
                             )
                             .padding(horizontal = 12.dp, vertical = 10.dp),
                 )
+            }
+            row.attachments.forEach { file ->
+                TextButton(onClick = { uriHandler.openUri(file.downloadUrl) }) { Text("📎 " + file.name) }
             }
             Row(
                 Modifier.heightIn(min = 20.dp).padding(horizontal = 4.dp),

@@ -8,6 +8,7 @@ const packages = [
   { directory: "packages/protocol", name: "@respondkit/protocol" },
   { directory: "packages/api-client", name: "@respondkit/api-client" },
   { directory: "packages/react", name: "@respondkit/react" },
+  { directory: "packages/react-native", name: "@respondkit/react-native" },
 ] as const;
 
 function run(command: string, args: readonly string[], cwd: string) {
@@ -97,7 +98,11 @@ try {
 
   await writeFile(
     join(consumerDirectory, "consumer.tsx"),
-    `import { createRespondKitClient } from "@respondkit/api-client";
+    `import type { NativeStoreOptions, RespondKitScreenProps } from "@respondkit/react-native";
+import { memoryPersistence } from "@respondkit/react-native/core";
+void memoryPersistence();
+export type NativeConsumer = NativeStoreOptions & Pick<RespondKitScreenProps, "greeting">;
+import { createRespondKitClient } from "@respondkit/api-client";
 import { API_VERSION } from "@respondkit/protocol";
 import { RespondKitWidget, respondKitAccentPalette } from "@respondkit/react";
 import "@respondkit/react/styles.css";
@@ -141,7 +146,9 @@ export default defineConfig({ plugins: [react(), tailwindcss()] });
 
   await writeFile(
     join(consumerDirectory, "runtime.mjs"),
-    `import { createRespondKitClient } from "@respondkit/api-client";
+    `import { memoryPersistence } from "@respondkit/react-native/core";
+void memoryPersistence();
+import { createRespondKitClient } from "@respondkit/api-client";
 import { API_VERSION } from "@respondkit/protocol";
 import { RespondKitWidget } from "@respondkit/react";
 
