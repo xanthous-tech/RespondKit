@@ -8,7 +8,7 @@ icon: Rocket
 
 The documentation describes the merged SDKs. A release must also publish npm packages and Android artifacts, create a Swift tag, apply migrations, and configure the target backend. Check each channel independently before changing a host app.
 
-At the 2026-10-04 audit, `@respondkit/react` and the latest GitHub release were 0.5.3, predating the merged email/native/attachment stack. `@respondkit/react-native` was not available in the public npm registry. Do not assume installing 0.5.3 includes those changes. Recheck the [releases](https://github.com/xanthous-tech/RespondKit/releases) and registry at integration time.
+At the 2026-10-04 audit, `@respondkit/react` and the latest GitHub release were 0.5.3, predating the merged email/native/attachment stack. `@respondkit/react-native` was not available in the public npm registry. Do not assume installing 0.5.3 includes those changes. Version 0.6.0 is now prepared in the repository; it must pass publication and registry verification before apps install it. Recheck the [releases](https://github.com/xanthous-tech/RespondKit/releases) and registry at integration time.
 
 ```sh
 # Run outside a repository that forbids npm commands through devEngines.

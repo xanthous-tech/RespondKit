@@ -3,17 +3,19 @@
 RespondKit has one version across npm, SwiftPM, and Maven Central. `VERSION` is the
 source for Android; every workspace package manifest must match it, and the Swift
 package uses the matching `v<version>` Git tag. The next shared release is
-**0.5.3**, fixing iOS read acknowledgements when replies become visible. Preparing a
+**0.6.0**, adding React Native, thread email, attachments, and localization build tools. Preparing a
 version change does not publish it.
+
+The release is prepared but not published. Use the [0.6.0 checklist](../releases/0.6.0.md) for backend prerequisites and the React Native bootstrap.
 
 ## Coordinates
 
 | Distribution | Package |
 | --- | --- |
-| SwiftPM | `https://github.com/xanthous-tech/RespondKit.git`, tag `v0.5.3` |
-| Maven Central | `dev.respondkit:respondkit-core:0.5.3` (JVM JAR) |
-| Maven Central | `dev.respondkit:respondkit-compose:0.5.3` (Android release AAR) |
-| npm | `@respondkit/protocol`, `@respondkit/api-client`, `@respondkit/react`, all `0.5.3` |
+| SwiftPM | `https://github.com/xanthous-tech/RespondKit.git`, tag `v0.6.0` |
+| Maven Central | `dev.respondkit:respondkit-core:0.6.0` (JVM JAR) |
+| Maven Central | `dev.respondkit:respondkit-compose:0.6.0` (Android release AAR) |
+| npm | `@respondkit/protocol`, `@respondkit/api-client`, `@respondkit/react`, `@respondkit/react-native`, all `0.6.0` |
 
 The Compose package exposes core as a transitive API dependency. Consumers need
 only the Compose dependency, `google()` and `mavenCentral()`; no credentials or
@@ -55,7 +57,7 @@ uses GitHub OIDC. SwiftPM needs no publishing account or signing credential.
 
 ## Prepare a release
 
-1. Run `pnpm version:set 0.5.3` (substitute the next shared version). This updates
+1. Run `pnpm version:set 0.6.0` (substitute the next shared version). This updates
    `VERSION` and every workspace manifest. Run `pnpm install --lockfile-only`.
 2. Run `pnpm release:check`, `pnpm ready`, `pnpm build:npm`, `pnpm check:npm`,
    and `pnpm pack:npm`. Native checks also run in CI.
@@ -80,7 +82,7 @@ uses GitHub OIDC. SwiftPM needs no publishing account or signing credential.
 ## Release workflow
 
 `publish.yml` validates npm tarballs, the Swift package, and the Android Maven
-packages **before either registry publish job runs**. Pull requests and default
+packages **before either registry publish job runs**. A release-only npm preflight then checks package existence and the integrity of any already-published versions. The first React Native publication needs the [bootstrap procedure](../npm-publishing.md#react-natives-first-publication); a failure at this gate blocks both npm and Maven publication. Pull requests and default
 manual workflow runs only validate; publishing a GitHub release triggers publication.
 The optional manual `stage_android` input also uploads a signed deployment to
 Central for server-side validation, without publishing it or any npm package.
@@ -92,7 +94,7 @@ and generated Dokka API documentation accompany both libraries. Only the release
 AAR is published; the example app is never published.
 
 SwiftPM resolves the source directly from the shared Git tag. npm publishes the
-three verified tarballs in dependency order. The registries are not transactional:
+four verified tarballs in dependency order. The registries are not transactional:
 if one fails after another succeeds, inspect the existing versions and resume only
 the missing publication. Never overwrite or move a released version. Central
 publication can take time to appear to consumers.
@@ -103,7 +105,7 @@ shown in the workflow and run `publishToMavenCentral` instead of
 Portal before pressing Publish. Do not print credentials in logs.
 
 After publication, verify both Android coordinates resolve from Maven Central,
-SwiftPM resolves the tag, and all three npm packages report the same version.
+SwiftPM resolves the tag, and all four npm packages report the same version.
 Then update Captioner to that version and run its native integration smoke tests.
 
 References: [Central requirements](https://central.sonatype.org/publish/requirements/),
