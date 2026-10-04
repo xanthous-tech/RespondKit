@@ -33,3 +33,7 @@ References: [Workers sending API](https://developers.cloudflare.com/email-servic
 ## Collecting contact addresses
 
 React, React Native, SwiftUI, and Compose show an email text input when no address was supplied by the host or restored from the server. Saving uses authenticated `POST /v1/client/contact` with `{email, threadId?}`; `GET /v1/client/contact` restores the current visitor's contact. The optional thread ID is ownership-checked and also updates that thread owner's contact, covering account history restored on another device. Contact changes never verify an account or create chat messages. Input remains available after a save error, and customers can chat without completing the email prompt.
+
+## Proposed operator mailbox support
+
+The current release accepts customer replies, while operators reply through Discord. See the [operator email routing proposal](../proposals/operator-email-routing.md) for configurable operator mailboxes, email-based operator replies, HTML link preservation, and inbound R2 attachments. These extensions are not implemented in 0.6.0.
