@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"Send another message"</string>
+    <string name="respondkit_ask_anything" formatted="false">"Ask us anything"</string>
+    <string name="respondkit_attach_files" formatted="false">"Attach files"</string>
+    <string name="respondkit_attached_files" formatted="false">"Attached files"</string>
+    <string name="respondkit_cancel" formatted="false">"Cancel"</string>
+    <string name="respondkit_close" formatted="false">"Close"</string>
+    <string name="respondkit_close_chat" formatted="false">"Close support chat"</string>
+    <string name="respondkit_closed" formatted="false">"Closed"</string>
+    <string name="respondkit_closed_help" formatted="false">"This conversation is closed."</string>
+    <string name="respondkit_confirming" formatted="false">"Confirming…"</string>
+    <string name="respondkit_connecting" formatted="false">"Support is still connecting."</string>
+    <string name="respondkit_conversation">"Conversation %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"Conversations"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="one">"Conversations · %1$d unread"</item>
+        <item quantity="other">"Conversations · %1$d unread"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"Email address"</string>
+    <string name="respondkit_email_failed" formatted="false">"We couldn\'t save your email. Please check it and try again."</string>
+    <string name="respondkit_email_prompt" formatted="false">"Where can we email you a reply?"</string>
+    <string name="respondkit_failed" formatted="false">"Failed"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"Cannot open the selected file."</string>
+    <string name="respondkit_files" formatted="false">"Files"</string>
+    <string name="respondkit_help" formatted="false">"How can we help?"</string>
+    <string name="respondkit_history_failed" formatted="false">"Conversation history could not be loaded. Try More again."</string>
+    <string name="respondkit_identity_changed" formatted="false">"Support identity changed in another tab. Reconnect to reload your account."</string>
+    <string name="respondkit_intro" formatted="false">"Send a message and keep this page open for a quick reply."</string>
+    <string name="respondkit_intro_short" formatted="false">"Send a message to start a conversation."</string>
+    <string name="respondkit_latest" formatted="false">"Latest messages"</string>
+    <string name="respondkit_loading" formatted="false">"Loading…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"Loading messages"</string>
+    <string name="respondkit_message" formatted="false">"Message"</string>
+    <string name="respondkit_messages_failed" formatted="false">"New messages could not be loaded."</string>
+    <string name="respondkit_more" formatted="false">"More"</string>
+    <string name="respondkit_new_conversation" formatted="false">"New conversation"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="one">"%1$d new"</item>
+        <item quantity="other">"%1$d new"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"Open"</string>
+    <string name="respondkit_open_chat" formatted="false">"Open support chat"</string>
+    <string name="respondkit_photo_library" formatted="false">"Photo library"</string>
+    <string name="respondkit_picker_failed" formatted="false">"Cannot open file picker"</string>
+    <string name="respondkit_ready" formatted="false">"Ready"</string>
+    <string name="respondkit_reconnect" formatted="false">"Reconnect"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"Reconnect before uploading."</string>
+    <string name="respondkit_remove" formatted="false">"Remove"</string>
+    <string name="respondkit_remove_file">"Remove %1$s"</string>
+    <string name="respondkit_request_failed" formatted="false">"Support request failed."</string>
+    <string name="respondkit_retry" formatted="false">"Retry"</string>
+    <string name="respondkit_retry_message" formatted="false">"Retry message"</string>
+    <string name="respondkit_return" formatted="false">"Your replies will appear here when you return to the app."</string>
+    <string name="respondkit_save_email" formatted="false">"Save email"</string>
+    <string name="respondkit_saving" formatted="false">"Saving…"</string>
+    <string name="respondkit_selected_file" formatted="false">"Selected file"</string>
+    <string name="respondkit_send" formatted="false">"Send"</string>
+    <string name="respondkit_send_message" formatted="false">"Send message"</string>
+    <string name="respondkit_sending" formatted="false">"Sending…"</string>
+    <string name="respondkit_sent" formatted="false">"Sent"</string>
+    <string name="respondkit_session_expired" formatted="false">"Your support session expired. Reconnect to continue."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="one">"Show %1$d new message"</item>
+        <item quantity="other">"Show %1$d new messages"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"Sign in again to restore your support history."</string>
+    <string name="respondkit_start_failed" formatted="false">"Support chat could not be started."</string>
+    <string name="respondkit_support" formatted="false">"Support"</string>
+    <string name="respondkit_support_messages" formatted="false">"Support messages"</string>
+    <string name="respondkit_try_again" formatted="false">"Try again"</string>
+    <string name="respondkit_unknown" formatted="false">"Not confirmed — retry safely"</string>
+    <string name="respondkit_unread" formatted="false">"Unread support reply"</string>
+    <string name="respondkit_upload_failed" formatted="false">"Upload failed"</string>
+    <string name="respondkit_write_message" formatted="false">"Write a message…"</string>
+</resources>

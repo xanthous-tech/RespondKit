@@ -13,7 +13,7 @@
     "build:npm": "vp run -r build:npm",
     "check:npm": "vp exec tsx scripts/check-npm-packages.ts",
     "pack:npm": "vp exec tsx scripts/pack-npm-packages.ts",
-    "ready": "vp check && vp run -r test && vp run -r build",
+    "ready": "vp check && vp run localization:check && vp run -r test && vp run -r build",
     "deploy:staging": "vp -C apps/api run deploy:staging",
     "deploy:web": "vp -C apps/web run deploy",
     "dev:widget": "vp -C apps/widget dev",
@@ -23,10 +23,14 @@
     "db:migrate:local": "vp -C apps/api run db:migrate:local",
     "db:migrate:staging": "vp -C apps/api run db:migrate:staging",
     "config:apply": "vp -C apps/api exec tsx scripts/config-apply.ts",
-    "discord:commands:apply": "vp -C apps/api exec tsx scripts/discord-register.ts"
+    "discord:commands:apply": "vp -C apps/api exec tsx scripts/discord-register.ts",
+    "localization:generate": "vp exec node --import tsx scripts/generate-localizations.ts",
+    "localization:check": "vp exec node --import tsx scripts/generate-localizations.ts --check"
   },
   "devDependencies": {
     "@arethetypeswrong/core": "catalog:",
+    "@respondkit/paraglide-android": "workspace:*",
+    "@respondkit/paraglide-ios": "workspace:*",
     "publint": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
