@@ -203,3 +203,31 @@ it("suppresses a queued delivery to an address the customer has replaced", async
     "cancelled",
   );
 });
+
+it("includes file links in customer follow-ups without operator-only email archives", async () => {
+  const { apiEnv, send } = await queued();
+  await env.DB.prepare("UPDATE message SET attachments=? WHERE id='msg_email_test'")
+    .bind(
+      JSON.stringify([
+        {
+          id: `att_${"a".repeat(64)}`,
+          name: "invoice.pdf",
+          contentType: "application/pdf",
+          size: 42,
+          downloadUrl: "https://api.example.test/v1/files/download-token",
+        },
+      ]),
+    )
+    .run();
+  await env.DB.prepare(
+    "INSERT INTO email_source(message_id,raw_key,html_key,download_token,created_at) VALUES (?,?,?,?,?)",
+  )
+    .bind("msg_email_test", "private.eml", "private.html", "b".repeat(64), Date.now())
+    .run();
+  await makeDue();
+  await deliverPendingEmails(apiEnv);
+  expect(send.mock.calls[0]?.[0].text).toBe(
+    "Your export is ready.\ninvoice.pdf: https://api.example.test/v1/files/download-token",
+  );
+  expect(send.mock.calls[0]?.[0].html).toBeUndefined();
+});

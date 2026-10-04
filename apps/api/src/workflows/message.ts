@@ -787,9 +787,12 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
           enqueueReplyEmail(this.env, envelope.messageId),
         );
         stage = "discord_audit";
-        const target = await step.do("load-discord-thread", DATABASE_STEP, () =>
-          loadReadyDiscordThread(this.env, envelope),
-        );
+        const target =
+          "email" in envelope
+            ? await ensureDiscordThread(step, this.env, envelope)
+            : await step.do("load-discord-thread", DATABASE_STEP, () =>
+                loadReadyDiscordThread(this.env, envelope),
+              );
         await projectDiscordChunks(
           step,
           this.env,

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { Env } from "./env";
 import { emailSettings } from "./email-config";
-import { outgoingEmailContent, escapeEmailHtml } from "./email-content";
+import { emailAttachmentLinks } from "./email-content";
 export { receiveThreadEmail, type IncomingEmail } from "./email-ingress";
 
 /** Snapshot a published reply. Retrying enqueue never moves its original deadline. */
@@ -106,28 +106,22 @@ export async function deliverPendingEmails(env: Env): Promise<void> {
       .bind(Date.now(), batch)
       .run();
     const remaining = await env.DB.prepare(
-      "SELECT message_id,body FROM email_delivery WHERE batch_id=? AND status='sending' ORDER BY transcript_cursor",
+      `SELECT d.body,m.attachments FROM email_delivery d LEFT JOIN message m ON m.id=d.message_id
+      WHERE d.batch_id=? AND d.status='sending' ORDER BY d.transcript_cursor`,
     )
       .bind(batch)
-      .all<{ message_id: string; body: string }>();
+      .all<{ body: string; attachments: string | null }>();
     if (!remaining.results.length) continue;
     try {
-      const content = await Promise.all(
-        remaining.results.map((row) => outgoingEmailContent(env, row.message_id, row.body, false)),
-      );
       const sent = await env.EMAIL.send({
         from: mail.sender,
         to: mail.recipient,
         replyTo: mail.reply_to,
         subject: mail.subject,
-        text: content.map((row) => row.text).join("\n\n—\n\n"),
-        ...(content.some((row) => row.html)
-          ? {
-              html: content
-                .map((row) => row.html ?? `<pre>${escapeEmailHtml(row.text)}</pre>`)
-                .join("<hr>"),
-            }
-          : {}),
+        // No storage I/O between the final read check and handing mail to the provider.
+        text: remaining.results
+          .map((row) => row.body + emailAttachmentLinks(row.attachments))
+          .join("\n\n—\n\n"),
         headers: { "Auto-Submitted": "auto-generated" },
       });
       await env.DB.prepare(

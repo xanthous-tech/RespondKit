@@ -14,8 +14,15 @@ export async function emailHash(value: string): Promise<string> {
 export function publicEmailUrl(env: Env, path: string): string {
   if (!env.PUBLIC_API_URL) throw new Error("PUBLIC_API_URL is required for email files");
   const url = new URL(env.PUBLIC_API_URL);
-  if (url.protocol !== "https:" && url.hostname !== "localhost")
-    throw new Error("PUBLIC_API_URL must use HTTPS");
+  if (
+    (url.protocol !== "https:" && !(url.protocol === "http:" && url.hostname === "localhost")) ||
+    url.username ||
+    url.password ||
+    url.pathname !== "/" ||
+    url.search ||
+    url.hash
+  )
+    throw new Error("PUBLIC_API_URL must be an HTTPS origin (or HTTP localhost)");
   return new URL(path, url).href;
 }
 export type EmailSource = {
@@ -190,6 +197,10 @@ export const escapeEmailHtml = (text: string) =>
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+export function emailAttachmentLinks(serialized: string | null | undefined): string {
+  const files = JSON.parse(serialized ?? "[]") as AttachmentV1[];
+  return files.map((file) => `\n${file.name}: ${file.downloadUrl}`).join("");
+}
 export async function outgoingEmailContent(
   env: Env,
   messageId: string,
@@ -199,8 +210,7 @@ export async function outgoingEmailContent(
   const row = await env.DB.prepare("SELECT attachments FROM message WHERE id=?")
     .bind(messageId)
     .first<{ attachments: string }>();
-  const files = JSON.parse(row?.attachments ?? "[]") as AttachmentV1[];
-  const links = files.map((file) => `\n${file.name}: ${file.downloadUrl}`).join("");
+  const links = emailAttachmentLinks(row?.attachments);
   const archive = includeArchive ? await emailArchiveLinks(env, messageId) : "";
   const source = await emailSource(env, messageId);
   const html =
