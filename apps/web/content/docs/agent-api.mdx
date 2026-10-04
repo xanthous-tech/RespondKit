@@ -34,13 +34,13 @@ Use a product-scoped RespondKit job boundary for the public contract. A specific
 
 Build the first runtime milestone before broad client rollout. The proposed operations are:
 
-| Operation | Required behavior |
-| --- | --- |
-| Claim work | Only the credential's inbox; a bounded batch and expiring lease |
-| Read context | Ordered transcript, current revision, verified identity provenance, and bounded product context |
-| Submit draft | Stable run ID, expected transcript revision, answer text, and source references |
-| Send reply | Separate reply permission or human approval; refuse stale/taken-over work; reuse normal message delivery |
-| Finish or hand off | Acknowledge completed work, retain failure details, or return control to a human |
+| Operation          | Required behavior                                                                                        |
+| ------------------ | -------------------------------------------------------------------------------------------------------- |
+| Claim work         | Only the credential's inbox; a bounded batch and expiring lease                                          |
+| Read context       | Ordered transcript, current revision, verified identity provenance, and bounded product context          |
+| Submit draft       | Stable run ID, expected transcript revision, answer text, and source references                          |
+| Send reply         | Separate reply permission or human approval; refuse stale/taken-over work; reuse normal message delivery |
+| Finish or hand off | Acknowledge completed work, retain failure details, or return control to a human                         |
 
 The first runner can poll these operations from an existing agent host. Add MCP tools only as an adapter if that host needs them. Keep agent framework and model selection outside the API contract.
 
