@@ -2,7 +2,7 @@
 
 RespondKit now includes a Swift Package and Android core/Compose modules in this repository. They use the existing v1 customer API. There is no SDK launcher: your app owns buttons, badge placement, and full-screen presentation. The SDK opens directly into one conversation, with messages, attachments, conversation history, drafts, retries, read acknowledgements, and foreground status polling.
 
-Use the [web integration guide](https://respondkit.dev/docs/native-clients) for a short setup path and [release setup and validation](releases.md) for publication. The merged email, greeting, device, and attachment changes require a release newer than the existing 0.5.3 tag. Verify the published artifacts before selecting a version; use a pinned source revision for prerelease testing.
+Use the [web integration guide](https://respondkit.dev/docs/native-clients) for a short setup path and [release setup and validation](releases.md) for publication. The email, greeting, device, and attachment changes are included in the prepared 0.6.0 release; preparing the version does not publish the artifacts. Verify the published artifacts before selecting a version; use a pinned source revision for prerelease testing.
 
 ## Links in messages
 
