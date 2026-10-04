@@ -36,4 +36,4 @@ React, React Native, SwiftUI, and Compose show an email text input when no addre
 
 ## Proposed operator mailbox support
 
-The current release accepts customer replies, while operators reply through Discord. See the [operator email routing proposal](../proposals/operator-email-routing.md) for configurable operator mailboxes, email-based operator replies, HTML link preservation, and inbound R2 attachments. These extensions are not implemented in 0.6.0.
+The current release accepts customer replies, while operators reply through Discord. See the [operator email routing proposal](../proposals/operator-email-routing.md) for configurable operator mailboxes, email-based operator replies, original HTML preservation and forwarding, Discord access to the original email, and inbound R2 attachments. These extensions are not implemented in 0.6.0.

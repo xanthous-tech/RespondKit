@@ -48,13 +48,15 @@ For this installation, the owner chose the apex `respondkit.dev` reply domain an
 
 These are installation values only. `inbox_respondkit_test` has localhost origins; leave forwarding disabled until it has a deliberate test destination. Sending it to `chat@respondkit.dev` without a separate mailbox route would feed the support receiver itself.
 
-## HTML, links, and attachments
+## Original HTML and attachments
 
 Continue with `postal-mime`, already used by RespondKit and Simple Inbox. Reuse Simple Inbox's architectural patterns for reply aliases, immutable ingestion, R2 storage, and delivery state; do not reuse its deployed resources or copy the full mail application.
 
-- Convert HTML to safe transcript text using a real parser, retaining HTTP(S) anchor destinations. For example, a Google Drive anchor becomes `View file (https://drive.google.com/...)`. Preserve useful HTML links even when the plain-text alternative omits them. Never fetch linked documents or remote images.
-- Simple Inbox's current MIME fallback extracts visible text and drops attributes, including hrefs. Copying it unchanged would lose Drive links. Scripts, styles, and unsafe URL schemes must remain excluded.
-- Handle recognizable Gmail/Outlook/Apple Mail quoted blocks conservatively. Retain raw MIME for recovery; do not silently drop uncertain content or truncate a customer's message to the 6,000-character transcript limit. Define explicit recovery for overflow and malformed mail.
+- Preserve the original MIME message and its HTML part in private R2. Forward the HTML body through Email Sending rather than converting it to Markdown or rewriting links for particular services. Keep MIME attachment and inline-image content available so HTML references can be reconstructed when forwarding.
+- Discord messages do not render arbitrary HTML. Post the email's plain-text alternative as a preview and attach the original email (`.eml`) and HTML part (`.html`), or provide R2 download links when Discord's attachment limits apply. The preserved original is the authoritative content; the Discord preview is not a replacement for it.
+- For HTML-only mail, derive a generic plain-text preview if useful, without treating that preview as the stored or forwarded body. Do not add Google Drive-specific parsing, a Markdown representation, or service-specific URL extraction. Ordinary HTML links remain intact in the original HTML.
+- Keep preview formatting from interpreting email text as Discord commands or mentions. Do not embed untrusted HTML directly in the app UI; downloads remain attachments. A future browser preview would need sanitization and an isolated sandbox, but it is outside this minimal scope.
+- Preserve quoted content in the original rather than introducing mail-client-specific quote-stripping rules. A bounded preview may point to the complete original when it exceeds transcript limits; it must be clearly a preview, never a silent truncation of the authoritative email.
 - Store incoming attachments in private R2 and attach the shared metadata to the canonical message. Extend operator attachment persistence as well as customer ingestion so all existing clients can display the files. Preserve filenames and inline image files.
 - Include R2 download links in operator notifications and customer follow-ups. No additional product upload-size limit or lifecycle expiration is proposed. Keep bearer download links out of logs.
 - Replace the current 256 KB/attachment rejection with provider-aware handling. Cloudflare's inbound limit is 25 MiB; arbitrary-recipient outbound messages are limited to 5 MiB (25 MiB for verified destinations). Link-based attachments avoid outbound MIME limits. Larger files remain supported through client uploads.
@@ -62,11 +64,11 @@ Continue with `postal-mime`, already used by RespondKit and Simple Inbox. Reuse 
 
 ## Implementation and rollout
 
-1. Add MIME/HTML conversion and R2 email attachment ingestion, with synthetic fixtures for Drive anchors, multipart alternatives, inline images, malformed mail, duplicates, and provider limits.
+1. Add raw MIME/HTML preservation and R2 email attachment ingestion, with synthetic fixtures for HTML preservation through forwarding, Discord original-email downloads, multipart alternatives, ordinary links, inline images, malformed mail, duplicates, and provider limits.
 2. Add optional operator configuration, role-specific routes/outbox, email operator identity/persistence, and workflow delivery. Test wrong senders, cross-inbox tokens, revoked settings, automated replies, duplicate/concurrent events, and independent email/Discord failures.
 3. Preserve the current ten-minute read cancellation. Initially send operator email replies as written unless translation is explicitly selected; do not silently require approval through a Discord-only screen.
 4. Inspect `respondkit.dev` DNS and routing before changes. Once receiver code and migrations are ready, route its catch-all to the RespondKit Worker, preserving unrelated exact-address rules and all Simple Inbox/app-domain routes. Add the EMAIL/private R2 bindings to the serving Wrangler environment (`staging` serves `api.respondkit.dev`) and verify each configured sender domain.
-5. Apply explicit inbox settings and run a controlled app → operator mailbox → operator reply → app → unread customer email → customer reply round trip, including an attachment and a Drive anchor. Verify read-before-deadline cancellation, then enable the second application inbox.
+5. Apply explicit inbox settings and run a controlled app → operator mailbox → operator reply → app → unread customer email → customer reply round trip, including attachments and an HTML email with links and inline images. Verify that forwarded HTML preserves its content and the original is accessible from Discord. Verify read-before-deadline cancellation, then enable the second application inbox.
 
 No DNS, Email Routing, inbox settings, or deployed Worker changes have been made by this proposal. SDK publication is separate from this backend follow-up.
 
