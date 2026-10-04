@@ -32,6 +32,20 @@ Add scoped agent credentials and explicit permissions; durable claim/renew/ack h
 
 Use a product-scoped RespondKit job boundary for the public contract. A specific runner can be added behind it without coupling SDKs to that runner. An MCP adapter can later expose the same operations to compatible hosts; it does not replace authorization, idempotency, or durable job state.
 
+Build the first runtime milestone before broad client rollout. The proposed operations are:
+
+| Operation | Required behavior |
+| --- | --- |
+| Claim work | Only the credential's inbox; a bounded batch and expiring lease |
+| Read context | Ordered transcript, current revision, verified identity provenance, and bounded product context |
+| Submit draft | Stable run ID, expected transcript revision, answer text, and source references |
+| Send reply | Separate reply permission or human approval; refuse stale/taken-over work; reuse normal message delivery |
+| Finish or hand off | Acknowledge completed work, retain failure details, or return control to a human |
+
+The first runner can poll these operations from an existing agent host. Add MCP tools only as an adapter if that host needs them. Keep agent framework and model selection outside the API contract.
+
+After reviewed drafts are reliable, enable automatic replies for selected inboxes and answer types. The same idempotency, stale-revision check, provenance, and human handoff must apply to direct sends. The pilot is not complete until a customer can receive an agent-authored reply in the app and the reply participates in read receipts and delayed email exactly like a human reply.
+
 ## Product knowledge and tools
 
 Give each product its own support manual, inbox, credentials, and bounded diagnostic tools. The initial tool set should answer questions such as “what is this customer's job status?” using authenticated identifiers, without granting arbitrary database or payment access. Keep payment changes, refunds, and destructive operations out of the first automatic workflow.
