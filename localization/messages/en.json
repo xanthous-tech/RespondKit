@@ -1,0 +1,88 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Support",
+  "respondkit_ask_anything": "Ask us anything",
+  "respondkit_open_chat": "Open support chat",
+  "respondkit_close_chat": "Close support chat",
+  "respondkit_close": "Close",
+  "respondkit_help": "How can we help?",
+  "respondkit_intro": "Send a message and keep this page open for a quick reply.",
+  "respondkit_intro_short": "Send a message to start a conversation.",
+  "respondkit_return": "Your replies will appear here when you return to the app.",
+  "respondkit_conversations": "Conversations",
+  "respondkit_conversation": "Conversation {date}",
+  "respondkit_new_conversation": "New conversation",
+  "respondkit_unread": "Unread support reply",
+  "respondkit_open": "Open",
+  "respondkit_closed": "Closed",
+  "respondkit_more": "More",
+  "respondkit_loading": "Loading…",
+  "respondkit_loading_messages": "Loading messages",
+  "respondkit_support_messages": "Support messages",
+  "respondkit_latest": "Latest messages",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": { "category=*": "{count} new" }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Show {count} new message",
+        "category=*": "Show {count} new messages"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": { "category=*": "Conversations · {count} unread" }
+    }
+  ],
+  "respondkit_closed_help": "This conversation is closed.",
+  "respondkit_another_message": "Send another message",
+  "respondkit_message": "Message",
+  "respondkit_write_message": "Write a message…",
+  "respondkit_send": "Send",
+  "respondkit_send_message": "Send message",
+  "respondkit_sending": "Sending…",
+  "respondkit_sent": "Sent",
+  "respondkit_failed": "Failed",
+  "respondkit_confirming": "Confirming…",
+  "respondkit_unknown": "Not confirmed — retry safely",
+  "respondkit_retry": "Retry",
+  "respondkit_retry_message": "Retry message",
+  "respondkit_try_again": "Try again",
+  "respondkit_reconnect": "Reconnect",
+  "respondkit_email_prompt": "Where can we email you a reply?",
+  "respondkit_email_address": "Email address",
+  "respondkit_save_email": "Save email",
+  "respondkit_saving": "Saving…",
+  "respondkit_email_failed": "We couldn't save your email. Please check it and try again.",
+  "respondkit_attach_files": "Attach files",
+  "respondkit_attached_files": "Attached files",
+  "respondkit_photo_library": "Photo library",
+  "respondkit_files": "Files",
+  "respondkit_cancel": "Cancel",
+  "respondkit_ready": "Ready",
+  "respondkit_upload_failed": "Upload failed",
+  "respondkit_remove": "Remove",
+  "respondkit_remove_file": "Remove {name}",
+  "respondkit_selected_file": "Selected file",
+  "respondkit_picker_failed": "Cannot open file picker",
+  "respondkit_file_open_failed": "Cannot open the selected file.",
+  "respondkit_start_failed": "Support chat could not be started.",
+  "respondkit_request_failed": "Support request failed.",
+  "respondkit_history_failed": "Conversation history could not be loaded. Try More again.",
+  "respondkit_messages_failed": "New messages could not be loaded.",
+  "respondkit_sign_in_again": "Sign in again to restore your support history.",
+  "respondkit_session_expired": "Your support session expired. Reconnect to continue.",
+  "respondkit_identity_changed": "Support identity changed in another tab. Reconnect to reload your account.",
+  "respondkit_connecting": "Support is still connecting.",
+  "respondkit_reconnect_upload": "Reconnect before uploading."
+}

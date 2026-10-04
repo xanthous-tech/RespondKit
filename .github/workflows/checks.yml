@@ -6,6 +6,9 @@ on:
         "apps/api/**",
         "apps/web/**",
         "packages/**",
+        "localization/**",
+        "scripts/generate-localizations.ts",
+        "package.json",
         "pnpm-lock.yaml",
         ".github/workflows/checks.yml",
       ]

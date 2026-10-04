@@ -1,54 +1,78 @@
 ---
 title: Localization
-description: A shared-catalog proposal for web, React Native, SwiftUI, and Android.
+description: Shared Paraglide JSON with build-time Apple and Android resource generation.
 icon: Languages
 ---
 
 ## Current behavior
 
-Most SDK controls and error text are English literals. Android has a small string resource file; Swift has no SDK string catalog yet. Dates use platform locale formatting. Passing `context.locale` supplies conversation context; it does not currently select translated UI controls.
+RespondKit now has separate iOS and Android resource compiler packages, a shared validator, and an English source catalog. They generate native resource files from a small subset of Paraglide's inlang JSON format. The packages are private workspace tools, not published npm packages.
 
-Keep three surfaces distinct: SDK controls, host-owned greetings/titles, and customer conversation text. Operator-requested message translation is already handled by the backend. It does not require each client to run a translation model or maintain its own translated copy of a conversation.
+SDK views still use their existing English strings. The generated resources are not yet wired into SDK bundles, and `context.locale` still supplies conversation context rather than selecting translated UI controls. Do not add a `messages` prop or assume a UI locale option exists before the client integration is released.
 
-## Recommendation
+Keep SDK controls, host-owned titles/greetings, and customer conversation text separate. Operator-requested conversation translation remains a backend feature.
 
-Maintain one versioned, English-source SDK catalog in Git, with stable message IDs, translator context, parameter types, and reviewed locale files. Generate platform artifacts from that catalog in one PR. Each client consumes its own bundled resources; no runtime synchronization service is required.
+## One source, native outputs
 
-| Consumer                   | Recommended output                                                      |
-| -------------------------- | ----------------------------------------------------------------------- |
-| React web and React Native | Shared compiled Lingui catalogs behind an SDK-owned translation adapter |
-| SwiftUI                    | String Catalog (`.xcstrings`), bundled in the SDK, plus typed accessors |
-| Android Compose            | Namespaced `strings.xml` and `<plurals>` resources plus typed accessors |
-| Email templates            | Server-side compiled messages from a separate email namespace           |
+| Client                 | Build output                                                                             |
+| ---------------------- | ---------------------------------------------------------------------------------------- |
+| React and React Native | The same JSON can feed Paraglide's JavaScript compiler; SDK integration is still pending |
+| SwiftUI                | `RespondKit.xcstrings` from `@respondkit/paraglide-ios`                                  |
+| Android Compose        | `strings.xml` and `<plurals>` from `@respondkit/paraglide-android`                       |
 
-This is a proposed implementation, not a current SDK option. Do not add imaginary `locale` or `messages` props to an integration before the corresponding SDK release.
+Edit `localization/messages/en.json` and reviewed translations in `messages/{locale}.json`. Register release locales in `localization/project.inlang/settings.json`. Generate and check the resources from the repository root:
 
-Use a dedicated package such as `packages/localization`, with English and translated ICU JSON catalogs plus a schema describing each key's arguments and meaning. Keep stable IDs such as `support.send_button` and `support.unread_count`; generate native-safe key names from an explicit mapping. Start with English and the pilot's languages, rather than copying every host app's full locale list into the first release.
+```sh
+pnpm localization:generate
+pnpm localization:check
+```
 
-## Does ParaglideJS fit?
+Commit `localization/generated` with its source changes. CI rejects stale resources. Installed mobile clients receive translation updates with a new SDK/app release; there is no runtime synchronization service.
 
-Paraglide compiles catalogs into typed JavaScript message functions and has strong web-framework integrations. It can remain the host website's localization tool. It does not directly produce Swift String Catalogs or Android resources, and its browser-oriented locale strategies need adaptation for React Native. [Paraglide compiler](https://paraglidejs.com/compiling-messages), [locale strategies](https://paraglidejs.com/strategy).
+## Supported Paraglide subset
 
-For the shared React/React Native SDK layer, Lingui is the lower-integration-risk starting point because it documents React Native, Metro, React context updates, and runtime `Intl` requirements. Precompile within the SDK so host apps do not need Lingui macros. Use an SDK-owned instance rather than modifying a host application's global locale. This is an engineering recommendation, not a claim that Paraglide cannot run on React Native. [Lingui React Native guide](https://lingui.dev/tutorials/react-native), [catalog formats](https://lingui.dev/ref/catalog-formats).
+Use flat, stable `lower_snake_case` message IDs. RespondKit prefixes them with `respondkit_`.
 
-## What the native glue must do
+| Feature    | Rule                                                                                   |
+| ---------- | -------------------------------------------------------------------------------------- |
+| Plain text | Unicode text, punctuation, quotes, percent signs, and newlines                         |
+| Parameters | `{name}` string parameters; translations may reorder or repeat them                    |
+| Plurals    | One nonnegative integer count, one cardinal `plural` declaration, and category matches |
+| Fallback   | Supply every category for the locale or an explicit final wildcard match               |
+| Locales    | Language with optional script and region; preserve `zh-Hans` versus `zh-Hant`          |
 
-A build-time exporter maps the same IDs, typed placeholders, and plural branches into native resource formats. A small runtime adapter selects the SDK's resource bundle and effective locale. Generating JSON alone does not localize hard-coded UI text: all controls, accessibility labels, picker actions, status messages, and recoverable errors must call these adapters.
+```json
+{
+  "respondkit_remove_file": "Remove {name}",
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Show {count} new message",
+        "category=*": "Show {count} new messages"
+      }
+    }
+  ]
+}
+```
 
-Use a constrained, validated message format initially: plain strings, named string/number arguments, and supported cardinal plural branches. Do not assume arbitrary nested ICU selects or rich text convert losslessly into native resources. Reject unsupported patterns in CI. Generate positional placeholders in a stable order and correctly escape percent signs, apostrophes, XML, and newlines. [Apple String Catalogs](https://developer.apple.com/documentation/xcode/localizing-and-varying-text-with-a-string-catalog), [Android string resources](https://developer.android.com/guide/topics/resources/string-resource).
+Use string arguments for already formatted dates or numbers. Native parameter positions follow alphabetical argument names, regardless of sentence order. A plural can interpolate only its count; use integers from 0 through 2,147,483,647 for compatibility with Android's quantity APIs.
 
-Package Swift resources with the SDK's own bundle and development language. Use namespaced Android resource keys to avoid host collisions. Test locale overrides against actual native resource selection, not just date formatting.
+Do not use nested JSON, ICU syntax, markup, literal braces, backslash escapes, custom formatters, date/number annotations, decimal or ordinal plurals, exact-number matches, gender/platform selectors, or multiple plural inputs. The compilers fail on unsupported features. The inspected UI needs none of these features.
 
-The host's selected language should take precedence over the device preference, with a documented fallback to English. OS-owned picker controls follow system localization; SDK-owned picker choices need catalog entries. Map stable API error codes to localized UI messages while keeping diagnostic details in logs.
+## How plural generation works
 
-## Synchronization and review
+The validator gets a locale's categories from `Intl.PluralRules`, then copies the corresponding translated pattern into Apple plural variations and Android quantity resources. An explicit wildcard supplies omitted categories. `Intl` identifies categories; it does not translate words or create translations.
 
-A catalog change should regenerate all client outputs and fail CI on missing keys, changed parameter types, unsupported plural cases, or stale generated files. Bundle English fallback in every SDK. Define explicit language/script/region fallback rules and preserve distinctions such as `zh-Hans` and `zh-Hant`; do not collapse everything to a two-letter code.
+The device selects the form for the actual count at runtime. The grammatical category `zero` is not a condition for exactly zero in every language. Use a separate key and a client condition for a special empty state. OS and Node ICU versions can differ, so this is not a promise of identical formatting on every OS release.
 
-Translate catalog entries directly in reviewed PRs. Start with the locales your first pilot needs, then expand. Test pseudo-localization, right-to-left layout, long labels, accessibility, and plural categories. Libraries can share a catalog revision even though installed mobile apps receive it only with their next release.
+Compatibility tests use Paraglide JS 2.20.2 and message-format 4.3.0 across English, Arabic, Russian, Polish, French, and Traditional Chinese. [Paraglide variants](https://github.com/opral/paraglide-js/blob/main/docs/variants.md), [Android plural rules](https://developer.android.com/guide/topics/resources/string-resource#Plurals).
 
-If a translation management UI becomes useful, Tolgee documents imports/exports for both Apple String Catalogs and Android XML. It can replace some conversion work, but still needs a tested export pipeline and does not replace the runtime adapters. A hosted service is optional for the first implementation. [Supported formats](https://docs.tolgee.io/platform/supported_formats), [Apple export](https://docs.tolgee.io/platform/formats/apple_xcstrings), [Android export](https://docs.tolgee.io/platform/formats/android_xml).
+## Client integration remains the next step
 
-## Suggested implementation order
+Swift needs resource processing, the SDK's resource bundle, and localized lookups. Android needs generated resources installed in its library and `stringResource`/`pluralStringResource` calls. React and React Native need Paraglide message calls and SDK-owned locale handling; RN also needs Metro/Hermes validation. [Apple string catalogs](https://developer.apple.com/documentation/xcode/localizing-and-varying-text-with-a-string-catalog), [Paraglide locale strategies](https://paraglidejs.com/strategy).
 
-First inventory and extract English strings across all four clients. Next implement the shared catalog, deterministic exports, locale resolution, and English fallback. Add the pilot's first translated locales in the same release across clients. Keep host greetings in the host catalog, and test message translation separately through the existing operator workflow.
+The host language should take precedence over device preferences with a documented English fallback. Host greetings remain host-localized. OS-owned pickers follow system localization. Backend diagnostic errors need a separate stable-error-code mapping before advertising complete UI localization.
+
+For compiler APIs, native call examples, exact restrictions, and the inspected string inventory, see the repository's [localization guide](https://github.com/xanthous-tech/RespondKit/blob/main/localization/README.md).
