@@ -8,6 +8,9 @@ on:
       - VERSION
       - .github/workflows/publish.yml
       - scripts/validate-npm-release.ts
+      - scripts/publish-npm.mjs
+      - scripts/lib/npm-release.mjs
+      - scripts/npm-release.test.mjs
       - scripts/check-android-publication.py
       - native/android/**/*.gradle.kts
       - packages/*/package.json
@@ -80,14 +83,12 @@ jobs:
           path: native/android/build/verification-repository/
           if-no-files-found: error
 
-  publish-npm:
+  preflight-npm:
     if: github.event_name == 'release'
     needs: [verify-npm, verify-swift, verify-android]
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
@@ -95,15 +96,36 @@ jobs:
         with:
           name: npm-packages
           path: artifacts/npm
-      - name: Publish packages in dependency order
-        run: |
-          for package in protocol api-client react react-native; do
-            npm publish "$GITHUB_WORKSPACE/artifacts/npm/respondkit-${package}-${RELEASE_TAG#v}.tgz" --access public
-          done
+      - name: Check npm bootstrap and existing artifact integrity
+        run: node scripts/publish-npm.mjs --check artifacts/npm "$RELEASE_TAG"
+
+  publish-npm:
+    if: github.event_name == 'release'
+    needs: [verify-npm, verify-swift, verify-android, preflight-npm]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: actions/download-artifact@v4
+        with:
+          name: npm-packages
+          path: artifacts/npm
+      - name: Publish missing packages in dependency order
+        run: node scripts/publish-npm.mjs --publish artifacts/npm "$RELEASE_TAG"
 
   publish-android:
-    if: github.event_name == 'release' || inputs.stage_android == true
-    needs: [verify-npm, verify-swift, verify-android]
+    if: >-
+      ${{ !cancelled() &&
+      needs.verify-npm.result == 'success' &&
+      needs.verify-swift.result == 'success' &&
+      needs.verify-android.result == 'success' &&
+      ((github.event_name == 'release' && needs.preflight-npm.result == 'success') || inputs.stage_android == true) }}
+    needs: [verify-npm, verify-swift, verify-android, preflight-npm]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -1,6 +1,6 @@
 {
   "name": "respondkit",
-  "version": "0.5.3",
+  "version": "0.6.0",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -13,7 +13,7 @@
     "build:npm": "vp run -r build:npm",
     "check:npm": "vp exec tsx scripts/check-npm-packages.ts",
     "pack:npm": "vp exec tsx scripts/pack-npm-packages.ts",
-    "ready": "vp check && vp run localization:check && vp run -r test && vp run -r build",
+    "ready": "vp check && vp run test:release && vp run localization:check && vp run -r test && vp run -r build",
     "deploy:staging": "vp -C apps/api run deploy:staging",
     "deploy:web": "vp -C apps/web run deploy",
     "dev:widget": "vp -C apps/widget dev",
@@ -25,7 +25,8 @@
     "config:apply": "vp -C apps/api exec tsx scripts/config-apply.ts",
     "discord:commands:apply": "vp -C apps/api exec tsx scripts/discord-register.ts",
     "localization:generate": "vp exec node --import tsx scripts/generate-localizations.ts",
-    "localization:check": "vp exec node --import tsx scripts/generate-localizations.ts --check"
+    "localization:check": "vp exec node --import tsx scripts/generate-localizations.ts --check",
+    "test:release": "node --test scripts/npm-release.test.mjs"
   },
   "devDependencies": {
     "@arethetypeswrong/core": "catalog:",
