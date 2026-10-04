@@ -1,4 +1,17 @@
 {
   "title": "RespondKit",
-  "pages": ["index", "getting-started", "react-widget", "discord-inbox", "agent-api"]
+  "pages": [
+    "index",
+    "getting-started",
+    "react-widget",
+    "react-native",
+    "native-clients",
+    "identity",
+    "discord-inbox",
+    "email-and-files",
+    "rollout",
+    "coding-agents",
+    "agent-api",
+    "localization"
+  ]
 }

@@ -6,6 +6,24 @@ icon: PanelsTopLeft
 
 `RespondKitWidget` is the public React entrypoint. It owns session bootstrap, thread creation, message polling, optimistic sends, retry state, and the visible chat interface.
 
+## Install and mount once
+
+Check [release availability](/docs/rollout), then install the selected `@respondkit/react` version. The host must process `@respondkit/react/styles.css` with Tailwind CSS v4. Keep one widget near the application root so navigation does not recreate its session.
+
+```tsx
+import { RespondKitWidget } from "@respondkit/react";
+import "@respondkit/react/styles.css";
+
+<RespondKitWidget
+  apiBaseUrl="https://support-api.example.com"
+  context={{ inboxId: "inbox_example_public", locale: appLocale }}
+  title="Support"
+  greeting="Hi! How can we help?"
+/>;
+```
+
+The host supplies `appLocale`; this is conversation context, not a switch for translated SDK controls. Add verified identity when the user signs in.
+
 ## Props
 
 | Prop            | Type                    | Description                                                         |
@@ -16,6 +34,11 @@ icon: PanelsTopLeft
 | `accentColor`   | `RespondKitAccentColor` | Tailwind palette family used by the launcher and customer messages. |
 | `initiallyOpen` | `boolean`               | Opens the widget on its first render.                               |
 | `fetch`         | `typeof fetch`          | Optional fetch implementation for hosts that need to supply one.    |
+
+| `greeting` | `string` | Local first bubble for a fresh conversation; omitted from restored history and server messages. |
+| `getIdentityToken` | `() => Promise<string \| null>` | Fetch a fresh backend-signed account assertion. |
+| `identityPending` | `boolean` | Pause identity work while host authentication loads. |
+| `renderLauncher` | `(props) => ReactNode` | Render your own launcher using the supplied button props and unread state. |
 
 ## Accent colors
 
@@ -34,3 +57,17 @@ The widget supports the standard Tailwind color families, including `lime`, `ind
 Pass your stable internal ID whenever possible. Add `getIdentityToken`, an async callback fetching a short-lived HS256 assertion from your authenticated backend, to link anonymous conversations and recover account history across browsers. Pass `identityPending` while authentication is loading. Raw user IDs and PostHog IDs remain advisory and cannot grant history access.
 
 The widget preserves browser identity through login, rotates it on logout or account switching, and offers a conversation selector when account history contains multiple threads. `posthogSessionId` is accepted alongside `posthogDistinctId` for analytics correlation. See the repository’s [identity setup guide](https://github.com/xanthous-tech/RespondKit/blob/main/docs/architecture/customer-identity.md) for the JWT contract and rollout order.
+
+## Email, attachments, and your own launcher
+
+The widget prompts for an email when the host/server has none. Customers can continue without supplying one. It accepts multiple files of any type after the R2 backend is configured; see [Email and files](/docs/email-and-files).
+
+Use `renderLauncher` to place support in your app navigation. Spread `buttonProps` onto the actual button, including its ref, and display `hasUnreadReplies`. Keep the widget mounted while its launcher is hidden. Do not programmatically click an internal DOM selector to open support.
+
+```tsx
+renderLauncher={({ buttonProps, hasUnreadReplies }) => (
+  <button {...buttonProps}>
+    Support {hasUnreadReplies ? "•" : ""}
+  </button>
+)}
+```

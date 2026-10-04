@@ -1,0 +1,54 @@
+---
+title: Localization
+description: A shared-catalog proposal for web, React Native, SwiftUI, and Android.
+icon: Languages
+---
+
+## Current behavior
+
+Most SDK controls and error text are English literals. Android has a small string resource file; Swift has no SDK string catalog yet. Dates use platform locale formatting. Passing `context.locale` supplies conversation context; it does not currently select translated UI controls.
+
+Keep three surfaces distinct: SDK controls, host-owned greetings/titles, and customer conversation text. Operator-requested message translation is already handled by the backend. It does not require each client to run a translation model or maintain its own translated copy of a conversation.
+
+## Recommendation
+
+Maintain one versioned, English-source SDK catalog in Git, with stable message IDs, translator context, parameter types, and reviewed locale files. Generate platform artifacts from that catalog in one PR. Each client consumes its own bundled resources; no runtime synchronization service is required.
+
+| Consumer                   | Recommended output                                                      |
+| -------------------------- | ----------------------------------------------------------------------- |
+| React web and React Native | Shared compiled Lingui catalogs behind an SDK-owned translation adapter |
+| SwiftUI                    | String Catalog (`.xcstrings`), bundled in the SDK, plus typed accessors |
+| Android Compose            | Namespaced `strings.xml` and `<plurals>` resources plus typed accessors |
+| Email templates            | Server-side compiled messages from a separate email namespace           |
+
+This is a proposed implementation, not a current SDK option. Do not add imaginary `locale` or `messages` props to an integration before the corresponding SDK release.
+
+Use a dedicated package such as `packages/localization`, with English and translated ICU JSON catalogs plus a schema describing each key's arguments and meaning. Keep stable IDs such as `support.send_button` and `support.unread_count`; generate native-safe key names from an explicit mapping. Start with English and the pilot's languages, rather than copying every host app's full locale list into the first release.
+
+## Does ParaglideJS fit?
+
+Paraglide compiles catalogs into typed JavaScript message functions and has strong web-framework integrations. It can remain the host website's localization tool. It does not directly produce Swift String Catalogs or Android resources, and its browser-oriented locale strategies need adaptation for React Native. [Paraglide compiler](https://paraglidejs.com/compiling-messages), [locale strategies](https://paraglidejs.com/strategy).
+
+For the shared React/React Native SDK layer, Lingui is the lower-integration-risk starting point because it documents React Native, Metro, React context updates, and runtime `Intl` requirements. Precompile within the SDK so host apps do not need Lingui macros. Use an SDK-owned instance rather than modifying a host application's global locale. This is an engineering recommendation, not a claim that Paraglide cannot run on React Native. [Lingui React Native guide](https://lingui.dev/tutorials/react-native), [catalog formats](https://lingui.dev/ref/catalog-formats).
+
+## What the native glue must do
+
+A build-time exporter maps the same IDs, typed placeholders, and plural branches into native resource formats. A small runtime adapter selects the SDK's resource bundle and effective locale. Generating JSON alone does not localize hard-coded UI text: all controls, accessibility labels, picker actions, status messages, and recoverable errors must call these adapters.
+
+Use a constrained, validated message format initially: plain strings, named string/number arguments, and supported cardinal plural branches. Do not assume arbitrary nested ICU selects or rich text convert losslessly into native resources. Reject unsupported patterns in CI. Generate positional placeholders in a stable order and correctly escape percent signs, apostrophes, XML, and newlines. [Apple String Catalogs](https://developer.apple.com/documentation/xcode/localizing-and-varying-text-with-a-string-catalog), [Android string resources](https://developer.android.com/guide/topics/resources/string-resource).
+
+Package Swift resources with the SDK's own bundle and development language. Use namespaced Android resource keys to avoid host collisions. Test locale overrides against actual native resource selection, not just date formatting.
+
+The host's selected language should take precedence over the device preference, with a documented fallback to English. OS-owned picker controls follow system localization; SDK-owned picker choices need catalog entries. Map stable API error codes to localized UI messages while keeping diagnostic details in logs.
+
+## Synchronization and review
+
+A catalog change should regenerate all client outputs and fail CI on missing keys, changed parameter types, unsupported plural cases, or stale generated files. Bundle English fallback in every SDK. Define explicit language/script/region fallback rules and preserve distinctions such as `zh-Hans` and `zh-Hant`; do not collapse everything to a two-letter code.
+
+Translate catalog entries directly in reviewed PRs. Start with the locales your first pilot needs, then expand. Test pseudo-localization, right-to-left layout, long labels, accessibility, and plural categories. Libraries can share a catalog revision even though installed mobile apps receive it only with their next release.
+
+If a translation management UI becomes useful, Tolgee documents imports/exports for both Apple String Catalogs and Android XML. It can replace some conversion work, but still needs a tested export pipeline and does not replace the runtime adapters. A hosted service is optional for the first implementation. [Supported formats](https://docs.tolgee.io/platform/supported_formats), [Apple export](https://docs.tolgee.io/platform/formats/apple_xcstrings), [Android export](https://docs.tolgee.io/platform/formats/android_xml).
+
+## Suggested implementation order
+
+First inventory and extract English strings across all four clients. Next implement the shared catalog, deterministic exports, locale resolution, and English fallback. Add the pilot's first translated locales in the same release across clients. Keep host greetings in the host catalog, and test message translation separately through the existing operator workflow.

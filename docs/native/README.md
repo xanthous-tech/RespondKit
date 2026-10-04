@@ -1,8 +1,8 @@
-# Native widgets (first version)
+# Native widgets
 
-RespondKit now includes a Swift Package and Android core/Compose modules in this repository. They use the existing v1 customer API. There is no SDK launcher: your app owns buttons, badge placement, and full-screen presentation. The SDK opens directly into one conversation, with text messages, drafts, retries, read acknowledgements, and foreground status polling. There is no thread picker or intermediate history screen.
+RespondKit now includes a Swift Package and Android core/Compose modules in this repository. They use the existing v1 customer API. There is no SDK launcher: your app owns buttons, badge placement, and full-screen presentation. The SDK opens directly into one conversation, with messages, attachments, conversation history, drafts, retries, read acknowledgements, and foreground status polling.
 
-The shared release process targets version 0.5.1 for npm, SwiftPM, and Maven Central. See [release setup and validation](releases.md). The URL-link support described below is available from 0.5.1; before that release is published, use a local checkout of the feature branch. Captioner integration remains a separate change.
+Use the [web integration guide](https://respondkit.dev/docs/native-clients) for a short setup path and [release setup and validation](releases.md) for publication. The merged email, greeting, device, and attachment changes require a release newer than the existing 0.5.3 tag. Verify the published artifacts before selecting a version; use a pinned source revision for prerelease testing.
 
 ## Links in messages
 
@@ -14,11 +14,12 @@ SwiftUI uses the environment's `openURL` action, and Compose uses `LocalUriHandl
 
 The root `Package.swift` supports repository URL installation in Xcode or a package dependency. Requirements: Swift 6, iOS 18+. The core also builds on macOS 15 for tests; the SwiftUI screen is iOS-only.
 
-In Xcode, **Add Package Dependencies**, enter `https://github.com/xanthous-tech/RespondKit.git`, and choose version 0.5.1 after its release (or `main` during development). Add the `RespondKitUI` and `RespondKitCore` products to your app. A local checkout can also be added as a local package.
+In Xcode, **Add Package Dependencies**, enter `https://github.com/xanthous-tech/RespondKit.git`, and select a released version containing the features you need (or a pinned commit during development). Add the `RespondKitUI` and `RespondKitCore` products to your app. A local checkout can also be added as a local package.
 
 ```swift
-// A consuming Package.swift after v0.5.1 is published.
-.package(url: "https://github.com/xanthous-tech/RespondKit.git", from: "0.5.1")
+// Replace the placeholder with the full commit tested by your app.
+// Switch to a released version requirement after publication.
+.package(url: "https://github.com/xanthous-tech/RespondKit.git", revision: "<tested-commit>")
 
 // Target dependencies:
 .product(name: "RespondKitCore", package: "RespondKit"),
@@ -80,7 +81,8 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    implementation("dev.respondkit:respondkit-compose:0.5.1")
+    // Replace with the published version tested by your app.
+    implementation("dev.respondkit:respondkit-compose:<published-version>")
 }
 ```
 
@@ -172,7 +174,7 @@ Unread means `latestReplyCursor > locallyViewedCursor`, compared numerically. Re
 
 Messages have stable client IDs and immutable retry payloads. Drafts and pending IDs survive dismissal and restarts. An uncertain response can be safely retried; it cannot become a second message because the same ID and text are reused. Canonical message revisions replace existing rows. Closed conversations remain viewable and reject new sends. Customer input is limited to 6,000 UTF-16 code units, matching the current protocol.
 
-V1 is text-only, with English UI strings and server-translated conversation content. It has no push registration, background delivery service, attachment uploads, app-icon badge, or automatic product telemetry. Supply only bounded context you intend to send to support. Arbitrary metadata is stored by the API but is not currently projected into Discord; that is separate server work.
+The merged SDKs support text and file attachments, with English UI strings and optional server-side message translation. They have no push registration, background delivery service, app-icon badge, or automatic product telemetry. Supply only bounded context you intend to send to support. Arbitrary metadata is stored by the API but is not currently projected into Discord; that is separate server work.
 
 ## Run and validate
 

@@ -22,7 +22,7 @@ Cloudflare's Workers sending API has no documented idempotency key. A thrown sen
 
 Inbound mail requires the opaque reply token, matching envelope/header sender, matching configured reply domain, and an open thread. The token proves access to the reply address; it does not promote the email to verified account identity. Duplicate Message-IDs reuse the first immutable payload and workflow ID. Worker acceptance failures throw for Cloudflare retry. Once accepted, failed message processing uses the existing Discord `/retry` flow.
 
-Automated replies, closed-thread replies, attachments, HTML-only bodies, missing Message-IDs, and messages over 256 KB or 6,000 text characters are rejected with an explicit SMTP reason. Quoted text is retained rather than heuristically deleting part of a customer's request. This first version handles text messages only, matching the chat clients.
+Automated replies, closed-thread replies, attachments, HTML-only bodies, missing Message-IDs, and messages over 256 KB or 6,000 text characters are rejected with an explicit SMTP reason. Quoted text is retained rather than heuristically deleting part of a customer's request. Email ingestion handles plain-text replies. Client-originated file uploads use the separate [attachment flow](attachments.md).
 
 ## Validation
 
@@ -32,4 +32,4 @@ References: [Workers sending API](https://developers.cloudflare.com/email-servic
 
 ## Collecting contact addresses
 
-React, SwiftUI, and Compose show an email text input when no address was supplied by the host or restored from the server. Saving uses authenticated `POST /v1/client/contact` with `{email, threadId?}`; `GET /v1/client/contact` restores the current visitor's contact. The optional thread ID is ownership-checked and also updates that thread owner's contact, covering account history restored on another device. Contact changes never verify an account or create chat messages. Input remains available after a save error, and customers can chat without completing the email prompt.
+React, React Native, SwiftUI, and Compose show an email text input when no address was supplied by the host or restored from the server. Saving uses authenticated `POST /v1/client/contact` with `{email, threadId?}`; `GET /v1/client/contact` restores the current visitor's contact. The optional thread ID is ownership-checked and also updates that thread owner's contact, covering account history restored on another device. Contact changes never verify an account or create chat messages. Input remains available after a save error, and customers can chat without completing the email prompt.

@@ -1,54 +1,40 @@
 ---
 title: Getting started
-description: Install the React package and open your first support conversation.
+description: Provision an inbox, choose a client, and send one test conversation.
 icon: Rocket
 ---
 
-## Install the package
+## 1. Prepare one inbox per product
 
-```bash
-pnpm add @respondkit/react react react-dom tailwindcss @tailwindcss/vite
-```
+An inbox controls the allowed client origins, Discord forum and operators, default locale, and optional email sender. Use separate staging and production inboxes. All platforms of the same product can share an inbox when you want verified account history across devices.
 
-RespondKit currently expects the host application to process its stylesheet with Tailwind CSS v4.
+Your integration needs three public values: the RespondKit API URL, the inbox ID, and an allowed product origin. Native apps supply the configured origin explicitly. The origin is a routing restriction; account access requires [verified identity](/docs/identity).
 
-## Add the widget
+The deployment owner provisions these values using the repository's [workspace configuration example](https://github.com/xanthous-tech/RespondKit/blob/main/apps/api/config/workspaces.example.json). Never put Discord, email, or identity-signing secrets into a client.
 
-Import the component and its stylesheet once in your application:
+## 2. Check that the feature is released
 
-```tsx
-import { RespondKitWidget } from "@respondkit/react";
-import "@respondkit/react/styles.css";
+Use a published, compatible SDK version and deploy its API migrations first. For merged features that are not published yet, test a pinned repository revision or locally built package before releasing a host app. See [Release and rollout](/docs/rollout).
 
-export function Support() {
-  return (
-    <RespondKitWidget
-      apiBaseUrl="https://api.respondkit.dev"
-      title="Support"
-      context={{
-        inboxId: "inbox_example",
-        userId: "user_123",
-        email: "customer@example.com",
-      }}
-    />
-  );
-}
-```
+## 3. Add your client
 
-Replace `inbox_example` with the inbox ID provisioned for your product.
+| Platform     | Entry point                                      | Guide                                       |
+| ------------ | ------------------------------------------------ | ------------------------------------------- |
+| React web    | `RespondKitWidget`                               | [React widget](/docs/react-widget)          |
+| React Native | `createRespondKitStore` and `RespondKitScreen`   | [React Native](/docs/react-native)          |
+| iOS          | `RespondKitStore` and SwiftUI `RespondKitScreen` | [SwiftUI and Android](/docs/native-clients) |
+| Android      | `RespondKitStore` and Compose `RespondKitScreen` | [SwiftUI and Android](/docs/native-clients) |
 
-## Pass useful context
+Mount the web widget or native store once near your app root. Keep it alive across navigation and while its chat screen is closed, so unread indicators continue working.
 
-The widget accepts the following context when it is available:
+Supply your authenticated user's ID and email when available. Add a backend-signed identity resolver before promising account history across browsers or devices. An anonymous customer can still chat; the UI asks for an email when one is missing.
 
-| Field               | Purpose                                                                   |
-| ------------------- | ------------------------------------------------------------------------- |
-| `inboxId`           | Routes the conversation to the correct product and Discord forum.         |
-| `userId`            | Connects support to your internal customer record.                        |
-| `email`             | Gives the operator a stable contact identifier.                           |
-| `locale`            | Helps RespondKit choose the customer language.                            |
-| `posthogDistinctId` | Lets your support tools correlate the conversation with product activity. |
-| `path`              | Captures the page or screen where the user requested help.                |
-| `metadata`          | Adds JSON-safe product context specific to your application.              |
+## 4. Verify the support loop
 
-See [React widget](/docs/react-widget) for the complete component surface.
+Send a message from a staging client. Find the matching Discord forum thread and send `/reply message:Hello from support`. Confirm the reply appears in the app and the read checkmark appears in Discord after viewing it.
+
+Then close chat while keeping the app foregrounded. Send another operator reply and confirm the unread indicator appears. Test logout and a second account before using real customer data.
+
+## 5. Enable optional features
+
+Configure [email and attachments](/docs/email-and-files) after basic messaging and identity work. Choose a localized greeting in your host app. Built-in UI localization is a separate, planned capability; passing `context.locale` does not currently translate the SDK's controls. See [Localization](/docs/localization).

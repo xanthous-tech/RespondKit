@@ -1,0 +1,45 @@
+---
+title: Coding-agent guide
+description: A bounded integration workflow with source references and acceptance checks.
+icon: Bot
+---
+
+Use this guide when a coding agent installs or upgrades RespondKit in a host app. For an AI agent that handles customer requests, read [Support agents](/docs/agent-api).
+
+## Read in this order
+
+1. [Release and rollout](/docs/rollout): identify a published version or pinned test revision.
+2. The platform guide: [React](/docs/react-widget), [React Native](/docs/react-native), or [SwiftUI and Android](/docs/native-clients).
+3. [Identity](/docs/identity): use the host's real authentication session.
+4. [Email and files](/docs/email-and-files): check backend capabilities before exposing uploads.
+
+Machine-readable copies are generated from the same documentation source at `/llms.txt`, `/llms-full.txt`, and `/docs-markdown/<page>.md`. They do not require client-side JavaScript or a separate hand-maintained knowledge base.
+
+## Inspect before editing
+
+Locate the host's app root, auth/session provider, navigation, existing support entry point, locale source, and persistence adapter. Check for an existing integration before adding another store or widget. Confirm the target deployment's inbox and origin with its configuration; do not invent production values.
+
+Read the repository's instructions. Make an integration branch and keep the host's current support route available during rollout.
+
+## Integration contract
+
+- Keep one store/widget per active product scope. A screen presentation must not create a new visitor on every open.
+- Raw `userId`, email, metadata, device details, and analytics IDs are context. Only a backend-signed assertion authorizes shared account history.
+- Keep private credentials on the backend. Fetch a fresh short-lived identity assertion through the host's authenticated endpoint; return errors to the UI rather than falling back to another account.
+- Clear visible account data when identity changes. Use the SDK's identity lifecycle rather than rewriting its persisted state.
+- Preserve immutable client message IDs on retries. Do not create a second message after an uncertain response.
+
+Do not invent an agent token, job endpoint, translation prop, or package version. The [protocol schemas](https://github.com/xanthous-tech/RespondKit/tree/main/packages/protocol/src), [React props](https://github.com/xanthous-tech/RespondKit/blob/main/packages/react/src/widget/respondkit-widget.tsx), and [React Native exports](https://github.com/xanthous-tech/RespondKit/blob/main/packages/react-native/src/index.ts) are the source references.
+
+## Acceptance checks
+
+| Flow                                        | Expected result                                                           |
+| ------------------------------------------- | ------------------------------------------------------------------------- |
+| Anonymous chat, then login                  | Existing conversation remains; verified account history becomes available |
+| Restart or reload after a send timeout      | Same pending message retries without duplication                          |
+| Logout, then sign in as a different user    | Previous user's history is hidden                                         |
+| Reply while chat is closed                  | Unread indication appears; foreground polling alone does not mark it read |
+| Display the reply                           | Read acknowledgement reaches the API and cancels pending email            |
+| Pick multiple files and interrupt an upload | Retry works; account changes discard late picker/upload results           |
+
+Also test no-email, declined/cancelled picker, closed-thread, and offline states. Report what was tested locally, what reached a real staging service, and what still needs a device test. Include version, migration requirements, and rollback route in the PR description.

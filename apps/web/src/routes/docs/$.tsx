@@ -17,6 +17,15 @@ export const Route = createFileRoute("/docs/$")({
     await docs.getPage(data.path)?.preload();
     return data;
   },
+  head: ({ loaderData }) => ({
+    meta: [
+      { title: `${loaderData?.title ?? "Documentation"} — RespondKit` },
+      {
+        name: "description",
+        content: loaderData?.description ?? "RespondKit integration and operations documentation.",
+      },
+    ],
+  }),
 });
 
 const serverLoader = createServerFn({ method: "GET" })
@@ -27,6 +36,8 @@ const serverLoader = createServerFn({ method: "GET" })
 
     return {
       path: page.path,
+      title: page.data.title,
+      description: page.data.description,
       pageTree: await source.serializePageTree(source.getPageTree()),
     };
   });
