@@ -4,10 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vp build",
+    "build": "node scripts/agent-docs.ts && vp build",
     "cf-typegen": "vp exec wrangler types",
-    "deploy": "vp build && vp exec wrangler deploy",
-    "dev": "vp dev --port 3000",
+    "deploy": "node scripts/agent-docs.ts && vp build && vp exec wrangler deploy",
+    "dev": "node scripts/agent-docs.ts && vp dev --port 3000",
+    "docs:export": "node scripts/agent-docs.ts",
     "preview": "vp preview",
     "test": "vp test --config vitest.config.ts"
   },

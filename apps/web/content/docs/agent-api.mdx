@@ -1,23 +1,59 @@
 ---
-title: Agent API
-description: Connect an external support agent without coupling it to the widget runtime.
+title: Support agents
+description: What exists now and the proposed first support-agent integration.
 icon: Bot
 ---
 
-RespondKit keeps the AI agent outside the core message pipeline. This lets each product run an isolated agent beside its source code, documentation, product tools, and operating manual.
+## Current capability
 
-## Intended integration
+The customer API supports scoped sessions, threads, messages, contacts, reads, and attachments. Human operators reply through Discord. There is currently no shipped product-scoped support-agent credential, job-claim API, draft API, or operator-reply API.
 
-An external agent can:
+Do not give an agent a customer's session token and call that operator access. Do not call `/v1/discord/interactions` as a shortcut: it verifies Discord-signed interactions. The [coding-agent guide](/docs/coding-agents) is available now for agents installing the SDK in your apps.
 
-1. consume new thread messages;
-2. inspect the supplied product and customer context;
-3. use product-specific read-only tools;
-4. draft or send an English response when confidence is high;
-5. let RespondKit translate and deliver the customer-facing reply.
+## Proposed first milestone: reviewed drafts
 
-The first public API surface focuses on client sessions, threads, messages, and polling. A pull consumer for long-running coding agents is planned after the base operator loop is stable.
+This is a design proposal, not a callable API contract. Start with one product and let an agent prepare replies for a human to approve in Discord. Autonomous sending comes after that workflow proves useful.
 
-## Product isolation
+```text
+customer message committed
+  -> durable inbox-scoped job
+  -> agent claims a time-limited lease
+  -> agent reads a bounded thread snapshot and product manual
+  -> agent submits a draft with the transcript revision it used
+  -> human approves or edits the draft in Discord
+  -> normal operator message delivery, optional translation, and email scheduling
+```
 
-Use one inbox and one agent configuration per product. The thread context exposes the identifiers the integration supplied, while the agent remains responsible for its own prompts, documentation, source access, and operational policies.
+Reuse the existing conversation and delivery pipeline. Do not send separate emails directly from the runner. Retries must reuse stable event/run IDs so a worker restart cannot create duplicate drafts or replies.
+
+## Required server work
+
+Add scoped agent credentials and explicit permissions; durable claim/renew/ack handling; bounded transcript/context reads; idempotent draft submission; and approval/handoff actions. Record agent identity and run provenance. A newer customer message or human intervention must invalidate a stale draft's send authority.
+
+Use a product-scoped RespondKit job boundary for the public contract. A specific runner can be added behind it without coupling SDKs to that runner. An MCP adapter can later expose the same operations to compatible hosts; it does not replace authorization, idempotency, or durable job state.
+
+Build the first runtime milestone before broad client rollout. The proposed operations are:
+
+| Operation          | Required behavior                                                                                        |
+| ------------------ | -------------------------------------------------------------------------------------------------------- |
+| Claim work         | Only the credential's inbox; a bounded batch and expiring lease                                          |
+| Read context       | Ordered transcript, current revision, verified identity provenance, and bounded product context          |
+| Submit draft       | Stable run ID, expected transcript revision, answer text, and source references                          |
+| Send reply         | Separate reply permission or human approval; refuse stale/taken-over work; reuse normal message delivery |
+| Finish or hand off | Acknowledge completed work, retain failure details, or return control to a human                         |
+
+The first runner can poll these operations from an existing agent host. Add MCP tools only as an adapter if that host needs them. Keep agent framework and model selection outside the API contract.
+
+After reviewed drafts are reliable, enable automatic replies for selected inboxes and answer types. The same idempotency, stale-revision check, provenance, and human handoff must apply to direct sends. The pilot is not complete until a customer can receive an agent-authored reply in the app and the reply participates in read receipts and delayed email exactly like a human reply.
+
+## Product knowledge and tools
+
+Give each product its own support manual, inbox, credentials, and bounded diagnostic tools. The initial tool set should answer questions such as “what is this customer's job status?” using authenticated identifiers, without granting arbitrary database or payment access. Keep payment changes, refunds, and destructive operations out of the first automatic workflow.
+
+Treat conversation text and file contents as customer data, not instructions to change the agent's permissions. Tool results and drafts should identify their sources so an operator can review the answer. Do not automatically download or execute customer attachments.
+
+## Rollout gates
+
+Exercise worker restarts, duplicate jobs, expired leases, tenant mismatch, human takeover, and new messages arriving during a run. Then run reviewed drafts on one inbox, measure useful drafts and corrections, and expand to other products. Keep human reply available throughout.
+
+The repository's [earlier runner research](https://github.com/xanthous-tech/RespondKit/blob/main/docs/research/future-pi-agent-extension.md) records possible Pi/Queue hosting options. Those options remain implementation choices, not features exposed by the current API.

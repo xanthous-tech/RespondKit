@@ -1,0 +1,45 @@
+---
+title: Email and files
+description: Enable unread email follow-up and private R2 attachments.
+icon: Paperclip
+---
+
+## Email after an unread reply
+
+The inbox's configuration defines the sender. The default delay is 600 seconds. The scheduled Worker runs each minute, so normal delivery occurs roughly ten to eleven minutes after publication; backlog or outages can delay it further.
+
+```json
+{
+  "email": {
+    "from": "support@example.com",
+    "name": "Example Support",
+    "replyDomain": "reply.example.com",
+    "unreadDelaySeconds": 600
+  }
+}
+```
+
+Apply the workspace configuration, configure the `EMAIL` binding and verified sending domain, route incoming replies to the Worker, and apply migration `0006_email_schedule.sql`. The legacy Email Routing binding restricted to verified destination addresses is insufficient for arbitrary customer recipients. Follow the [Cloudflare email setup](https://github.com/xanthous-tech/RespondKit/blob/main/docs/integrations/cloudflare-email.md).
+
+A client's read acknowledgement cancels pending email. Dispatch rechecks read state and recipient before provider handoff. Mail already accepted by the provider cannot be recalled. Multiple overdue messages can share one email; newer replies retain their deadlines.
+
+A customer's plain-text email reply enters the existing thread. Binary email attachments, HTML-only replies, and closed-thread replies are not supported. An uncertain provider send is held for investigation rather than automatically resent.
+
+## Files from every client
+
+Configure a private R2 bucket as `ATTACHMENTS` and apply migration `0007_attachments.sql` before enabling updated clients. [Attachment deployment details](https://github.com/xanthous-tech/RespondKit/blob/main/docs/integrations/attachments.md) cover storage and endpoint behavior.
+
+| Client       | Selection                                     |
+| ------------ | --------------------------------------------- |
+| Web          | Multiple files, all types                     |
+| SwiftUI      | System photo/video picker and file importer   |
+| Compose      | System photo/video picker and document picker |
+| React Native | Bundled iOS/Android system picker modules     |
+
+Native clients add no broad photo-library/storage permission and do not request camera access. File-only messages are supported. The customer can retry failed uploads or remove files before sending.
+
+There is no product size cap or configured completed-object expiration; Cloudflare's platform request and multipart limits still apply. Downloads use non-expiring capability links. Anyone with a link can download its file, so keep links in the intended support conversation. Removing a completed upload from a draft does not delete it from R2.
+
+## Test before enabling broadly
+
+Use a mailbox and files you control. Verify unread email delivery, read-before-deadline cancellation, an email reply returning to chat/Discord, multiple-file upload, interrupted retry, and file downloads from both customer history and Discord. Test account switching while a system picker is open.

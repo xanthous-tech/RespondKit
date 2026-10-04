@@ -1,0 +1,67 @@
+---
+title: SwiftUI and Android
+description: Keep native support stores alive across screens and account changes.
+icon: Smartphone
+---
+
+## Compatibility first
+
+| SDK             | Current requirement                                                             |
+| --------------- | ------------------------------------------------------------------------------- |
+| SwiftUI         | Swift 6, iOS 18+; `RespondKitCore` and `RespondKitUI` Swift Package products    |
+| Android Compose | Android API 26+; `dev.respondkit:respondkit-compose` includes the core artifact |
+
+Check the host app's actual deployment target before integrating. For older OS versions, preserve an existing contact path or plan an explicit SDK compatibility change. Do not silently raise your app's minimum OS just to add support.
+
+Choose a released version using [Release and rollout](/docs/rollout). Add `https://github.com/xanthous-tech/RespondKit.git` in Xcode; Android consumers use Maven Central. The [native setup reference](https://github.com/xanthous-tech/RespondKit/blob/main/docs/native/README.md) covers configuration, encrypted persistence, and local examples.
+
+## SwiftUI
+
+Create one `RespondKitStore` on the main actor, with the API URL, inbox, and allowed product origin. Keep it at app scope. Given that store:
+
+```swift
+import SwiftUI
+import RespondKitCore
+import RespondKitUI
+
+struct SupportEntry: View {
+    let store: RespondKitStore
+    @State private var isPresented = false
+
+    var body: some View {
+        Button("Contact support") { isPresented = true }
+            .respondKitLifecycle(store)
+            .fullScreenCover(isPresented: $isPresented) {
+                RespondKitScreen(store: store, greeting: "Hi! How can we help?")
+            }
+    }
+}
+```
+
+Mount `.respondKitLifecycle(store)` on a stable app root if `SupportEntry` itself comes and goes with navigation. Use `store.hasUnreadReplies` for your own badge. Keep the greeting in your host's localization catalog.
+
+## Android Compose
+
+Own the store at app/activity scope with a main-dispatcher coroutine scope and `EncryptedFilePersistence`. Mount `RespondKitLifecycle(store)` outside the support destination. Given the store and your navigation controller:
+
+```kotlin
+@Composable
+fun SupportDestination(store: RespondKitStore, onClose: () -> Unit) {
+    RespondKitScreen(
+        store = store,
+        onClose = onClose,
+        title = "Support",
+        greeting = "Hi! How can we help?",
+    )
+}
+```
+
+Observe `store.state` with `collectAsStateWithLifecycle()` for unread indicators and UI state. The host owns navigation and badge placement. Cancel the owning coroutine scope when its owner is permanently disposed.
+
+## Shared behavior
+
+Keep context aligned with authenticated account changes and use a backend identity token for cross-device history. Anonymous installations remain separate. Both SDKs preserve drafts and immutable send retries, acknowledge visible messages, expose conversation history, and collect model/OS diagnostics without a unique hardware identifier.
+
+Photos/videos and documents use system pickers, with no new broad library/storage permission. Completed files are uploaded to R2. A file picker cancellation must leave chat usable. See [Email and files](/docs/email-and-files).
+
+Built-in control text is currently English. Localized greetings and locale-aware timestamps are separate from complete UI localization; see the [localization proposal](/docs/localization).

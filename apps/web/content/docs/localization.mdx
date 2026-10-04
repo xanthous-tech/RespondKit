@@ -1,0 +1,78 @@
+---
+title: Localization
+description: Shared Paraglide JSON with build-time Apple and Android resource generation.
+icon: Languages
+---
+
+## Current behavior
+
+RespondKit now has separate iOS and Android resource compiler packages, a shared validator, and an English source catalog. They generate native resource files from a small subset of Paraglide's inlang JSON format. The packages are private workspace tools, not published npm packages.
+
+SDK views still use their existing English strings. The generated resources are not yet wired into SDK bundles, and `context.locale` still supplies conversation context rather than selecting translated UI controls. Do not add a `messages` prop or assume a UI locale option exists before the client integration is released.
+
+Keep SDK controls, host-owned titles/greetings, and customer conversation text separate. Operator-requested conversation translation remains a backend feature.
+
+## One source, native outputs
+
+| Client                 | Build output                                                                             |
+| ---------------------- | ---------------------------------------------------------------------------------------- |
+| React and React Native | The same JSON can feed Paraglide's JavaScript compiler; SDK integration is still pending |
+| SwiftUI                | `RespondKit.xcstrings` from `@respondkit/paraglide-ios`                                  |
+| Android Compose        | `strings.xml` and `<plurals>` from `@respondkit/paraglide-android`                       |
+
+Edit `localization/messages/en.json` and reviewed translations in `messages/{locale}.json`. Register release locales in `localization/project.inlang/settings.json`. Generate and check the resources from the repository root:
+
+```sh
+pnpm localization:generate
+pnpm localization:check
+```
+
+Commit `localization/generated` with its source changes. CI rejects stale resources. Installed mobile clients receive translation updates with a new SDK/app release; there is no runtime synchronization service.
+
+## Supported Paraglide subset
+
+Use flat, stable `lower_snake_case` message IDs. RespondKit prefixes them with `respondkit_`.
+
+| Feature    | Rule                                                                                   |
+| ---------- | -------------------------------------------------------------------------------------- |
+| Plain text | Unicode text, punctuation, quotes, percent signs, and newlines                         |
+| Parameters | `{name}` string parameters; translations may reorder or repeat them                    |
+| Plurals    | One nonnegative integer count, one cardinal `plural` declaration, and category matches |
+| Fallback   | Supply every category for the locale or an explicit final wildcard match               |
+| Locales    | Language with optional script and region; preserve `zh-Hans` versus `zh-Hant`          |
+
+```json
+{
+  "respondkit_remove_file": "Remove {name}",
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Show {count} new message",
+        "category=*": "Show {count} new messages"
+      }
+    }
+  ]
+}
+```
+
+Use string arguments for already formatted dates or numbers. Native parameter positions follow alphabetical argument names, regardless of sentence order. A plural can interpolate only its count; use integers from 0 through 2,147,483,647 for compatibility with Android's quantity APIs.
+
+Do not use nested JSON, ICU syntax, markup, literal braces, backslash escapes, custom formatters, date/number annotations, decimal or ordinal plurals, exact-number matches, gender/platform selectors, or multiple plural inputs. The compilers fail on unsupported features. The inspected UI needs none of these features.
+
+## How plural generation works
+
+The validator gets a locale's categories from `Intl.PluralRules`, then copies the corresponding translated pattern into Apple plural variations and Android quantity resources. An explicit wildcard supplies omitted categories. `Intl` identifies categories; it does not translate words or create translations.
+
+The device selects the form for the actual count at runtime. The grammatical category `zero` is not a condition for exactly zero in every language. Use a separate key and a client condition for a special empty state. OS and Node ICU versions can differ, so this is not a promise of identical formatting on every OS release.
+
+Compatibility tests use Paraglide JS 2.20.2 and message-format 4.3.0 across English, Arabic, Russian, Polish, French, and Traditional Chinese. [Paraglide variants](https://github.com/opral/paraglide-js/blob/main/docs/variants.md), [Android plural rules](https://developer.android.com/guide/topics/resources/string-resource#Plurals).
+
+## Client integration remains the next step
+
+Swift needs resource processing, the SDK's resource bundle, and localized lookups. Android needs generated resources installed in its library and `stringResource`/`pluralStringResource` calls. React and React Native need Paraglide message calls and SDK-owned locale handling; RN also needs Metro/Hermes validation. [Apple string catalogs](https://developer.apple.com/documentation/xcode/localizing-and-varying-text-with-a-string-catalog), [Paraglide locale strategies](https://paraglidejs.com/strategy).
+
+The host language should take precedence over device preferences with a documented English fallback. Host greetings remain host-localized. OS-owned pickers follow system localization. Backend diagnostic errors need a separate stable-error-code mapping before advertising complete UI localization.
+
+For compiler APIs, native call examples, exact restrictions, and the inspected string inventory, see the repository's [localization guide](https://github.com/xanthous-tech/RespondKit/blob/main/localization/README.md).

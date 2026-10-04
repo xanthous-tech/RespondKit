@@ -1,0 +1,45 @@
+name: Native localization resources
+on:
+  pull_request:
+    paths:
+      - "packages/paraglide-*/**"
+      - "localization/**"
+      - "scripts/generate-localizations.ts"
+      - "scripts/test-localization-apple.swift"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/localization.yml"
+permissions:
+  contents: read
+jobs:
+  compile:
+    strategy:
+      matrix:
+        os: [macos-15, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: voidzero-dev/setup-vp@v1.18.0
+        with:
+          node-version: "24"
+          cache: true
+      - run: vp install --frozen-lockfile
+      - run: vp run localization:check
+      - if: runner.os == 'macOS'
+        run: |
+          mkdir -p "$RUNNER_TEMP/localization-apple"
+          xcrun xcstringstool compile localization/generated/ios/RespondKit.xcstrings --output-directory "$RUNNER_TEMP/localization-apple"
+          swift scripts/test-localization-apple.swift "$RUNNER_TEMP/localization-apple"
+      - if: runner.os == 'Linux'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - if: runner.os == 'Linux'
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - if: runner.os == 'Linux'
+        run: |
+          sdkmanager 'build-tools;36.0.0'
+          "$ANDROID_HOME/build-tools/36.0.0/aapt2" compile --dir localization/generated/android/res -o "$RUNNER_TEMP/localization-android.zip"

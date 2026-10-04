@@ -1,28 +1,37 @@
 ---
-title: Introduction
-description: Customer support infrastructure that stays close to your product stack.
+title: Start here
+description: Choose a client, connect your inbox, and test the complete support loop.
 icon: MessageCircleMore
 ---
 
-RespondKit is an open-core customer support toolkit for product teams that want a support experience they can own and extend.
+RespondKit adds in-app support to React, React Native, SwiftUI, and Android Compose apps. Customers talk in your app; your team replies from Discord. The merged implementation also supports email follow-up and file attachments.
 
-The MVP combines four pieces:
+## Choose your starting point
 
-- an embeddable React chat widget;
-- translated customer and operator messages;
-- Discord forum threads as the operator inbox;
-- a small API that external agents can consume.
+| Your task                                     | Read                                           |
+| --------------------------------------------- | ---------------------------------------------- |
+| Connect a product for the first time          | [Getting started](/docs/getting-started)       |
+| Add support to a website                      | [React widget](/docs/react-widget)             |
+| Add support to a React Native app             | [React Native](/docs/react-native)             |
+| Add support to an existing iOS or Android app | [SwiftUI and Android](/docs/native-clients)    |
+| Recover a customer's history after login      | [Identity and account changes](/docs/identity) |
+| Work through support requests                 | [Discord inbox](/docs/discord-inbox)           |
+| Integrate using a coding agent                | [Coding-agent guide](/docs/coding-agents)      |
 
-## How a conversation moves
+## What is available
 
-1. Your product opens a RespondKit thread with customer context such as user ID, email, locale, and PostHog distinct ID.
-2. The customer message is accepted immediately and translated in a Cloudflare Workflow.
-3. RespondKit projects the translated message into its Discord thread.
-4. An operator replies with `/reply` in Discord.
-5. RespondKit translates the reply back to the customer language and exposes it to the widget.
+Customer sessions, conversation history, read receipts, local greetings, email capture, native device context, and attachments share one API. Email follows up on unread operator replies after a default ten-minute delay. Incoming email replies return to the same thread. Message translation is optional and operator-requested.
 
-## Current scope
+**Check the release before installing.** Merging a feature does not publish its npm or Maven package, deploy its database migrations, or configure its email domain. [Release and rollout](/docs/rollout) explains the order and how to test it.
 
-RespondKit is still early. The React client, Cloudflare API, D1 conversation model, translation workflow, and Discord operator loop are the current focus. Native mobile SDKs, email delivery, and a hosted control plane can build on the same protocol later.
+Support-agent job claiming and operator reply APIs are still proposed. The current customer API does not provide operator access. See [Support agents](/docs/agent-api).
 
-Continue with [Getting started](/docs/getting-started) to add the widget to a React product.
+## One conversation, multiple channels
+
+1. The client opens a session scoped to your product's inbox.
+2. A customer message appears in that client's transcript and a Discord forum thread.
+3. An operator uses `/reply`. Translation is optional.
+4. The client displays the reply and acknowledges that transcript as read.
+5. If the reply remains unread and email is configured, the scheduled sender emails it. A read acknowledgement cancels pending delivery.
+
+For text-only access to these same guides, use [the documentation index](/llms.txt), [the complete documentation](/llms-full.txt), or individual Markdown pages linked from the index.
