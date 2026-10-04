@@ -57,6 +57,8 @@ async function queued() {
   const send = vi.fn().mockResolvedValue({ messageId: "provider-123" });
   const apiEnv = createTestEnv({
     EMAIL: { send },
+    ATTACHMENTS: (env as unknown as { ATTACHMENTS: R2Bucket }).ATTACHMENTS,
+    PUBLIC_API_URL: "https://api.example.test",
   });
   await enqueueReplyEmail(apiEnv, scope.messageId);
   await enqueueReplyEmail(apiEnv, scope.messageId);
@@ -102,7 +104,7 @@ it("routes replies to the same thread with stable ingress and rejects other send
       to: `reply+${route.token}@reply.example.com`,
       rawSize: raw.length,
       raw: new Response(raw).body!,
-      headers: new Headers(),
+      headers: new Headers({ "message-id": "<one@example.test>" }),
       setReject: vi.fn(),
     };
   }

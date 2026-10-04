@@ -11,6 +11,7 @@ export default defineConfig(async () => ({
         r2Buckets: ["ATTACHMENTS"],
         bindings: {
           GEMINI_API_KEY: "test-only",
+          PUBLIC_API_URL: "https://api.example.test",
           TRANSLATION_ENABLED_INBOXES: '["inbox_public_test"]',
           DISCORD_BOT_TOKEN: "test-only",
           DISCORD_APPLICATION_ID: "100000000000000002",

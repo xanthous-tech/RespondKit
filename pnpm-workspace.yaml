@@ -27,6 +27,7 @@ catalog:
   clsx: 2.1.1
   drizzle-kit: 0.31.10
   drizzle-orm: 0.45.2
+  entities: 8.0.0
   fumadocs-core: 16.15.4
   fumadocs-mdx: 15.4.0
   fumadocs-ui: npm:@fumadocs/base-ui@16.15.4

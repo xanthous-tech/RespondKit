@@ -3,6 +3,7 @@ import type { MessageWorkflowEnvelope } from "./workflows/envelope";
 import type { TranslationWorkflowParams } from "./translation-service";
 
 export interface Env {
+  readonly PUBLIC_API_URL?: string;
   readonly ATTACHMENTS?: R2Bucket;
   readonly EMAIL?: {
     send(message: {
@@ -11,6 +12,7 @@ export interface Env {
       replyTo: string;
       subject: string;
       text: string;
+      html?: string;
       headers: Record<string, string>;
     }): Promise<{ messageId: string }>;
   };
