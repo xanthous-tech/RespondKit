@@ -28,3 +28,6 @@ native/**/.gradle/
 native/**/.kotlin/
 native/**/local.properties
 native/examples/ios/*.xcodeproj/
+apps/web/public/docs-markdown/
+apps/web/public/llms.txt
+apps/web/public/llms-full.txt
