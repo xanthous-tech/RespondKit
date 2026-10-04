@@ -14,16 +14,30 @@ The inbox's configuration defines the sender. The default delay is 600 seconds. 
     "from": "support@example.com",
     "name": "Example Support",
     "replyDomain": "reply.example.com",
-    "unreadDelaySeconds": 600
+    "unreadDelaySeconds": 600,
+    "operator": {
+      "forwardTo": "support-team@example.net",
+      "allowedReplyFrom": ["owner@example.net"]
+    }
   }
 }
 ```
 
-Apply the workspace configuration, configure the `EMAIL` binding and verified sending domain, route incoming replies to the Worker, and apply migration `0006_email_schedule.sql`. The legacy Email Routing binding restricted to verified destination addresses is insufficient for arbitrary customer recipients. Follow the [Cloudflare email setup](https://github.com/xanthous-tech/RespondKit/blob/main/docs/integrations/cloudflare-email.md).
+Apply the workspace configuration, configure the `EMAIL` binding and verified sending domain, route incoming replies to the Worker, set `PUBLIC_API_URL` to the API origin, configure the private `ATTACHMENTS` R2 bucket, and apply migrations through `0008_operator_email.sql`. The legacy Email Routing binding restricted to verified destination addresses is insufficient for arbitrary customer recipients. Follow the [Cloudflare email setup](https://github.com/xanthous-tech/RespondKit/blob/main/docs/integrations/cloudflare-email.md).
 
 A client's read acknowledgement cancels pending email. Dispatch rechecks read state and recipient before provider handoff. Mail already accepted by the provider cannot be recalled. Multiple overdue messages can share one email; newer replies retain their deadlines.
 
-A customer's plain-text email reply enters the existing thread. Binary email attachments, HTML-only replies, and closed-thread replies are not supported. An uncertain provider send is held for investigation rather than automatically resent.
+Customer replies, including HTML-only emails and attachments, enter the existing thread. Chat shows a plain-text preview and file links. Discord also receives download links to the original `.eml` and decoded `.html`; there is no Markdown conversion or link-service-specific parser. Long emails keep their complete original in R2 and show a bounded preview. Closed-thread and automated replies are rejected. An uncertain provider send is held for investigation rather than automatically resent.
+
+## Reply from your operator mailbox
+
+The optional `operator` settings send each new customer message to `forwardTo`, normally on the next minute's scheduled run. Operator notifications have no ten-minute delay and do not depend on Discord delivery. Existing messages are not backfilled when you enable this.
+
+Reply to the notification from an address in `allowedReplyFrom`. The notification's private `operator+<token>` Reply-To selects the existing thread. Your reply appears in all customer clients as written, with its files. Customers with no email still receive it in-app. Customers who supplied an email get the normal delayed follow-up if they have not read it.
+
+Use your actual sending mailbox in `allowedReplyFrom`, even if `forwardTo` is an alias forwarding to Gmail. Both envelope and From header must match that address. The sender, operator destination, and reply domain are independent settings; no `chat@` address is assumed. Remove `operator` to disable mailbox notifications and operator replies.
+
+Original HTML is preserved when forwarding customer mail to the operator. Oversized HTML falls back to a preview and full-original download links; files are always linked from private R2. Inline-image parts remain downloadable and intact in the original `.eml`. Customer follow-ups use the customer-visible text and file links; operator-only archives and reply addresses are kept out of that transcript. Treat reply addresses and file links as confidential capabilities.
 
 ## Files from every client
 

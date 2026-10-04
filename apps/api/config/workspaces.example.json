@@ -19,7 +19,11 @@
                 "from": "support@example.com",
                 "name": "Example Support",
                 "replyDomain": "reply.example.com",
-                "unreadDelaySeconds": 600
+                "unreadDelaySeconds": 600,
+                "operator": {
+                  "forwardTo": "support-team@example.net",
+                  "allowedReplyFrom": ["owner@example.net"]
+                }
               },
               "discord": {
                 "id": "discord_example",

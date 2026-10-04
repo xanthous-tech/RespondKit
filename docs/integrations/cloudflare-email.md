@@ -1,39 +1,89 @@
 # Thread email with Cloudflare Email Service
 
-Operator replies still unread after ten minutes (configurable per inbox) are emailed when the thread owner has an email and the inbox is enabled. The body is the same customer-visible text (including approved translations). Customers can reply to that email; their plain-text reply enters the existing thread and Discord workflow. No separate email conversation is created. Browser and native polling see these messages normally.
+Customers and operators can reply by email into the same RespondKit thread. Operator replies appear in every client as written. If the customer supplied an email and has not read the reply after ten minutes, RespondKit sends the usual cancellable follow-up. Customer messages can also notify a configured operator mailbox, independently of Discord.
 
-## Setup
+## Configuration and deployment
 
-1. Apply D1 migrations, including `0006_email_schedule.sql`, in your target environment.
-2. Onboard and verify a sending domain in Cloudflare Email Service. Arbitrary customer recipients need Email Sending access; the legacy verified-destination-only Email Routing binding is insufficient.
-3. Add `"send_email": [{ "name": "EMAIL" }]` to the target Wrangler environment.
-4. Add `email` to each site/app inbox in your topology configuration: `{"from":"support@example.com","replyDomain":"reply.example.com","name":"Example Support","unreadDelaySeconds":600}`. Apply with `config:apply`. Omit `email` to disable delivery. The sending domain must be verified with Cloudflare.
-5. Enable Email Routing on the reply domain and route its catch-all to this Worker. Retain the existing once-per-minute scheduled trigger, which drains up to 25 overdue thread/recipient groups per run.
+Apply migrations through `0008_operator_email.sql` before deploying this API. It adds `email_source`, `operator_email_route`, and `operator_email_delivery`, plus a trigger that queues operator notification in the same transaction as customer message persistence. No old messages are backfilled.
 
-Email configuration lives in D1 alongside the inbox's other settings. Removing `email` pauses pending deliveries and disables inbound routing. Existing `EMAIL_INBOXES` deployments must migrate settings into the topology file. Deadlines are snapshotted at publication and are not reset by configuration changes or enqueue retries. A ten-minute delay normally means delivery at ten to eleven minutes, later during backlog/outages.
+Add these bindings/variables to the **target Wrangler environment**, preserving its existing variables:
 
-Each read acknowledgement atomically cancels pending emails through a D1 trigger. The scheduled sender checks again immediately before provider handoff; accepted emails cannot be recalled. Only overdue unread messages are batched, in transcript order. Newer messages keep their original deadlines. Changing the customer's contact suppresses pending delivery to the old address. Reply addresses authorize ingress for their associated recipient and must not be exposed in public logs.
+```json
+{
+  "send_email": [{ "name": "EMAIL" }],
+  "r2_buckets": [{ "binding": "ATTACHMENTS", "bucket_name": "your-private-bucket" }],
+  "vars": { "PUBLIC_API_URL": "https://api.example.com" },
+  "triggers": { "crons": ["* * * * *"] }
+}
+```
 
-## Delivery and recovery
+`PUBLIC_API_URL` is the HTTPS API origin used for file downloads when no HTTP request exists. The bucket is private; do not enable public R2 access or add completed-object lifecycle expiration. The same bucket serves client uploads and email originals/files.
 
-`email_delivery` snapshots recipient route, sender, reply address, subject, and text. It has one row per canonical operator message. Concurrent scheduled runs atomically claim rows. `sent` means Cloudflare accepted the message, not that the recipient read or received it.
+Onboard the From domain in Cloudflare Email Service and enable Email Sending for arbitrary customer recipients. The legacy verified-destination-only binding is insufficient. Enable Email Routing on the reply domain and route its catch-all to this Worker, preserving unrelated exact-address routes. The receiver handles only known `reply+<token>` and `operator+<token>` addresses; unrelated mail is rejected.
 
-Cloudflare's Workers sending API has no documented idempotency key. A thrown send or interrupted send therefore becomes `unknown` (stale `sending` after ten minutes). It is **not automatically retried**, preventing duplicate mail after ambiguous provider acceptance. Inspect Email Service logs and the `email_delivery` row before explicitly resetting a confirmed-unsent row to `pending`. Provider IDs are retained for successful sends. Chat delivery remains available independently.
+Configure each inbox in the topology file and apply with `config:apply`:
 
-Inbound mail requires the opaque reply token, matching envelope/header sender, matching configured reply domain, and an open thread. The token proves access to the reply address; it does not promote the email to verified account identity. Duplicate Message-IDs reuse the first immutable payload and workflow ID. Worker acceptance failures throw for Cloudflare retry. Once accepted, failed message processing uses the existing Discord `/retry` flow.
+```json
+{
+  "email": {
+    "from": "support@example.com",
+    "name": "Example Support",
+    "replyDomain": "replies.example.com",
+    "unreadDelaySeconds": 600,
+    "operator": {
+      "forwardTo": "support-team@example.net",
+      "allowedReplyFrom": ["owner@example.net"]
+    }
+  }
+}
+```
 
-Automated replies, closed-thread replies, attachments, HTML-only bodies, missing Message-IDs, and messages over 256 KB or 6,000 text characters are rejected with an explicit SMTP reason. Quoted text is retained rather than heuristically deleting part of a customer's request. Email ingestion handles plain-text replies. Client-originated file uploads use the separate [attachment flow](attachments.md).
+`forwardTo` is a single explicit destination. `allowedReplyFrom` lists actual sending mailboxes, including any aliases operators send from. Both envelope sender and From header must match the same allowlisted address. For an alias forwarding to Gmail, list the Gmail address if that is where replies originate. There is no inferred `chat@` destination or dependency on Simple Inbox. The customer-facing From, operator destination, and reply domain are independent.
 
-## Validation
+Omit `operator` to keep customer email enabled without operator mailbox notifications. Removing/changing operator settings cancels pending notifications using the old configuration and disables replies through routes whose configuration no longer matches. Restoring identical settings makes matching routes valid again. Removing all `email` settings pauses customer delivery and disables inbound routing. Keep operator destinations separate from the catch-all receiver to avoid a forwarding loop.
 
-`pnpm --dir apps/api test src/email.test.ts` exercises D1 migrations, outbox deduplication, ambiguous sends, missing addresses, inbound routing, immutable redelivery, wrong senders, and loop rejection. Before enabling for customers, send a staging operator reply to a mailbox you control, reply from that mailbox, and verify the text appears in both Discord and the in-app transcript. These live DNS/provider checks require configured Email Service access.
+## Operator notifications and replies
 
-References: [Workers sending API](https://developers.cloudflare.com/email-service/api/send-emails/workers-api/), [Email Service](https://developers.cloudflare.com/email-service/).
+Each new customer message, from a client or email, queues one operator notification. The once-per-minute sender processes up to 25 pending messages per run. There is no intentional delay; backlog/outages can delay delivery. Discord projection failures do not prevent these notifications.
+
+Notifications use the configured From and `Reply-To: operator+<opaque-token>@<replyDomain>`. Subsequent notifications use the previous provider Message-ID in `In-Reply-To` and `References` to group the operator mailbox conversation. Tokens, not subjects or caller-supplied thread IDs, select the canonical thread. Inbound To/Cc/Reply-To headers never select outbound recipients.
+
+An authorized operator reply has a first-class email workflow identity; it does not fabricate a Discord interaction. It publishes the plain-text preview and MIME attachments into the existing customer transcript, mirrors the preview/files and original-email download links into Discord, and queues the ordinary unread customer email. No translation/Discord approval is required. A customer without an email can still receive the reply in-app.
+
+The opaque operator reply address is a bearer capability. Matching sender checks are additional restrictions, not independent proof of account ownership or DMARC verification. Cloudflare performs its routing authentication checks; this code does not trust caller-supplied Authentication-Results headers. Treat reply addresses and archive links as private. Operator reply addresses are redacted from customer previews, and raw operator-email archives are not included in the customer transcript or customer follow-up mail.
+
+## Customer follow-up and cancellation
+
+The default delay is 600 seconds from publication. With the minute cron, normal delivery is at ten to eleven minutes; outages/backlog can extend it. Deadlines are snapshotted and never reset by enqueue retries. Only overdue unread replies are batched, in transcript order; newer messages keep their deadlines. Customer follow-ups contain the customer-visible text and file download links.
+
+Each read acknowledgement atomically cancels pending emails through a D1 trigger. Dispatch rechecks reads, message availability and current customer address immediately before provider handoff. Mail already accepted by the provider cannot be recalled. Changing the customer's contact suppresses mail to the old address and disables replies using the old contact's route.
+
+## HTML, originals and files
+
+`postal-mime` parses the canonical first-stored MIME. R2 retains the original `.eml` bytes, decoded `.html`, and every attachment/inline-image part. HTML is not converted to Markdown and links are not rewritten for Google Drive or any other service. HTML-only mail gets a generic visible-text preview, with entities decoded and script/style content excluded. Plain-text alternatives are preferred. Quoted text is retained. Previews longer than 6,000 characters are explicitly marked as truncated; the complete original remains available to operators.
+
+Discord cannot render arbitrary HTML. Its projection includes non-expiring capability download links to the original email and HTML, alongside the plain preview and file links. These routes force `Content-Disposition: attachment`, `application/octet-stream`, `nosniff`, a sandbox CSP and `no-store`; they never serve active HTML inline on the API origin.
+
+Operator notifications preserve the customer email's HTML body and append original/file links. For outbound MIME headroom, HTML above 1 MiB is sent as the text preview plus full-original links instead. Inline-image parts are linked individually and remain embedded in the downloadable `.eml`; CID images are not reconstructed in the newly composed notification. Every client receives regular shared attachment metadata for inbound customer/operator files. Original operator `.eml`/`.html` archives remain separate from those customer-visible attachments.
+
+There is no product attachment size limit or expiration. Email delivery still has provider limits (currently 25 MiB inbound, 5 MiB outbound to arbitrary recipients, 25 MiB outbound to verified destinations). Link-based files avoid outbound MIME attachment limits. Larger files can use the existing [client upload flow](attachments.md). Download links are capabilities: anyone with a link can access the object.
+
+## Deduplication and recovery
+
+Inbound mail requires a valid role-specific route, current inbox settings, matching sender, an open thread and Message-ID. Automated/list mail, unknown routes, wrong senders and closed threads are rejected with an SMTP reason. Storage/workflow acceptance failures throw for provider retry. Raw MIME is stored before parsing and before workflow dispatch. Duplicate Message-IDs on a route reuse the first stored MIME, file IDs, immutable envelope and deterministic workflow ID, including concurrent deliveries.
+
+`email_delivery` tracks customer sends; `operator_email_delivery` tracks operator sends. Concurrent cron runs claim pending rows atomically. Operator claims also serialize provider handoff per route. `sent` means provider acceptance, not inbox receipt or reading. A thrown provider call or `sending` row older than ten minutes becomes `unknown`, without automatic resending. Inspect Cloudflare Email Service logs and the stored provider ID before resetting a confirmed-unsent row to `pending`; reconcile unknown sends before retrying to avoid duplicate mail.
+
+For an accepted email workflow that later fails, inspect its `workflow_instance_id` in `email_ingress`/`message` and the Cloudflare Workflows dashboard. Restart the original failed instance after fixing the cause; never manufacture a new message ID to recover the same mail. The existing Discord `/retry` command uses Discord interaction references and does not accept email message IDs. A failed Discord audit does not retract a published operator reply or its queued follow-up.
+
+## Validation and rollout
+
+Run `pnpm --filter @respondkit/api exec vp test run --config vitest.config.ts src/email.test.ts src/operator-email.test.ts`. Tests exercise migrations, independent notification, configuration revocation, duplicate/concurrent mail, binary files, HTML archives/download headers, large previews, provider ambiguity, real workflow publication and read cancellation.
+
+Before enabling customer inboxes, use controlled mailboxes for an app → operator mailbox → operator reply → app → unread customer mail → customer reply round trip. Include HTML links, binary/inline files, a user without email and a read-before-deadline cancellation. Verify live sender identity and provider threading with the actual forwarding setup. These DNS/provider checks are separate from local tests.
+
+References: [Routing Workers API](https://developers.cloudflare.com/email-routing/email-workers/runtime-api/), [Sending Workers API](https://developers.cloudflare.com/email-service/api/send-emails/workers-api/), [headers](https://developers.cloudflare.com/email-service/reference/headers/), [limits](https://developers.cloudflare.com/email-service/platform/limits/), [routing authentication](https://developers.cloudflare.com/email-service/reference/postmaster/).
 
 ## Collecting contact addresses
 
-React, React Native, SwiftUI, and Compose show an email text input when no address was supplied by the host or restored from the server. Saving uses authenticated `POST /v1/client/contact` with `{email, threadId?}`; `GET /v1/client/contact` restores the current visitor's contact. The optional thread ID is ownership-checked and also updates that thread owner's contact, covering account history restored on another device. Contact changes never verify an account or create chat messages. Input remains available after a save error, and customers can chat without completing the email prompt.
-
-## Proposed operator mailbox support
-
-The current release accepts customer replies, while operators reply through Discord. See the [operator email routing proposal](../proposals/operator-email-routing.md) for configurable operator mailboxes, email-based operator replies, original HTML preservation and forwarding, Discord access to the original email, and inbound R2 attachments. These extensions are not implemented in 0.6.0.
+React, React Native, SwiftUI and Compose prompt when no address was supplied by the host or restored from the server. Authenticated `POST /v1/client/contact` accepts `{email, threadId?}`; `GET /v1/client/contact` restores the contact. The optional thread is ownership-checked. Contact changes never verify an account or create messages. Customers can chat without completing the prompt.
