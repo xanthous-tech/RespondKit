@@ -1,0 +1,42 @@
+---
+title: Release and rollout
+description: Ship the backend first, then move one app at a time.
+icon: Rocket
+---
+
+## Merged code and published packages
+
+The documentation describes the merged SDKs. A release must also publish npm packages and Android artifacts, create a Swift tag, apply migrations, and configure the target backend. Check each channel independently before changing a host app.
+
+At the 2026-10-04 audit, `@respondkit/react` and the latest GitHub release were 0.5.3, predating the merged email/native/attachment stack. `@respondkit/react-native` was not available in the public npm registry. Do not assume installing 0.5.3 includes those changes. Recheck the [releases](https://github.com/xanthous-tech/RespondKit/releases) and registry at integration time.
+
+```sh
+# Run outside a repository that forbids npm commands through devEngines.
+npm view @respondkit/react version
+npm view @respondkit/react-native version
+```
+
+Use a new, coordinated release version; do not overwrite an existing tag or package version. A pinned source revision or locally packed artifact is appropriate for a staging integration before publication. The [release guide](https://github.com/xanthous-tech/RespondKit/blob/main/docs/native/releases.md) covers signing and publication.
+
+## Deploy the backend first
+
+Apply all migrations for the selected release. Configure the product inbox, allowed origins, Discord operator access, identity signing keys, optional sender/reply domain, and private R2 binding. Confirm the scheduled trigger is enabled. Complete a real staging message/reply/read/email/file loop before switching customers.
+
+## Roll out in waves
+
+1. Upgrade one existing web integration. Keep its inbox and visitor keys stable; test identity and the existing support entry point.
+2. Reuse that pattern for other web products and new web apps, with separate product inboxes.
+3. Pilot React Native in an internal development build on iOS and Android.
+4. Roll out established native apps after checking minimum OS versions and doing TestFlight/internal Android testing.
+
+Use an app-controlled feature flag or staged release. Keep the previous contact route available while the new client is disabled. Do not run two active support widgets with competing launchers on the same screen.
+
+## A product is ready when
+
+Messaging, signed account history, logout isolation, read cancellation, contact capture, attachments, and the real operator workflow have each been exercised. Check both email-present and no-email customers. Test an interrupted request and an app restart. Record whether tests used simulated replies or the real deployment.
+
+Monitor failed sends, identity failures, attachment failures, mail outcomes, and support response time with the deployment's logs and your existing observability. Do not describe unimplemented dashboards or metrics as available.
+
+## Roll back without losing access
+
+Disable the new entry point with the host feature flag and restore the previous contact path. Preserve visitor IDs, drafts, uploaded objects, and additive database migrations. Once visitors have been linked to verified accounts, do not downgrade to an anonymous-only SDK: it cannot access linked history. Native distribution still follows store-release timelines.

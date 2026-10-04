@@ -1,0 +1,84 @@
+---
+title: React Native
+description: Present native support UI from a shared TypeScript store.
+icon: Smartphone
+---
+
+The React Native package renders React Native views and shares the RespondKit protocol with the other clients. Conversation state, API calls, drafts, and retries run in TypeScript. It does not embed the SwiftUI or Compose SDK. Small native modules provide system file/photo selection and device integration.
+
+## Install and build
+
+Check [release availability](/docs/rollout) first. Once your selected version is published:
+
+```sh
+pnpm add @respondkit/react-native react-native-device-info react-native-get-random-values react-native-safe-area-context
+cd ios && pod install
+```
+
+The package declares React Native 0.81+ and React 19.1+; the repository example is tested on React Native 0.87.1. Rebuild the native app after installing or upgrading native modules. Use an Expo development build if your host uses Expo; Expo Go does not contain the required modules.
+
+For a React Native CLI host, add `@babel/plugin-transform-export-namespace-from` to your dev dependencies and Babel plugins. The shared protocol uses Zod namespace exports. See the [example Babel configuration](https://github.com/xanthous-tech/RespondKit/blob/main/apps/native-example/babel.config.js).
+
+## Create one store
+
+Create the store after your host authentication state has settled. `appStorage` below is your app's async `getItem`/`setItem` adapter; choose encrypted storage for production conversation data. The identity endpoint must return a JWT string from your authenticated backend.
+
+```tsx
+import { createRespondKitStore, storagePersistence } from "@respondkit/react-native";
+
+const store = await createRespondKitStore({
+  apiBaseUrl: "https://support-api.example.com",
+  inboxId: "inbox_example_public",
+  origin: "https://example.com",
+  persistence: storagePersistence(appStorage, "respondkit:production:example"),
+  context: { userId: user.id, email: user.email, locale: appLocale },
+  getIdentityToken: async () => {
+    const response = await authenticatedFetch("/api/support-identity", { method: "POST" });
+    if (!response.ok) throw new Error("Could not verify support identity");
+    return response.json();
+  },
+});
+```
+
+Use [the identity contract](/docs/identity) for backend setup. Do not embed a signing secret in the app. Storage failures should be visible; silently creating a replacement store can lose retry state.
+
+## Mount the lifecycle and screen
+
+```tsx
+import { RespondKitLifecycle, RespondKitScreen } from "@respondkit/react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+
+function AppRoot() {
+  return (
+    <SafeAreaProvider>
+      <RespondKitLifecycle store={store} />
+      <YourNavigator />
+    </SafeAreaProvider>
+  );
+}
+
+function SupportScreen() {
+  return (
+    <RespondKitScreen
+      store={store}
+      onClose={() => navigation.goBack()}
+      title="Support"
+      greeting="Hi! How can we help?"
+    />
+  );
+}
+```
+
+`store`, `YourNavigator`, and `navigation` belong to your host app. Keep the lifecycle outside the conditionally mounted support screen. Use `useRespondKit(store).unreadThreadIds.size` for your own unread indicator.
+
+## Account and app lifecycle
+
+On login, logout, or account switching, call `await store.updateIdentity(context, tokenProvider)` followed by `await store.refresh()`. Use the new account's resolver and include `nativeDeviceContext()` in replacement contexts unless supplying your own device metadata. The store hides the previous account's data before asynchronous work.
+
+Foreground polling runs every ten seconds by default and pauses in the background. The visible transcript sends read acknowledgements; background status polling does not. There is no push-notification registration or background message service. Dispose the store only when the host permanently releases it.
+
+## Files and verification
+
+System photo/video and document pickers support multiple selections. Uploads use the configured R2 backend, with retry/remove controls and attachment links. The package adds no broad photo/storage permission. See [Email and files](/docs/email-and-files).
+
+The [native example](https://github.com/xanthous-tech/RespondKit/tree/main/apps/native-example) uses local simulated replies. Configure a real API/inbox and remove its injected transport to test uploads and live Discord/email delivery. Test both platforms, account changes, restart-safe retries, keyboard layout, and cancelled picker results before rollout.

@@ -24,14 +24,13 @@ const features: ReadonlyArray<{
 }> = [
   {
     icon: MessageCircleMoreIcon,
-    title: "React widget",
-    description:
-      "Ship an accessible support chat with one React component and your product context.",
+    title: "Web and mobile clients",
+    description: "Add support chat to React, React Native, SwiftUI, and Android Compose apps.",
   },
   {
     icon: LanguagesIcon,
-    title: "Built-in translation",
-    description: "Read customer messages in English and send replies back in their language.",
+    title: "Optional translation",
+    description: "Request translations when you need help reading or replying in another language.",
   },
   {
     icon: MessagesSquareIcon,
@@ -40,8 +39,8 @@ const features: ReadonlyArray<{
   },
   {
     icon: BotIcon,
-    title: "Agent-ready API",
-    description: "Give an external agent thread context and a clear API surface for replies.",
+    title: "Guides for coding agents",
+    description: "Integrate a client using shared Markdown guides, API contracts, and test steps.",
   },
 ];
 
@@ -117,8 +116,8 @@ function Hero() {
             Customer support that fits your stack.
           </h1>
           <p className="max-w-xl text-lg leading-8 text-muted-foreground">
-            An open-core support toolkit with a React chat widget, built-in translation, Discord
-            operations, and agent-ready APIs.
+            An open-core support toolkit for web and mobile, with Discord operations, optional
+            translation, email follow-up, and file attachments.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link to="/docs/$" params={{ _splat: "" }} className={buttonVariants({ size: "lg" })}>

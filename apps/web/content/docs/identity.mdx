@@ -1,0 +1,37 @@
+---
+title: Identity and account changes
+description: Recover account history without trusting client-supplied identifiers.
+icon: KeyRound
+---
+
+## Anonymous and verified customers
+
+An anonymous installation can create and resume its own conversations. To recover history across browsers, iOS, Android, and React Native, use the same product inbox and the same stable authenticated account subject on every platform.
+
+`userId`, email, PostHog IDs, and device fields supplied by the client are advisory. An email match does not link accounts. A backend-signed identity assertion grants access to the account's history.
+
+## Backend contract
+
+Store a separate signing secret of at least 32 characters for each inbox in your product backend and RespondKit. On the Worker, use `IDENTITY_SIGNING_KEY_<exact inbox ID>` or the `IDENTITY_SIGNING_KEYS` JSON secret map. These are private server secrets.
+
+Your authenticated endpoint returns an HS256 JWT string with header `{"alg":"HS256","typ":"JWT"}` and these claims:
+
+| Claim        | Value                                                 |
+| ------------ | ----------------------------------------------------- |
+| `aud`        | `respondkit`                                          |
+| `inboxId`    | Configured inbox ID                                   |
+| `sub`        | Stable user ID from the validated host session        |
+| `email`      | Optional email from that session                      |
+| `iat`, `exp` | Current issue time and expiry; lifetime 1–300 seconds |
+
+Use a fresh token for each resolver request and `Cache-Control: no-store`. Never accept a user ID from the identity endpoint's request body as proof of authentication. See the [complete backend example](https://github.com/xanthous-tech/RespondKit/blob/main/docs/architecture/customer-identity.md).
+
+## Client behavior
+
+React hosts provide `getIdentityToken` and keep `identityPending` true while auth is loading. Native hosts keep one store and update its identity when the authenticated user changes. Raw IDs alone must not be used to promise shared history.
+
+Test anonymous → login, a second device → same login, logout → another account, token expiry, and failed token renewal. Previous account data must disappear on account changes. Preserve stable inbox IDs and existing visitor storage during an SDK upgrade.
+
+## Contact email is separate
+
+The email prompt saves a contact address for follow-up. It does not authenticate the customer or merge account histories. If the host already knows the email, pass it in context. Customers can still chat without supplying one.

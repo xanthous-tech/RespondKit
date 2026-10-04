@@ -19,7 +19,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Open-core customer support with a React widget, translation, Discord operations, and agent-ready APIs.",
+          "Customer support for web and mobile with Discord operations, optional translation, email follow-up, and file attachments.",
       },
     ],
     links: [
