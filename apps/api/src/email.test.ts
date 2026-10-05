@@ -57,6 +57,8 @@ async function queued() {
   const send = vi.fn().mockResolvedValue({ messageId: "provider-123" });
   const apiEnv = createTestEnv({
     EMAIL: { send },
+    ATTACHMENTS: (env as unknown as { ATTACHMENTS: R2Bucket }).ATTACHMENTS,
+    PUBLIC_API_URL: "https://api.example.test",
   });
   await enqueueReplyEmail(apiEnv, scope.messageId);
   await enqueueReplyEmail(apiEnv, scope.messageId);
@@ -102,7 +104,7 @@ it("routes replies to the same thread with stable ingress and rejects other send
       to: `reply+${route.token}@reply.example.com`,
       rawSize: raw.length,
       raw: new Response(raw).body!,
-      headers: new Headers(),
+      headers: new Headers({ "message-id": "<one@example.test>" }),
       setReject: vi.fn(),
     };
   }
@@ -200,4 +202,32 @@ it("suppresses a queued delivery to an address the customer has replaced", async
   expect(await env.DB.prepare("SELECT status FROM email_delivery").first("status")).toBe(
     "cancelled",
   );
+});
+
+it("includes file links in customer follow-ups without operator-only email archives", async () => {
+  const { apiEnv, send } = await queued();
+  await env.DB.prepare("UPDATE message SET attachments=? WHERE id='msg_email_test'")
+    .bind(
+      JSON.stringify([
+        {
+          id: `att_${"a".repeat(64)}`,
+          name: "invoice.pdf",
+          contentType: "application/pdf",
+          size: 42,
+          downloadUrl: "https://api.example.test/v1/files/download-token",
+        },
+      ]),
+    )
+    .run();
+  await env.DB.prepare(
+    "INSERT INTO email_source(message_id,raw_key,html_key,download_token,created_at) VALUES (?,?,?,?,?)",
+  )
+    .bind("msg_email_test", "private.eml", "private.html", "b".repeat(64), Date.now())
+    .run();
+  await makeDue();
+  await deliverPendingEmails(apiEnv);
+  expect(send.mock.calls[0]?.[0].text).toBe(
+    "Your export is ready.\ninvoice.pdf: https://api.example.test/v1/files/download-token",
+  );
+  expect(send.mock.calls[0]?.[0].html).toBeUndefined();
 });

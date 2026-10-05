@@ -1,3 +1,4 @@
+import { registerEmailFileRoutes } from "./email-content";
 import {
   registerAttachmentRoutes,
   resolveAttachments,
@@ -517,6 +518,7 @@ export function createHttpApp() {
     );
   });
 
+  registerEmailFileRoutes(app);
   registerAttachmentRoutes(app, async (c) => (await authenticateCustomer(c)).claims);
 
   app.options("/v1/*", (context) => {

@@ -173,6 +173,7 @@ export interface OperatorMessageInput {
   readonly workflowInstanceId: WorkflowInstanceId;
   readonly acceptedAt: Date;
   readonly originalEnglishText: string;
+  readonly attachments?: AttachmentV1[];
   readonly replyTranslation?: string;
   readonly replyTranslationRequest?: string;
 }
@@ -210,6 +211,7 @@ export function prepareOperatorMessageStatements(
         workflowInstanceId: input.workflowInstanceId,
         direction: "operator_to_customer",
         originalText: input.originalEnglishText,
+        attachments: input.attachments ?? [],
         originalLanguage: input.replyTranslation === "off" ? null : "en",
         replyTranslation: input.replyTranslation ?? null,
         replyTranslationRequest: input.replyTranslationRequest ?? null,
@@ -229,6 +231,38 @@ export function prepareOperatorMessageStatements(
       .returning({ id: messages.id }),
     prepareThreadActivityStatement(db, input),
   ] as const;
+}
+
+/** The caller must authorize the transport before accepting an operator message. */
+export async function acceptOperatorIngress(
+  db: DrizzleD1Database,
+  input: OperatorMessageInput,
+): Promise<CustomerIngressAcceptance> {
+  const [inserted] = await db.batch(prepareOperatorMessageStatements(db, input));
+  const [canonical] = await db
+    .select()
+    .from(messages)
+    .where(
+      and(
+        eq(messages.id, input.id),
+        eq(messages.workspaceId, input.workspaceId),
+        eq(messages.inboxId, input.inboxId),
+        eq(messages.threadId, input.threadId),
+      ),
+    )
+    .limit(1);
+  if (!canonical || canonical.direction !== "operator_to_customer") {
+    throw new MessageIdentityConflictError(input.id);
+  }
+  return {
+    kind: inserted.length ? "inserted" : ingressKindFromMessage(canonical),
+    immutablePayloadMatches:
+      canonical.workflowInstanceId === input.workflowInstanceId &&
+      canonical.originalText === input.originalEnglishText &&
+      canonical.replyTranslation === (input.replyTranslation ?? null) &&
+      JSON.stringify(canonical.attachments) === JSON.stringify(input.attachments ?? []),
+    message: canonical,
+  };
 }
 
 export async function acceptCustomerIngress(

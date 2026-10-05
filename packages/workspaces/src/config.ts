@@ -115,6 +115,12 @@ export const emailConfigurationSchema = z.strictObject({
     .regex(/^[^\r\n]+$/),
   replyDomain: z.string().regex(/^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/),
   unreadDelaySeconds: z.number().int().positive().default(600),
+  operator: z
+    .strictObject({
+      forwardTo: z.email().transform((value) => value.toLowerCase()),
+      allowedReplyFrom: z.array(z.email().transform((value) => value.toLowerCase())).min(1),
+    })
+    .optional(),
 });
 export type EmailConfiguration = z.infer<typeof emailConfigurationSchema>;
 

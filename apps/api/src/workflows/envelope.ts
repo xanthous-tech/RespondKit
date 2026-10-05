@@ -50,7 +50,19 @@ export const operatorWorkflowEnvelopeSchema = sharedEnvelopeSchema.extend({
   }),
 });
 
-export const messageWorkflowEnvelopeSchema = z.discriminatedUnion("direction", [
+export const emailOperatorEnvelopeSchema = sharedEnvelopeSchema.extend({
+  direction: z.literal("operator_to_customer"),
+  source: z.literal("email"),
+  replyTranslation: z.literal("off"),
+  replyTranslationRequest: z.undefined().optional(),
+  originalText: z.string().min(1).max(6_000),
+  attachments: z.array(AttachmentV1Schema).optional(),
+  email: z.object({ routeToken: z.string().regex(/^[a-f0-9]{32}$/), sender: z.email() }),
+});
+export type EmailOperatorEnvelope = z.infer<typeof emailOperatorEnvelopeSchema>;
+
+export const messageWorkflowEnvelopeSchema = z.union([
+  emailOperatorEnvelopeSchema,
   customerWorkflowEnvelopeSchema,
   operatorWorkflowEnvelopeSchema,
 ]);

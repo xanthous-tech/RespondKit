@@ -1,21 +1,8 @@
-import { deriveCustomerMessageIdentity } from "@respondkit/protocol";
-import { emailConfigurationSchema } from "@respondkit/workspaces";
-import PostalMime from "postal-mime";
 import { z } from "zod";
 import type { Env } from "./env";
-import { acceptWorkflow } from "./workflow-binding";
-import { customerWorkflowEnvelopeSchema, type MessageWorkflowEnvelope } from "./workflows/envelope";
-
-async function settings(env: Env, inboxId: string) {
-  const row = await env.DB.prepare(
-    "SELECT email_config FROM inbox WHERE id = ? AND status = 'active'",
-  )
-    .bind(inboxId)
-    .first<{ email_config: string | null }>();
-  return row?.email_config
-    ? emailConfigurationSchema.parse(JSON.parse(row.email_config))
-    : undefined;
-}
+import { emailSettings } from "./email-config";
+import { emailAttachmentLinks } from "./email-content";
+export { receiveThreadEmail, type IncomingEmail } from "./email-ingress";
 
 /** Snapshot a published reply. Retrying enqueue never moves its original deadline. */
 export async function enqueueReplyEmail(env: Env, messageId: string): Promise<void> {
@@ -36,7 +23,7 @@ export async function enqueueReplyEmail(env: Env, messageId: string): Promise<vo
       customer_read_cursor: number;
     }>();
   if (!row?.email) return;
-  const config = await settings(env, row.inbox_id);
+  const config = await emailSettings(env, row.inbox_id);
   if (!config) return;
   const recipient = z.email().parse(row.email).toLowerCase();
   await env.DB.prepare(
@@ -94,7 +81,7 @@ export async function deliverPendingEmails(env: Env): Promise<void> {
         inbox_id: string;
       }>();
   for (const mail of groups.results) {
-    const config = await settings(env, mail.inbox_id);
+    const config = await emailSettings(env, mail.inbox_id);
     if (!config) continue;
     const batch = crypto.randomUUID();
     await env.DB.prepare(`UPDATE email_delivery SET status='sending',batch_id=?,updated_at=?
@@ -119,10 +106,11 @@ export async function deliverPendingEmails(env: Env): Promise<void> {
       .bind(Date.now(), batch)
       .run();
     const remaining = await env.DB.prepare(
-      "SELECT body FROM email_delivery WHERE batch_id=? AND status='sending' ORDER BY transcript_cursor",
+      `SELECT d.body,m.attachments FROM email_delivery d LEFT JOIN message m ON m.id=d.message_id
+      WHERE d.batch_id=? AND d.status='sending' ORDER BY d.transcript_cursor`,
     )
       .bind(batch)
-      .all<{ body: string }>();
+      .all<{ body: string; attachments: string | null }>();
     if (!remaining.results.length) continue;
     try {
       const sent = await env.EMAIL.send({
@@ -130,7 +118,10 @@ export async function deliverPendingEmails(env: Env): Promise<void> {
         to: mail.recipient,
         replyTo: mail.reply_to,
         subject: mail.subject,
-        text: remaining.results.map((row) => row.body).join("\n\n—\n\n"),
+        // No storage I/O between the final read check and handing mail to the provider.
+        text: remaining.results
+          .map((row) => row.body + emailAttachmentLinks(row.attachments))
+          .join("\n\n—\n\n"),
         headers: { "Auto-Submitted": "auto-generated" },
       });
       await env.DB.prepare(
@@ -146,93 +137,4 @@ export async function deliverPendingEmails(env: Env): Promise<void> {
         .run();
     }
   }
-}
-
-export type IncomingEmail = Pick<
-  ForwardableEmailMessage,
-  "from" | "to" | "headers" | "raw" | "rawSize" | "setReject"
->;
-
-export async function receiveThreadEmail(message: IncomingEmail, env: Env): Promise<void> {
-  const reject = (reason: string) => message.setReject(reason);
-  const address = /^reply\+([a-f0-9]{32})@(.+)$/i.exec(message.to);
-  if (!address || message.rawSize > 256_000) return reject("Unsupported support email");
-  const route =
-    await env.DB.prepare(`SELECT r.recipient, t.id AS thread_id, t.workspace_id, t.inbox_id,
-    t.visitor_id, t.status FROM thread_email_route r JOIN thread t ON t.id = r.thread_id WHERE r.token = ?`)
-      .bind(address[1])
-      .first<{
-        recipient: string;
-        thread_id: string;
-        workspace_id: string;
-        inbox_id: string;
-        visitor_id: string;
-        status: string;
-      }>();
-  const config = route ? await settings(env, route.inbox_id) : undefined;
-  if (
-    !route ||
-    !config ||
-    config.replyDomain !== address[2]?.toLowerCase() ||
-    route.recipient !== message.from.toLowerCase()
-  ) {
-    return reject("Unknown support reply address or sender");
-  }
-  if (route.status !== "open")
-    return reject("This support conversation is closed. Start a new conversation in the app.");
-  const automated = message.headers.get("auto-submitted");
-  if (
-    (automated && automated.toLowerCase() !== "no") ||
-    /^(bulk|list|junk)$/i.test(message.headers.get("precedence") ?? "")
-  ) {
-    return reject("Automated replies are not accepted");
-  }
-  const parsed = await PostalMime.parse(message.raw);
-  if (parsed.from?.address?.toLowerCase() !== route.recipient)
-    return reject("Sender does not match this conversation");
-  // Never silently discard attachments or truncate a customer's request.
-  if (parsed.attachments.length > 0)
-    return reject("Attachments are not supported. Please send a text reply.");
-  const body = parsed.text?.trim();
-  if (!body || body.length > 6_000) return reject("Send a plain-text reply of 1–6000 characters");
-  const sourceId = parsed.messageId;
-  if (!sourceId || sourceId.length > 998) return reject("A valid Message-ID is required");
-  const digest = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(JSON.stringify([address[1], sourceId])),
-  );
-  const clientMessageId = `email_${Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("")}`;
-  const identity = await deriveCustomerMessageIdentity({
-    workspaceId: route.workspace_id,
-    threadId: route.thread_id,
-    clientMessageId,
-  });
-  const envelope: MessageWorkflowEnvelope = {
-    schema: "respondkit.workflow-message/1",
-    direction: "customer_to_operator",
-    workspaceId: route.workspace_id,
-    inboxId: route.inbox_id,
-    threadId: route.thread_id,
-    visitorId: route.visitor_id,
-    ...identity,
-    clientMessageId,
-    originalText: body,
-    acceptedAt: new Date().toISOString(),
-    context: { email: route.recipient },
-  };
-  await env.DB.prepare("INSERT OR IGNORE INTO email_ingress (id, envelope) VALUES (?, ?)")
-    .bind(identity.messageId, JSON.stringify(envelope))
-    .run();
-  const stored = await env.DB.prepare("SELECT envelope FROM email_ingress WHERE id = ?")
-    .bind(identity.messageId)
-    .first<{ envelope: string }>();
-  if (!stored) throw new Error("Email ingress missing");
-  const canonical = customerWorkflowEnvelopeSchema.parse(JSON.parse(stored.envelope));
-  const accepted = await acceptWorkflow(
-    env.MESSAGE_WORKFLOW,
-    identity.workflowInstanceId,
-    canonical,
-  );
-  if (accepted.kind === "unknown")
-    throw new Error("Email workflow acceptance unknown; retry delivery");
 }

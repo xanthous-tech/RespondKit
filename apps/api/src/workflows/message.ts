@@ -1,3 +1,5 @@
+import { emailArchiveLinks } from "../email-content";
+import { acceptOperatorEmailIngress } from "../operator-email";
 import { enqueueReplyEmail } from "../email";
 import {
   acceptCustomerIngress,
@@ -242,28 +244,30 @@ async function persistIngress(
             ...(envelope.attachments ? { attachments: envelope.attachments } : {}),
             ...(envelope.localeHint === undefined ? {} : { localeHint: envelope.localeHint }),
           })
-        : await acceptReplyIngress(db, {
-            integrationId: envelope.discord.integrationId,
-            interactionId: envelope.discord.interactionId,
-            workspaceId: envelope.workspaceId,
-            inboxId: envelope.inboxId,
-            threadId: envelope.threadId,
-            messageId: envelope.messageId,
-            workflowInstanceId: envelope.workflowInstanceId,
-            applicationId: envelope.discord.applicationId,
-            guildId: envelope.discord.guildId,
-            discordThreadId: envelope.discord.threadId,
-            operatorUserId: envelope.discord.operatorId,
-            operatorRoleIds: envelope.discord.operatorRoleIds,
-            acceptedAt: new Date(envelope.acceptedAt),
-            originalEnglishText: envelope.originalText,
-            ...(envelope.replyTranslationRequest === undefined
-              ? {}
-              : { replyTranslationRequest: envelope.replyTranslationRequest }),
-            ...(envelope.replyTranslation === undefined
-              ? {}
-              : { replyTranslation: envelope.replyTranslation }),
-          });
+        : "email" in envelope
+          ? await acceptOperatorEmailIngress(env, envelope)
+          : await acceptReplyIngress(db, {
+              integrationId: envelope.discord.integrationId,
+              interactionId: envelope.discord.interactionId,
+              workspaceId: envelope.workspaceId,
+              inboxId: envelope.inboxId,
+              threadId: envelope.threadId,
+              messageId: envelope.messageId,
+              workflowInstanceId: envelope.workflowInstanceId,
+              applicationId: envelope.discord.applicationId,
+              guildId: envelope.discord.guildId,
+              discordThreadId: envelope.discord.threadId,
+              operatorUserId: envelope.discord.operatorId,
+              operatorRoleIds: envelope.discord.operatorRoleIds,
+              acceptedAt: new Date(envelope.acceptedAt),
+              originalEnglishText: envelope.originalText,
+              ...(envelope.replyTranslationRequest === undefined
+                ? {}
+                : { replyTranslationRequest: envelope.replyTranslationRequest }),
+              ...(envelope.replyTranslation === undefined
+                ? {}
+                : { replyTranslation: envelope.replyTranslation }),
+            });
 
     if (!acceptance.immutablePayloadMatches) {
       permanent(new Error("the first accepted immutable payload differs"), "persist ingress");
@@ -712,6 +716,9 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
         return { messageId: envelope.messageId, status: "already_succeeded" };
       }
 
+      const archiveLinks = await step.do("load-email-archive-links", DATABASE_STEP, () =>
+        emailArchiveLinks(this.env, envelope.messageId),
+      );
       if (envelope.direction === "customer_to_operator") {
         stage = "discord_thread";
         const target = await ensureDiscordThread(step, this.env, envelope);
@@ -722,7 +729,7 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
           envelope,
           target,
           "customer_projection",
-          `**Customer**\n${envelope.originalText}${(envelope.attachments ?? []).map((file) => `\n📎 ${file.name.replace(/[\r\n]/g, " ")}\n${file.downloadUrl}`).join("")}`,
+          `**Customer**\n${envelope.originalText}${(envelope.attachments ?? []).map((file) => `\n📎 ${file.name.replace(/[\r\n]/g, " ")}\n${file.downloadUrl}`).join("")}${archiveLinks}`,
           "project-customer-message",
         );
       } else {
@@ -780,16 +787,19 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
           enqueueReplyEmail(this.env, envelope.messageId),
         );
         stage = "discord_audit";
-        const target = await step.do("load-discord-thread", DATABASE_STEP, () =>
-          loadReadyDiscordThread(this.env, envelope),
-        );
+        const target =
+          "email" in envelope
+            ? await ensureDiscordThread(step, this.env, envelope)
+            : await step.do("load-discord-thread", DATABASE_STEP, () =>
+                loadReadyDiscordThread(this.env, envelope),
+              );
         await projectDiscordChunks(
           step,
           this.env,
           envelope,
           target,
           "available_audit",
-          auditContent,
+          `${auditContent}${"email" in envelope ? (envelope.attachments ?? []).map((file) => `\n📎 ${file.name}\n${file.downloadUrl}`).join("") : ""}${archiveLinks}`,
           "post-available-audit",
         );
       }
