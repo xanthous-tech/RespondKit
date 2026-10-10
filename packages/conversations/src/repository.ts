@@ -125,6 +125,7 @@ export async function closeThread(
     readonly inboxId: InboxId;
     readonly threadId: ThreadId;
     readonly closedAt: Date;
+    readonly claimedBy?: string;
   },
 ): Promise<ThreadRow | null> {
   const [thread] = await db
@@ -134,7 +135,16 @@ export async function closeThread(
       closedAt: input.closedAt,
       updatedAt: input.closedAt,
     })
-    .where(threadScope(input))
+    .where(
+      and(
+        threadScope(input),
+        input.claimedBy === undefined
+          ? undefined
+          : sql`(
+      ${threads.claimedBy} IS NULL OR ${threads.claimedBy}=${input.claimedBy} OR ${threads.claimExpiresAt}<=${input.closedAt.getTime()}
+    )`,
+      ),
+    )
     .returning();
 
   return thread ?? null;
@@ -173,6 +183,8 @@ export interface OperatorMessageInput {
   readonly workflowInstanceId: WorkflowInstanceId;
   readonly acceptedAt: Date;
   readonly originalEnglishText: string;
+  readonly authorKind?: "operator" | "agent" | "email";
+  readonly authorName?: string;
   readonly attachments?: AttachmentV1[];
   readonly replyTranslation?: string;
   readonly replyTranslationRequest?: string;
@@ -210,6 +222,8 @@ export function prepareOperatorMessageStatements(
         clientMessageId: null,
         workflowInstanceId: input.workflowInstanceId,
         direction: "operator_to_customer",
+        authorKind: input.authorKind ?? "operator",
+        authorName: input.authorName ?? null,
         originalText: input.originalEnglishText,
         attachments: input.attachments ?? [],
         originalLanguage: input.replyTranslation === "off" ? null : "en",
@@ -259,6 +273,8 @@ export async function acceptOperatorIngress(
     immutablePayloadMatches:
       canonical.workflowInstanceId === input.workflowInstanceId &&
       canonical.originalText === input.originalEnglishText &&
+      canonical.authorKind === (input.authorKind ?? "operator") &&
+      canonical.authorName === (input.authorName ?? null) &&
       canonical.replyTranslation === (input.replyTranslation ?? null) &&
       JSON.stringify(canonical.attachments) === JSON.stringify(input.attachments ?? []),
     message: canonical,
@@ -1331,4 +1347,29 @@ export async function loadMessageTranslationContext(
         ? row.originalText
         : (row.visibleText ?? row.originalText),
   }));
+}
+
+export async function reopenThread(
+  db: DrizzleD1Database,
+  input: {
+    workspaceId: WorkspaceId;
+    inboxId: InboxId;
+    threadId: ThreadId;
+    reopenedAt: Date;
+    claimedBy?: string;
+  },
+): Promise<ThreadRow | null> {
+  const [thread] = await db
+    .update(threads)
+    .set({ status: "open", closedAt: null, updatedAt: input.reopenedAt })
+    .where(
+      and(
+        threadScope(input),
+        input.claimedBy === undefined
+          ? undefined
+          : sql`(${threads.claimedBy} IS NULL OR ${threads.claimedBy}=${input.claimedBy} OR ${threads.claimExpiresAt}<=${input.reopenedAt.getTime()})`,
+      ),
+    )
+    .returning();
+  return thread ?? null;
 }
