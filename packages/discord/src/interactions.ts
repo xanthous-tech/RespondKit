@@ -160,7 +160,15 @@ export interface ParsedDiscordConfirmInteraction extends ParsedDiscordCommandBas
   readonly generation: number;
 }
 
+export interface ParsedDiscordAgentDecisionInteraction extends ParsedDiscordCommandBase {
+  readonly command: "agent_decision";
+  readonly action: "approve" | "reject" | "translate";
+  readonly generation?: number;
+  readonly messageId: string;
+}
+
 export type ParsedDiscordCommandInteraction =
+  | ParsedDiscordAgentDecisionInteraction
   | ParsedDiscordActivityInteraction
   | ParsedDiscordTranslateInteraction
   | ParsedDiscordConfirmInteraction
@@ -322,10 +330,22 @@ function parseCommandInteraction(
   });
 
   const commandName =
-    payload.type === 3 ? "confirm_translation" : requiredString(data, "name", "command name");
+    payload.type === 3
+      ? typeof data.custom_id === "string" && data.custom_id.startsWith("agent:")
+        ? "agent_decision"
+        : "confirm_translation"
+      : requiredString(data, "name", "command name");
   const command = commandName === "Translate to English" ? "translate" : commandName;
   if (
-    !["reply", "retry", "status", "translate", "confirm_translation", "activity"].includes(command)
+    ![
+      "reply",
+      "retry",
+      "status",
+      "translate",
+      "confirm_translation",
+      "activity",
+      "agent_decision",
+    ].includes(command)
   ) {
     throw new DiscordInteractionParseError("unsupported_command", "Unsupported Discord command");
   }
@@ -353,6 +373,26 @@ function parseCommandInteraction(
     operatorUserId: requiredSnowflake(user, "id", "operator user ID"),
     operatorRoleIds,
   };
+  if (command === "agent_decision") {
+    const match =
+      /^agent:(approve|reject|translate):(msg_agent_[a-f0-9]{64})(?::([1-9][0-9]{0,8}))?$/.exec(
+        requiredString(data, "custom_id"),
+      );
+    if (
+      payload.type !== 3 ||
+      data.component_type !== 2 ||
+      !match ||
+      (match[1] === "translate") !== (match[3] !== undefined)
+    )
+      throw new DiscordInteractionParseError("invalid_payload", "Invalid agent draft action");
+    return {
+      ...commandBase,
+      command,
+      action: match[1] as "approve" | "reject" | "translate",
+      ...(match[3] ? { generation: Number(match[3]) } : {}),
+      messageId: match[2]!,
+    };
+  }
   if (command === "activity") {
     requireAllowedOptions(options, [], ["count", "minutes", "kind", "until"]);
     const integer = (name: string, fallback: number, max: number) => {
@@ -553,6 +593,11 @@ export interface NormalizedDiscordCommandBase {
 export type NormalizedDiscordCommand =
   | (NormalizedDiscordCommandBase &
       Pick<
+        ParsedDiscordAgentDecisionInteraction,
+        "command" | "action" | "messageId" | "generation"
+      >)
+  | (NormalizedDiscordCommandBase &
+      Pick<
         ParsedDiscordActivityInteraction,
         "command" | "count" | "minutes" | "activityKind" | "until"
       >)
@@ -589,6 +634,14 @@ export function normalizeDiscordCommand(
     operatorUserId: interaction.operatorUserId,
     operatorRoleIds: [...interaction.operatorRoleIds],
   };
+  if (interaction.command === "agent_decision")
+    return {
+      ...base,
+      command: interaction.command,
+      action: interaction.action,
+      messageId: interaction.messageId,
+      ...(interaction.generation === undefined ? {} : { generation: interaction.generation }),
+    };
   if (interaction.command === "activity")
     return {
       ...base,

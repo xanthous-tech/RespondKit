@@ -1,3 +1,5 @@
+import { createAgentApp } from "./agent-api";
+import { decideAgentDraft } from "./agent-replies";
 import { registerEmailFileRoutes } from "./email-content";
 import {
   registerAttachmentRoutes,
@@ -489,18 +491,25 @@ export function createHttpApp() {
   });
 
   app.onError((error, context) => {
+    const agentRequest = context.req.path.startsWith("/v1/agent/");
     if (error instanceof HTTPException)
       return apiError(
         context,
         new ApiHttpError(
           error.status as ApiStatus,
-          error.status === 404
-            ? "not_found"
-            : error.status === 409
-              ? "conflict"
-              : error.status === 503
-                ? "unavailable"
-                : "invalid_request",
+          agentRequest && error.status === 401
+            ? "unauthorized"
+            : agentRequest && error.status === 403
+              ? "forbidden"
+              : agentRequest && error.status === 429
+                ? "rate_limited"
+                : error.status === 404
+                  ? "not_found"
+                  : error.status === 409
+                    ? "conflict"
+                    : error.status === 503
+                      ? "unavailable"
+                      : "invalid_request",
           error.message,
         ),
       );
@@ -518,6 +527,7 @@ export function createHttpApp() {
     );
   });
 
+  app.route("/v1/agent", createAgentApp());
   registerEmailFileRoutes(app);
   registerAttachmentRoutes(app, async (c) => (await authenticateCustomer(c)).claims);
 
@@ -944,6 +954,19 @@ export function createHttpApp() {
     }
     if (interaction.kind === "ping") return context.json(DISCORD_PONG_RESPONSE);
 
+    if (interaction.command === "agent_decision") {
+      const operation = decideAgentDraft(context.env, interaction);
+      const result = await beforeDiscordResponseCutoff(operation, requestStartedAt);
+      if (result === "cutoff") {
+        context.executionCtx.waitUntil(
+          operation.then(async (content) => {
+            await updatePrivateInteraction(context.env, interaction, { content });
+          }),
+        );
+        return context.json(createDeferredEphemeralResponse());
+      }
+      return context.json(createEphemeralInteractionResponse(result));
+    }
     if (interaction.command === "activity") {
       context.executionCtx.waitUntil(handleActivityInteraction(context.env, interaction));
       return context.json(createDeferredEphemeralResponse());
@@ -956,7 +979,8 @@ export function createHttpApp() {
     if (
       command.command === "translate" ||
       command.command === "confirm_translation" ||
-      command.command === "activity"
+      command.command === "activity" ||
+      command.command === "agent_decision"
     )
       throw new Error("Unexpected command");
     const commandPromise = (async () => {

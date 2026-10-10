@@ -35,6 +35,8 @@ export async function acceptOperatorEmailIngress(env: Env, envelope: EmailOperat
     workflowInstanceId: envelope.workflowInstanceId,
     acceptedAt: new Date(envelope.acceptedAt),
     originalEnglishText: envelope.originalText,
+    authorKind: "email",
+    authorName: envelope.email.sender,
     replyTranslation: "off",
     attachments: envelope.attachments ?? [],
   });

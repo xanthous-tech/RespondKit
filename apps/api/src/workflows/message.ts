@@ -1,3 +1,4 @@
+import { acceptAgentIngress, agentReplyState } from "../agent-replies";
 import { emailArchiveLinks } from "../email-content";
 import { acceptOperatorEmailIngress } from "../operator-email";
 import { enqueueReplyEmail } from "../email";
@@ -244,30 +245,32 @@ async function persistIngress(
             ...(envelope.attachments ? { attachments: envelope.attachments } : {}),
             ...(envelope.localeHint === undefined ? {} : { localeHint: envelope.localeHint }),
           })
-        : "email" in envelope
-          ? await acceptOperatorEmailIngress(env, envelope)
-          : await acceptReplyIngress(db, {
-              integrationId: envelope.discord.integrationId,
-              interactionId: envelope.discord.interactionId,
-              workspaceId: envelope.workspaceId,
-              inboxId: envelope.inboxId,
-              threadId: envelope.threadId,
-              messageId: envelope.messageId,
-              workflowInstanceId: envelope.workflowInstanceId,
-              applicationId: envelope.discord.applicationId,
-              guildId: envelope.discord.guildId,
-              discordThreadId: envelope.discord.threadId,
-              operatorUserId: envelope.discord.operatorId,
-              operatorRoleIds: envelope.discord.operatorRoleIds,
-              acceptedAt: new Date(envelope.acceptedAt),
-              originalEnglishText: envelope.originalText,
-              ...(envelope.replyTranslationRequest === undefined
-                ? {}
-                : { replyTranslationRequest: envelope.replyTranslationRequest }),
-              ...(envelope.replyTranslation === undefined
-                ? {}
-                : { replyTranslation: envelope.replyTranslation }),
-            });
+        : "agent" in envelope
+          ? await acceptAgentIngress(env, envelope)
+          : "email" in envelope
+            ? await acceptOperatorEmailIngress(env, envelope)
+            : await acceptReplyIngress(db, {
+                integrationId: envelope.discord.integrationId,
+                interactionId: envelope.discord.interactionId,
+                workspaceId: envelope.workspaceId,
+                inboxId: envelope.inboxId,
+                threadId: envelope.threadId,
+                messageId: envelope.messageId,
+                workflowInstanceId: envelope.workflowInstanceId,
+                applicationId: envelope.discord.applicationId,
+                guildId: envelope.discord.guildId,
+                discordThreadId: envelope.discord.threadId,
+                operatorUserId: envelope.discord.operatorId,
+                operatorRoleIds: envelope.discord.operatorRoleIds,
+                acceptedAt: new Date(envelope.acceptedAt),
+                originalEnglishText: envelope.originalText,
+                ...(envelope.replyTranslationRequest === undefined
+                  ? {}
+                  : { replyTranslationRequest: envelope.replyTranslationRequest }),
+                ...(envelope.replyTranslation === undefined
+                  ? {}
+                  : { replyTranslation: envelope.replyTranslation }),
+              });
 
     if (!acceptance.immutablePayloadMatches) {
       permanent(new Error("the first accepted immutable payload differs"), "persist ingress");
@@ -708,6 +711,59 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
     let stage: MessageFailureStage = "ingress";
 
     try {
+      if ("agent" in envelope && envelope.agent.mode === "draft") {
+        const target = await ensureDiscordThread(step, this.env, envelope, "draft-discord");
+        const chunks = splitDiscordMessage(
+          `**Agent ${envelope.agent.name} · Draft**\n${envelope.originalText}\n\n${envelope.replyTranslation === "off" ? "Send as written" : `Translate to ${envelope.replyTranslation}`}`,
+        );
+        for (const [index, content] of chunks.entries()) {
+          await step.do(`post-agent-draft-${index}`, DISCORD_STEP, () =>
+            discordOperation(() =>
+              discordClient(this.env).sendMessageReconciled({
+                channelId: target.discordThreadId,
+                content,
+                nonce: createDiscordNonce(`draft:${envelope.messageId}`, index),
+                ...(index === chunks.length - 1
+                  ? {
+                      components: [
+                        {
+                          type: 1 as const,
+                          components: [
+                            {
+                              type: 2 as const,
+                              style: 3 as const,
+                              label: "Approve",
+                              custom_id: `agent:approve:${envelope.messageId}`,
+                            },
+                            {
+                              type: 2 as const,
+                              style: 4 as const,
+                              label: "Reject",
+                              custom_id: `agent:reject:${envelope.messageId}`,
+                            },
+                          ],
+                        },
+                      ],
+                    }
+                  : {}),
+              }),
+            ),
+          );
+        }
+        const initial = await step.do("load-agent-decision", DATABASE_STEP, () =>
+          agentReplyState(this.env, envelope.messageId),
+        );
+        if (initial?.status === "pending")
+          await step.waitForEvent("wait-agent-decision", {
+            type: "agent-decision",
+            timeout: "7 days",
+          });
+        const decision = await step.do("verify-agent-decision", DATABASE_STEP, () =>
+          agentReplyState(this.env, envelope.messageId),
+        );
+        if (decision?.status !== "approved")
+          return { messageId: envelope.messageId, status: decision?.status ?? "missing" };
+      }
       const persisted = await step.do("persist-ingress", DATABASE_STEP, () =>
         persistIngress(this.env, envelope),
       );
@@ -763,6 +819,51 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
                 .bind(envelope.messageId, generation, JSON.stringify(translation), Date.now())
                 .run();
             });
+            if ("agent" in envelope) {
+              const target = await ensureDiscordThread(
+                step,
+                this.env,
+                envelope,
+                "agent-review-discord",
+              );
+              const chunks = splitDiscordMessage(
+                `**Agent ${envelope.agent.name} · Review translation**\nOriginal: ${envelope.originalText}\n\n${translation.targetLanguage}: ${translation.translatedText}`,
+              );
+              for (const [index, content] of chunks.entries()) {
+                await step.do(
+                  `post-agent-translation-review-${generation}-${index}`,
+                  DISCORD_STEP,
+                  () =>
+                    discordOperation(() =>
+                      discordClient(this.env).sendMessageReconciled({
+                        channelId: target.discordThreadId,
+                        content,
+                        nonce: createDiscordNonce(
+                          `agent-review:${envelope.messageId}:${generation}`,
+                          index,
+                        ),
+                        ...(index === chunks.length - 1
+                          ? {
+                              components: [
+                                {
+                                  type: 1 as const,
+                                  components: [
+                                    {
+                                      type: 2 as const,
+                                      style: 3 as const,
+                                      label: "Approve translation",
+                                      custom_id: `agent:translate:${envelope.messageId}:${generation}`,
+                                    },
+                                  ],
+                                },
+                              ],
+                            }
+                          : {}),
+                      }),
+                    ),
+                );
+              }
+            }
             await step.waitForEvent(`review-translation-${generation}`, {
               type: `translation-approved-${generation}`,
               timeout: "1 day",
@@ -788,7 +889,7 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
         );
         stage = "discord_audit";
         const target =
-          "email" in envelope
+          "email" in envelope || "agent" in envelope
             ? await ensureDiscordThread(step, this.env, envelope)
             : await step.do("load-discord-thread", DATABASE_STEP, () =>
                 loadReadyDiscordThread(this.env, envelope),
@@ -799,7 +900,7 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
           envelope,
           target,
           "available_audit",
-          `${auditContent}${"email" in envelope ? (envelope.attachments ?? []).map((file) => `\n📎 ${file.name}\n${file.downloadUrl}`).join("") : ""}${archiveLinks}`,
+          `${"agent" in envelope ? `**Agent ${envelope.agent.name}**\n` : ""}${auditContent}${"email" in envelope ? (envelope.attachments ?? []).map((file) => `\n📎 ${file.name}\n${file.downloadUrl}`).join("") : ""}${archiveLinks}`,
           "post-available-audit",
         );
       }

@@ -22,6 +22,8 @@ export interface Env {
   /** JSON mapping of inbox IDs to fixed PostHog activity endpoints. */
   readonly POSTHOG_ACTIVITY_INBOXES?: string;
   readonly [key: `POSTHOG_API_KEY_${string}`]: string | undefined;
+  readonly [key: `AGENT_TOKEN_${string}`]: string | undefined;
+  readonly [key: `AGENT_NAME_${string}`]: string | undefined;
   readonly DB: D1Database;
   readonly MESSAGE_WORKFLOW: Workflow<MessageWorkflowEnvelope>;
   readonly ENVIRONMENT: string;

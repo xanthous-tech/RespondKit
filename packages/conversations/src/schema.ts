@@ -78,6 +78,8 @@ export const threads = sqliteTable(
     lastActivityAt: integer("last_activity_at", { mode: "timestamp_ms" })
       .notNull()
       .default(nowInMilliseconds),
+    claimedBy: text("claimed_by"),
+    claimExpiresAt: integer("claim_expires_at", { mode: "timestamp_ms" }),
     closedAt: integer("closed_at", { mode: "timestamp_ms" }),
   },
   (table) => [
@@ -129,6 +131,8 @@ export const messages = sqliteTable(
       .$type<AttachmentV1[]>()
       .notNull()
       .default(sql`'[]'`),
+    authorKind: text("author_kind", { enum: ["operator", "agent", "email"] }),
+    authorName: text("author_name"),
     originalText: text("original_text").notNull(),
     originalLanguage: text("original_language"),
     replyTranslation: text("reply_translation"),
