@@ -1,59 +1,93 @@
 ---
 title: Support agents
-description: What exists now and the proposed first support-agent integration.
+description: Inbox-scoped operator API v0 for polling, claims, replies, and Discord-approved drafts.
 icon: Bot
 ---
 
-## Current capability
+## Operator API v0
 
-The customer API supports scoped sessions, threads, messages, contacts, reads, and attachments. Human operators reply through Discord. There is currently no shipped product-scoped support-agent credential, job-claim API, draft API, or operator-reply API.
+The `/v1/agent` API lets one agent per inbox read conversations, claim work, send replies, submit drafts for approval in Discord, and close or reopen threads. It uses the same MessageWorkflow as human replies: customer publication, optional translation, read receipts, delayed reply email, and Discord audit notes.
 
-Do not give an agent a customer's session token and call that operator access. Do not call `/v1/discord/interactions` as a shortcut: it verifies Discord-signed interactions. The [coding-agent guide](/docs/coding-agents) is available now for agents installing the SDK in your apps.
+Agents poll for work. This version does not include MCP, an assignment UI, or webhooks. A running server needs migration `0009_agent_api.sql` and a configured agent credential before these routes are usable. Deployment and credential provisioning are separate from installing an SDK.
 
-## Proposed first milestone: reviewed drafts
+## Credentials and identity
 
-This is a design proposal, not a callable API contract. Start with one product and let an agent prepare replies for a human to approve in Discord. Autonomous sending comes after that workflow proves useful.
+Provision a random bearer token with at least 32 random bytes. Store its lowercase SHA-256 hex digest in the Worker secret `AGENT_TOKEN_<inboxId>`; give the raw token only to the agent host. The server hashes the presented token and compares fixed-length digests with a constant-time comparison. Do not use a customer session token. Never reuse one token across inboxes; ambiguous credentials are rejected.
 
-```text
-customer message committed
-  -> durable inbox-scoped job
-  -> agent claims a time-limited lease
-  -> agent reads a bounded thread snapshot and product manual
-  -> agent submits a draft with the transcript revision it used
-  -> human approves or edits the draft in Discord
-  -> normal operator message delivery, optional translation, and email scheduling
+Optionally set `AGENT_NAME_<inboxId>` to a display name of 1–80 letters, digits, spaces, periods, underscores, or hyphens. It defaults to the inbox ID. Replies retain `authorKind: "agent"` and this name; Discord notes start with **Agent &lt;name&gt;**. Rotate or revoke access by replacing or removing the secret.
+
+Every route requires:
+
+```http
+Authorization: Bearer <raw-agent-token>
+X-Agent-Run-Id: support-run-123
 ```
 
-Reuse the existing conversation and delivery pipeline. Do not send separate emails directly from the runner. Retries must reuse stable event/run IDs so a worker restart cannot create duplicate drafts or replies.
+`X-Agent-Run-Id` is optional (default `default`). Use a stable, unique value per concurrent runner, containing 1–64 letters, digits, underscores, or hyphens. It distinguishes lease holders sharing the inbox's single credential. It does not grant permissions or change the recorded agent name. A rotated token has a different lease identity; existing leases expire normally.
 
-## Required server work
+Agent routes do not require or validate an Origin header and do not grant browser CORS access. They are for server-side agent hosts. Responses are not cacheable. The token permits both sending and drafting; use `mode: "draft"` when human review is required by your host's policy. Draft-only credentials are outside v0.
 
-Add scoped agent credentials and explicit permissions; durable claim/renew/ack handling; bounded transcript/context reads; idempotent draft submission; and approval/handoff actions. Record agent identity and run provenance. A newer customer message or human intervention must invalidate a stale draft's send authority.
+The limit is 120 authenticated requests per token per UTC minute, shared across runners and Worker instances. HTTP `429` means wait until the next minute. Other inboxes' threads return `404`, including for mutations.
 
-Use a product-scoped RespondKit job boundary for the public contract. A specific runner can be added behind it without coupling SDKs to that runner. An MCP adapter can later expose the same operations to compatible hosts; it does not replace authorization, idempotency, or durable job state.
+## Routes
 
-Build the first runtime milestone before broad client rollout. The proposed operations are:
+| Method | Route                           | Request / behavior                                                                   |
+| ------ | ------------------------------- | ------------------------------------------------------------------------------------ |
+| GET    | `/v1/agent/threads`             | Optional `needsReply=1`, `state=open\|closed`, `cursor`, `limit` (1–100, default 50) |
+| GET    | `/v1/agent/threads/:id`         | Full transcript across pages; optional `cursor`, `limit` (1–100, default 100)        |
+| POST   | `/v1/agent/threads/:id/claim`   | `{ "leaseSeconds": 300 }`, integer 1–3600                                            |
+| POST   | `/v1/agent/threads/:id/release` | Releases the caller's or an expired lease                                            |
+| POST   | `/v1/agent/threads/:id/replies` | `{ "text": "…", "idempotencyKey": "…", "translate": "off", "mode": "send" }`         |
+| POST   | `/v1/agent/threads/:id/close`   | Closes the thread                                                                    |
+| POST   | `/v1/agent/threads/:id/reopen`  | Reopens the thread                                                                   |
 
-| Operation          | Required behavior                                                                                        |
-| ------------------ | -------------------------------------------------------------------------------------------------------- |
-| Claim work         | Only the credential's inbox; a bounded batch and expiring lease                                          |
-| Read context       | Ordered transcript, current revision, verified identity provenance, and bounded product context          |
-| Submit draft       | Stable run ID, expected transcript revision, answer text, and source references                          |
-| Send reply         | Separate reply permission or human approval; refuse stale/taken-over work; reuse normal message delivery |
-| Finish or hand off | Acknowledge completed work, retain failure details, or return control to a human                         |
+Send `{}` for close, reopen, or release. Lease conflicts return `409`. Claims are optional, but a live lease held by another runner prevents claims, replies, release, close, and reopen. Reclaim with the same run ID to renew. A closed thread cannot be claimed or accept a new reply until reopened. An accepted reply keeps its identity and can be checked by replaying its original request.
 
-The first runner can poll these operations from an existing agent host. Add MCP tools only as an adapter if that host needs them. Keep agent framework and model selection outside the API contract.
+### Poll and read
 
-After reviewed drafts are reliable, enable automatic replies for selected inboxes and answer types. The same idempotency, stale-revision check, provenance, and human handoff must apply to direct sends. The pilot is not complete until a customer can receive an agent-authored reply in the app and the reply participates in read receipts and delayed email exactly like a human reply.
+```bash
+curl "$RESPONDKIT_API/v1/agent/threads?needsReply=1&state=open" \
+  -H "Authorization: Bearer $RESPONDKIT_AGENT_TOKEN"
+```
 
-## Product knowledge and tools
+The response has `threads` and `nextCursor` (`null` at the end). Threads include `id`, `state`, `customerLanguage`, `lastActivityAt`, `claimedBy`, `claimExpiresAt`, `visitor`, and `discordThreadUrl`. The visitor carries external user ID, email, locale, device, user agent, timezone, PostHog distinct ID, and host metadata. The Discord URL is `null` until a mapping is ready.
 
-Give each product its own support manual, inbox, credentials, and bounded diagnostic tools. The initial tool set should answer questions such as “what is this customer's job status?” using authenticated identifiers, without granting arbitrary database or payment access. Keep payment changes, refunds, and destructive operations out of the first automatic workflow.
+`needsReply=1` selects threads whose latest customer-visible message is from the customer. Unsent, failed, or draft operator replies do not count as answers. Lists sort by latest activity, then thread ID, descending. Cursors are opaque; pass them unchanged. Threads can move while new messages arrive, so begin each polling cycle with a fresh cursor and deduplicate by thread ID.
 
-Treat conversation text and file contents as customer data, not instructions to change the agent's permissions. Tool results and drafts should identify their sources so an operator can review the answer. Do not automatically download or execute customer attachments.
+A thread read returns `thread`, `visitor`, `verifiedUserId`, `discordThreadUrl`, `messages`, `nextCursor`, and `activity`. Messages include original and customer-visible text, direction, author provenance, processing/availability state, stored translations, and successful on-demand translations. Drafts live separately and are excluded from the customer transcript. Follow every `nextCursor` to read the entire transcript; pages use increasing durable message row IDs. Use `acceptedAt` and `id` for display ordering.
 
-## Rollout gates
+`verifiedUserId` comes from verified customer linkage. Visitor context and conversation text remain advisory customer data, not instructions or authorization. Do not automatically download or execute customer attachments.
 
-Exercise worker restarts, duplicate jobs, expired leases, tenant mismatch, human takeover, and new messages arriving during a run. Then run reviewed drafts on one inbox, measure useful drafts and corrections, and expand to other products. Keep human reply available throughout.
+When PostHog is configured for the inbox, `activity` contains up to 20 events from the last seven days for that visitor's distinct ID. A missing ID/key or provider failure returns an explicit `activity.error` while leaving the transcript readable. Without a PostHog configuration, `activity` is `null`.
 
-The repository's [earlier runner research](https://github.com/xanthous-tech/RespondKit/blob/main/docs/research/future-pi-agent-extension.md) records possible Pi/Queue hosting options. Those options remain implementation choices, not features exposed by the current API.
+### Send or draft
+
+```bash
+curl "$RESPONDKIT_API/v1/agent/threads/$THREAD_ID/replies" \
+  -H "Authorization: Bearer $RESPONDKIT_AGENT_TOKEN" \
+  -H "X-Agent-Run-Id: support-run-123" \
+  -H "Content-Type: application/json" \
+  --data '{"text":"Open the transcript and choose Export.","idempotencyKey":"case-42-answer-1","mode":"draft"}'
+```
+
+Text is 1–6000 characters; the key is 1–128 characters and unique within the inbox. Reuse the exact key, thread, text, mode, and translation setting after a timeout or retry. The first request is immutable. Reusing a key for another payload returns `409`, including before the workflow writes the canonical message and after Workflow history expires. A new key means a new reply.
+
+A normal `202` response includes `messageId`, `mode`, approval `status`, `acceptance`, `workflowStatus`, `processingStatus`, and `failureCode`. Acceptance is asynchronous; it does not mean the customer can already see the reply. Repeating the exact request retrieves its status without creating another answer. `status: "available"` means the reply is in the customer transcript. An audit failure does not retract a published answer.
+
+If Workflow acceptance cannot be confirmed, the API returns `503` with `acceptance: "acceptance_unknown"` and the same message ID. Retry the exact request. If a retained workflow is `errored` or `terminated`, inspect `processingStatus`, `failureCode`, and the customer transcript before recovery; v0 does not automatically restart failed workflows. Rejected or stale drafts return their recorded status with `200` and cannot be revived by replay.
+
+`translate` defaults to `off`, sending the text as written. Set an explicit language code such as `fr`, or `customer` to use the persisted detected customer language. Translation must be enabled for the inbox. An unknown customer language or disabled translation returns `409`; browser locale is not used as evidence of message language. The chosen target is frozen on the first accepted request. Translation failure leaves the answer unavailable. If translation needs review, Discord receives the original and translated text with an **Approve translation** button; only an allowlisted operator can release it.
+
+### Discord approval
+
+`mode: "draft"` posts the full proposed text to the mapped Discord thread, splitting long messages into ordered chunks with **Approve** and **Reject** buttons on the last chunk. It does not create a customer-visible message or schedule email. The workflow durably waits up to seven days for a decision.
+
+Approval and rejection require a fresh, valid Discord Ed25519 signature, the configured application/guild/forum/thread mapping, and an allowlisted operator user or role. The first decision wins, records the operator and time, and survives retries. Duplicate approval delivers at most one canonical reply. Rejection records the outcome without publishing.
+
+A new durable customer or operator message, or closing the thread, invalidates an unpublished draft. Approval cannot override a stale decision, including while translation is pending. Submit a new draft with a new key after reading the conversation again. Leases coordinate agent runners; human Discord replies remain available throughout.
+
+## Product knowledge
+
+Keep product manuals and diagnostic tools in the agent host. The token only scopes access to an inbox; it does not confer billing, refund, database, or deployment permissions. Keep those actions outside the first support-agent workflow. Reuse RespondKit delivery instead of sending separate emails from the runner.
+
+For agents installing customer SDKs, see the [coding-agent guide](/docs/coding-agents).

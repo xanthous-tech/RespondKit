@@ -427,7 +427,18 @@ export interface DiscordForumThreadResult {
   readonly reconciled: boolean;
 }
 
+export interface DiscordButtonRow {
+  readonly type: 1;
+  readonly components: readonly {
+    readonly type: 2;
+    readonly style: 3 | 4;
+    readonly label: string;
+    readonly custom_id: string;
+  }[];
+}
+
 export interface SendDiscordMessageInput {
+  readonly components?: readonly DiscordButtonRow[];
   readonly replyToMessageId?: string;
   readonly channelId: string;
   readonly content: string;
@@ -742,6 +753,7 @@ export class DiscordRestClient {
         content: input.content,
         nonce: input.nonce,
         enforce_nonce: true,
+        ...(input.components ? { components: input.components } : {}),
         ...(input.replyToMessageId === undefined
           ? {}
           : {

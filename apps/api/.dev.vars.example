@@ -15,3 +15,7 @@ TRANSLATION_ENABLED_INBOXES=["inbox_example_public"]
 # Optional PostHog activity: JSON inbox-to-endpoint mapping; credentials stay server-side.
 # POSTHOG_ACTIVITY_INBOXES={"inbox_example":{"host":"https://eu.posthog.com","projectId":123,"endpoint":"respondkit_customer_activity_v1","version":2}}
 # POSTHOG_API_KEY_inbox_example=replace-with-endpoint-read-only-key
+
+# Agent API: SHA-256 hex digest of a random bearer token; never the raw token.
+AGENT_TOKEN_inbox_example_public=
+AGENT_NAME_inbox_example_public=

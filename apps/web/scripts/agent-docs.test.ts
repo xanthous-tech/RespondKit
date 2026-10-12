@@ -20,6 +20,6 @@ describe("agent documentation", () => {
     expect(nativeGuide).toContain("```tsx\n");
     expect(nativeGuide).toContain("<RespondKitLifecycle store={store} />");
     expect(outputs.get("llms-full.txt")).toContain(nativeGuide);
-    expect(outputs.get("docs-markdown/agent-api.md")).toContain("no shipped product-scoped");
+    expect(outputs.get("docs-markdown/agent-api.md")).toContain("/v1/agent/threads/:id/replies");
   });
 });

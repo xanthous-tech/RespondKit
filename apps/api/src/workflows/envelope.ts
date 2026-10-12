@@ -61,7 +61,21 @@ export const emailOperatorEnvelopeSchema = sharedEnvelopeSchema.extend({
 });
 export type EmailOperatorEnvelope = z.infer<typeof emailOperatorEnvelopeSchema>;
 
+export const agentOperatorEnvelopeSchema = sharedEnvelopeSchema.extend({
+  direction: z.literal("operator_to_customer"),
+  source: z.literal("agent"),
+  originalText: z.string().min(1).max(6_000),
+  replyTranslation: z.string().min(2).max(35),
+  replyTranslationRequest: z.string().min(2).max(35),
+  agent: z.object({
+    name: z.string().min(1).max(80),
+    mode: z.enum(["send", "draft"]),
+  }),
+});
+export type AgentOperatorEnvelope = z.infer<typeof agentOperatorEnvelopeSchema>;
+
 export const messageWorkflowEnvelopeSchema = z.union([
+  agentOperatorEnvelopeSchema,
   emailOperatorEnvelopeSchema,
   customerWorkflowEnvelopeSchema,
   operatorWorkflowEnvelopeSchema,

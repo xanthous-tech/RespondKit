@@ -54,6 +54,8 @@ function createTestDatabase(): DrizzleD1Database {
       workflow_instance_id text not null,
       direction text not null,
       original_text text not null,
+      author_kind text,
+      author_name text,
       attachments text not null default '[]',
       original_language text,
       reply_translation text,
