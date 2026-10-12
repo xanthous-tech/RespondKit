@@ -141,3 +141,88 @@ it("upgrades populated 0009 to 0010 without changing customer data or existing c
   ).toBe(4);
   expect(await env.DB.prepare("SELECT count(*) n FROM message WHERE id='n10'").first("n")).toBe(0);
 });
+
+it("upgrades populated 0010 to 0011 preserving approved reviews and invalidating only pending drafts on steer", async () => {
+  await reset();
+  await applyD1Migrations(
+    env.DB,
+    __D1_MIGRATIONS__.filter((migration) => migration.name < "0011"),
+  );
+  await seedTopology();
+  await env.DB.batch([
+    env.DB.prepare(
+      "INSERT INTO visitor(id,workspace_id,inbox_id,installation_id) VALUES ('v10',?,?,'v10')",
+    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId),
+    env.DB.prepare(
+      "INSERT INTO thread(id,workspace_id,inbox_id,visitor_id,client_thread_id,claimed_by,claim_expires_at) VALUES ('t10',?,?,'v10','t10','existing-run',9999999999999)",
+    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId),
+    env.DB.prepare(
+      "INSERT INTO internal_note(id,workspace_id,inbox_id,thread_id,author_kind,author_name,kind,text,request_json,created_at) VALUES ('old-note',?,?,'t10','agent','Helper','reasoning','Existing note','{}',1000)",
+    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId),
+    env.DB.prepare(
+      "INSERT INTO agent_reply(message_id,workspace_id,inbox_id,thread_id,idempotency_key,request_json,envelope,mode,status,basis_row_id,decided_by,decided_at,created_at) VALUES ('approved10',?,?,'t10','approved10','{}','{}','draft','approved',0,'simon',1000,1000)",
+    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId),
+    env.DB.prepare(
+      "INSERT INTO message(id,workspace_id,inbox_id,thread_id,workflow_instance_id,direction,original_text,author_kind,accepted_at) VALUES ('approved10',?,?,'t10','wa10','operator_to_customer','Approved answer','agent',1000)",
+    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId),
+    env.DB.prepare(
+      'INSERT INTO reply_review(message_id,generation,result_json,created_at) VALUES (\'approved10\',1,\'{"translatedText":"Réponse","needsReview":true}\',1000)',
+    ),
+    env.DB.prepare(
+      "INSERT INTO agent_reply(message_id,workspace_id,inbox_id,thread_id,idempotency_key,request_json,envelope,mode,status,basis_row_id,created_at) VALUES ('pending10',?,?,'t10','pending10','{}','{}','draft','pending',1,1000)",
+    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId),
+    env.DB.prepare("INSERT INTO agent_ack VALUES ('t10',1)"),
+    env.DB.prepare("INSERT INTO agent_draft_chunk VALUES ('123','456','approved10',0)"),
+  ]);
+  const tables = [
+    "visitor",
+    "thread",
+    "message",
+    "customer_transcript_entry",
+    "agent_reply",
+    "reply_review",
+    "internal_note",
+    "agent_timeline",
+    "agent_ack",
+    "agent_draft_chunk",
+  ];
+  const before = await Promise.all(
+    tables.map((table) => env.DB.prepare(`SELECT * FROM ${table}`).all()),
+  );
+  await applyD1Migrations(env.DB, __D1_MIGRATIONS__);
+  const after = await Promise.all(
+    tables.map((table) => env.DB.prepare(`SELECT * FROM ${table}`).all()),
+  );
+  expect(after.map((result) => result.results)).toEqual(before.map((result) => result.results));
+  expect(await env.DB.prepare("SELECT count(*) n FROM agent_draft_preview").first("n")).toBe(0);
+  await env.DB.prepare(
+    "INSERT INTO internal_note(id,workspace_id,inbox_id,thread_id,author_kind,author_name,operator_discord_user_id,kind,text,request_json,created_at) VALUES ('steer11',?,?,'t10','operator','Simon','simon','steer','Next question','{}',2000)",
+  )
+    .bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId)
+    .run();
+  expect(
+    await env.DB.prepare("SELECT status FROM agent_reply WHERE message_id='approved10'").first(
+      "status",
+    ),
+  ).toBe("approved");
+  expect(
+    await env.DB.prepare("SELECT status FROM agent_reply WHERE message_id='pending10'").first(
+      "status",
+    ),
+  ).toBe("stale");
+  expect(
+    await env.DB.prepare(
+      "SELECT confirmed_by FROM reply_review WHERE message_id='approved10'",
+    ).first("confirmed_by"),
+  ).toBeNull();
+  expect(
+    await env.DB.prepare("SELECT ordering_key FROM internal_note WHERE id='steer11'").first(
+      "ordering_key",
+    ),
+  ).toBe(3);
+  expect(
+    await env.DB.prepare("SELECT through_sequence FROM agent_ack WHERE thread_id='t10'").first(
+      "through_sequence",
+    ),
+  ).toBe(1);
+});
