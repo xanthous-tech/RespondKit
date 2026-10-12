@@ -717,7 +717,7 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
           `**Agent ${envelope.agent.name} · Draft**\n${envelope.originalText}\n\n${envelope.replyTranslation === "off" ? "Send as written" : `Translate to ${envelope.replyTranslation}`}`,
         );
         for (const [index, content] of chunks.entries()) {
-          await step.do(`post-agent-draft-${index}`, DISCORD_STEP, () =>
+          const posted = await step.do(`post-agent-draft-${index}`, DISCORD_STEP, () =>
             discordOperation(() =>
               discordClient(this.env).sendMessageReconciled({
                 channelId: target.discordThreadId,
@@ -749,6 +749,13 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
               }),
             ),
           );
+          await step.do(`store-agent-draft-chunk-${index}`, DATABASE_STEP, async () => {
+            await this.env.DB.prepare(
+              "INSERT INTO agent_draft_chunk(discord_message_id,discord_thread_id,message_id,chunk_index) VALUES (?,?,?,?) ON CONFLICT(message_id,chunk_index) DO NOTHING",
+            )
+              .bind(posted.message.id, target.discordThreadId, envelope.messageId, index)
+              .run();
+          });
         }
         const initial = await step.do("load-agent-decision", DATABASE_STEP, () =>
           agentReplyState(this.env, envelope.messageId),

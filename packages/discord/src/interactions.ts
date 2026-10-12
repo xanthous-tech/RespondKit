@@ -160,6 +160,18 @@ export interface ParsedDiscordConfirmInteraction extends ParsedDiscordCommandBas
   readonly generation: number;
 }
 
+export interface ParsedDiscordAgentNoteInteraction extends ParsedDiscordCommandBase {
+  readonly command: "agent";
+  readonly message: string;
+  readonly operatorName: string;
+}
+
+export interface ParsedDiscordAgentContextInteraction extends ParsedDiscordCommandBase {
+  readonly command: "agent_context";
+  readonly action: "approve" | "reject";
+  readonly targetMessageId: string;
+}
+
 export interface ParsedDiscordAgentDecisionInteraction extends ParsedDiscordCommandBase {
   readonly command: "agent_decision";
   readonly action: "approve" | "reject" | "translate";
@@ -168,6 +180,8 @@ export interface ParsedDiscordAgentDecisionInteraction extends ParsedDiscordComm
 }
 
 export type ParsedDiscordCommandInteraction =
+  | ParsedDiscordAgentNoteInteraction
+  | ParsedDiscordAgentContextInteraction
   | ParsedDiscordAgentDecisionInteraction
   | ParsedDiscordActivityInteraction
   | ParsedDiscordTranslateInteraction
@@ -335,7 +349,12 @@ function parseCommandInteraction(
         ? "agent_decision"
         : "confirm_translation"
       : requiredString(data, "name", "command name");
-  const command = commandName === "Translate to English" ? "translate" : commandName;
+  const draftContext = commandName === "Approve draft" || commandName === "Reject draft";
+  const command = draftContext
+    ? "agent_context"
+    : commandName === "Translate to English"
+      ? "translate"
+      : commandName;
   if (
     ![
       "reply",
@@ -345,11 +364,16 @@ function parseCommandInteraction(
       "confirm_translation",
       "activity",
       "agent_decision",
+      "agent_context",
+      "agent",
     ].includes(command)
   ) {
     throw new DiscordInteractionParseError("unsupported_command", "Unsupported Discord command");
   }
-  if ((commandName === "Translate to English") !== (data.type === 3) && payload.type !== 3) {
+  if (
+    (commandName === "Translate to English" || draftContext) !== (data.type === 3) &&
+    payload.type !== 3
+  ) {
     throw new DiscordInteractionParseError("invalid_payload", "Invalid command type");
   }
   const options = parseOptions(data);
@@ -373,6 +397,32 @@ function parseCommandInteraction(
     operatorUserId: requiredSnowflake(user, "id", "operator user ID"),
     operatorRoleIds,
   };
+  if (command === "agent") {
+    requireAllowedOptions(options, ["message"], []);
+    const name =
+      typeof member.nick === "string"
+        ? member.nick
+        : typeof user.global_name === "string"
+          ? user.global_name
+          : typeof user.username === "string"
+            ? user.username
+            : commandBase.operatorUserId;
+    return {
+      ...commandBase,
+      command,
+      message: optionValue(options, "message", 6000),
+      operatorName:
+        name.replaceAll(/[^\p{L}\p{N} ._-]/gu, "").slice(0, 80) || commandBase.operatorUserId,
+    };
+  }
+  if (command === "agent_context") {
+    return {
+      ...commandBase,
+      command,
+      action: commandName === "Approve draft" ? "approve" : "reject",
+      targetMessageId: requiredSnowflake(data, "target_id"),
+    };
+  }
   if (command === "agent_decision") {
     const match =
       /^agent:(approve|reject|translate):(msg_agent_[a-f0-9]{64})(?::([1-9][0-9]{0,8}))?$/.exec(
@@ -592,6 +642,10 @@ export interface NormalizedDiscordCommandBase {
 
 export type NormalizedDiscordCommand =
   | (NormalizedDiscordCommandBase &
+      Pick<ParsedDiscordAgentNoteInteraction, "command" | "message" | "operatorName">)
+  | (NormalizedDiscordCommandBase &
+      Pick<ParsedDiscordAgentContextInteraction, "command" | "action" | "targetMessageId">)
+  | (NormalizedDiscordCommandBase &
       Pick<
         ParsedDiscordAgentDecisionInteraction,
         "command" | "action" | "messageId" | "generation"
@@ -634,6 +688,20 @@ export function normalizeDiscordCommand(
     operatorUserId: interaction.operatorUserId,
     operatorRoleIds: [...interaction.operatorRoleIds],
   };
+  if (interaction.command === "agent")
+    return {
+      ...base,
+      command: interaction.command,
+      message: interaction.message,
+      operatorName: interaction.operatorName,
+    };
+  if (interaction.command === "agent_context")
+    return {
+      ...base,
+      command: interaction.command,
+      action: interaction.action,
+      targetMessageId: interaction.targetMessageId,
+    };
   if (interaction.command === "agent_decision")
     return {
       ...base,

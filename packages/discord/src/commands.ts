@@ -38,7 +38,7 @@ export interface DiscordChatInputCommandDefinition {
   )[];
 }
 
-export type DiscordCommandName = "reply" | "retry" | "status" | "translate" | "activity";
+export type DiscordCommandName = "reply" | "retry" | "status" | "translate" | "activity" | "agent";
 
 export const DISCORD_REPLY_COMMAND = {
   type: DiscordApplicationCommandType.ChatInput,
@@ -188,7 +188,38 @@ export const DISCORD_ACTIVITY_COMMAND = {
   ],
 } as const satisfies DiscordChatInputCommandDefinition;
 
+export const DISCORD_AGENT_COMMAND = {
+  type: 1,
+  name: "agent",
+  description: "Leave an internal steering note for the support agent",
+  default_member_permissions: "0",
+  options: [
+    {
+      type: 3,
+      name: "message",
+      description: "Instructions for the agent",
+      required: true,
+      min_length: 1,
+      max_length: 6000,
+    },
+  ],
+} as const satisfies DiscordChatInputCommandDefinition;
+
+export const DISCORD_APPROVE_DRAFT_COMMAND = {
+  type: 3,
+  name: "Approve draft",
+  default_member_permissions: "0",
+} as const;
+export const DISCORD_REJECT_DRAFT_COMMAND = {
+  type: 3,
+  name: "Reject draft",
+  default_member_permissions: "0",
+} as const;
+
 export const DISCORD_GUILD_COMMANDS = [
+  DISCORD_AGENT_COMMAND,
+  DISCORD_APPROVE_DRAFT_COMMAND,
+  DISCORD_REJECT_DRAFT_COMMAND,
   DISCORD_REPLY_COMMAND,
   DISCORD_STATUS_COMMAND,
   DISCORD_RETRY_COMMAND,

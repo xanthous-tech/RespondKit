@@ -10,6 +10,9 @@ import {
 describe("Discord guild commands", () => {
   it("publishes the canonical recovery-safe command set", () => {
     expect(DISCORD_GUILD_COMMANDS.map((command) => command.name)).toEqual([
+      "agent",
+      "Approve draft",
+      "Reject draft",
       "reply",
       "status",
       "retry",

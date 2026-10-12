@@ -1,3 +1,4 @@
+import { deliverPendingNotes } from "./agent-notes";
 import { deliverOperatorEmails } from "./operator-email";
 import { deliverPendingEmails, receiveThreadEmail } from "./email";
 import { createHttpApp } from "./http";
@@ -15,6 +16,7 @@ export default {
   email: receiveThreadEmail,
   async scheduled(_event: ScheduledController, env: Env) {
     await Promise.all([
+      deliverPendingNotes(env),
       syncDiscordReadReceipts(env),
       deliverPendingEmails(env),
       deliverOperatorEmails(env),

@@ -1,3 +1,4 @@
+import { deliverNote, noteResponse, type InternalNote } from "./agent-notes";
 import {
   closeThread,
   findThreadById,
@@ -18,7 +19,7 @@ import {
   visitors,
   type InboxContext,
 } from "@respondkit/workspaces";
-import { and, asc, desc, eq, gt, lt, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, lt, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
@@ -97,6 +98,7 @@ async function authenticate(
 
 const threadQuerySchema = z.object({
   state: z.enum(["open", "closed"]).optional(),
+  needsAgent: z.enum(["0", "1"]).optional(),
   needsReply: z.enum(["0", "1"]).optional(),
   cursor: z.string().max(512).optional(),
   limit: z.coerce.number().int().min(1).max(100).default(50),
@@ -154,6 +156,17 @@ export function createAgentApp() {
         visitor: visitors,
         discordThreadId: discordThreads.discordThreadId,
         guildId: discordIntegrations.guildId,
+        lastCustomerAt: sql<
+          number | null
+        >`(SELECT max(created_at) FROM agent_timeline WHERE thread_id=${threads.id} AND author_kind='customer')`,
+        lastOperatorAt: sql<
+          number | null
+        >`(SELECT max(created_at) FROM agent_timeline WHERE thread_id=${threads.id} AND author_kind='operator')`,
+        lastAgentAt: sql<
+          number | null
+        >`(SELECT max(at) FROM (SELECT created_at at FROM agent_timeline WHERE thread_id=${threads.id} AND author_kind='agent' UNION ALL SELECT created_at at FROM agent_reply WHERE thread_id=${threads.id}))`,
+        agentCursor: sql<number>`coalesce((SELECT max(sequence) FROM agent_timeline WHERE thread_id=${threads.id}),0)`,
+        acknowledgedCursor: sql<number>`coalesce((SELECT through_sequence FROM agent_ack WHERE thread_id=${threads.id}),0)`,
       })
       .from(threads)
       .innerJoin(
@@ -171,6 +184,9 @@ export function createAgentApp() {
           eq(threads.workspaceId, inbox.workspaceId),
           eq(threads.inboxId, inbox.inboxId),
           query.state ? eq(threads.status, query.state) : undefined,
+          query.needsAgent === "1"
+            ? sql`${threads.status}='open' AND EXISTS (SELECT 1 FROM agent_timeline e WHERE e.thread_id=${threads.id} AND e.author_kind IN ('customer','operator') AND e.sequence>coalesce((SELECT through_sequence FROM agent_ack WHERE thread_id=${threads.id}),0))`
+            : undefined,
           query.needsReply === "1"
             ? sql`(SELECT direction FROM message WHERE thread_id=${threads.id}
           AND (direction='customer_to_operator' OR customer_availability='available')
@@ -192,6 +208,13 @@ export function createAgentApp() {
       threads: page.map((row) => ({
         ...row.thread,
         state: row.thread.status,
+        lastCustomerAt:
+          row.lastCustomerAt === null ? null : new Date(row.lastCustomerAt).toISOString(),
+        lastOperatorAt:
+          row.lastOperatorAt === null ? null : new Date(row.lastOperatorAt).toISOString(),
+        lastAgentAt: row.lastAgentAt === null ? null : new Date(row.lastAgentAt).toISOString(),
+        agentCursor: String(row.agentCursor),
+        acknowledgedCursor: String(row.acknowledgedCursor),
         visitor: row.visitor,
         discordThreadUrl:
           row.guildId && row.discordThreadId
@@ -226,19 +249,24 @@ export function createAgentApp() {
       .parse(c.req.query());
     const [visitor] = await db.select().from(visitors).where(eq(visitors.id, thread.visitorId));
     const identity = await findVisitorCustomer(db, thread.visitorId);
-    const transcript = await db
+    const events = await c.env.DB.prepare(
+      "SELECT sequence,message_id,note_id FROM agent_timeline WHERE thread_id=? AND inbox_id=? AND sequence>? ORDER BY sequence LIMIT ?",
+    )
+      .bind(thread.id, inbox.inboxId, query.cursor, query.limit + 1)
+      .all<{ sequence: number; message_id: string | null; note_id: string | null }>();
+    const eventPage = events.results.slice(0, query.limit);
+    const pageMessageIds = sql`SELECT message_id FROM agent_timeline WHERE thread_id=${thread.id}
+      AND sequence>${query.cursor} AND sequence<=${eventPage.at(-1)?.sequence ?? query.cursor}`;
+    const page = await db
       .select()
       .from(messages)
-      .where(
-        and(
-          eq(messages.threadId, thread.id),
-          eq(messages.inboxId, inbox.inboxId),
-          gt(messages.rowId, query.cursor),
-        ),
-      )
-      .orderBy(asc(messages.rowId))
-      .limit(query.limit + 1);
-    const page = transcript.slice(0, query.limit);
+      .where(sql`${messages.id} IN (${pageMessageIds})`)
+      .orderBy(asc(messages.rowId));
+    const noteRows = await c.env.DB.prepare(
+      "SELECT * FROM internal_note WHERE thread_id=? AND inbox_id=? AND ordering_key>? AND ordering_key<=? ORDER BY ordering_key",
+    )
+      .bind(thread.id, inbox.inboxId, query.cursor, eventPage.at(-1)?.sequence ?? query.cursor)
+      .all<InternalNote>();
     const translations = await db
       .select()
       .from(messageTranslations)
@@ -246,7 +274,7 @@ export function createAgentApp() {
         and(
           eq(messageTranslations.threadId, thread.id),
           eq(messageTranslations.inboxId, inbox.inboxId),
-          sql`${messageTranslations.messageId} IN (SELECT id FROM message WHERE thread_id=${thread.id} AND row_id>${query.cursor} ORDER BY row_id LIMIT ${query.limit})`,
+          sql`${messageTranslations.messageId} IN (${pageMessageIds})`,
         ),
       );
     const jobs = await db
@@ -256,7 +284,7 @@ export function createAgentApp() {
         and(
           eq(translationJobs.threadId, thread.id),
           eq(translationJobs.status, "succeeded"),
-          sql`${translationJobs.messageId} IN (SELECT id FROM message WHERE thread_id=${thread.id} AND row_id>${query.cursor} ORDER BY row_id LIMIT ${query.limit})`,
+          sql`${translationJobs.messageId} IN (${pageMessageIds})`,
         ),
       );
     let activity: unknown = null;
@@ -292,14 +320,99 @@ export function createAgentApp() {
         : null,
       messages: page.map((message) => ({
         ...message,
+        sequence: String(eventPage.find((event) => event.message_id === message.id)!.sequence),
         translations: translations.filter((t) => t.messageId === message.id),
         onDemandTranslations: jobs
           .filter((job) => job.messageId === message.id)
           .map((job) => JSON.parse(job.resultJson!)),
       })),
-      nextCursor: transcript.length > query.limit ? page.at(-1)!.rowId.toString() : null,
+      notes: noteRows.results.map(noteResponse),
+      through: String(eventPage.at(-1)?.sequence ?? query.cursor),
+      nextCursor: events.results.length > query.limit ? String(eventPage.at(-1)!.sequence) : null,
       activity,
     });
+  });
+  app.post("/threads/:id/notes", async (c) => {
+    const auth = c.get("agent");
+    const request = z
+      .object({
+        kind: z.enum(["reasoning", "reply", "steer", "summary", "note"]),
+        text: z
+          .string()
+          .min(1)
+          .max(6000)
+          .refine((text) => text.trim().length > 0),
+        idempotencyKey: z.string().min(1).max(128),
+      })
+      .strict()
+      .parse(await requestJson(c.req.raw));
+    const threadId = c.req.param("id");
+    const canonical = JSON.stringify({ threadId, ...request });
+    const id = `note_agent_${await agentTokenHash(JSON.stringify([auth.inbox.inboxId, request.idempotencyKey]))}`;
+    const inserted =
+      await c.env.DB.prepare(`INSERT INTO internal_note(id,workspace_id,inbox_id,thread_id,author_kind,author_name,kind,text,idempotency_key,request_json,created_at)
+      SELECT ?,workspace_id,inbox_id,id,'agent',?,?,?,?,?,? FROM thread WHERE id=? AND inbox_id=? AND workspace_id=?
+      AND (claimed_by IS NULL OR claim_expires_at<=? OR claimed_by=?) ON CONFLICT(inbox_id,idempotency_key) DO NOTHING RETURNING id`)
+        .bind(
+          id,
+          auth.name,
+          request.kind,
+          request.text,
+          request.idempotencyKey,
+          canonical,
+          Date.now(),
+          threadId,
+          auth.inbox.inboxId,
+          auth.inbox.workspaceId,
+          Date.now(),
+          auth.holder,
+        )
+        .first();
+    const note = await c.env.DB.prepare(
+      "SELECT * FROM internal_note WHERE inbox_id=? AND idempotency_key=?",
+    )
+      .bind(auth.inbox.inboxId, request.idempotencyKey)
+      .first<InternalNote>();
+    if (!note) throw new HTTPException(409, { message: "Another holder has a live claim" });
+    if (note.request_json !== canonical)
+      throw new HTTPException(409, {
+        message: "Idempotency key belongs to another immutable note",
+      });
+    const posted = await deliverNote(c.env, note);
+    return c.json(
+      { note: noteResponse(note), delivery: posted ? "posted" : "pending" },
+      posted ? (inserted ? 201 : 200) : 503,
+    );
+  });
+  app.post("/threads/:id/ack", async (c) => {
+    const { inbox, holder } = c.get("agent");
+    const { through } = z
+      .object({
+        through: z
+          .string()
+          .regex(/^(0|[1-9][0-9]*)$/)
+          .refine((s) => Number.isSafeInteger(Number(s))),
+      })
+      .strict()
+      .parse(await requestJson(c.req.raw));
+    const sequence = Number(through);
+    const threadId = c.req.param("id");
+    if (
+      sequence !== 0 &&
+      !(await c.env.DB.prepare(
+        "SELECT sequence FROM agent_timeline WHERE thread_id=? AND inbox_id=? AND sequence=?",
+      )
+        .bind(threadId, inbox.inboxId, sequence)
+        .first())
+    )
+      throw new HTTPException(400, { message: "Cursor does not belong to this thread" });
+    const ack = await c.env.DB.prepare(`INSERT INTO agent_ack(thread_id,through_sequence)
+      SELECT id,? FROM thread WHERE id=? AND inbox_id=? AND workspace_id=? AND (claimed_by IS NULL OR claim_expires_at<=? OR claimed_by=?)
+      ON CONFLICT(thread_id) DO UPDATE SET through_sequence=max(agent_ack.through_sequence,excluded.through_sequence) RETURNING through_sequence`)
+      .bind(sequence, threadId, inbox.inboxId, inbox.workspaceId, Date.now(), holder)
+      .first<{ through_sequence: number }>();
+    if (!ack) throw new HTTPException(409, { message: "Another holder has a live claim" });
+    return c.json({ acknowledgedCursor: String(ack.through_sequence) });
   });
   app.post("/threads/:id/claim", async (c) => {
     const { inbox, holder } = c.get("agent");
