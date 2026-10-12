@@ -1,6 +1,6 @@
 # OF-19 thread flow verification
 
-Run: 2026-10-12T12:56:31.729Z
+Run: 2026-10-12T13:01:45.533Z
 
 Executed `node apps/api/scripts/verify-agent-api.mjs` against `wrangler dev --local`, using the real Hono Worker, D1 migrations 0000–0010, and MessageWorkflow. HTTP calls below were made with curl. A loopback Discord REST fixture captured posts; Ed25519 keys and agent/session credentials were generated for this run and are redacted. The ready Discord mapping was seeded locally. No remote database, Discord channel, email provider, Gemini service, or deployed Worker was touched.
 
@@ -12,11 +12,11 @@ Executed on 2026-10-12 in the OF-19 worktree, with `VOLTA_FEATURE_PNPM=1` and Vo
 | --- | --- |
 | `pnpm install --frozen-lockfile` | Passed; lockfile unchanged |
 | `pnpm check` | Formatting, lint and types passed |
-| `pnpm test:all` | 378 tests in 43 files passed, including 141 API tests |
+| `pnpm test:all` | 379 tests in 43 files passed, including 142 API tests |
 | `pnpm --filter @respondkit/web build` | Passed; existing bundle-size advisory only |
 | `node apps/api/scripts/verify-agent-api.mjs` | Passed; 43 recorded HTTP calls, 13 fake Discord posts |
 
-The API tests drive signed Ed25519 slash, button and message-context interactions through the real HTTP handler. They cover authorization, first decision wins, stale drafts after steering, all chunks of long drafts, note replay/conflicts/partial delivery, scheduled recovery, monotonic acknowledgement, late arrivals and cross-thread cursors. Both the original 0008→0009 test and a populated 0009→0010 upgrade test pass. The latter compares all existing visitor, thread, message, customer transcript, draft and rate-limit rows before/after migration, then checks note/message ordering and draft invalidation.
+The API tests drive signed Ed25519 slash, button and message-context interactions through the real HTTP handler. They cover authorization, first decision wins, stale drafts after steering, all chunks of long drafts, note replay/conflicts/partial delivery, scheduled recovery, monotonic acknowledgement, late arrivals and cross-thread cursors. A full 100-message page also runs through a binding guard matching [D1’s 100-parameter ceiling](https://developers.cloudflare.com/d1/platform/limits/); bounded subqueries avoid expanding every ID into query parameters. Both the original 0008→0009 test and a populated 0009→0010 upgrade test pass. The latter compares all existing visitor, thread, message, customer transcript, draft and rate-limit rows before/after migration, then checks note/message ordering and draft invalidation.
 
 Isolation tests compare the customer thread list, thread detail, statuses and shared widget/native message wire payloads before and after notes, validating the public protocol schemas. Separate assertions exercise customer read receipts, email enqueue/delivery, translation context and job rejection, and needsReply. Existing email, SDK, Discord and workflow tests run in the complete suite. Native simulator/device UI flows were not run; no native code or payload shape changed.
 
@@ -41,10 +41,10 @@ HTTP 201
 ```json
 {
   "session": {
-    "id": "session_bc1e9582a42d48bcb07069bb143e8468",
+    "id": "session_6cbbbbbb5cc349afa3adca48c72196e7",
     "token": "<redacted>",
     "visitorId": "visitor_JiLGcIaGuBfNTSUbqVyhVA5yxVcgbZuA9Yu1m9wO8cw",
-    "expiresAt": "2026-11-11T12:56:25.000Z"
+    "expiresAt": "2026-11-11T13:01:39.000Z"
   }
 }
 ```
@@ -59,8 +59,8 @@ HTTP 201
     "id": "thread_Lg5j_rB-F4ch5ESjK8cZPBdaeQm51zLS7BRtz8168Jk",
     "clientThreadId": "of10-thread",
     "state": "open",
-    "createdAt": "2026-10-12T12:56:25.580Z",
-    "updatedAt": "2026-10-12T12:56:25.580Z"
+    "createdAt": "2026-10-12T13:01:39.528Z",
+    "updatedAt": "2026-10-12T13:01:39.528Z"
   }
 }
 ```
@@ -96,14 +96,14 @@ HTTP 200
       "customerReadCursor": 0,
       "customerLanguage": null,
       "customerLanguageUpdatedAt": null,
-      "createdAt": "2026-10-12T12:56:25.580Z",
-      "updatedAt": "2026-10-12T12:56:26.700Z",
-      "lastActivityAt": "2026-10-12T12:56:26.700Z",
+      "createdAt": "2026-10-12T13:01:39.528Z",
+      "updatedAt": "2026-10-12T13:01:40.534Z",
+      "lastActivityAt": "2026-10-12T13:01:40.534Z",
       "claimedBy": null,
       "claimExpiresAt": null,
       "closedAt": null,
       "state": "open",
-      "lastCustomerAt": "2026-10-12T12:56:26.700Z",
+      "lastCustomerAt": "2026-10-12T13:01:40.534Z",
       "lastOperatorAt": null,
       "lastAgentAt": null,
       "agentCursor": "1",
@@ -126,9 +126,9 @@ HTTP 200
           "platform": "web",
           "plan": "test"
         },
-        "createdAt": "2026-10-12T12:56:25.535Z",
-        "updatedAt": "2026-10-12T12:56:25.535Z",
-        "lastSeenAt": "2026-10-12T12:56:25.535Z"
+        "createdAt": "2026-10-12T13:01:39.507Z",
+        "updatedAt": "2026-10-12T13:01:39.507Z",
+        "lastSeenAt": "2026-10-12T13:01:39.507Z"
       },
       "discordThreadUrl": "https://discord.com/channels/222222222222222222/555555555555555555"
     }
@@ -153,9 +153,9 @@ HTTP 200
     "customerReadCursor": 0,
     "customerLanguage": null,
     "customerLanguageUpdatedAt": null,
-    "createdAt": "2026-10-12T12:56:25.580Z",
-    "updatedAt": "2026-10-12T12:56:26.700Z",
-    "lastActivityAt": "2026-10-12T12:56:26.700Z",
+    "createdAt": "2026-10-12T13:01:39.528Z",
+    "updatedAt": "2026-10-12T13:01:40.534Z",
+    "lastActivityAt": "2026-10-12T13:01:40.534Z",
     "claimedBy": null,
     "claimExpiresAt": null,
     "closedAt": null,
@@ -179,9 +179,9 @@ HTTP 200
       "platform": "web",
       "plan": "test"
     },
-    "createdAt": "2026-10-12T12:56:25.535Z",
-    "updatedAt": "2026-10-12T12:56:25.535Z",
-    "lastSeenAt": "2026-10-12T12:56:25.535Z"
+    "createdAt": "2026-10-12T13:01:39.507Z",
+    "updatedAt": "2026-10-12T13:01:39.507Z",
+    "lastSeenAt": "2026-10-12T13:01:39.507Z"
   },
   "verifiedUserId": null,
   "discordThreadUrl": "https://discord.com/channels/222222222222222222/555555555555555555",
@@ -205,7 +205,7 @@ HTTP 200
       "customerVisibleText": "How can I export my transcript?",
       "customerVisibleLanguage": "en",
       "operatorVisibleText": "How can I export my transcript?",
-      "acceptedAt": "2026-10-12T12:56:26.700Z",
+      "acceptedAt": "2026-10-12T13:01:40.534Z",
       "processingGeneration": 1,
       "processingStatus": "succeeded",
       "customerAvailability": "available",
@@ -213,8 +213,8 @@ HTTP 200
       "discordAuditStatus": "not_applicable",
       "failureStage": null,
       "failureCode": null,
-      "createdAt": "2026-10-12T12:56:26.700Z",
-      "updatedAt": "2026-10-12T12:56:26.741Z",
+      "createdAt": "2026-10-12T13:01:40.534Z",
+      "updatedAt": "2026-10-12T13:01:40.569Z",
       "sequence": "1",
       "translations": [],
       "onDemandTranslations": []
@@ -233,8 +233,8 @@ HTTP 200
 
 ```json
 {
-  "claimedBy": "agent_3cfc6424ec0f603897cb683188a52fa7",
-  "claimExpiresAt": "2026-10-12T13:01:26.875Z"
+  "claimedBy": "agent_db85e7bcad893e4fe4b24de8584367be",
+  "claimExpiresAt": "2026-10-12T13:06:40.698Z"
 }
 ```
 
@@ -301,7 +301,7 @@ HTTP 200
       "direction": "customer_to_operator",
       "text": "How can I export my transcript?",
       "language": "en",
-      "acceptedAt": "2026-10-12T12:56:26.700Z",
+      "acceptedAt": "2026-10-12T13:01:40.534Z",
       "state": "processing"
     },
     {
@@ -311,7 +311,7 @@ HTTP 200
       "direction": "customer_to_operator",
       "text": "How can I export my transcript?",
       "language": "en",
-      "acceptedAt": "2026-10-12T12:56:26.700Z",
+      "acceptedAt": "2026-10-12T13:01:40.534Z",
       "state": "available"
     },
     {
@@ -319,7 +319,7 @@ HTTP 200
       "threadId": "thread_Lg5j_rB-F4ch5ESjK8cZPBdaeQm51zLS7BRtz8168Jk",
       "direction": "operator_to_customer",
       "text": "Open the transcript and choose Export.",
-      "acceptedAt": "2026-10-12T12:56:26.891Z",
+      "acceptedAt": "2026-10-12T13:01:40.711Z",
       "state": "available"
     }
   ],
@@ -360,7 +360,7 @@ HTTP 200
       "direction": "customer_to_operator",
       "text": "How can I export my transcript?",
       "language": "en",
-      "acceptedAt": "2026-10-12T12:56:26.700Z",
+      "acceptedAt": "2026-10-12T13:01:40.534Z",
       "state": "processing"
     },
     {
@@ -370,7 +370,7 @@ HTTP 200
       "direction": "customer_to_operator",
       "text": "How can I export my transcript?",
       "language": "en",
-      "acceptedAt": "2026-10-12T12:56:26.700Z",
+      "acceptedAt": "2026-10-12T13:01:40.534Z",
       "state": "available"
     },
     {
@@ -378,7 +378,7 @@ HTTP 200
       "threadId": "thread_Lg5j_rB-F4ch5ESjK8cZPBdaeQm51zLS7BRtz8168Jk",
       "direction": "operator_to_customer",
       "text": "Open the transcript and choose Export.",
-      "acceptedAt": "2026-10-12T12:56:26.891Z",
+      "acceptedAt": "2026-10-12T13:01:40.711Z",
       "state": "available"
     },
     {
@@ -386,7 +386,7 @@ HTTP 200
       "threadId": "thread_Lg5j_rB-F4ch5ESjK8cZPBdaeQm51zLS7BRtz8168Jk",
       "direction": "operator_to_customer",
       "text": "You can export as text or subtitles.",
-      "acceptedAt": "2026-10-12T12:56:27.036Z",
+      "acceptedAt": "2026-10-12T13:01:40.848Z",
       "state": "available"
     }
   ],
@@ -440,7 +440,7 @@ HTTP 201
     "operatorDiscordUserId": null,
     "kind": "reasoning",
     "text": "PRIVATE: inspect export settings before proposing a reply.",
-    "createdAt": "2026-10-12T12:56:27.345Z",
+    "createdAt": "2026-10-12T13:01:41.155Z",
     "discordMessageIds": [
       "600000000000000004"
     ]
@@ -466,7 +466,7 @@ HTTP 200
     "operatorDiscordUserId": null,
     "kind": "reasoning",
     "text": "PRIVATE: inspect export settings before proposing a reply.",
-    "createdAt": "2026-10-12T12:56:27.345Z",
+    "createdAt": "2026-10-12T13:01:41.155Z",
     "discordMessageIds": [
       "600000000000000004"
     ]
@@ -506,16 +506,16 @@ HTTP 200
       "customerReadCursor": 0,
       "customerLanguage": null,
       "customerLanguageUpdatedAt": null,
-      "createdAt": "2026-10-12T12:56:25.580Z",
-      "updatedAt": "2026-10-12T12:56:27.036Z",
-      "lastActivityAt": "2026-10-12T12:56:27.036Z",
-      "claimedBy": "agent_3cfc6424ec0f603897cb683188a52fa7",
-      "claimExpiresAt": "2026-10-12T13:01:26.875Z",
+      "createdAt": "2026-10-12T13:01:39.528Z",
+      "updatedAt": "2026-10-12T13:01:40.848Z",
+      "lastActivityAt": "2026-10-12T13:01:40.848Z",
+      "claimedBy": "agent_db85e7bcad893e4fe4b24de8584367be",
+      "claimExpiresAt": "2026-10-12T13:06:40.698Z",
       "closedAt": null,
       "state": "open",
-      "lastCustomerAt": "2026-10-12T12:56:26.700Z",
+      "lastCustomerAt": "2026-10-12T13:01:40.534Z",
       "lastOperatorAt": null,
-      "lastAgentAt": "2026-10-12T12:56:27.345Z",
+      "lastAgentAt": "2026-10-12T13:01:41.155Z",
       "agentCursor": "4",
       "acknowledgedCursor": "0",
       "visitor": {
@@ -536,9 +536,9 @@ HTTP 200
           "platform": "web",
           "plan": "test"
         },
-        "createdAt": "2026-10-12T12:56:25.535Z",
-        "updatedAt": "2026-10-12T12:56:25.535Z",
-        "lastSeenAt": "2026-10-12T12:56:25.535Z"
+        "createdAt": "2026-10-12T13:01:39.507Z",
+        "updatedAt": "2026-10-12T13:01:39.507Z",
+        "lastSeenAt": "2026-10-12T13:01:39.507Z"
       },
       "discordThreadUrl": "https://discord.com/channels/222222222222222222/555555555555555555"
     }
@@ -563,11 +563,11 @@ HTTP 200
     "customerReadCursor": 0,
     "customerLanguage": null,
     "customerLanguageUpdatedAt": null,
-    "createdAt": "2026-10-12T12:56:25.580Z",
-    "updatedAt": "2026-10-12T12:56:27.036Z",
-    "lastActivityAt": "2026-10-12T12:56:27.036Z",
-    "claimedBy": "agent_3cfc6424ec0f603897cb683188a52fa7",
-    "claimExpiresAt": "2026-10-12T13:01:26.875Z",
+    "createdAt": "2026-10-12T13:01:39.528Z",
+    "updatedAt": "2026-10-12T13:01:40.848Z",
+    "lastActivityAt": "2026-10-12T13:01:40.848Z",
+    "claimedBy": "agent_db85e7bcad893e4fe4b24de8584367be",
+    "claimExpiresAt": "2026-10-12T13:06:40.698Z",
     "closedAt": null,
     "state": "open"
   },
@@ -589,9 +589,9 @@ HTTP 200
       "platform": "web",
       "plan": "test"
     },
-    "createdAt": "2026-10-12T12:56:25.535Z",
-    "updatedAt": "2026-10-12T12:56:25.535Z",
-    "lastSeenAt": "2026-10-12T12:56:25.535Z"
+    "createdAt": "2026-10-12T13:01:39.507Z",
+    "updatedAt": "2026-10-12T13:01:39.507Z",
+    "lastSeenAt": "2026-10-12T13:01:39.507Z"
   },
   "verifiedUserId": null,
   "discordThreadUrl": "https://discord.com/channels/222222222222222222/555555555555555555",
@@ -615,7 +615,7 @@ HTTP 200
       "customerVisibleText": "How can I export my transcript?",
       "customerVisibleLanguage": "en",
       "operatorVisibleText": "How can I export my transcript?",
-      "acceptedAt": "2026-10-12T12:56:26.700Z",
+      "acceptedAt": "2026-10-12T13:01:40.534Z",
       "processingGeneration": 1,
       "processingStatus": "succeeded",
       "customerAvailability": "available",
@@ -623,8 +623,8 @@ HTTP 200
       "discordAuditStatus": "not_applicable",
       "failureStage": null,
       "failureCode": null,
-      "createdAt": "2026-10-12T12:56:26.700Z",
-      "updatedAt": "2026-10-12T12:56:26.741Z",
+      "createdAt": "2026-10-12T13:01:40.534Z",
+      "updatedAt": "2026-10-12T13:01:40.569Z",
       "sequence": "1",
       "translations": [],
       "onDemandTranslations": []
@@ -648,7 +648,7 @@ HTTP 200
       "customerVisibleText": "Open the transcript and choose Export.",
       "customerVisibleLanguage": null,
       "operatorVisibleText": "Open the transcript and choose Export.",
-      "acceptedAt": "2026-10-12T12:56:26.891Z",
+      "acceptedAt": "2026-10-12T13:01:40.711Z",
       "processingGeneration": 1,
       "processingStatus": "succeeded",
       "customerAvailability": "available",
@@ -656,8 +656,8 @@ HTTP 200
       "discordAuditStatus": "projected",
       "failureStage": null,
       "failureCode": null,
-      "createdAt": "2026-10-12T12:56:26.891Z",
-      "updatedAt": "2026-10-12T12:56:26.922Z",
+      "createdAt": "2026-10-12T13:01:40.711Z",
+      "updatedAt": "2026-10-12T13:01:40.740Z",
       "sequence": "2",
       "translations": [],
       "onDemandTranslations": []
@@ -681,7 +681,7 @@ HTTP 200
       "customerVisibleText": "You can export as text or subtitles.",
       "customerVisibleLanguage": null,
       "operatorVisibleText": "You can export as text or subtitles.",
-      "acceptedAt": "2026-10-12T12:56:27.036Z",
+      "acceptedAt": "2026-10-12T13:01:40.848Z",
       "processingGeneration": 1,
       "processingStatus": "succeeded",
       "customerAvailability": "available",
@@ -689,8 +689,8 @@ HTTP 200
       "discordAuditStatus": "projected",
       "failureStage": null,
       "failureCode": null,
-      "createdAt": "2026-10-12T12:56:27.036Z",
-      "updatedAt": "2026-10-12T12:56:27.214Z",
+      "createdAt": "2026-10-12T13:01:40.848Z",
+      "updatedAt": "2026-10-12T13:01:41.023Z",
       "sequence": "3",
       "translations": [],
       "onDemandTranslations": []
@@ -708,7 +708,7 @@ HTTP 200
       "operatorDiscordUserId": null,
       "kind": "reasoning",
       "text": "PRIVATE: inspect export settings before proposing a reply.",
-      "createdAt": "2026-10-12T12:56:27.345Z",
+      "createdAt": "2026-10-12T13:01:41.155Z",
       "discordMessageIds": [
         "600000000000000004"
       ]
@@ -736,11 +736,11 @@ HTTP 200
     "customerReadCursor": 0,
     "customerLanguage": null,
     "customerLanguageUpdatedAt": null,
-    "createdAt": "2026-10-12T12:56:25.580Z",
-    "updatedAt": "2026-10-12T12:56:27.036Z",
-    "lastActivityAt": "2026-10-12T12:56:27.036Z",
-    "claimedBy": "agent_3cfc6424ec0f603897cb683188a52fa7",
-    "claimExpiresAt": "2026-10-12T13:01:26.875Z",
+    "createdAt": "2026-10-12T13:01:39.528Z",
+    "updatedAt": "2026-10-12T13:01:40.848Z",
+    "lastActivityAt": "2026-10-12T13:01:40.848Z",
+    "claimedBy": "agent_db85e7bcad893e4fe4b24de8584367be",
+    "claimExpiresAt": "2026-10-12T13:06:40.698Z",
     "closedAt": null,
     "state": "open"
   },
@@ -762,9 +762,9 @@ HTTP 200
       "platform": "web",
       "plan": "test"
     },
-    "createdAt": "2026-10-12T12:56:25.535Z",
-    "updatedAt": "2026-10-12T12:56:25.535Z",
-    "lastSeenAt": "2026-10-12T12:56:25.535Z"
+    "createdAt": "2026-10-12T13:01:39.507Z",
+    "updatedAt": "2026-10-12T13:01:39.507Z",
+    "lastSeenAt": "2026-10-12T13:01:39.507Z"
   },
   "verifiedUserId": null,
   "discordThreadUrl": "https://discord.com/channels/222222222222222222/555555555555555555",
@@ -788,7 +788,7 @@ HTTP 200
       "customerVisibleText": "How can I export my transcript?",
       "customerVisibleLanguage": "en",
       "operatorVisibleText": "How can I export my transcript?",
-      "acceptedAt": "2026-10-12T12:56:26.700Z",
+      "acceptedAt": "2026-10-12T13:01:40.534Z",
       "processingGeneration": 1,
       "processingStatus": "succeeded",
       "customerAvailability": "available",
@@ -796,8 +796,8 @@ HTTP 200
       "discordAuditStatus": "not_applicable",
       "failureStage": null,
       "failureCode": null,
-      "createdAt": "2026-10-12T12:56:26.700Z",
-      "updatedAt": "2026-10-12T12:56:26.741Z",
+      "createdAt": "2026-10-12T13:01:40.534Z",
+      "updatedAt": "2026-10-12T13:01:40.569Z",
       "sequence": "1",
       "translations": [],
       "onDemandTranslations": []
@@ -821,7 +821,7 @@ HTTP 200
       "customerVisibleText": "Open the transcript and choose Export.",
       "customerVisibleLanguage": null,
       "operatorVisibleText": "Open the transcript and choose Export.",
-      "acceptedAt": "2026-10-12T12:56:26.891Z",
+      "acceptedAt": "2026-10-12T13:01:40.711Z",
       "processingGeneration": 1,
       "processingStatus": "succeeded",
       "customerAvailability": "available",
@@ -829,8 +829,8 @@ HTTP 200
       "discordAuditStatus": "projected",
       "failureStage": null,
       "failureCode": null,
-      "createdAt": "2026-10-12T12:56:26.891Z",
-      "updatedAt": "2026-10-12T12:56:26.922Z",
+      "createdAt": "2026-10-12T13:01:40.711Z",
+      "updatedAt": "2026-10-12T13:01:40.740Z",
       "sequence": "2",
       "translations": [],
       "onDemandTranslations": []
@@ -859,11 +859,11 @@ HTTP 200
     "customerReadCursor": 0,
     "customerLanguage": null,
     "customerLanguageUpdatedAt": null,
-    "createdAt": "2026-10-12T12:56:25.580Z",
-    "updatedAt": "2026-10-12T12:56:27.036Z",
-    "lastActivityAt": "2026-10-12T12:56:27.036Z",
-    "claimedBy": "agent_3cfc6424ec0f603897cb683188a52fa7",
-    "claimExpiresAt": "2026-10-12T13:01:26.875Z",
+    "createdAt": "2026-10-12T13:01:39.528Z",
+    "updatedAt": "2026-10-12T13:01:40.848Z",
+    "lastActivityAt": "2026-10-12T13:01:40.848Z",
+    "claimedBy": "agent_db85e7bcad893e4fe4b24de8584367be",
+    "claimExpiresAt": "2026-10-12T13:06:40.698Z",
     "closedAt": null,
     "state": "open"
   },
@@ -885,9 +885,9 @@ HTTP 200
       "platform": "web",
       "plan": "test"
     },
-    "createdAt": "2026-10-12T12:56:25.535Z",
-    "updatedAt": "2026-10-12T12:56:25.535Z",
-    "lastSeenAt": "2026-10-12T12:56:25.535Z"
+    "createdAt": "2026-10-12T13:01:39.507Z",
+    "updatedAt": "2026-10-12T13:01:39.507Z",
+    "lastSeenAt": "2026-10-12T13:01:39.507Z"
   },
   "verifiedUserId": null,
   "discordThreadUrl": "https://discord.com/channels/222222222222222222/555555555555555555",
@@ -911,7 +911,7 @@ HTTP 200
       "customerVisibleText": "You can export as text or subtitles.",
       "customerVisibleLanguage": null,
       "operatorVisibleText": "You can export as text or subtitles.",
-      "acceptedAt": "2026-10-12T12:56:27.036Z",
+      "acceptedAt": "2026-10-12T13:01:40.848Z",
       "processingGeneration": 1,
       "processingStatus": "succeeded",
       "customerAvailability": "available",
@@ -919,8 +919,8 @@ HTTP 200
       "discordAuditStatus": "projected",
       "failureStage": null,
       "failureCode": null,
-      "createdAt": "2026-10-12T12:56:27.036Z",
-      "updatedAt": "2026-10-12T12:56:27.214Z",
+      "createdAt": "2026-10-12T13:01:40.848Z",
+      "updatedAt": "2026-10-12T13:01:41.023Z",
       "sequence": "3",
       "translations": [],
       "onDemandTranslations": []
@@ -938,7 +938,7 @@ HTTP 200
       "operatorDiscordUserId": null,
       "kind": "reasoning",
       "text": "PRIVATE: inspect export settings before proposing a reply.",
-      "createdAt": "2026-10-12T12:56:27.345Z",
+      "createdAt": "2026-10-12T13:01:41.155Z",
       "discordMessageIds": [
         "600000000000000004"
       ]
@@ -986,7 +986,7 @@ HTTP 200
       "direction": "customer_to_operator",
       "text": "How can I export my transcript?",
       "language": "en",
-      "acceptedAt": "2026-10-12T12:56:26.700Z",
+      "acceptedAt": "2026-10-12T13:01:40.534Z",
       "state": "processing"
     },
     {
@@ -996,7 +996,7 @@ HTTP 200
       "direction": "customer_to_operator",
       "text": "How can I export my transcript?",
       "language": "en",
-      "acceptedAt": "2026-10-12T12:56:26.700Z",
+      "acceptedAt": "2026-10-12T13:01:40.534Z",
       "state": "available"
     },
     {
@@ -1004,7 +1004,7 @@ HTTP 200
       "threadId": "thread_Lg5j_rB-F4ch5ESjK8cZPBdaeQm51zLS7BRtz8168Jk",
       "direction": "operator_to_customer",
       "text": "Open the transcript and choose Export.",
-      "acceptedAt": "2026-10-12T12:56:26.891Z",
+      "acceptedAt": "2026-10-12T13:01:40.711Z",
       "state": "available"
     },
     {
@@ -1012,7 +1012,7 @@ HTTP 200
       "threadId": "thread_Lg5j_rB-F4ch5ESjK8cZPBdaeQm51zLS7BRtz8168Jk",
       "direction": "operator_to_customer",
       "text": "You can export as text or subtitles.",
-      "acceptedAt": "2026-10-12T12:56:27.036Z",
+      "acceptedAt": "2026-10-12T13:01:40.848Z",
       "state": "available"
     }
   ],
@@ -1089,16 +1089,16 @@ HTTP 200
       "customerReadCursor": 0,
       "customerLanguage": null,
       "customerLanguageUpdatedAt": null,
-      "createdAt": "2026-10-12T12:56:25.580Z",
-      "updatedAt": "2026-10-12T12:56:27.036Z",
-      "lastActivityAt": "2026-10-12T12:56:27.036Z",
-      "claimedBy": "agent_3cfc6424ec0f603897cb683188a52fa7",
-      "claimExpiresAt": "2026-10-12T13:01:26.875Z",
+      "createdAt": "2026-10-12T13:01:39.528Z",
+      "updatedAt": "2026-10-12T13:01:40.848Z",
+      "lastActivityAt": "2026-10-12T13:01:40.848Z",
+      "claimedBy": "agent_db85e7bcad893e4fe4b24de8584367be",
+      "claimExpiresAt": "2026-10-12T13:06:40.698Z",
       "closedAt": null,
       "state": "open",
-      "lastCustomerAt": "2026-10-12T12:56:26.700Z",
-      "lastOperatorAt": "2026-10-12T12:56:27.509Z",
-      "lastAgentAt": "2026-10-12T12:56:27.345Z",
+      "lastCustomerAt": "2026-10-12T13:01:40.534Z",
+      "lastOperatorAt": "2026-10-12T13:01:41.314Z",
+      "lastAgentAt": "2026-10-12T13:01:41.155Z",
       "agentCursor": "5",
       "acknowledgedCursor": "4",
       "visitor": {
@@ -1119,9 +1119,9 @@ HTTP 200
           "platform": "web",
           "plan": "test"
         },
-        "createdAt": "2026-10-12T12:56:25.535Z",
-        "updatedAt": "2026-10-12T12:56:25.535Z",
-        "lastSeenAt": "2026-10-12T12:56:25.535Z"
+        "createdAt": "2026-10-12T13:01:39.507Z",
+        "updatedAt": "2026-10-12T13:01:39.507Z",
+        "lastSeenAt": "2026-10-12T13:01:39.507Z"
       },
       "discordThreadUrl": "https://discord.com/channels/222222222222222222/555555555555555555"
     }
@@ -1157,16 +1157,16 @@ HTTP 200
       "customerReadCursor": 0,
       "customerLanguage": null,
       "customerLanguageUpdatedAt": null,
-      "createdAt": "2026-10-12T12:56:25.580Z",
-      "updatedAt": "2026-10-12T12:56:27.036Z",
-      "lastActivityAt": "2026-10-12T12:56:27.036Z",
-      "claimedBy": "agent_3cfc6424ec0f603897cb683188a52fa7",
-      "claimExpiresAt": "2026-10-12T13:01:26.875Z",
+      "createdAt": "2026-10-12T13:01:39.528Z",
+      "updatedAt": "2026-10-12T13:01:40.848Z",
+      "lastActivityAt": "2026-10-12T13:01:40.848Z",
+      "claimedBy": "agent_db85e7bcad893e4fe4b24de8584367be",
+      "claimExpiresAt": "2026-10-12T13:06:40.698Z",
       "closedAt": null,
       "state": "open",
-      "lastCustomerAt": "2026-10-12T12:56:26.700Z",
-      "lastOperatorAt": "2026-10-12T12:56:27.509Z",
-      "lastAgentAt": "2026-10-12T12:56:27.345Z",
+      "lastCustomerAt": "2026-10-12T13:01:40.534Z",
+      "lastOperatorAt": "2026-10-12T13:01:41.314Z",
+      "lastAgentAt": "2026-10-12T13:01:41.155Z",
       "agentCursor": "5",
       "acknowledgedCursor": "4",
       "visitor": {
@@ -1187,9 +1187,9 @@ HTTP 200
           "platform": "web",
           "plan": "test"
         },
-        "createdAt": "2026-10-12T12:56:25.535Z",
-        "updatedAt": "2026-10-12T12:56:25.535Z",
-        "lastSeenAt": "2026-10-12T12:56:25.535Z"
+        "createdAt": "2026-10-12T13:01:39.507Z",
+        "updatedAt": "2026-10-12T13:01:39.507Z",
+        "lastSeenAt": "2026-10-12T13:01:39.507Z"
       },
       "discordThreadUrl": "https://discord.com/channels/222222222222222222/555555555555555555"
     }
@@ -1214,11 +1214,11 @@ HTTP 200
     "customerReadCursor": 0,
     "customerLanguage": null,
     "customerLanguageUpdatedAt": null,
-    "createdAt": "2026-10-12T12:56:25.580Z",
-    "updatedAt": "2026-10-12T12:56:27.036Z",
-    "lastActivityAt": "2026-10-12T12:56:27.036Z",
-    "claimedBy": "agent_3cfc6424ec0f603897cb683188a52fa7",
-    "claimExpiresAt": "2026-10-12T13:01:26.875Z",
+    "createdAt": "2026-10-12T13:01:39.528Z",
+    "updatedAt": "2026-10-12T13:01:40.848Z",
+    "lastActivityAt": "2026-10-12T13:01:40.848Z",
+    "claimedBy": "agent_db85e7bcad893e4fe4b24de8584367be",
+    "claimExpiresAt": "2026-10-12T13:06:40.698Z",
     "closedAt": null,
     "state": "open"
   },
@@ -1240,9 +1240,9 @@ HTTP 200
       "platform": "web",
       "plan": "test"
     },
-    "createdAt": "2026-10-12T12:56:25.535Z",
-    "updatedAt": "2026-10-12T12:56:25.535Z",
-    "lastSeenAt": "2026-10-12T12:56:25.535Z"
+    "createdAt": "2026-10-12T13:01:39.507Z",
+    "updatedAt": "2026-10-12T13:01:39.507Z",
+    "lastSeenAt": "2026-10-12T13:01:39.507Z"
   },
   "verifiedUserId": null,
   "discordThreadUrl": "https://discord.com/channels/222222222222222222/555555555555555555",
@@ -1266,7 +1266,7 @@ HTTP 200
       "customerVisibleText": "How can I export my transcript?",
       "customerVisibleLanguage": "en",
       "operatorVisibleText": "How can I export my transcript?",
-      "acceptedAt": "2026-10-12T12:56:26.700Z",
+      "acceptedAt": "2026-10-12T13:01:40.534Z",
       "processingGeneration": 1,
       "processingStatus": "succeeded",
       "customerAvailability": "available",
@@ -1274,8 +1274,8 @@ HTTP 200
       "discordAuditStatus": "not_applicable",
       "failureStage": null,
       "failureCode": null,
-      "createdAt": "2026-10-12T12:56:26.700Z",
-      "updatedAt": "2026-10-12T12:56:26.741Z",
+      "createdAt": "2026-10-12T13:01:40.534Z",
+      "updatedAt": "2026-10-12T13:01:40.569Z",
       "sequence": "1",
       "translations": [],
       "onDemandTranslations": []
@@ -1299,7 +1299,7 @@ HTTP 200
       "customerVisibleText": "Open the transcript and choose Export.",
       "customerVisibleLanguage": null,
       "operatorVisibleText": "Open the transcript and choose Export.",
-      "acceptedAt": "2026-10-12T12:56:26.891Z",
+      "acceptedAt": "2026-10-12T13:01:40.711Z",
       "processingGeneration": 1,
       "processingStatus": "succeeded",
       "customerAvailability": "available",
@@ -1307,8 +1307,8 @@ HTTP 200
       "discordAuditStatus": "projected",
       "failureStage": null,
       "failureCode": null,
-      "createdAt": "2026-10-12T12:56:26.891Z",
-      "updatedAt": "2026-10-12T12:56:26.922Z",
+      "createdAt": "2026-10-12T13:01:40.711Z",
+      "updatedAt": "2026-10-12T13:01:40.740Z",
       "sequence": "2",
       "translations": [],
       "onDemandTranslations": []
@@ -1332,7 +1332,7 @@ HTTP 200
       "customerVisibleText": "You can export as text or subtitles.",
       "customerVisibleLanguage": null,
       "operatorVisibleText": "You can export as text or subtitles.",
-      "acceptedAt": "2026-10-12T12:56:27.036Z",
+      "acceptedAt": "2026-10-12T13:01:40.848Z",
       "processingGeneration": 1,
       "processingStatus": "succeeded",
       "customerAvailability": "available",
@@ -1340,8 +1340,8 @@ HTTP 200
       "discordAuditStatus": "projected",
       "failureStage": null,
       "failureCode": null,
-      "createdAt": "2026-10-12T12:56:27.036Z",
-      "updatedAt": "2026-10-12T12:56:27.214Z",
+      "createdAt": "2026-10-12T13:01:40.848Z",
+      "updatedAt": "2026-10-12T13:01:41.023Z",
       "sequence": "3",
       "translations": [],
       "onDemandTranslations": []
@@ -1359,13 +1359,13 @@ HTTP 200
       "operatorDiscordUserId": null,
       "kind": "reasoning",
       "text": "PRIVATE: inspect export settings before proposing a reply.",
-      "createdAt": "2026-10-12T12:56:27.345Z",
+      "createdAt": "2026-10-12T13:01:41.155Z",
       "discordMessageIds": [
         "600000000000000004"
       ]
     },
     {
-      "id": "note_discord_1559187999944605696",
+      "id": "note_discord_1559189316138172416",
       "workspaceId": "workspace_of10",
       "inboxId": "inbox_of10",
       "threadId": "thread_Lg5j_rB-F4ch5ESjK8cZPBdaeQm51zLS7BRtz8168Jk",
@@ -1375,7 +1375,7 @@ HTTP 200
       "operatorDiscordUserId": "444444444444444444",
       "kind": "steer",
       "text": "PRIVATE: ask which export format the customer needs.",
-      "createdAt": "2026-10-12T12:56:27.509Z",
+      "createdAt": "2026-10-12T13:01:41.314Z",
       "discordMessageIds": [
         "600000000000000005"
       ]
@@ -1516,7 +1516,7 @@ HTTP 200
 {
   "type": 4,
   "data": {
-    "content": "Queued for delivery as written. Reference: 1559188009176268800",
+    "content": "Queued for delivery as written. Reference: 1559189325357252608",
     "flags": 64,
     "allowed_mentions": {
       "parse": []
@@ -1542,16 +1542,16 @@ HTTP 200
       "customerReadCursor": 0,
       "customerLanguage": null,
       "customerLanguageUpdatedAt": null,
-      "createdAt": "2026-10-12T12:56:25.580Z",
-      "updatedAt": "2026-10-12T12:56:29.700Z",
-      "lastActivityAt": "2026-10-12T12:56:29.700Z",
-      "claimedBy": "agent_3cfc6424ec0f603897cb683188a52fa7",
-      "claimExpiresAt": "2026-10-12T13:01:26.875Z",
+      "createdAt": "2026-10-12T13:01:39.528Z",
+      "updatedAt": "2026-10-12T13:01:43.502Z",
+      "lastActivityAt": "2026-10-12T13:01:43.502Z",
+      "claimedBy": "agent_db85e7bcad893e4fe4b24de8584367be",
+      "claimExpiresAt": "2026-10-12T13:06:40.698Z",
       "closedAt": null,
       "state": "open",
-      "lastCustomerAt": "2026-10-12T12:56:26.700Z",
-      "lastOperatorAt": "2026-10-12T12:56:29.700Z",
-      "lastAgentAt": "2026-10-12T12:56:28.671Z",
+      "lastCustomerAt": "2026-10-12T13:01:40.534Z",
+      "lastOperatorAt": "2026-10-12T13:01:43.502Z",
+      "lastAgentAt": "2026-10-12T13:01:42.474Z",
       "agentCursor": "7",
       "acknowledgedCursor": "5",
       "visitor": {
@@ -1572,9 +1572,9 @@ HTTP 200
           "platform": "web",
           "plan": "test"
         },
-        "createdAt": "2026-10-12T12:56:25.535Z",
-        "updatedAt": "2026-10-12T12:56:25.535Z",
-        "lastSeenAt": "2026-10-12T12:56:25.535Z"
+        "createdAt": "2026-10-12T13:01:39.507Z",
+        "updatedAt": "2026-10-12T13:01:39.507Z",
+        "lastSeenAt": "2026-10-12T13:01:39.507Z"
       },
       "discordThreadUrl": "https://discord.com/channels/222222222222222222/555555555555555555"
     }
@@ -1598,7 +1598,7 @@ HTTP 200
       "direction": "customer_to_operator",
       "text": "How can I export my transcript?",
       "language": "en",
-      "acceptedAt": "2026-10-12T12:56:26.700Z",
+      "acceptedAt": "2026-10-12T13:01:40.534Z",
       "state": "processing"
     },
     {
@@ -1608,7 +1608,7 @@ HTTP 200
       "direction": "customer_to_operator",
       "text": "How can I export my transcript?",
       "language": "en",
-      "acceptedAt": "2026-10-12T12:56:26.700Z",
+      "acceptedAt": "2026-10-12T13:01:40.534Z",
       "state": "available"
     },
     {
@@ -1616,7 +1616,7 @@ HTTP 200
       "threadId": "thread_Lg5j_rB-F4ch5ESjK8cZPBdaeQm51zLS7BRtz8168Jk",
       "direction": "operator_to_customer",
       "text": "Open the transcript and choose Export.",
-      "acceptedAt": "2026-10-12T12:56:26.891Z",
+      "acceptedAt": "2026-10-12T13:01:40.711Z",
       "state": "available"
     },
     {
@@ -1624,7 +1624,7 @@ HTTP 200
       "threadId": "thread_Lg5j_rB-F4ch5ESjK8cZPBdaeQm51zLS7BRtz8168Jk",
       "direction": "operator_to_customer",
       "text": "You can export as text or subtitles.",
-      "acceptedAt": "2026-10-12T12:56:27.036Z",
+      "acceptedAt": "2026-10-12T13:01:40.848Z",
       "state": "available"
     },
     {
@@ -1632,15 +1632,15 @@ HTTP 200
       "threadId": "thread_Lg5j_rB-F4ch5ESjK8cZPBdaeQm51zLS7BRtz8168Jk",
       "direction": "operator_to_customer",
       "text": "English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. English Approve draft. ",
-      "acceptedAt": "2026-10-12T12:56:27.616Z",
+      "acceptedAt": "2026-10-12T13:01:41.413Z",
       "state": "available"
     },
     {
-      "id": "msg_-zWokgCIFe04W6BOANn5h5dTD0zvkQoZYY7ZML3Wp1s",
+      "id": "msg_MzGoK2V5I08p-KgsiINLK6ZEPK3Ci5WTZSbkY_FJaK0",
       "threadId": "thread_Lg5j_rB-F4ch5ESjK8cZPBdaeQm51zLS7BRtz8168Jk",
       "direction": "operator_to_customer",
       "text": "Human follow-up through the existing reply command.",
-      "acceptedAt": "2026-10-12T12:56:29.700Z",
+      "acceptedAt": "2026-10-12T13:01:43.502Z",
       "state": "available"
     }
   ],
@@ -1665,12 +1665,12 @@ HTTP 200
     "customerReadCursor": 0,
     "customerLanguage": null,
     "customerLanguageUpdatedAt": null,
-    "createdAt": "2026-10-12T12:56:25.580Z",
-    "updatedAt": "2026-10-12T12:56:30.753Z",
-    "lastActivityAt": "2026-10-12T12:56:29.700Z",
-    "claimedBy": "agent_3cfc6424ec0f603897cb683188a52fa7",
-    "claimExpiresAt": "2026-10-12T13:01:26.875Z",
-    "closedAt": "2026-10-12T12:56:30.753Z"
+    "createdAt": "2026-10-12T13:01:39.528Z",
+    "updatedAt": "2026-10-12T13:01:44.545Z",
+    "lastActivityAt": "2026-10-12T13:01:43.502Z",
+    "claimedBy": "agent_db85e7bcad893e4fe4b24de8584367be",
+    "claimExpiresAt": "2026-10-12T13:06:40.698Z",
+    "closedAt": "2026-10-12T13:01:44.545Z"
   }
 }
 ```
@@ -1755,7 +1755,7 @@ HTTP 200
   },
   {
     "content": "**Operator Local operator** · steer\nPRIVATE: ask which export format the customer needs.",
-    "nonce": "ac-0-e9230bda99098d15",
+    "nonce": "ac-0-d8abcd727ecb610e",
     "enforce_nonce": true,
     "allowed_mentions": {
       "parse": [],
@@ -1870,7 +1870,7 @@ HTTP 200
   },
   {
     "content": "**Available in chat · sent as written**\nHuman follow-up through the existing reply command.",
-    "nonce": "ac-0-293b43ede9f2f878",
+    "nonce": "ac-0-ac86dae324acb260",
     "enforce_nonce": true,
     "allowed_mentions": {
       "parse": [],
@@ -1889,7 +1889,7 @@ HTTP 200
   "messagesAndDrafts": [
     {
       "status": "closed",
-      "claimed_by": "agent_3cfc6424ec0f603897cb683188a52fa7"
+      "claimed_by": "agent_db85e7bcad893e4fe4b24de8584367be"
     },
     {
       "id": "msg_eJ6gHO6C66fZ7Rji-z9kDXn8v60R38Hk3jTM2nDTF5o",
@@ -1920,7 +1920,7 @@ HTTP 200
       "processing_status": "succeeded"
     },
     {
-      "id": "msg_-zWokgCIFe04W6BOANn5h5dTD0zvkQoZYY7ZML3Wp1s",
+      "id": "msg_MzGoK2V5I08p-KgsiINLK6ZEPK3Ci5WTZSbkY_FJaK0",
       "author_kind": "operator",
       "author_name": null,
       "customer_visible_text": "Human follow-up through the existing reply command.",
@@ -1941,7 +1941,7 @@ HTTP 200
       "discord_message_ids": "[\"600000000000000004\"]"
     },
     {
-      "id": "note_discord_1559187999944605696",
+      "id": "note_discord_1559189316138172416",
       "ordering_key": 5,
       "author_kind": "operator",
       "kind": "steer",
@@ -1978,7 +1978,7 @@ HTTP 200
     {
       "sequence": 5,
       "message_id": null,
-      "note_id": "note_discord_1559187999944605696",
+      "note_id": "note_discord_1559189316138172416",
       "author_kind": "operator"
     },
     {
@@ -1989,7 +1989,7 @@ HTTP 200
     },
     {
       "sequence": 7,
-      "message_id": "msg_-zWokgCIFe04W6BOANn5h5dTD0zvkQoZYY7ZML3Wp1s",
+      "message_id": "msg_MzGoK2V5I08p-KgsiINLK6ZEPK3Ci5WTZSbkY_FJaK0",
       "note_id": null,
       "author_kind": "operator"
     }

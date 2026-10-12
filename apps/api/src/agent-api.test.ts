@@ -1209,3 +1209,51 @@ it("retries stored note echoes on the scheduled path once the Discord mapping is
     ).first("n"),
   ).toBe(1);
 });
+
+it("reads full 100-message timeline pages within D1's production binding limit", async () => {
+  const { threadId } = await createCustomerFixture();
+  await env.DB.batch(
+    Array.from({ length: 101 }, (_, index) =>
+      env.DB.prepare(
+        "INSERT INTO message(id,workspace_id,inbox_id,thread_id,workflow_instance_id,direction,original_text,customer_visible_text,client_message_id,accepted_at) VALUES (?,?,?,?,?,'customer_to_operator','Question','Question',?,?)",
+      ).bind(
+        `bulk-${index}`,
+        TEST_TOPOLOGY.workspaceId,
+        TEST_TOPOLOGY.inboxId,
+        threadId,
+        `bulk-${index}`,
+        `bulk-${index}`,
+        Date.now(),
+      ),
+    ),
+  );
+  const prepare = env.DB.prepare.bind(env.DB);
+  const limitedDb = {
+    prepare(query: string) {
+      const statement = prepare(query);
+      const bind = statement.bind.bind(statement);
+      statement.bind = (...values: unknown[]) => {
+        expect(values.length).toBeLessThanOrEqual(100);
+        return bind(...values);
+      };
+      return statement;
+    },
+  } as D1Database;
+  const response = await request(`/threads/${threadId}?limit=100`, undefined, "one", {
+    DB: limitedDb,
+  });
+  expect(response.status).toBe(200);
+  const page = await response.json<{ messages: unknown[]; nextCursor: string }>();
+  expect(page.messages).toHaveLength(100);
+  expect(page.nextCursor).toBeTruthy();
+  const next = await request(
+    `/threads/${threadId}?limit=100&cursor=${page.nextCursor}`,
+    undefined,
+    "one",
+    { DB: limitedDb },
+  );
+  expect(await next.json()).toMatchObject({
+    messages: [expect.objectContaining({ id: "bulk-100" })],
+    nextCursor: null,
+  });
+});

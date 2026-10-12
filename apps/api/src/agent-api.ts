@@ -19,7 +19,7 @@ import {
   visitors,
   type InboxContext,
 } from "@respondkit/workspaces";
-import { and, asc, desc, eq, inArray, lt, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, lt, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
@@ -255,14 +255,13 @@ export function createAgentApp() {
       .bind(thread.id, inbox.inboxId, query.cursor, query.limit + 1)
       .all<{ sequence: number; message_id: string | null; note_id: string | null }>();
     const eventPage = events.results.slice(0, query.limit);
-    const messageIds = eventPage.flatMap((event) => (event.message_id ? [event.message_id] : []));
-    const page = messageIds.length
-      ? await db
-          .select()
-          .from(messages)
-          .where(inArray(messages.id, messageIds))
-          .orderBy(asc(messages.rowId))
-      : [];
+    const pageMessageIds = sql`SELECT message_id FROM agent_timeline WHERE thread_id=${thread.id}
+      AND sequence>${query.cursor} AND sequence<=${eventPage.at(-1)?.sequence ?? query.cursor}`;
+    const page = await db
+      .select()
+      .from(messages)
+      .where(sql`${messages.id} IN (${pageMessageIds})`)
+      .orderBy(asc(messages.rowId));
     const noteRows = await c.env.DB.prepare(
       "SELECT * FROM internal_note WHERE thread_id=? AND inbox_id=? AND ordering_key>? AND ordering_key<=? ORDER BY ordering_key",
     )
@@ -275,7 +274,7 @@ export function createAgentApp() {
         and(
           eq(messageTranslations.threadId, thread.id),
           eq(messageTranslations.inboxId, inbox.inboxId),
-          inArray(messageTranslations.messageId, messageIds),
+          sql`${messageTranslations.messageId} IN (${pageMessageIds})`,
         ),
       );
     const jobs = await db
@@ -285,7 +284,7 @@ export function createAgentApp() {
         and(
           eq(translationJobs.threadId, thread.id),
           eq(translationJobs.status, "succeeded"),
-          inArray(translationJobs.messageId, messageIds),
+          sql`${translationJobs.messageId} IN (${pageMessageIds})`,
         ),
       );
     let activity: unknown = null;
