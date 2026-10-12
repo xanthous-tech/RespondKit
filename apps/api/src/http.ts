@@ -1,3 +1,4 @@
+import { steerAgent } from "./agent-notes";
 import { createAgentApp } from "./agent-api";
 import { decideAgentDraft } from "./agent-replies";
 import { registerEmailFileRoutes } from "./email-content";
@@ -954,8 +955,15 @@ export function createHttpApp() {
     }
     if (interaction.kind === "ping") return context.json(DISCORD_PONG_RESPONSE);
 
-    if (interaction.command === "agent_decision") {
-      const operation = decideAgentDraft(context.env, interaction);
+    if (
+      interaction.command === "agent_decision" ||
+      interaction.command === "agent_context" ||
+      interaction.command === "agent"
+    ) {
+      const operation =
+        interaction.command === "agent"
+          ? steerAgent(context.env, interaction)
+          : decideAgentDraft(context.env, interaction);
       const result = await beforeDiscordResponseCutoff(operation, requestStartedAt);
       if (result === "cutoff") {
         context.executionCtx.waitUntil(
@@ -980,7 +988,9 @@ export function createHttpApp() {
       command.command === "translate" ||
       command.command === "confirm_translation" ||
       command.command === "activity" ||
-      command.command === "agent_decision"
+      command.command === "agent_decision" ||
+      command.command === "agent_context" ||
+      command.command === "agent"
     )
       throw new Error("Unexpected command");
     const commandPromise = (async () => {

@@ -2,6 +2,7 @@ import { acceptOperatorIngress } from "@respondkit/conversations";
 import {
   resolveAuthorizedDiscordThread,
   type ParsedDiscordAgentDecisionInteraction,
+  type ParsedDiscordAgentContextInteraction,
 } from "@respondkit/discord";
 import { createDatabase } from "./db";
 import type { Env } from "./env";
@@ -39,7 +40,7 @@ export async function acceptAgentIngress(env: Env, envelope: AgentOperatorEnvelo
 
 export async function decideAgentDraft(
   env: Env,
-  interaction: ParsedDiscordAgentDecisionInteraction,
+  interaction: ParsedDiscordAgentDecisionInteraction | ParsedDiscordAgentContextInteraction,
 ): Promise<string> {
   if (
     interaction.applicationId !== env.DISCORD_APPLICATION_ID ||
@@ -52,6 +53,19 @@ export async function decideAgentDraft(
     forumChannelId: interaction.forumChannelId,
   });
   if (!authorized.ok) return "This draft action is not authorized.";
+  if (interaction.command === "agent_context") {
+    const chunk = await env.DB.prepare(
+      "SELECT message_id FROM agent_draft_chunk WHERE discord_message_id=? AND discord_thread_id=?",
+    )
+      .bind(interaction.targetMessageId, interaction.discordThreadId)
+      .first<{ message_id: string }>();
+    if (!chunk) return "Draft not found in this support thread.";
+    return decideAgentDraft(env, {
+      ...interaction,
+      command: "agent_decision",
+      messageId: chunk.message_id,
+    });
+  }
   if (interaction.action === "translate") {
     const approved =
       await env.DB.prepare(`UPDATE reply_review SET confirmed_by=coalesce(confirmed_by,?)

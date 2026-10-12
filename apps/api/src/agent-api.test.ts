@@ -1,9 +1,26 @@
+import { deliverPendingNotes } from "./agent-notes";
+import {
+  ListMessagesResponseV1Schema,
+  ListThreadsResponseV1Schema,
+  ListThreadStatusesResponseV1Schema,
+} from "@respondkit/protocol";
+import { DiscordRestClient } from "@respondkit/discord";
+import { enqueueReplyEmail, deliverPendingEmails } from "./email";
+import { requestMessageTranslation } from "./translation-service";
+import { syncDiscordReadReceipts } from "./read-receipts";
 import {
   acceptCustomerIngress,
   acceptOperatorIngress,
   publishUntranslatedReply,
+  loadEnglishTranslationContext,
+  loadMessageTranslationContext,
 } from "@respondkit/conversations";
-import { createExecutionContext, env, introspectWorkflow } from "cloudflare:test";
+import {
+  createExecutionContext,
+  env,
+  introspectWorkflow,
+  waitOnExecutionContext,
+} from "cloudflare:test";
 import { beforeEach, afterEach, expect, it, vi } from "vite-plus/test";
 import {
   createCustomerFixture,
@@ -29,7 +46,10 @@ beforeEach(async () => {
     [`AGENT_NAME_${TEST_TOPOLOGY.inboxId}`]: "Helper",
   });
 });
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
 function request(path: string, body?: unknown, run = "one", overrides: Partial<Env> = {}) {
   return app.request(
     `/v1/agent${path}`,
@@ -253,6 +273,8 @@ it("isolates reads and every mutation from another inbox", async () => {
   expect((await (await request("/threads")).json<{ threads: unknown[] }>()).threads).toEqual([]);
   expect((await request(`/threads/${customer.threadId}`)).status).toBe(404);
   for (const [suffix, body] of [
+    ["notes", { kind: "note", text: "Private", idempotencyKey: "private" }],
+    ["ack", { through: "0" }],
     ["claim", { leaseSeconds: 30 }],
     ["release", {}],
     ["close", {}],
@@ -668,4 +690,522 @@ it("revokes a draft's send authority when the customer writes during translation
   } finally {
     await workflows.dispose();
   }
+});
+
+const privateText = "PRIVATE OF19 reasoning: never show this to the customer";
+async function addNote(threadId: string, key = "note-once", text = privateText) {
+  return request(`/threads/${threadId}/notes`, { kind: "reasoning", text, idempotencyKey: key });
+}
+async function steer(text: string, extra: Record<string, unknown> = {}, roles?: string[]) {
+  return signedDecision("unused", "approve", roles, {
+    type: 2,
+    data: { type: 1, name: "agent", options: [{ type: 3, name: "message", value: text }] },
+    ...extra,
+  });
+}
+async function contextDecision(
+  target: string,
+  name = "Approve draft",
+  extra: Record<string, unknown> = {},
+  roles?: string[],
+) {
+  return signedDecision("unused", "approve", roles, {
+    type: 2,
+    data: { type: 3, name, target_id: target },
+    ...extra,
+  });
+}
+async function wakeList() {
+  return (await request("/threads?needsAgent=1")).json<{
+    threads: {
+      id: string;
+      lastCustomerAt: string | null;
+      lastOperatorAt: string | null;
+      lastAgentAt: string | null;
+      agentCursor: string;
+      acknowledgedCursor: string;
+    }[];
+  }>();
+}
+
+it("stores and chunks immutable notes, recovers missing mapping, and replays without reposting", async () => {
+  const { threadId } = await createCustomerFixture();
+  const text = "Private reasoning. ".repeat(300);
+  const first = await addNote(threadId, "long-note", text);
+  expect(first.status).toBe(503);
+  const saved = await first.json<{ note: { id: string; sequence: string }; delivery: string }>();
+  expect(saved.delivery).toBe("pending");
+  await seedReadyDiscordThread(threadId);
+  const posts = mockDiscord();
+  const retry = await addNote(threadId, "long-note", text);
+  expect(retry.status).toBe(200);
+  expect(await retry.json()).toMatchObject({
+    note: { id: saved.note.id, sequence: saved.note.sequence },
+    delivery: "posted",
+  });
+  expect(posts.length).toBeGreaterThan(1);
+  expect(posts[0]?.content).toContain("**Agent Helper** · reasoning");
+  expect(posts.every((post) => post.content.length <= 2000)).toBe(true);
+  const count = posts.length;
+  expect((await addNote(threadId, "long-note", text)).status).toBe(200);
+  expect(posts).toHaveLength(count);
+  expect((await addNote(threadId, "long-note", "Changed")).status).toBe(409);
+  const other = await createCustomerFixture();
+  expect((await addNote(other.threadId, "long-note", text)).status).toBe(409);
+  expect(
+    (
+      await request(`/threads/${threadId}/notes`, {
+        kind: "summary",
+        text,
+        idempotencyKey: "long-note",
+      })
+    ).status,
+  ).toBe(409);
+  expect(await env.DB.prepare("SELECT count(*) n FROM internal_note").first("n")).toBe(1);
+  expect(await env.DB.prepare("SELECT count(*) n FROM agent_timeline").first("n")).toBe(1);
+  expect(await env.DB.prepare("SELECT count(*) n FROM message").first("n")).toBe(0);
+});
+
+it("keeps a failed note chunk pending and resumes only missing Discord chunks", async () => {
+  const { threadId } = await createCustomerFixture();
+  await seedReadyDiscordThread(threadId);
+  const send = vi.spyOn(DiscordRestClient.prototype, "sendMessageReconciled");
+  const posts = mockDiscord();
+  send
+    .mockImplementationOnce(async (input) => ({
+      message: await new DiscordRestClient({ botToken: "test-only" }).sendMessage(input),
+      reconciled: false,
+    }))
+    .mockRejectedValueOnce(new Error("fixture failure"));
+  const text = "Reasoning ".repeat(450);
+  expect((await addNote(threadId, "partial", text)).status).toBe(503);
+  expect(posts).toHaveLength(1);
+  send.mockRestore();
+  expect((await addNote(threadId, "partial", text)).status).toBe(200);
+  expect(posts).toHaveLength(3);
+  expect(new Set(posts.map((post) => post.nonce)).size).toBe(3);
+});
+
+it("interleaves notes and messages across shared cursor pages even with equal timestamps", async () => {
+  const { threadId } = await createCustomerFixture();
+  const at = Date.now();
+  await customerMessage(threadId, "First", at);
+  await addNote(threadId);
+  await customerMessage(threadId, "Last but older timestamp", at - 1000);
+  const events: string[] = [];
+  let cursor = "0";
+  for (let page = 0; page < 3; page++) {
+    const result = await (
+      await request(`/threads/${threadId}?limit=1&cursor=${cursor}`)
+    ).json<{
+      messages: { sequence: string; originalText: string }[];
+      notes: { sequence: string; text: string }[];
+      through: string;
+      nextCursor: string | null;
+    }>();
+    expect(result.messages.length + result.notes.length).toBe(1);
+    events.push(...result.messages.map((m) => m.originalText), ...result.notes.map((n) => n.text));
+    expect(Number(result.through)).toBeGreaterThan(Number(cursor));
+    expect(result.nextCursor).toBe(page < 2 ? result.through : null);
+    cursor = result.through;
+  }
+  expect(events).toEqual(["First", privateText, "Last but older timestamp"]);
+  expect(await (await request(`/threads/${threadId}?cursor=${cursor}`)).json()).toMatchObject({
+    messages: [],
+    notes: [],
+    nextCursor: null,
+    through: cursor,
+  });
+});
+
+it("wakes for customer messages, operator replies and steering, without agent self-wakes or lost concurrent events", async () => {
+  const { threadId } = await createCustomerFixture();
+  await seedReadyDiscordThread(threadId);
+  mockDiscord();
+  expect((await wakeList()).threads).toEqual([]);
+  await customerMessage(threadId);
+  const first = (await wakeList()).threads[0]!;
+  expect(first).toMatchObject({
+    id: threadId,
+    lastOperatorAt: null,
+    lastAgentAt: null,
+    acknowledgedCursor: "0",
+  });
+  expect(first.lastCustomerAt).toBeTruthy();
+  await customerMessage(threadId, "Arrives during processing", Date.now() - 10000);
+  await request(`/threads/${threadId}/ack`, { through: first.agentCursor });
+  expect((await wakeList()).threads).toHaveLength(1);
+  const read = await (await request(`/threads/${threadId}`)).json<{ through: string }>();
+  expect(
+    await (await request(`/threads/${threadId}/ack`, { through: read.through })).json(),
+  ).toEqual({ acknowledgedCursor: read.through });
+  expect(await (await request(`/threads/${threadId}/ack`, { through: "0" })).json()).toEqual({
+    acknowledgedCursor: read.through,
+  });
+  expect((await wakeList()).threads).toEqual([]);
+  await addNote(threadId);
+  await request(
+    `/threads/${threadId}/replies`,
+    { mode: "draft", text: "Draft", idempotencyKey: "self" },
+    "one",
+    fakeWorkflow(),
+  );
+  expect((await wakeList()).threads).toEqual([]);
+  const reply = {
+    id: "human-wake",
+    workspaceId: TEST_TOPOLOGY.workspaceId,
+    inboxId: TEST_TOPOLOGY.inboxId,
+    threadId,
+    workflowInstanceId: "human-wake",
+    acceptedAt: new Date(),
+    originalEnglishText: "Human reply",
+    replyTranslation: "off",
+  };
+  await acceptOperatorIngress(createDatabase(env.DB), reply);
+  const operator = (await wakeList()).threads[0]!;
+  expect(operator.lastOperatorAt).toBeTruthy();
+  expect(operator.lastAgentAt).toBeTruthy();
+  await request(`/threads/${threadId}/ack`, { through: operator.agentCursor });
+  expect((await wakeList()).threads).toEqual([]);
+  expect(await (await steer("Check the logs")).text()).toContain("saved and posted");
+  expect((await wakeList()).threads).toHaveLength(1);
+  await request(`/threads/${threadId}/close`, {});
+  expect((await wakeList()).threads).toEqual([]);
+  await request(`/threads/${threadId}/reopen`, {});
+  expect((await wakeList()).threads).toHaveLength(1);
+});
+
+it("validates acknowledgement ownership, format and live leases; replayed notes survive another holder's claim", async () => {
+  const { threadId } = await createCustomerFixture();
+  const other = await createCustomerFixture();
+  await customerMessage(other.threadId);
+  const through = (await (await request(`/threads/${other.threadId}`)).json<{ through: string }>())
+    .through;
+  for (const value of [through, "999999", "-1", "1.5", "9007199254740993", 1, null])
+    expect((await request(`/threads/${threadId}/ack`, { through: value })).status).toBe(400);
+  expect((await request(`/threads/${threadId}/ack`, { through: "0" })).status).toBe(200);
+  await seedReadyDiscordThread(threadId);
+  mockDiscord();
+  expect((await addNote(threadId)).status).toBe(201);
+  await request(`/threads/${threadId}/claim`, { leaseSeconds: 300 }, "two");
+  expect((await addNote(threadId, "different")).status).toBe(409);
+  expect((await addNote(threadId)).status).toBe(200);
+  expect((await request(`/threads/${threadId}/ack`, { through: "0" })).status).toBe(409);
+});
+
+it.each(["thread list", "thread detail", "thread statuses", "widget and native transcript"])(
+  "isolates internal notes from customer %s payloads",
+  async (surface) => {
+    const customer = await createCustomerFixture();
+    const path =
+      surface === "thread list"
+        ? "/v1/threads"
+        : surface === "thread detail"
+          ? `/v1/threads/${customer.threadId}`
+          : surface === "thread statuses"
+            ? "/v1/thread-statuses"
+            : `/v1/threads/${customer.threadId}/messages`;
+    const read = () =>
+      app.request(
+        path,
+        { headers: { origin: TEST_ORIGIN, authorization: `Bearer ${customer.sessionToken}` } },
+        apiEnv,
+      );
+    const before = await (await read()).json();
+    await addNote(customer.threadId);
+    const response = await read();
+    expect(response.status).toBe(200);
+    const after = await response.json();
+    expect(after).toEqual(before);
+    expect(JSON.stringify(after)).not.toContain(privateText);
+    if (surface === "thread list") ListThreadsResponseV1Schema.parse(after);
+    if (surface === "thread statuses") ListThreadStatusesResponseV1Schema.parse(after);
+    if (surface === "widget and native transcript") ListMessagesResponseV1Schema.parse(after);
+  },
+);
+
+it("excludes notes from emails, read receipts, translation context/jobs and needsReply", async () => {
+  const customer = await createCustomerFixture();
+  await seedReadyDiscordThread(customer.threadId);
+  mockDiscord();
+  await env.DB.prepare("UPDATE inbox SET email_config=?")
+    .bind(
+      JSON.stringify({
+        from: "support@example.test",
+        name: "Example",
+        replyDomain: "example.test",
+        unreadDelaySeconds: 600,
+      }),
+    )
+    .run();
+  await customerMessage(customer.threadId);
+  const note = (
+    await (await addNote(customer.threadId)).json<{ note: { id: string; sequence: string } }>()
+  ).note;
+  const scope = {
+    workspaceId: TEST_TOPOLOGY.workspaceId,
+    inboxId: TEST_TOPOLOGY.inboxId,
+    threadId: customer.threadId,
+  };
+  const db = createDatabase(env.DB);
+  expect(
+    await loadEnglishTranslationContext(db, { ...scope, before: new Date(Date.now() + 1000) }),
+  ).toEqual([]);
+  expect(
+    JSON.stringify(
+      await loadMessageTranslationContext(db, { ...scope, before: new Date(Date.now() + 1000) }),
+    ),
+  ).not.toContain(privateText);
+  await expect(requestMessageTranslation(apiEnv, scope, note.id, "en")).rejects.toThrow(
+    "Select a customer message",
+  );
+  expect(await env.DB.prepare("SELECT count(*) n FROM translation_job").first("n")).toBe(0);
+  await enqueueReplyEmail(apiEnv, note.id);
+  const send = vi.fn().mockResolvedValue({ messageId: "test-email" });
+  await deliverPendingEmails({
+    ...apiEnv,
+    EMAIL: { send } as unknown as NonNullable<Env["EMAIL"]>,
+  });
+  expect(send).not.toHaveBeenCalled();
+  expect(await env.DB.prepare("SELECT count(*) n FROM email_delivery").first("n")).toBe(0);
+  const reactions = vi.spyOn(DiscordRestClient.prototype, "addReadReaction").mockResolvedValue();
+  await syncDiscordReadReceipts(apiEnv);
+  expect(reactions).not.toHaveBeenCalled();
+  const ctx = createExecutionContext();
+  const receipt = await app.request(
+    `/v1/threads/${customer.threadId}/read`,
+    {
+      method: "POST",
+      headers: {
+        origin: TEST_ORIGIN,
+        authorization: `Bearer ${customer.sessionToken}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ cursor: note.sequence }),
+    },
+    apiEnv,
+    ctx,
+  );
+  await waitOnExecutionContext(ctx);
+  expect(receipt.status).toBe(400);
+  expect(
+    (await (await request("/threads?needsReply=1")).json<{ threads: unknown[] }>()).threads,
+  ).toHaveLength(1);
+  expect(
+    await env.DB.prepare("SELECT customer_read_cursor FROM thread WHERE id=?")
+      .bind(customer.threadId)
+      .first("customer_read_cursor"),
+  ).toBe(0);
+});
+
+it("accepts only signed allowlisted steering with durable operator identity and idempotent echoes", async () => {
+  const { threadId } = await createCustomerFixture();
+  await seedReadyDiscordThread(threadId);
+  const posts = mockDiscord();
+  expect(await (await steer("Private", {}, [])).text()).toContain("not authorized");
+  for (const extra of [
+    { guild_id: "9999" },
+    { channel_id: "9999" },
+    { channel: { type: 0, parent_id: TEST_TOPOLOGY.forumChannelId } },
+  ])
+    expect(await (await steer("Private", extra)).text()).toContain("not authorized");
+  const interactionId = snowflakeAt();
+  expect(await (await steer("Please investigate", { id: interactionId })).text()).toContain(
+    "saved and posted",
+  );
+  expect(await (await steer("Please investigate", { id: interactionId })).text()).toContain(
+    "saved and posted",
+  );
+  expect(await (await steer("Changed", { id: interactionId })).text()).toContain("different note");
+  expect(posts).toHaveLength(1);
+  expect(posts[0]?.content).toContain("· steer");
+  const read = await (await request(`/threads/${threadId}`)).json<{ notes: unknown[] }>();
+  expect(read.notes).toEqual([
+    expect.objectContaining({
+      authorKind: "operator",
+      authorName: TEST_TOPOLOGY.operatorId,
+      operatorDiscordUserId: TEST_TOPOLOGY.operatorId,
+      kind: "steer",
+      text: "Please investigate",
+    }),
+  ]);
+});
+
+it.each(["Approve draft", "Reject draft"])(
+  "routes %s from any draft chunk through the signed first-decision-wins path",
+  async (name) => {
+    const { threadId } = await createCustomerFixture();
+    await seedReadyDiscordThread(threadId);
+    const posts = mockDiscord();
+    const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+    try {
+      await workflows.modifyAll(async (modifier) => modifier.disableRetryDelays());
+      const response = await request(`/threads/${threadId}/replies`, {
+        text: "A long English answer. ".repeat(200),
+        mode: "draft",
+        idempotencyKey: name,
+      });
+      const { messageId } = await response.json<{ messageId: string }>();
+      await vi.waitFor(async () =>
+        expect(
+          await env.DB.prepare("SELECT count(*) n FROM agent_draft_chunk WHERE message_id=?")
+            .bind(messageId)
+            .first("n"),
+        ).toBe(3),
+      );
+      expect(posts).toHaveLength(3);
+      const chunks = (
+        await env.DB.prepare(
+          "SELECT discord_message_id FROM agent_draft_chunk WHERE message_id=? ORDER BY chunk_index",
+        )
+          .bind(messageId)
+          .all<{ discord_message_id: string }>()
+      ).results;
+      expect(
+        await (await contextDecision(chunks[0]!.discord_message_id, name, {}, [])).text(),
+      ).toContain("not authorized");
+      expect(
+        await (
+          await contextDecision(chunks[0]!.discord_message_id, name, { channel_id: "999" })
+        ).text(),
+      ).toContain("not authorized");
+      expect(await (await contextDecision("999999", name)).text()).toContain("not found");
+      expect(await (await contextDecision(chunks[0]!.discord_message_id, name)).text()).toContain(
+        name === "Approve draft" ? "approved" : "rejected",
+      );
+      await (await workflows.get())[0]!.waitForStatus("complete");
+      for (const chunk of chunks)
+        expect(
+          await (
+            await contextDecision(
+              chunk.discord_message_id,
+              name === "Approve draft" ? "Reject draft" : "Approve draft",
+            )
+          ).text(),
+        ).toContain(name === "Approve draft" ? "approved" : "rejected");
+      expect(
+        await env.DB.prepare(
+          "SELECT count(*) n FROM message WHERE id=? AND customer_availability='available'",
+        )
+          .bind(messageId)
+          .first("n"),
+      ).toBe(name === "Approve draft" ? 1 : 0);
+    } finally {
+      await workflows.dispose();
+    }
+  },
+);
+
+it("invalidates a draft after steering while agent reasoning does not invalidate it", async () => {
+  const { threadId } = await createCustomerFixture();
+  await seedReadyDiscordThread(threadId);
+  mockDiscord();
+  const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+  try {
+    const { messageId } = await (
+      await request(`/threads/${threadId}/replies`, {
+        text: "Draft",
+        mode: "draft",
+        idempotencyKey: "steered",
+      })
+    ).json<{ messageId: string }>();
+    let chunk: { discord_message_id: string } | null = null;
+    await vi.waitFor(async () => {
+      chunk = await env.DB.prepare(
+        "SELECT discord_message_id FROM agent_draft_chunk WHERE message_id=?",
+      )
+        .bind(messageId)
+        .first();
+      expect(chunk).toBeTruthy();
+    });
+    await addNote(threadId);
+    expect(
+      await env.DB.prepare("SELECT status FROM agent_reply WHERE message_id=?")
+        .bind(messageId)
+        .first("status"),
+    ).toBe("pending");
+    await steer("Do not send that; investigate first");
+    expect(await (await contextDecision(chunk!.discord_message_id)).text()).toContain("stale");
+    expect(await (await signedDecision(messageId)).text()).toContain("stale");
+    expect(await env.DB.prepare("SELECT count(*) n FROM message").first("n")).toBe(0);
+  } finally {
+    await workflows.dispose();
+  }
+});
+
+it("shows the English draft and delivers customer-language text after one context approval", async () => {
+  const { threadId } = await createCustomerFixture();
+  await seedReadyDiscordThread(threadId);
+  await env.DB.prepare("UPDATE thread SET customer_language='fr' WHERE id=?").bind(threadId).run();
+  const posts = mockDiscord();
+  const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+  try {
+    await workflows.modifyAll(async (modifier) => {
+      await modifier.disableRetryDelays();
+      await modifier.mockStepResult(
+        { name: "translate-message" },
+        {
+          sourceLanguage: "en",
+          targetLanguage: "fr",
+          translatedText: "Votre réponse",
+          needsReview: false,
+          mixedLanguage: false,
+          ambiguityNotes: [],
+          passThrough: false,
+          promptVersion: "test",
+          provider: "test",
+          modelId: "test",
+        },
+      );
+    });
+    const { messageId } = await (
+      await request(`/threads/${threadId}/replies`, {
+        text: "Your English answer",
+        translate: "customer",
+        mode: "draft",
+        idempotencyKey: "one-tap",
+      })
+    ).json<{ messageId: string }>();
+    await vi.waitFor(async () =>
+      expect(
+        await env.DB.prepare("SELECT count(*) n FROM agent_draft_chunk WHERE message_id=?")
+          .bind(messageId)
+          .first("n"),
+      ).toBe(1),
+    );
+    expect(posts[0]?.content).toContain("Your English answer");
+    const chunk = await env.DB.prepare(
+      "SELECT discord_message_id FROM agent_draft_chunk WHERE message_id=?",
+    )
+      .bind(messageId)
+      .first<{ discord_message_id: string }>();
+    await contextDecision(chunk!.discord_message_id);
+    await (await workflows.get())[0]!.waitForStatus("complete");
+    expect(posts).toHaveLength(2);
+    expect(
+      await env.DB.prepare("SELECT original_text,customer_visible_text FROM message WHERE id=?")
+        .bind(messageId)
+        .first(),
+    ).toEqual({ original_text: "Your English answer", customer_visible_text: "Votre réponse" });
+  } finally {
+    await workflows.dispose();
+  }
+});
+
+it("retries stored note echoes on the scheduled path once the Discord mapping is ready", async () => {
+  const { threadId } = await createCustomerFixture();
+  expect((await addNote(threadId)).status).toBe(503);
+  const posts = mockDiscord();
+  await deliverPendingNotes(apiEnv);
+  expect(posts).toHaveLength(0);
+  await seedReadyDiscordThread(threadId);
+  await Promise.all([deliverPendingNotes(apiEnv), deliverPendingNotes(apiEnv)]);
+  expect(posts).toHaveLength(1);
+  await deliverPendingNotes(apiEnv);
+  expect(posts).toHaveLength(1);
+  expect(
+    await env.DB.prepare(
+      "SELECT count(*) n FROM internal_note WHERE discord_posted_at IS NOT NULL",
+    ).first("n"),
+  ).toBe(1);
 });
