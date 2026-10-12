@@ -1257,3 +1257,70 @@ it("reads full 100-message timeline pages within D1's production binding limit",
     nextCursor: null,
   });
 });
+
+it("preserves an approved legacy draft through steering during uncertain translation review", async () => {
+  const { threadId } = await createCustomerFixture();
+  await seedReadyDiscordThread(threadId);
+  const posts = mockDiscord();
+  const body = {
+    text: "Approved answer",
+    translate: "fr",
+    mode: "draft",
+    idempotencyKey: "approved-steer",
+  };
+  const frozen = fakeWorkflow();
+  const { messageId } = await (
+    await request(`/threads/${threadId}/replies`, body, "one", frozen)
+  ).json<{ messageId: string }>();
+  const stored = await env.DB.prepare("SELECT envelope FROM agent_reply WHERE message_id=?")
+    .bind(messageId)
+    .first<{ envelope: string }>();
+  const legacy = JSON.parse(stored!.envelope);
+  delete legacy.agent.previewTranslation;
+  await env.DB.prepare("UPDATE agent_reply SET envelope=? WHERE message_id=?")
+    .bind(JSON.stringify(legacy), messageId)
+    .run();
+  const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+  try {
+    await workflows.modifyAll(async (modifier) => {
+      await modifier.disableRetryDelays();
+      await modifier.mockStepResult(
+        { name: "translate-message" },
+        {
+          sourceLanguage: "en",
+          targetLanguage: "fr",
+          translatedText: "Réponse approuvée",
+          needsReview: true,
+          mixedLanguage: false,
+          ambiguityNotes: ["Check wording"],
+          passThrough: false,
+          promptVersion: "test",
+          provider: "test",
+          modelId: "test",
+        },
+      );
+    });
+    await request(`/threads/${threadId}/replies`, body);
+    await vi.waitFor(() => expect(posts).toHaveLength(1));
+    await signedDecision(messageId);
+    await vi.waitFor(() => expect(posts).toHaveLength(2));
+    expect(posts[1]?.components?.[0]?.components[0]?.label).toBe("Approve translation");
+    await steer("Investigate the next question");
+    expect(
+      await env.DB.prepare("SELECT status FROM agent_reply WHERE message_id=?")
+        .bind(messageId)
+        .first("status"),
+    ).toBe("approved");
+    expect(await (await signedDecision(`${messageId}:1`, "translate")).text()).toContain(
+      "approved",
+    );
+    await (await workflows.get())[0]!.waitForStatus("complete");
+    expect(
+      await env.DB.prepare("SELECT customer_visible_text FROM message WHERE id=?")
+        .bind(messageId)
+        .first("customer_visible_text"),
+    ).toBe("Réponse approuvée");
+  } finally {
+    await workflows.dispose();
+  }
+});
