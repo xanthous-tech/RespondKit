@@ -10,7 +10,7 @@ import { promisify } from "node:util";
 
 const exec = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
-const run = resolve(root, `artifacts/of-10-${Date.now()}`);
+const run = resolve(root, `artifacts/of-19-${Date.now()}`);
 await mkdir(run, { recursive: true });
 const token = randomBytes(32).toString("hex");
 const { publicKey, privateKey } = generateKeyPairSync("ed25519");
@@ -166,7 +166,10 @@ worker.stderr.on("data", (chunk) => {
 const evidence = [];
 const base = `http://127.0.0.1:${port}`;
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-async function curl(path, { method = "GET", body, headers = {}, label = path } = {}) {
+async function curl(
+  path,
+  { method = "GET", body, headers = {}, label = path, expectedStatus } = {},
+) {
   const args = [
     "--silent",
     "--show-error",
@@ -198,7 +201,8 @@ async function curl(path, { method = "GET", body, headers = {}, label = path } =
         JSON.stringify(data, (key, value) => (key === "token" ? "<redacted>" : value)),
       ),
     });
-  assert(status < 400, `${method} ${path}: HTTP ${status} ${JSON.stringify(data)}`);
+  if (expectedStatus !== undefined) assert.equal(status, expectedStatus);
+  else assert(status < 400, `${method} ${path}: HTTP ${status} ${JSON.stringify(data)}`);
   return data;
 }
 const agentHeaders = { authorization: `Bearer ${token}`, "x-agent-run-id": "walkthrough" };
@@ -209,6 +213,46 @@ async function agent(path, body, label = path) {
     headers: agentHeaders,
     label,
   });
+}
+async function signedCommand(
+  data,
+  {
+    type = 2,
+    member = { user: { id: ids.operator, username: "Local operator" }, roles: [] },
+    channel = ids.channel,
+    label = data.name ?? "draft button",
+    id,
+  } = {},
+) {
+  const raw = JSON.stringify({
+    id: id ?? String((BigInt(Date.now()) - 1420070400000n) << 22n),
+    application_id: ids.application,
+    token: "local-signed-interaction",
+    type,
+    guild_id: ids.guild,
+    channel_id: channel,
+    channel: { type: 11, parent_id: ids.forum },
+    member,
+    data,
+  });
+  const timestamp = String(Math.floor(Date.now() / 1000));
+  return curl("/v1/discord/interactions", {
+    method: "POST",
+    body: raw,
+    label: `/v1/discord/interactions (${label})`,
+    headers: {
+      "x-signature-ed25519": sign(null, Buffer.from(timestamp + raw), privateKey).toString("hex"),
+      "x-signature-timestamp": timestamp,
+    },
+  });
+}
+async function waitFor(check, label) {
+  for (let attempt = 0; attempt < 100; attempt++) {
+    const value = await check();
+    if (value) return value;
+    await delay(100);
+  }
+  assert.fail(`Timed out: ${label}`);
 }
 try {
   let ready = false;
@@ -318,18 +362,137 @@ try {
   });
   const unanswered = await agent("/threads?needsReply=1&state=open");
   assert.equal(unanswered.threads.length, 0);
+  const noteBody = {
+    kind: "reasoning",
+    text: "PRIVATE: inspect export settings before proposing a reply.",
+    idempotencyKey: "of19-reasoning",
+  };
+  const note = await agent(`/threads/${threadId}/notes`, noteBody);
+  assert.equal(note.delivery, "posted");
+  const noteReplay = await agent(`/threads/${threadId}/notes`, noteBody);
+  assert.equal(noteReplay.note.id, note.note.id);
+  assert.equal(Number(posts.length), 5);
+  await curl(`/v1/agent/threads/${threadId}/notes`, {
+    method: "POST",
+    headers: agentHeaders,
+    body: { ...noteBody, text: "Changed" },
+    expectedStatus: 409,
+  });
+  const wake = await agent("/threads?needsAgent=1");
+  assert.equal(wake.threads.length, 1);
+  assert(wake.threads[0].lastCustomerAt);
+  assert(wake.threads[0].lastAgentAt);
+  const timeline = await agent(`/threads/${threadId}`);
+  assert.equal(timeline.notes.length, 1);
+  assert.equal(timeline.notes[0].id, note.note.id);
+  const page1 = await agent(`/threads/${threadId}?limit=2`);
+  const page2 = await agent(`/threads/${threadId}?limit=2&cursor=${page1.nextCursor}`);
+  assert.equal(page2.notes.length, 1);
+  assert.equal(page2.messages.length, 1);
+  await agent(`/threads/${threadId}/ack`, { through: timeline.through });
+  assert.equal((await agent("/threads?needsAgent=1")).threads.length, 0);
+  const customerAfterNote = await curl(`/v1/threads/${threadId}/messages`, {
+    headers: customerHeaders,
+  });
+  assert.deepEqual(customerAfterNote, after);
+  const rejectedSteer = await signedCommand(
+    { type: 1, name: "agent", options: [{ type: 3, name: "message", value: "Do not store this" }] },
+    { member: { user: { id: "999999999999999999" }, roles: [] }, label: "unauthorized /agent" },
+  );
+  assert.match(rejectedSteer.data.content, /not authorized/);
+  const steerId = String((BigInt(Date.now()) - 1420070400000n) << 22n);
+  const steerData = {
+    type: 1,
+    name: "agent",
+    options: [
+      { type: 3, name: "message", value: "PRIVATE: ask which export format the customer needs." },
+    ],
+  };
+  assert.match((await signedCommand(steerData, { id: steerId })).data.content, /saved and posted/);
+  assert.match((await signedCommand(steerData, { id: steerId })).data.content, /saved and posted/);
+  assert.equal(Number(posts.length), 6);
+  const steered = await agent("/threads?needsAgent=1");
+  assert(steered.threads[0].lastOperatorAt);
+  assert.equal(steered.threads[0].acknowledgedCursor, timeline.through);
+  await agent(`/threads/${threadId}/ack`, { through: timeline.through });
+  assert.equal((await agent("/threads?needsAgent=1")).threads.length, 1);
+  const steeredRead = await agent(`/threads/${threadId}`);
+  assert.equal(steeredRead.notes[1].operatorDiscordUserId, ids.operator);
+  await agent(`/threads/${threadId}/ack`, { through: steeredRead.through });
+  assert.equal((await agent("/threads?needsAgent=1")).threads.length, 0);
+  for (const decision of ["Approve draft", "Reject draft"]) {
+    const longDraft = await agent(`/threads/${threadId}/replies`, {
+      text: `English ${decision}. `.repeat(130),
+      mode: "draft",
+      idempotencyKey: `of19-${decision}`,
+    });
+    const chunks = await waitFor(async () => {
+      const rows = await sql(
+        `SELECT discord_message_id FROM agent_draft_chunk WHERE message_id='${longDraft.messageId}' ORDER BY chunk_index`,
+      );
+      return rows.length >= 2 ? rows : null;
+    }, "draft chunks persisted");
+    const firstChunk = posts.find((post) => post.id === chunks[0].discord_message_id);
+    assert(!firstChunk.components);
+    assert.match(
+      (await signedCommand({ type: 3, name: decision, target_id: chunks[0].discord_message_id }))
+        .data.content,
+      decision === "Approve draft" ? /approved/ : /rejected/,
+    );
+    await waitFor(async () => {
+      const current = await agent(
+        `/threads/${threadId}/replies`,
+        {
+          text: `English ${decision}. `.repeat(130),
+          mode: "draft",
+          idempotencyKey: `of19-${decision}`,
+        },
+        null,
+      );
+      return current.status === (decision === "Approve draft" ? "available" : "rejected");
+    }, "draft decision completed");
+    assert.match(
+      (
+        await signedCommand({
+          type: 3,
+          name: decision === "Approve draft" ? "Reject draft" : "Approve draft",
+          target_id: chunks[1].discord_message_id,
+        })
+      ).data.content,
+      decision === "Approve draft" ? /approved/ : /rejected/,
+    );
+  }
+  await signedCommand({
+    type: 1,
+    name: "reply",
+    options: [
+      { type: 3, name: "message", value: "Human follow-up through the existing reply command." },
+    ],
+  });
+  await waitFor(
+    async () => (await agent("/threads?needsAgent=1", undefined, null)).threads.length === 1,
+    "human reply wakes agent",
+  );
+  const humanWake = await agent("/threads?needsAgent=1");
+  assert(humanWake.threads[0].lastOperatorAt);
+  const customerFinal = await curl(`/v1/threads/${threadId}/messages`, {
+    headers: customerHeaders,
+  });
+  assert(!JSON.stringify(customerFinal).includes("PRIVATE:"));
+  const flowStored = await sql(
+    `SELECT id,ordering_key,author_kind,kind,operator_discord_user_id,discord_message_ids FROM internal_note WHERE thread_id='${threadId}' ORDER BY ordering_key; SELECT through_sequence FROM agent_ack WHERE thread_id='${threadId}'; SELECT sequence,message_id,note_id,author_kind FROM agent_timeline WHERE thread_id='${threadId}' ORDER BY sequence;`,
+  );
   await agent(`/threads/${threadId}/close`, {});
   const stored = await sql(
     `SELECT status,claimed_by FROM thread WHERE id='${threadId}'; SELECT id,author_kind,author_name,customer_visible_text,processing_status FROM message WHERE thread_id='${threadId}' ORDER BY row_id; SELECT status,decided_by FROM agent_reply WHERE message_id='${drafted.messageId}';`,
   );
   assert.equal(stored[0].status, "closed");
   assert.equal(stored.at(-1).status, "approved");
-  assert.equal(Number(posts.length), 4);
-  const doc = `# OF-10 operator API verification\n\nRun: ${new Date().toISOString()}\n\nExecuted \`node apps/api/scripts/verify-agent-api.mjs\` against \`wrangler dev --local\`, using the real Hono Worker, D1 migrations 0000–0009, and MessageWorkflow. HTTP calls below were made with curl. A loopback Discord REST fixture captured posts; Ed25519 keys and agent/session credentials were generated for this run and are redacted. The ready Discord mapping was seeded locally. No remote database, Discord channel, email provider, Gemini service, or deployed Worker was touched.\n\n## Curl transcript\n\n${evidence.map((entry) => `### ${entry.request}\n\nHTTP ${entry.status}\n\n\`\`\`json\n${JSON.stringify(entry.data, null, 2)}\n\`\`\`\n`).join("\n")}\n## Discord posts captured\n\n\`\`\`json\n${JSON.stringify(posts, null, 2)}\n\`\`\`\n\n## D1 readback\n\n\`\`\`json\n${JSON.stringify(stored, null, 2)}\n\`\`\`\n\nAssertions passed: customer-created thread; unanswered listing; full read; claim; send; same-key replay; operator-only draft with Approve/Reject; signed allowlisted approval; customer-visible approved reply; duplicate approval without duplicate delivery; unanswered list empty; close persisted.\n`;
+  const doc = `# OF-19 thread flow verification\n\nRun: ${new Date().toISOString()}\n\nExecuted \`node apps/api/scripts/verify-agent-api.mjs\` against \`wrangler dev --local\`, using the real Hono Worker, D1 migrations 0000–0010, and MessageWorkflow. HTTP calls below were made with curl. A loopback Discord REST fixture captured posts; Ed25519 keys and agent/session credentials were generated for this run and are redacted. The ready Discord mapping was seeded locally. No remote database, Discord channel, email provider, Gemini service, or deployed Worker was touched.\n\n## Curl transcript\n\n${evidence.map((entry) => `### ${entry.request}\n\nHTTP ${entry.status}\n\n\`\`\`json\n${JSON.stringify(entry.data, null, 2)}\n\`\`\`\n`).join("\n")}\n## Discord posts captured\n\n\`\`\`json\n${JSON.stringify(posts, null, 2)}\n\`\`\`\n\n## D1 readback\n\n\`\`\`json\n${JSON.stringify({ messagesAndDrafts: stored, threadFlow: flowStored }, null, 2)}\n\`\`\`\n\nAssertions passed: notes stored and posted; immutable note replay/conflict; shared message/note pagination; customer payload unchanged by notes; needsAgent and monotonic ack; signed allowlisted steering with identity and duplicate interaction; context Approve and Reject on non-button draft chunks; opposite decision preserves first result; existing human /reply wakes agent; customer-created thread; unanswered listing; full read; claim; send; same-key replay; operator-only draft with Approve/Reject; signed allowlisted approval; customer-visible approved reply; duplicate approval without duplicate delivery; unanswered list empty; close persisted.\n`;
   await mkdir(resolve(root, "docs/verification"), { recursive: true });
-  await writeFile(resolve(root, "docs/verification/of-10-agent-api.md"), doc);
+  await writeFile(resolve(root, "docs/verification/of-19-thread-flow.md"), doc);
   console.log(
-    `OF-10 local walkthrough passed (${evidence.length} curl calls, ${posts.length} Discord posts).`,
+    `OF-19 local walkthrough passed (${evidence.length} curl calls, ${posts.length} Discord posts).`,
   );
 } finally {
   stopWorker();

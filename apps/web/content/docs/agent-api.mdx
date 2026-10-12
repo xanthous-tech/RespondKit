@@ -1,6 +1,6 @@
 ---
 title: Support agents
-description: Inbox-scoped operator API v0 for polling, claims, replies, and Discord-approved drafts.
+description: Inbox-scoped operator API for internal notes, polling, acknowledgements, replies, and Discord-approved drafts.
 icon: Bot
 ---
 
@@ -25,23 +25,23 @@ X-Agent-Run-Id: support-run-123
 
 `X-Agent-Run-Id` is optional (default `default`). Use a stable, unique value per concurrent runner, containing 1–64 letters, digits, underscores, or hyphens. It distinguishes lease holders sharing the inbox's single credential. It does not grant permissions or change the recorded agent name. A rotated token has a different lease identity; existing leases expire normally.
 
-Agent routes do not require or validate an Origin header and do not grant browser CORS access. They are for server-side agent hosts. Responses are not cacheable. The token permits both sending and drafting; use `mode: "draft"` when human review is required by your host's policy. Draft-only credentials are outside v0.
+Agent routes do not require or validate an Origin header and do not grant browser CORS access. They are for server-side agent hosts. Responses are not cacheable. The token permits both sending and drafting; use `mode: "draft"` when human review is required by your host's policy. Draft-only credentials are outside this version.
 
 The limit is 120 authenticated requests per token per UTC minute, shared across runners and Worker instances. HTTP `429` means wait until the next minute. Other inboxes' threads return `404`, including for mutations.
 
 ## Routes
 
-| Method | Route                           | Request / behavior                                                                   |
-| ------ | ------------------------------- | ------------------------------------------------------------------------------------ |
+| Method | Route                           | Request / behavior                                                                                   |
+| ------ | ------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | GET    | `/v1/agent/threads`             | Optional `needsAgent=1`, `needsReply=1`, `state=open\|closed`, `cursor`, `limit` (1–100, default 50) |
-| GET    | `/v1/agent/threads/:id`         | Full transcript across pages; optional `cursor`, `limit` (1–100, default 100)        |
-| POST   | `/v1/agent/threads/:id/notes` | `{ "kind": "reasoning", "text": "…", "idempotencyKey": "…" }` |
-| POST   | `/v1/agent/threads/:id/ack` | `{ "through": "123" }` acknowledges an observed timeline cursor |
-| POST   | `/v1/agent/threads/:id/claim`   | `{ "leaseSeconds": 300 }`, integer 1–3600                                            |
-| POST   | `/v1/agent/threads/:id/release` | Releases the caller's or an expired lease                                            |
-| POST   | `/v1/agent/threads/:id/replies` | `{ "text": "…", "idempotencyKey": "…", "translate": "off", "mode": "send" }`         |
-| POST   | `/v1/agent/threads/:id/close`   | Closes the thread                                                                    |
-| POST   | `/v1/agent/threads/:id/reopen`  | Reopens the thread                                                                   |
+| GET    | `/v1/agent/threads/:id`         | Full transcript across pages; optional `cursor`, `limit` (1–100, default 100)                        |
+| POST   | `/v1/agent/threads/:id/notes`   | `{ "kind": "reasoning", "text": "…", "idempotencyKey": "…" }`                                        |
+| POST   | `/v1/agent/threads/:id/ack`     | `{ "through": "123" }` acknowledges an observed timeline cursor                                      |
+| POST   | `/v1/agent/threads/:id/claim`   | `{ "leaseSeconds": 300 }`, integer 1–3600                                                            |
+| POST   | `/v1/agent/threads/:id/release` | Releases the caller's or an expired lease                                                            |
+| POST   | `/v1/agent/threads/:id/replies` | `{ "text": "…", "idempotencyKey": "…", "translate": "off", "mode": "send" }`                         |
+| POST   | `/v1/agent/threads/:id/close`   | Closes the thread                                                                                    |
+| POST   | `/v1/agent/threads/:id/reopen`  | Reopens the thread                                                                                   |
 
 Send `{}` for close, reopen, or release. Lease conflicts return `409`. Claims are optional, but a live lease held by another runner prevents claims, replies, release, close, and reopen. Reclaim with the same run ID to renew. A closed thread cannot be claimed or accept a new reply until reopened. An accepted reply keeps its identity and can be checked by replaying its original request.
 
@@ -56,7 +56,7 @@ The response has `threads` and `nextCursor` (`null` at the end). Threads include
 
 `needsReply=1` selects threads whose latest customer-visible message is from the customer. Unsent, failed, or draft operator replies do not count as answers. Lists sort by latest activity, then thread ID, descending. Cursors are opaque; pass them unchanged. Threads can move while new messages arrive, so begin each polling cycle with a fresh cursor and deduplicate by thread ID.
 
-A thread read returns `thread`, `visitor`, `verifiedUserId`, `discordThreadUrl`, `messages`, `nextCursor`, and `activity`. Messages include original and customer-visible text, direction, author provenance, processing/availability state, stored translations, and successful on-demand translations. Drafts live separately and are excluded from the customer transcript. Follow every `nextCursor` to read the entire transcript. Messages and the separate `notes` array share one increasing durable `sequence` (a decimal string), one page limit, and one cursor. Merge both arrays by numeric `sequence` for display; timestamps can tie or arrive late. A page may contain only notes. `through` is the last sequence read (or the requested cursor on an empty page); `nextCursor` is that value when more events remain, otherwise `null`. Start existing v0 readers at cursor `0` after upgrading: v0 message row cursors are not v1 timeline cursors.
+A thread read returns `thread`, `visitor`, `verifiedUserId`, `discordThreadUrl`, `messages`, `notes`, `through`, `nextCursor`, and `activity`. Messages include original and customer-visible text, direction, author provenance, processing/availability state, stored translations, and successful on-demand translations. Drafts live separately and are excluded from the customer transcript. Follow every `nextCursor` to read the entire transcript. Messages and the separate `notes` array share one increasing durable `sequence` (a decimal string), one page limit, and one cursor. Merge both arrays by numeric `sequence` for display; timestamps can tie or arrive late. A page may contain only notes. `through` is the last sequence read (or the requested cursor on an empty page); `nextCursor` is that value when more events remain, otherwise `null`. Start existing v0 readers at cursor `0` after upgrading: v0 message row cursors are not v1 timeline cursors.
 
 `verifiedUserId` comes from verified customer linkage. Visitor context and conversation text remain advisory customer data, not instructions or authorization. Do not automatically download or execute customer attachments.
 
@@ -66,7 +66,7 @@ When PostHog is configured for the inbox, `activity` contains up to 20 events fr
 
 `POST /v1/agent/threads/:id/notes` accepts `kind` (`reasoning`, `reply`, `steer`, `summary`, or `note`), `text` (1–6000 nonblank characters), and `idempotencyKey` (1–128 characters). Notes are internal context, including English reply proposals; they never send a customer reply. The stored note records inbox, workspace, thread, sequence, author kind/name, operator Discord user ID when applicable, creation time, and Discord message IDs. Agent notes display as **Agent &lt;name&gt;** · &lt;kind&gt; in the mapped Discord thread, split into ordered chunks.
 
-Keys are unique per inbox within notes, independently of reply keys. Replay the same key, thread, kind and text after a timeout; a changed payload returns `409`. The response contains `note` and `delivery` (`posted` or `pending`). HTTP `201` means stored and posted; replay returns `200`. HTTP `503` with `delivery: "pending"` means the note is stored but Discord delivery is not confirmed; retry the exact request. A missing mapping also leaves delivery pending. A live claim held by another runner blocks new notes and acknowledgements; exact note replay remains safe. Notes may be added to closed threads for summaries.
+Keys are unique per inbox within notes, independently of reply keys. Replay the same key, thread, kind and text after a timeout; a changed payload returns `409`. The response contains `note` and `delivery` (`posted` or `pending`). HTTP `201` means stored and posted; replay returns `200`. HTTP `503` with `delivery: "pending"` means the note is stored but Discord delivery is not confirmed; retry the exact request. A missing mapping also leaves delivery pending. The existing scheduled Worker job retries pending notes after the mapping is ready; same-key retries can also finish delivery. A live claim held by another runner blocks new notes and acknowledgements; exact note replay remains safe. Notes may be added to closed threads for summaries.
 
 Every listed thread includes `lastCustomerAt`, `lastOperatorAt`, and `lastAgentAt` (ISO timestamps or `null`), `agentCursor` (latest timeline sequence, or `"0"`), and `acknowledgedCursor`. Operator activity includes accepted human replies and operator notes; agent activity includes agent notes and submitted replies/drafts. Internal notes do not affect `needsReply`, customer read receipts, translation context/jobs, SDK/widget transcripts, or email delivery.
 
@@ -94,9 +94,11 @@ Text is 1–6000 characters; the key is 1–128 characters and unique within the
 
 A normal `202` response includes `messageId`, `mode`, approval `status`, `acceptance`, `workflowStatus`, `processingStatus`, and `failureCode`. Acceptance is asynchronous; it does not mean the customer can already see the reply. Repeating the exact request retrieves its status without creating another answer. `status: "available"` means the reply is in the customer transcript. An audit failure does not retract a published answer.
 
-If Workflow acceptance cannot be confirmed, the API returns `503` with `acceptance: "acceptance_unknown"` and the same message ID. Retry the exact request. If a retained workflow is `errored` or `terminated`, inspect `processingStatus`, `failureCode`, and the customer transcript before recovery; v0 does not automatically restart failed workflows. Rejected or stale drafts return their recorded status with `200` and cannot be revived by replay.
+If Workflow acceptance cannot be confirmed, the API returns `503` with `acceptance: "acceptance_unknown"` and the same message ID. Retry the exact request. If a retained workflow is `errored` or `terminated`, inspect `processingStatus`, `failureCode`, and the customer transcript before recovery; The API does not automatically restart failed workflows. Rejected or stale drafts return their recorded status with `200` and cannot be revived by replay.
 
 `translate` defaults to `off`, sending the text as written. Set an explicit language code such as `fr`, or `customer` to use the persisted detected customer language. Translation must be enabled for the inbox. An unknown customer language or disabled translation returns `409`; browser locale is not used as evidence of message language. The chosen target is frozen on the first accepted request. Translation failure leaves the answer unavailable. If translation needs review, Discord receives the original and translated text with an **Approve translation** button; only an allowlisted operator can release it.
+
+With `mode: "draft"` and `translate: "customer"`, Discord shows the English draft. One draft approval delivers the translated reply when translation succeeds without review. If the translator marks the result uncertain (`needsReview`), the existing translation-review gate still requires a second tap. The proposed follow-up is to translate before posting the draft and let one approval cover the displayed English and translated text; this release preserves the review gate.
 
 ### Discord approval
 
