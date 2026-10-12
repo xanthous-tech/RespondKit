@@ -709,12 +709,42 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
     const envelope = messageWorkflowEnvelopeSchema.parse(event.payload);
     let generation = 1;
     let stage: MessageFailureStage = "ingress";
+    let previewTranslation: TranslationResult | undefined;
 
     try {
       if ("agent" in envelope && envelope.agent.mode === "draft") {
+        if (envelope.agent.previewTranslation) {
+          stage = "translation";
+          const context = await step.do("load-translation-context", DATABASE_STEP, () =>
+            loadTranslationContext(this.env, envelope, generation),
+          );
+          previewTranslation = await step.do("translate-message", TRANSLATION_STEP, () =>
+            translate(this.env, envelope, context),
+          );
+          const resultJson = JSON.stringify(previewTranslation);
+          await step.do("save-draft-preview", DATABASE_STEP, async () => {
+            await this.env.DB.prepare(
+              "INSERT INTO agent_draft_preview(message_id,result_json) VALUES (?,?) ON CONFLICT(message_id) DO NOTHING",
+            )
+              .bind(envelope.messageId, resultJson)
+              .run();
+            const stored = await this.env.DB.prepare(
+              "SELECT result_json FROM agent_draft_preview WHERE message_id=?",
+            )
+              .bind(envelope.messageId)
+              .first<{ result_json: string }>();
+            if (stored?.result_json !== resultJson)
+              permanent(new Error("Draft translation changed"), "preview");
+          });
+        }
         const target = await ensureDiscordThread(step, this.env, envelope, "draft-discord");
+        const translationPreview = previewTranslation
+          ? `**Translation (${previewTranslation.targetLanguage})**\n${previewTranslation.translatedText}\n\n${previewTranslation.needsReview ? `**Review translation wording**\n${previewTranslation.ambiguityNotes.join("\n")}\n\n` : ""}Approve confirms the English reply and this translation.`
+          : envelope.replyTranslation === "off"
+            ? "Send as written"
+            : `Translate to ${envelope.replyTranslation}`;
         const chunks = splitDiscordMessage(
-          `**Agent ${envelope.agent.name} · Draft**\n${envelope.originalText}\n\n${envelope.replyTranslation === "off" ? "Send as written" : `Translate to ${envelope.replyTranslation}`}`,
+          `**Agent ${envelope.agent.name} · Draft**\n${envelope.originalText}\n\n${translationPreview}`,
         );
         for (const [index, content] of chunks.entries()) {
           const posted = await step.do(`post-agent-draft-${index}`, DISCORD_STEP, () =>
@@ -754,6 +784,15 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
               "INSERT INTO agent_draft_chunk(discord_message_id,discord_thread_id,message_id,chunk_index) VALUES (?,?,?,?) ON CONFLICT(message_id,chunk_index) DO NOTHING",
             )
               .bind(posted.message.id, target.discordThreadId, envelope.messageId, index)
+              .run();
+          });
+        }
+        if (previewTranslation) {
+          await step.do("mark-draft-preview-posted", DATABASE_STEP, async () => {
+            await this.env.DB.prepare(
+              "UPDATE agent_draft_preview SET posted_at=coalesce(posted_at,?) WHERE message_id=?",
+            )
+              .bind(Date.now(), envelope.messageId)
               .run();
           });
         }
@@ -812,13 +851,38 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
           auditContent = `**Available in chat · sent as written**\n${envelope.originalText}`;
         } else {
           stage = "translation";
-          const context = await step.do("load-translation-context", DATABASE_STEP, () =>
-            loadTranslationContext(this.env, envelope, generation),
-          );
-          const translation = await step.do("translate-message", TRANSLATION_STEP, () =>
-            translate(this.env, envelope, context),
-          );
-          if (translation.needsReview && envelope.replyTranslation !== undefined) {
+          const translation =
+            previewTranslation ??
+            (await (async () => {
+              const context = await step.do("load-translation-context", DATABASE_STEP, () =>
+                loadTranslationContext(this.env, envelope, generation),
+              );
+              return step.do("translate-message", TRANSLATION_STEP, () =>
+                translate(this.env, envelope, context),
+              );
+            })());
+          if (previewTranslation) {
+            const resultJson = JSON.stringify(previewTranslation);
+            await step.do("save-approved-draft-review", DATABASE_STEP, async () => {
+              await this.env.DB.prepare(`INSERT INTO reply_review(message_id,generation,result_json,confirmed_by,created_at)
+                SELECT p.message_id,?,p.result_json,p.confirmed_by,? FROM agent_draft_preview p JOIN agent_reply r ON r.message_id=p.message_id
+                WHERE p.message_id=? AND p.posted_at IS NOT NULL AND p.result_json=? AND p.confirmed_by=r.decided_by AND r.status='approved'
+                ON CONFLICT(message_id) DO NOTHING`)
+                .bind(generation, Date.now(), envelope.messageId, resultJson)
+                .run();
+              const review = await this.env.DB.prepare(
+                "SELECT confirmed_by,result_json,generation FROM reply_review WHERE message_id=?",
+              )
+                .bind(envelope.messageId)
+                .first<{ confirmed_by: string | null; result_json: string; generation: number }>();
+              if (
+                !review?.confirmed_by ||
+                review.result_json !== resultJson ||
+                review.generation !== generation
+              )
+                permanent(new Error("Draft translation approval is missing or differs"), "review");
+            });
+          } else if (translation.needsReview && envelope.replyTranslation !== undefined) {
             await step.do("save-reply-review", DATABASE_STEP, async () => {
               await this.env.DB.prepare(
                 "INSERT INTO reply_review (message_id, generation, result_json, created_at) VALUES (?, ?, ?, ?) ON CONFLICT(message_id) DO UPDATE SET generation = excluded.generation, result_json = excluded.result_json, confirmed_by = NULL, created_at = excluded.created_at WHERE reply_review.generation < excluded.generation",

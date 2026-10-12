@@ -499,7 +499,11 @@ export function createAgentApp() {
         originalText: request.text,
         replyTranslation: translate,
         replyTranslationRequest: request.translate,
-        agent: { name: auth.name, mode: request.mode },
+        agent: {
+          name: auth.name,
+          mode: request.mode,
+          ...(request.mode === "draft" && translate !== "off" ? { previewTranslation: true } : {}),
+        },
       });
       await c.env.DB.prepare(`INSERT INTO agent_reply(message_id,workspace_id,inbox_id,thread_id,idempotency_key,request_json,envelope,mode,status,basis_row_id,created_at)
         SELECT ?,workspace_id,inbox_id,id,?,?,?,?,?,coalesce((SELECT max(row_id) FROM message WHERE thread_id=thread.id),0),?
