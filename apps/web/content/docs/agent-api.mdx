@@ -8,7 +8,7 @@ icon: Bot
 
 The `/v1/agent` API lets one agent per inbox read conversations, claim work, send replies, submit drafts for approval in Discord, and close or reopen threads. It uses the same MessageWorkflow as human replies: customer publication, optional translation, read receipts, delayed reply email, and Discord audit notes.
 
-Agents poll for work. This version does not include MCP, an assignment UI, or webhooks. A running server needs migrations through `0010_thread_flow.sql` and a configured agent credential before these routes are usable. Deployment and credential provisioning are separate from installing an SDK.
+Agents poll for work. This version does not include MCP, an assignment UI, or webhooks. A running server needs migrations through `0011_draft_translation_approval.sql` and a configured agent credential before these routes are usable. Deployment and credential provisioning are separate from installing an SDK.
 
 ## Credentials and identity
 
@@ -72,13 +72,15 @@ Every listed thread includes `lastCustomerAt`, `lastOperatorAt`, and `lastAgentA
 
 `GET /v1/agent/threads?needsAgent=1` selects **open** threads with a customer message, human operator reply, or operator note whose sequence is greater than the inbox agent's acknowledged cursor. Agent notes and replies do not wake the agent. This state is stored per thread for the inbox's single agent, shared across run IDs and credential rotation. One list request supplies the wake signal and context needed to choose work; follow `nextCursor` if the result exceeds the list limit.
 
+Threads that predate migration 0010 remain in `needsAgent=1` with acknowledgement `0` until acknowledged; runners should baseline-ack historical threads at go-live and page both lists and transcripts to the end.
+
 For each selected thread, read all transcript pages, process the messages and notes, then `POST /v1/agent/threads/:id/ack {"through":"<last-read-through>"}`. The response contains `acknowledgedCursor`. Acknowledgement advances monotonically; replay or an older cursor cannot rewind it. `through` must be `"0"` or a sequence belonging to this thread; future and other-thread cursors return `400`. Acknowledge only what was actually read, never a guessed cursor or a timestamp. An event arriving after the acknowledged sequence remains eligible on the next poll. Writing a note or reply does not implicitly acknowledge anything.
 
 ### Discord thread commands
 
 Allowlisted operators can use `/agent message:<text>` inside a mapped support thread. It stores an operator note of kind `steer` with the operator's Discord identity, echoes it in the thread, and wakes the agent. It does not reply to the customer. Retried interactions preserve one note.
 
-Right-click any chunk of an agent draft and choose **Apps → Approve draft** or **Apps → Reject draft**. These use the same authorization, first-decision-wins behavior, and stale-draft checks as the existing buttons. Operator steering notes also invalidate unpublished drafts; agent notes do not. The front desk registers these commands after merge, alongside the existing commands.
+Right-click any chunk of an agent draft and choose **Apps → Approve draft** or **Apps → Reject draft**. These use the same authorization, first-decision-wins behavior, and stale-draft checks as the existing buttons. Operator steering notes invalidate pending drafts, but preserve a draft an operator has already approved; agent notes do not invalidate drafts. The front desk registers these commands after merge, alongside the existing commands.
 
 ### Send or draft
 
@@ -96,9 +98,11 @@ A normal `202` response includes `messageId`, `mode`, approval `status`, `accept
 
 If Workflow acceptance cannot be confirmed, the API returns `503` with `acceptance: "acceptance_unknown"` and the same message ID. Retry the exact request. If a retained workflow is `errored` or `terminated`, inspect `processingStatus`, `failureCode`, and the customer transcript before recovery; The API does not automatically restart failed workflows. Rejected or stale drafts return their recorded status with `200` and cannot be revived by replay.
 
-`translate` defaults to `off`, sending the text as written. Set an explicit language code such as `fr`, or `customer` to use the persisted detected customer language. Translation must be enabled for the inbox. An unknown customer language or disabled translation returns `409`; browser locale is not used as evidence of message language. The chosen target is frozen on the first accepted request. Translation failure leaves the answer unavailable. If translation needs review, Discord receives the original and translated text with an **Approve translation** button; only an allowlisted operator can release it.
+`translate` defaults to `off`, sending the text as written. Set an explicit language code such as `fr`, or `customer` to use the persisted detected customer language. Translation must be enabled for the inbox. An unknown customer language or disabled translation returns `409`; browser locale is not used as evidence of message language. The chosen target is frozen on the first accepted request. Translation failure leaves the answer unavailable. For `mode: "send"`, an uncertain translation still uses the existing **Approve translation** review button; only an allowlisted operator can release it.
 
-With `mode: "draft"` and `translate: "customer"`, Discord shows the English draft. One draft approval delivers the translated reply when translation succeeds without review. If the translator marks the result uncertain (`needsReview`), the existing translation-review gate still requires a second tap. The proposed follow-up is to translate before posting the draft and let one approval cover the displayed English and translated text; this release preserves the review gate.
+New translated drafts (`mode: "draft"` with `translate: "customer"` or an explicit language) translate before posting. Discord shows the English reply, exact proposed translation, and any translation warnings. One **Approve** or **Approve draft** confirms both texts, including uncertain translations; publication reuses that stored result without translating again. Approval waits until every preview chunk is posted. **Reject** sends nothing. The stored review names the operator who approved; the workflow never auto-confirms a translation.
+
+Drafts accepted before this change keep their original frozen approval flow. If an already-approved legacy draft is waiting for **Approve translation**, an `/agent` steer note preserves that approval and the existing translation button still works. New customer messages, human replies, or closing the thread retain their existing stale-draft protections.
 
 ### Discord approval
 
