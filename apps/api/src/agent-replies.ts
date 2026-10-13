@@ -108,18 +108,34 @@ export async function decideAgentDraft(
   if (available) return "Draft approved; the reply is already available in chat.";
 
   const envelope = agentOperatorEnvelopeSchema.parse(JSON.parse(row.envelope));
-  await env.DB.prepare(
-    "UPDATE agent_reply SET status=?,decided_by=?,decided_at=? WHERE message_id=? AND status='pending'",
-  )
-    .bind(
+  const decision =
+    env.DB.prepare(`UPDATE agent_reply SET status=?,decided_by=?,decided_at=? WHERE message_id=? AND status='pending'
+    AND (?=0 OR ?='reject' OR EXISTS (SELECT 1 FROM agent_draft_preview p WHERE p.message_id=agent_reply.message_id AND p.posted_at IS NOT NULL))`).bind(
       interaction.action === "approve" ? "approved" : "rejected",
       interaction.operatorUserId,
       Date.now(),
       interaction.messageId,
-    )
-    .run();
+      envelope.agent.previewTranslation ? 1 : 0,
+      interaction.action,
+    );
+  if (envelope.agent.previewTranslation) {
+    await env.DB.batch([
+      decision,
+      env.DB.prepare(`UPDATE agent_draft_preview SET confirmed_by=(SELECT decided_by FROM agent_reply WHERE message_id=?)
+        WHERE message_id=? AND posted_at IS NOT NULL AND confirmed_by IS NULL AND ?='approve'
+        AND EXISTS (SELECT 1 FROM agent_reply r WHERE r.message_id=agent_draft_preview.message_id AND r.status='approved')`).bind(
+        interaction.messageId,
+        interaction.messageId,
+        interaction.action,
+      ),
+    ]);
+  } else {
+    await decision.run();
+  }
   const canonical = await agentReplyState(env, interaction.messageId);
   if (!canonical) throw new Error("Draft disappeared during approval");
+  if (canonical.status === "pending")
+    return "The translation preview is not fully posted yet. Try again after it is ready.";
   const instance = await env.MESSAGE_WORKFLOW.get(envelope.workflowInstanceId);
   const status = await instance.status();
   if (!["complete", "errored", "terminated"].includes(status.status)) {
