@@ -24,6 +24,7 @@
     "db:migrate:staging": "vp -C apps/api run db:migrate:staging",
     "config:apply": "vp -C apps/api exec tsx scripts/config-apply.ts",
     "discord:commands:apply": "vp -C apps/api exec tsx scripts/discord-register.ts",
+    "discord:operators:join": "vp -C apps/api exec tsx scripts/discord-join-operators.ts",
     "localization:generate": "vp exec node --import tsx scripts/generate-localizations.ts",
     "localization:check": "vp exec node --import tsx scripts/generate-localizations.ts --check",
     "test:release": "node --test scripts/npm-release.test.mjs"

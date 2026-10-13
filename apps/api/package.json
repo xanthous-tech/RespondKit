@@ -13,7 +13,8 @@
     "db:migrate:local": "vp exec wrangler d1 migrations apply respondkit --local",
     "db:migrate:staging": "vp exec wrangler d1 migrations apply respondkit-staging --remote --env staging",
     "config:apply": "vp exec tsx scripts/config-apply.ts",
-    "discord:commands:apply": "vp exec tsx scripts/discord-register.ts"
+    "discord:commands:apply": "vp exec tsx scripts/discord-register.ts",
+    "discord:operators:join": "vp exec tsx scripts/discord-join-operators.ts"
   },
   "dependencies": {
     "@respondkit/conversations": "workspace:*",

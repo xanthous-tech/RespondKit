@@ -475,3 +475,16 @@ it("adds an encoded read checkmark using an idempotent PUT and accepts Discord's
     expect.objectContaining({ method: "PUT", headers: { authorization: "Bot test-token" } }),
   );
 });
+
+it("adds a thread member with an idempotent PUT and no body, so nobody is pinged", async () => {
+  const fetch = vi
+    .fn<typeof globalThis.fetch>()
+    .mockResolvedValue(new Response(null, { status: 204 }));
+  const client = new DiscordRestClient({ botToken: "test-token", fetch });
+  await client.addThreadMember("100000000000000003", "100000000000000004");
+  expect(fetch).toHaveBeenCalledWith(
+    "https://discord.com/api/v10/channels/100000000000000003/thread-members/100000000000000004",
+    expect.objectContaining({ method: "PUT", headers: { authorization: "Bot test-token" } }),
+  );
+  expect(fetch.mock.calls[0]![1]).not.toHaveProperty("body");
+});

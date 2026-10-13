@@ -655,6 +655,16 @@ export class DiscordRestClient {
     );
   }
 
+  /**
+   * Adds a member to a thread without a ping. Members of a forum post get its
+   * notifications; posts the bot creates have no members otherwise. Idempotent.
+   */
+  async addThreadMember(threadId: string, userId: string): Promise<void> {
+    assertIdentifier(threadId, "Discord thread ID");
+    assertIdentifier(userId, "Discord user ID");
+    return this.#request("PUT", `/channels/${threadId}/thread-members/${userId}`, () => undefined);
+  }
+
   /** Discord PUT is idempotent: retries keep a single bot-owned checkmark. */
   async addReadReaction(channelId: string, messageId: string): Promise<void> {
     assertIdentifier(channelId, "Discord channel ID");
