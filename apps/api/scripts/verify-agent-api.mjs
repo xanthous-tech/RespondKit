@@ -375,11 +375,8 @@ try {
   });
   for (let attempt = 0; attempt < 100 && posts.length < 3; attempt++) await delay(100);
   assert.equal(Number(posts.length), 3);
-  const buttons = posts[2].components[0].components;
-  assert.deepEqual(
-    buttons.map((button) => button.label),
-    ["Approve", "Reject"],
-  );
+  assert(!posts[2].components, "a draft is one plain message without buttons");
+  assert(posts[2].content.includes("Draft, not sent"));
   const before = await curl(`/v1/threads/${threadId}/messages`, { headers: customerHeaders });
   assert(!JSON.stringify(before).includes("You can export as text or subtitles."));
   const interaction = JSON.stringify({
@@ -391,7 +388,8 @@ try {
     channel_id: ids.channel,
     channel: { type: 11, parent_id: ids.forum },
     member: { user: { id: ids.operator }, roles: [] },
-    data: { custom_id: buttons[0].custom_id, component_type: 2 },
+    // Drafts no longer carry buttons; this exercises the retained handler for drafts posted earlier.
+    data: { custom_id: `agent:approve:${drafted.messageId}`, component_type: 2 },
   });
   const timestamp = String(Math.floor(Date.now() / 1000));
   const signature = sign(null, Buffer.from(timestamp + interaction), privateKey).toString("hex");
