@@ -255,6 +255,24 @@ export async function acceptReplyIngress(
   );
 }
 
+/** Operators allowlisted by user id; they are added to every post the integration creates. */
+export async function listDiscordOperatorUserIds(
+  db: DrizzleD1Database,
+  input: { readonly integrationId: string; readonly workspaceId: WorkspaceId },
+): Promise<string[]> {
+  const rows = await db
+    .select({ principalId: discordOperatorAllowlists.principalId })
+    .from(discordOperatorAllowlists)
+    .where(
+      and(
+        eq(discordOperatorAllowlists.integrationId, input.integrationId),
+        eq(discordOperatorAllowlists.workspaceId, input.workspaceId),
+        eq(discordOperatorAllowlists.principalType, "user"),
+      ),
+    );
+  return rows.map((row) => row.principalId).sort();
+}
+
 export async function findDiscordIntegrationForInbox(
   db: DrizzleD1Database,
   input: {

@@ -28,6 +28,7 @@ import {
   findDiscordIntegrationForInbox,
   findDiscordThread,
   formatOperatorReplyAuditContent,
+  listDiscordOperatorUserIds,
   languageDisplayName,
   markDiscordProjectionFailed,
   markDiscordProjectionSent,
@@ -533,6 +534,29 @@ async function ensureDiscordThread(
       throw new Error("Discord thread claim was lost during finalization");
     }
     return { discordThreadId: result.thread.discordThreadId };
+  });
+
+  // Join allowlisted operators before the first customer message lands, so their
+  // Discord apps notify them about every message in the post. Never blocks the mirror.
+  await step.do(`${prefix}-join-operators`, DISCORD_STEP, async () => {
+    const userIds = await listDiscordOperatorUserIds(database(env), {
+      integrationId: integration.id,
+      workspaceId: envelope.workspaceId,
+    });
+    const failed: string[] = [];
+    for (const userId of userIds) {
+      try {
+        await discordClient(env).addThreadMember(finalized.discordThreadId, userId);
+      } catch (error) {
+        failed.push(
+          error instanceof DiscordRestError ? String(error.status ?? "network") : "error",
+        );
+      }
+    }
+    if (failed.length > 0) {
+      console.warn("discord_join_operators_failed", { threadId: envelope.threadId, failed });
+    }
+    return { joined: userIds.length - failed.length, failed: failed.length };
   });
   return { integration, discordThreadId: finalized.discordThreadId };
 }
