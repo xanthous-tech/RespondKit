@@ -763,12 +763,14 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
         }
         const target = await ensureDiscordThread(step, this.env, envelope, "draft-discord");
         const translationPreview = previewTranslation
-          ? `**Translation (${previewTranslation.targetLanguage})**\n${previewTranslation.translatedText}\n\n${previewTranslation.needsReview ? `**Review translation wording**\n${previewTranslation.ambiguityNotes.join("\n")}\n\n` : ""}Approve confirms the English reply and this translation.`
+          ? `**Translation (${previewTranslation.targetLanguage})**\n${previewTranslation.translatedText}\n\n${previewTranslation.needsReview ? `**Review translation wording**\n${previewTranslation.ambiguityNotes.join("\n")}\n\n` : ""}Approving confirms the English reply and this translation.\n`
           : envelope.replyTranslation === "off"
-            ? "Send as written"
-            : `Translate to ${envelope.replyTranslation}`;
+            ? "Sends as written.\n"
+            : `Translates to ${envelope.replyTranslation} when approved.\n`;
+        // One message, no buttons: the draft must never look sent. Operators decide with the
+        // Approve draft / Reject draft message commands (right-click, or long-press on a phone).
         const chunks = splitDiscordMessage(
-          `**Agent ${envelope.agent.name} · Draft**\n${envelope.originalText}\n\n${translationPreview}`,
+          `**Agent ${envelope.agent.name} · Draft, not sent**\n${envelope.originalText}\n\n${translationPreview}_To send it: right-click this message (long-press on a phone) → Apps → **Approve draft**. **Reject draft** discards it._`,
         );
         for (const [index, content] of chunks.entries()) {
           const posted = await step.do(`post-agent-draft-${index}`, DISCORD_STEP, () =>
@@ -777,29 +779,6 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
                 channelId: target.discordThreadId,
                 content,
                 nonce: createDiscordNonce(`draft:${envelope.messageId}`, index),
-                ...(index === chunks.length - 1
-                  ? {
-                      components: [
-                        {
-                          type: 1 as const,
-                          components: [
-                            {
-                              type: 2 as const,
-                              style: 3 as const,
-                              label: "Approve",
-                              custom_id: `agent:approve:${envelope.messageId}`,
-                            },
-                            {
-                              type: 2 as const,
-                              style: 4 as const,
-                              label: "Reject",
-                              custom_id: `agent:reject:${envelope.messageId}`,
-                            },
-                          ],
-                        },
-                      ],
-                    }
-                  : {}),
               }),
             ),
           );

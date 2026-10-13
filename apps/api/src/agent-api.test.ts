@@ -417,10 +417,10 @@ it("posts a private-to-operators draft then accepts only signed allowlisted appr
     expect(response.status).toBe(202);
     const { messageId } = await response.json<{ messageId: string }>();
     await vi.waitFor(() => expect(posts).toHaveLength(1));
-    expect(posts[0]?.components?.[0]?.components.map((button) => button.label)).toEqual([
-      "Approve",
-      "Reject",
-    ]);
+    // One plain message: no buttons, clearly not sent; operators use the Approve/Reject draft commands.
+    expect(posts[0]?.components).toBeUndefined();
+    expect(posts[0]?.content).toContain("· Draft, not sent**\nDraft answer");
+    expect(posts[0]?.content).toContain("Apps → **Approve draft**");
     expect(await env.DB.prepare("SELECT count(*) n FROM message").first("n")).toBe(0);
     const unsigned = await app.request(
       "/v1/discord/interactions",
