@@ -138,6 +138,8 @@ export function MessageComposer({ disabled, onSend, onUpload, scope }: MessageCo
         type="button"
         variant="ghost"
         size="icon-lg"
+        // The same 44px box as the textarea and the send button, so the three share one row height.
+        className="ac:size-11 ac:shrink-0"
         disabled={disabled}
         onClick={() => fileInput.current?.click()}
         aria-label="Attach files"
@@ -158,7 +160,7 @@ export function MessageComposer({ disabled, onSend, onUpload, scope }: MessageCo
       <Button
         type="submit"
         size="icon-lg"
-        className="ac:size-11"
+        className="ac:size-11 ac:shrink-0"
         disabled={!canSend}
         aria-label="Send message"
       >

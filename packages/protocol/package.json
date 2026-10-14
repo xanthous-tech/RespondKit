@@ -1,6 +1,6 @@
 {
   "name": "@respondkit/protocol",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Versioned public protocol for RespondKit customer clients",
   "keywords": [
     "customer-support",

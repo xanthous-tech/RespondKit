@@ -268,6 +268,8 @@ describe("RespondKitWidget", () => {
     const sendButton = screen.getByRole("button", { name: "Send message" });
     expect(composer).toHaveClass("ac:min-h-11");
     expect(sendButton).toHaveClass("ac:size-11");
+    // The attach button shares the composer row's 44px height, so the three controls line up.
+    expect(screen.getByRole("button", { name: "Attach files" })).toHaveClass("ac:size-11");
 
     await waitFor(() => expect(composer).toBeEnabled());
     await user.type(composer, "Customer message{Enter}");
