@@ -1592,3 +1592,98 @@ it("does not auto-confirm a translation from approved draft status alone", async
     await workflows.dispose();
   }
 });
+
+it("lists a message's attachments with the agent's download path, and serves them only to that inbox's agent in that thread", async () => {
+  const { threadId } = await createCustomerFixture();
+  const other = await createCustomerFixture();
+  await customerMessage(threadId, "Here is a screenshot");
+  const message = await env.DB.prepare(
+    "SELECT m.id,t.visitor_id FROM message m JOIN thread t ON t.id=m.thread_id WHERE m.thread_id=? ORDER BY m.row_id DESC LIMIT 1",
+  )
+    .bind(threadId)
+    .first<{ id: string; visitor_id: string }>();
+  const attachmentId = `att_${"a".repeat(64)}`;
+  const key = `${TEST_TOPOLOGY.workspaceId}/${TEST_TOPOLOGY.inboxId}/${attachmentId}`;
+  const bucket = (env as unknown as { ATTACHMENTS: R2Bucket }).ATTACHMENTS;
+  await bucket.put(key, "jpeg-bytes");
+  await env.DB.prepare(`INSERT INTO attachment
+    (id,workspace_id,inbox_id,visitor_id,object_key,download_token,download_url,name,content_type,size,upload_id,part_size,status,message_id)
+    VALUES (?,?,?,?,?,?,?,?,?,?,'',1,'ready',?)`)
+    .bind(
+      attachmentId,
+      TEST_TOPOLOGY.workspaceId,
+      TEST_TOPOLOGY.inboxId,
+      message!.visitor_id,
+      key,
+      "b".repeat(64),
+      `https://api.example/v1/files/${"b".repeat(64)}`,
+      "touch.jpg",
+      "image/jpeg",
+      10,
+      message!.id,
+    )
+    .run();
+  const listed = {
+    id: attachmentId,
+    name: "touch.jpg",
+    contentType: "image/jpeg",
+    size: 10,
+    downloadUrl: `https://api.example/v1/files/${"b".repeat(64)}`,
+  };
+  await env.DB.prepare("UPDATE message SET attachments=? WHERE id=?")
+    .bind(JSON.stringify([listed]), message!.id)
+    .run();
+  const runtime = { ATTACHMENTS: bucket } as Partial<Env>;
+
+  const read = await (
+    await request(`/threads/${threadId}`, undefined, "one", runtime)
+  ).json<{
+    messages: Array<{ id: string; attachments: unknown[] }>;
+  }>();
+  const path = `/v1/agent/threads/${threadId}/attachments/${attachmentId}`;
+  expect(read.messages.find((m) => m.id === message!.id)!.attachments).toEqual([
+    { ...listed, agentDownloadPath: path },
+  ]);
+
+  const download = await request(
+    `/threads/${threadId}/attachments/${attachmentId}`,
+    undefined,
+    "one",
+    runtime,
+  );
+  expect(download.status).toBe(200);
+  expect(download.headers.get("content-type")).toBe("application/octet-stream");
+  expect(download.headers.get("x-attachment-content-type")).toBe("image/jpeg");
+  expect(download.headers.get("content-disposition")).toContain("touch.jpg");
+  expect(await download.text()).toBe("jpeg-bytes");
+  // Not from another thread's path, not for an unknown id, not without the token.
+  expect(
+    (
+      await request(
+        `/threads/${other.threadId}/attachments/${attachmentId}`,
+        undefined,
+        "one",
+        runtime,
+      )
+    ).status,
+  ).toBe(404);
+  expect(
+    (
+      await request(
+        `/threads/${threadId}/attachments/att_${"c".repeat(64)}`,
+        undefined,
+        "one",
+        runtime,
+      )
+    ).status,
+  ).toBe(404);
+  expect(
+    (
+      await app.request(
+        `/v1/agent${`/threads/${threadId}/attachments/${attachmentId}`}`,
+        {},
+        { ...apiEnv, ...runtime },
+      )
+    ).status,
+  ).toBe(401);
+});
