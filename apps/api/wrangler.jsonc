@@ -22,6 +22,12 @@
       "migrations_dir": "migrations",
     },
   ],
+  "r2_buckets": [
+    {
+      "binding": "ATTACHMENTS",
+      "bucket_name": "respondkit-attachments",
+    },
+  ],
   "workflows": [
     {
       "name": "respondkit-translation",
@@ -57,6 +63,12 @@
           "database_name": "respondkit-staging",
           "database_id": "cbd8c612-bd74-4a95-8bf7-f479e9e2c51f",
           "migrations_dir": "migrations",
+        },
+      ],
+      "r2_buckets": [
+        {
+          "binding": "ATTACHMENTS",
+          "bucket_name": "respondkit-attachments-staging",
         },
       ],
       "workflows": [
