@@ -1592,3 +1592,100 @@ it("does not auto-confirm a translation from approved draft status alone", async
     await workflows.dispose();
   }
 });
+
+it("lets the agent approve its own pending draft once, racing the operator's tap without a second reply", async () => {
+  const { threadId } = await createCustomerFixture();
+  await seedReadyDiscordThread(threadId);
+  const posts = mockDiscord();
+  const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+  try {
+    await workflows.modifyAll(async (modifier) => modifier.disableRetryDelays());
+    const { messageId } = await (
+      await request(`/threads/${threadId}/replies`, {
+        text: "Timed out draft",
+        mode: "draft",
+        idempotencyKey: "timeout-approve",
+      })
+    ).json<{ messageId: string }>();
+    await vi.waitFor(() => expect(posts).toHaveLength(1));
+    const approve = () => request(`/threads/${threadId}/replies/${messageId}/approve`, {});
+    const [first, tap] = await Promise.all([approve(), signedDecision(messageId)]);
+    expect(first.status).toBe(200);
+    expect((await first.json<{ outcome: string }>()).outcome).toBe("approved");
+    expect(await tap.text()).toContain("approved");
+    await (await workflows.get())[0]!.waitForStatus("complete");
+    expect((await (await approve()).json<{ outcome: string }>()).outcome).toBe("available");
+    expect(
+      await env.DB.prepare("SELECT decided_by FROM agent_reply WHERE message_id=?")
+        .bind(messageId)
+        .first("decided_by"),
+    ).toMatch(/^(agent:Helper|[0-9]+)$/);
+    expect(
+      await env.DB.prepare(
+        "SELECT count(*) n FROM message WHERE id=? AND customer_availability='available'",
+      )
+        .bind(messageId)
+        .first("n"),
+    ).toBe(1);
+    expect(posts).toHaveLength(2);
+  } finally {
+    await workflows.dispose();
+  }
+});
+
+it("never publishes a draft the agent approves after the conversation moved on, or under another holder's claim", async () => {
+  const { threadId } = await createCustomerFixture();
+  await seedReadyDiscordThread(threadId);
+  const posts = mockDiscord();
+  const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+  try {
+    const { messageId } = await (
+      await request(`/threads/${threadId}/replies`, {
+        text: "Old draft",
+        mode: "draft",
+        idempotencyKey: "timeout-stale",
+      })
+    ).json<{ messageId: string }>();
+    await vi.waitFor(() => expect(posts).toHaveLength(1));
+    await request(`/threads/${threadId}/claim`, { leaseSeconds: 60 }, "other");
+    expect((await request(`/threads/${threadId}/replies/${messageId}/approve`, {})).status).toBe(
+      409,
+    );
+    await request(`/threads/${threadId}/release`, {}, "other");
+    await customerMessage(threadId, "Actually, another question");
+    const stale = await request(`/threads/${threadId}/replies/${messageId}/approve`, {});
+    expect((await stale.json<{ outcome: string }>()).outcome).toBe("stale");
+    expect(
+      await env.DB.prepare("SELECT count(*) n FROM message WHERE id=?").bind(messageId).first("n"),
+    ).toBe(0);
+    expect(
+      (await request(`/threads/${threadId}/replies/msg_agent_missing/approve`, {})).status,
+    ).toBe(404);
+  } finally {
+    await workflows.dispose();
+  }
+});
+
+it("leaves a translated draft for an operator, who confirms the translation with the approval", async () => {
+  const { threadId } = await createCustomerFixture();
+  const { messageId } = await (
+    await request(
+      `/threads/${threadId}/replies`,
+      {
+        text: "Translated draft",
+        mode: "draft",
+        idempotencyKey: "timeout-translated",
+        translate: "fr",
+      },
+      "one",
+      fakeWorkflow(),
+    )
+  ).json<{ messageId: string }>();
+  const refused = await request(`/threads/${threadId}/replies/${messageId}/approve`, {});
+  expect(refused.status).toBe(409);
+  expect(
+    await env.DB.prepare("SELECT status FROM agent_reply WHERE message_id=?")
+      .bind(messageId)
+      .first("status"),
+  ).toBe("pending");
+});
