@@ -43,27 +43,6 @@ export async function acceptAgentIngress(env: Env, envelope: AgentOperatorEnvelo
   });
 }
 
-async function alreadySent(
-  env: Env,
-  where:
-    | { discordMessageId: string; discordThreadId: string }
-    | { messageId: string; threadId: string },
-): Promise<string | null> {
-  const sent = await env.DB.prepare(
-    `SELECT min(dm.created_at) sent_at FROM discord_message dm JOIN message m ON m.id=dm.message_id
-    WHERE m.author_kind='agent' AND m.customer_availability='available' AND dm.projection_kind='available_audit'
-    AND ${"messageId" in where ? "m.id=? AND m.thread_id=?" : "dm.discord_message_id=? AND dm.discord_thread_id=?"}`,
-  )
-    .bind(
-      ...("messageId" in where
-        ? [where.messageId, where.threadId]
-        : [where.discordMessageId, where.discordThreadId]),
-    )
-    .first<{ sent_at: number | null }>();
-  if (sent?.sent_at == null) return null;
-  return `That agent reply was already sent to the customer at <t:${Math.floor(sent.sent_at / 1000)}:f>; it can't be approved or retranslated. Use /reply to send a correction.`;
-}
-
 export async function decideAgentDraft(
   env: Env,
   interaction: ParsedDiscordAgentDecisionInteraction | ParsedDiscordAgentContextInteraction,
@@ -85,13 +64,7 @@ export async function decideAgentDraft(
     )
       .bind(interaction.targetMessageId, interaction.discordThreadId)
       .first<{ message_id: string }>();
-    if (!chunk)
-      return (
-        (await alreadySent(env, {
-          discordMessageId: interaction.targetMessageId,
-          discordThreadId: interaction.discordThreadId,
-        })) ?? "Draft not found in this support thread."
-      );
+    if (!chunk) return "Draft not found in this support thread.";
     return decideAgentDraft(env, {
       ...interaction,
       command: "agent_decision",
@@ -266,13 +239,7 @@ export async function approveAgentDraftCommand(
     )
       .bind(discordMessageId, interaction.discordThreadId)
       .first<{ message_id: string }>();
-    if (!chunk)
-      return (
-        (await alreadySent(env, {
-          discordMessageId,
-          discordThreadId: interaction.discordThreadId,
-        })) ?? "That message is not an agent draft in this support thread."
-      );
+    if (!chunk) return "That message is not an agent draft in this support thread.";
     messageId = chunk.message_id;
   }
   const row = await env.DB.prepare(
@@ -280,11 +247,7 @@ export async function approveAgentDraftCommand(
   )
     .bind(messageId, threadId, inboxId)
     .first<{ idempotency_key: string; envelope: string; status: string; basis_row_id: number }>();
-  if (!row)
-    return (
-      (await alreadySent(env, { messageId, threadId })) ??
-      "That message is not an agent draft in this support thread."
-    );
+  if (!row) return "That message is not an agent draft in this support thread.";
   const previous = agentOperatorEnvelopeSchema.parse(JSON.parse(row.envelope));
 
   let language = interaction.translate;
