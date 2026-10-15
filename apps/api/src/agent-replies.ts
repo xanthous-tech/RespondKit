@@ -96,32 +96,78 @@ export async function decideAgentDraft(
     });
     return "Agent translation approved for delivery.";
   }
+  const outcome = await applyAgentDraftDecision(env, {
+    messageId: interaction.messageId,
+    threadId: authorized.thread.threadId,
+    inboxId: authorized.integration.inboxId,
+    action: interaction.action === "approve" ? "approve" : "reject",
+    decidedBy: interaction.operatorUserId,
+  });
+  return DECISION_TEXT[outcome];
+}
+
+export type AgentDraftOutcome =
+  | "not-found"
+  | "rejected"
+  | "stale"
+  | "available"
+  | "preview-pending"
+  | "approved"
+  | "approved-workflow-failed";
+
+const DECISION_TEXT: Record<AgentDraftOutcome, string> = {
+  "not-found": "Draft not found in this support thread.",
+  rejected: "Draft rejected; no reply was sent.",
+  stale: "Draft is stale because the conversation changed. Submit a new draft.",
+  available: "Draft approved; the reply is already available in chat.",
+  "preview-pending":
+    "The translation preview is not fully posted yet. Try again after it is ready.",
+  approved: "Draft approved for delivery. Repeated approval will not send another reply.",
+  "approved-workflow-failed":
+    "Approval recorded, but the workflow failed. Check the agent reply status before retrying.",
+};
+
+/**
+ * Approves or rejects one pending agent draft. The status changes only from
+ * pending, in one conditional UPDATE, so an operator's tap and an agent's
+ * timeout approval racing each other deliver it at most once; a draft a new
+ * message, an operator reply or a steer made stale is never published.
+ */
+export async function applyAgentDraftDecision(
+  env: Env,
+  input: {
+    messageId: string;
+    threadId: string;
+    inboxId: string;
+    action: "approve" | "reject";
+    decidedBy: string;
+  },
+): Promise<AgentDraftOutcome> {
   const row = await env.DB.prepare(
     "SELECT envelope,status FROM agent_reply WHERE message_id=? AND thread_id=? AND inbox_id=? AND mode='draft'",
   )
-    .bind(interaction.messageId, authorized.thread.threadId, authorized.integration.inboxId)
+    .bind(input.messageId, input.threadId, input.inboxId)
     .first<{ envelope: string; status: string }>();
-  if (!row) return "Draft not found in this support thread.";
-  if (row.status === "rejected") return "Draft rejected; no reply was sent.";
-  if (row.status === "stale")
-    return "Draft is stale because the conversation changed. Submit a new draft.";
+  if (!row) return "not-found";
+  if (row.status === "rejected") return "rejected";
+  if (row.status === "stale") return "stale";
   const available = await env.DB.prepare(
     "SELECT id FROM message WHERE id=? AND customer_availability='available'",
   )
-    .bind(interaction.messageId)
+    .bind(input.messageId)
     .first();
-  if (available) return "Draft approved; the reply is already available in chat.";
+  if (available) return "available";
 
   const envelope = agentOperatorEnvelopeSchema.parse(JSON.parse(row.envelope));
   const decision =
     env.DB.prepare(`UPDATE agent_reply SET status=?,decided_by=?,decided_at=? WHERE message_id=? AND status='pending'
     AND (?=0 OR ?='reject' OR EXISTS (SELECT 1 FROM agent_draft_preview p WHERE p.message_id=agent_reply.message_id AND p.posted_at IS NOT NULL))`).bind(
-      interaction.action === "approve" ? "approved" : "rejected",
-      interaction.operatorUserId,
+      input.action === "approve" ? "approved" : "rejected",
+      input.decidedBy,
       Date.now(),
-      interaction.messageId,
+      input.messageId,
       envelope.agent.previewTranslation ? 1 : 0,
-      interaction.action,
+      input.action,
     );
   if (envelope.agent.previewTranslation) {
     await env.DB.batch([
@@ -129,30 +175,27 @@ export async function decideAgentDraft(
       env.DB.prepare(`UPDATE agent_draft_preview SET confirmed_by=(SELECT decided_by FROM agent_reply WHERE message_id=?)
         WHERE message_id=? AND posted_at IS NOT NULL AND confirmed_by IS NULL AND ?='approve'
         AND EXISTS (SELECT 1 FROM agent_reply r WHERE r.message_id=agent_draft_preview.message_id AND r.status='approved')`).bind(
-        interaction.messageId,
-        interaction.messageId,
-        interaction.action,
+        input.messageId,
+        input.messageId,
+        input.action,
       ),
     ]);
   } else {
     await decision.run();
   }
-  const canonical = await agentReplyState(env, interaction.messageId);
+  const canonical = await agentReplyState(env, input.messageId);
   if (!canonical) throw new Error("Draft disappeared during approval");
-  if (canonical.status === "pending")
-    return "The translation preview is not fully posted yet. Try again after it is ready.";
+  if (canonical.status === "pending") return "preview-pending";
   const instance = await env.MESSAGE_WORKFLOW.get(envelope.workflowInstanceId);
   const status = await instance.status();
   if (!["complete", "errored", "terminated"].includes(status.status)) {
     await instance.sendEvent({ type: "agent-decision", payload: {} });
   }
-  if (canonical.status === "stale")
-    return "Draft is stale because the conversation changed. Submit a new draft.";
-  return canonical.status === "rejected"
-    ? "Draft rejected; no reply was sent."
-    : status.status === "errored" || status.status === "terminated"
-      ? "Approval recorded, but the workflow failed. Check the agent reply status before retrying."
-      : "Draft approved for delivery. Repeated approval will not send another reply.";
+  if (canonical.status === "stale") return "stale";
+  if (canonical.status === "rejected") return "rejected";
+  return status.status === "errored" || status.status === "terminated"
+    ? "approved-workflow-failed"
+    : "approved";
 }
 
 const DISCORD_MESSAGE_ID = /(\d{17,20})\/?$/;

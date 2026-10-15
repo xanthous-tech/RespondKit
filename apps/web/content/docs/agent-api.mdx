@@ -31,18 +31,19 @@ The limit is 120 authenticated requests per token per UTC minute, shared across 
 
 ## Routes
 
-| Method | Route                                             | Request / behavior                                                                                   |
-| ------ | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| GET    | `/v1/agent/threads`                               | Optional `needsAgent=1`, `needsReply=1`, `state=open\|closed`, `cursor`, `limit` (1–100, default 50) |
-| GET    | `/v1/agent/threads/:id`                           | Full transcript across pages; optional `cursor`, `limit` (1–100, default 100)                        |
-| POST   | `/v1/agent/threads/:id/notes`                     | `{ "kind": "reasoning", "text": "…", "idempotencyKey": "…" }`                                        |
-| POST   | `/v1/agent/threads/:id/ack`                       | `{ "through": "123" }` acknowledges an observed timeline cursor                                      |
-| POST   | `/v1/agent/threads/:id/claim`                     | `{ "leaseSeconds": 300 }`, integer 1–3600                                                            |
-| POST   | `/v1/agent/threads/:id/release`                   | Releases the caller's or an expired lease                                                            |
-| POST   | `/v1/agent/threads/:id/replies`                   | `{ "text": "…", "idempotencyKey": "…", "translate": "off", "mode": "send" }`                         |
-| GET    | `/v1/agent/threads/:id/attachments/:attachmentId` | Downloads one attachment of a message in the thread (see below)                                      |
-| POST   | `/v1/agent/threads/:id/close`                     | Closes the thread                                                                                    |
-| POST   | `/v1/agent/threads/:id/reopen`                    | Reopens the thread                                                                                   |
+| Method | Route                                              | Request / behavior                                                                                   |
+| ------ | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| GET    | `/v1/agent/threads`                                | Optional `needsAgent=1`, `needsReply=1`, `state=open\|closed`, `cursor`, `limit` (1–100, default 50) |
+| GET    | `/v1/agent/threads/:id`                            | Full transcript across pages; optional `cursor`, `limit` (1–100, default 100)                        |
+| POST   | `/v1/agent/threads/:id/notes`                      | `{ "kind": "reasoning", "text": "…", "idempotencyKey": "…" }`                                        |
+| POST   | `/v1/agent/threads/:id/ack`                        | `{ "through": "123" }` acknowledges an observed timeline cursor                                      |
+| POST   | `/v1/agent/threads/:id/claim`                      | `{ "leaseSeconds": 300 }`, integer 1–3600                                                            |
+| POST   | `/v1/agent/threads/:id/release`                    | Releases the caller's or an expired lease                                                            |
+| POST   | `/v1/agent/threads/:id/replies`                    | `{ "text": "…", "idempotencyKey": "…", "translate": "off", "mode": "send" }`                         |
+| GET    | `/v1/agent/threads/:id/attachments/:attachmentId`  | Downloads one attachment of a message in the thread (see below)                                      |
+| POST   | `/v1/agent/threads/:id/replies/:messageId/approve` | `{}` publishes the agent's own pending draft (see below)                                             |
+| POST   | `/v1/agent/threads/:id/close`                      | Closes the thread                                                                                    |
+| POST   | `/v1/agent/threads/:id/reopen`                     | Reopens the thread                                                                                   |
 
 Send `{}` for close, reopen, or release. Lease conflicts return `409`. Claims are optional, but a live lease held by another runner prevents claims, replies, release, close, and reopen. Reclaim with the same run ID to renew. A closed thread cannot be claimed or accept a new reply until reopened. An accepted reply keeps its identity and can be checked by replaying its original request.
 
@@ -112,6 +113,10 @@ Drafts accepted before this change keep their original frozen approval flow. If 
 Approval and rejection require a fresh, valid Discord Ed25519 signature, the configured application/guild/forum/thread mapping, and an allowlisted operator user or role. The first decision wins, records the operator and time, and survives retries. Duplicate approval delivers at most one canonical reply. Rejection records the outcome without publishing.
 
 A new durable customer or operator message, or closing the thread, invalidates an unpublished draft. Approval cannot override a stale decision, including while translation is pending. Submit a new draft with a new key after reading the conversation again. Leases coordinate agent runners; human Discord replies remain available throughout.
+
+### Approve your own draft
+
+`POST /v1/agent/threads/:id/replies/:messageId/approve` with `{}` publishes a pending draft the agent submitted, for example after an operator left it untapped for the inbox's timeout. It shares one conditional update with Discord's **Approve draft**: whichever comes first publishes the draft and the other changes nothing, so a race never sends a second reply. The response is `{ "messageId": "…", "outcome": "approved" }`; other outcomes are `available` (already published), `stale` (a newer message, operator reply, steer, or close came first; nothing is published), `rejected`, and `preview-pending`. A draft with a translation preview is refused with `409`, since only an operator can confirm its translation, and so is a thread under another runner's live lease.
 
 ### Attachments
 

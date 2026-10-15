@@ -1,4 +1,5 @@
 import { deliverNote, noteResponse, type InternalNote } from "./agent-notes";
+import { applyAgentDraftDecision } from "./agent-replies";
 import {
   closeThread,
   findThreadById,
@@ -565,6 +566,44 @@ export function createAgentApp() {
       },
       acceptance.kind === "unknown" ? 503 : 202,
     );
+  });
+  /**
+   * The agent approves its own pending draft, e.g. after Simon left it
+   * untapped for the inbox's timeout. One conditional update shared with the
+   * operator's Approve draft: whichever comes first publishes it, the other
+   * is a no-op, and a draft that went stale (new message, operator reply,
+   * steer, close) is never published. A translated draft keeps needing an
+   * operator, who confirms the translation with the approval.
+   */
+  app.post("/threads/:id/replies/:messageId/approve", async (c) => {
+    const { inbox, holder, name } = c.get("agent");
+    z.object({})
+      .strict()
+      .parse(await requestJson(c.req.raw));
+    const threadId = c.req.param("id");
+    const messageId = c.req.param("messageId");
+    const thread = await c.env.DB.prepare(
+      "SELECT id FROM thread WHERE id=? AND inbox_id=? AND workspace_id=? AND (claimed_by IS NULL OR claim_expires_at<=? OR claimed_by=?)",
+    )
+      .bind(threadId, inbox.inboxId, inbox.workspaceId, Date.now(), holder)
+      .first();
+    if (!thread) throw new HTTPException(409, { message: "Another holder has a live claim" });
+    const reply = await c.env.DB.prepare(
+      "SELECT envelope FROM agent_reply WHERE message_id=? AND thread_id=? AND inbox_id=? AND mode='draft'",
+    )
+      .bind(messageId, threadId, inbox.inboxId)
+      .first<{ envelope: string }>();
+    if (!reply) throw new HTTPException(404, { message: "Draft not found in this thread" });
+    if (agentOperatorEnvelopeSchema.parse(JSON.parse(reply.envelope)).agent.previewTranslation)
+      throw new HTTPException(409, { message: "A translated draft needs an operator's approval" });
+    const outcome = await applyAgentDraftDecision(c.env, {
+      messageId,
+      threadId,
+      inboxId: inbox.inboxId,
+      action: "approve",
+      decidedBy: `agent:${name}`,
+    });
+    return c.json({ messageId, outcome });
   });
   /**
    * One attachment of a message in this thread, for the agent to inspect: the
