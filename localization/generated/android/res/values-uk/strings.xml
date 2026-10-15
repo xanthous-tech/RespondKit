@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"Підтвердження…"</string>
     <string name="respondkit_connecting" formatted="false">"Підтримка ще підключається."</string>
     <string name="respondkit_conversation">"Розмова %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Розмова"</string>
     <string name="respondkit_conversations" formatted="false">"Розмови"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Розмови · %1$d непрочитана"</item>
@@ -32,6 +33,7 @@
     <string name="respondkit_history_failed" formatted="false">"Не вдалося завантажити історію розмови. Спробуйте «Ще» знову."</string>
     <string name="respondkit_history_save_failed" formatted="false">"Не вдалося зберегти історію звернень до підтримки."</string>
     <string name="respondkit_identity_changed" formatted="false">"Обліковий запис підтримки змінено в іншій вкладці. Перепідключіться, щоб перезавантажити свій обліковий запис."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"Не вдалося підтвердити особу для підтримки."</string>
     <string name="respondkit_intro" formatted="false">"Надішліть повідомлення й не закривайте цю сторінку, щоб швидко отримати відповідь."</string>
     <string name="respondkit_intro_short" formatted="false">"Надішліть повідомлення, щоб почати розмову."</string>
     <string name="respondkit_latest" formatted="false">"Останні повідомлення"</string>
@@ -57,6 +59,7 @@
     <string name="respondkit_ready" formatted="false">"Готово"</string>
     <string name="respondkit_reconnect" formatted="false">"Перепідключитися"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Перепідключіться перед завантаженням."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Повторне підключення. Ваші наявні повідомлення досі доступні."</string>
     <string name="respondkit_remove" formatted="false">"Видалити"</string>
     <string name="respondkit_remove_file">"Видалити %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"Запит до підтримки не виконано."</string>

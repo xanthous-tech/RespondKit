@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"પુષ્ટિ કરી રહ્યાં છીએ…"</string>
     <string name="respondkit_connecting" formatted="false">"સપોર્ટ હજી કનેક્ટ થઈ રહ્યું છે."</string>
     <string name="respondkit_conversation">"વાતચીત %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"વાતચીત"</string>
     <string name="respondkit_conversations" formatted="false">"વાતચીતો"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"વાતચીતો · %1$d ન વાંચેલી"</item>
@@ -30,6 +31,7 @@
     <string name="respondkit_history_failed" formatted="false">"વાતચીતનો ઇતિહાસ લોડ થઈ શક્યો નથી. “વધુ” ફરી અજમાવો."</string>
     <string name="respondkit_history_save_failed" formatted="false">"સપોર્ટ ઇતિહાસ સાચવી શકાયો નથી."</string>
     <string name="respondkit_identity_changed" formatted="false">"બીજા ટૅબમાં સપોર્ટ ઓળખ બદલાઈ ગઈ છે. તમારું એકાઉન્ટ ફરી લોડ કરવા માટે ફરી કનેક્ટ કરો."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"સપોર્ટ ઓળખ ચકાસી શકાઈ નથી."</string>
     <string name="respondkit_intro" formatted="false">"મેસેજ મોકલો અને ઝડપી જવાબ માટે આ પેજ ખુલ્લું રાખો."</string>
     <string name="respondkit_intro_short" formatted="false">"વાતચીત શરૂ કરવા માટે મેસેજ મોકલો."</string>
     <string name="respondkit_latest" formatted="false">"નવીનતમ મેસેજ"</string>
@@ -53,6 +55,7 @@
     <string name="respondkit_ready" formatted="false">"તૈયાર"</string>
     <string name="respondkit_reconnect" formatted="false">"ફરી કનેક્ટ કરો"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"અપલોડ કરતાં પહેલાં ફરી કનેક્ટ કરો."</string>
+    <string name="respondkit_reconnecting" formatted="false">"ફરી કનેક્ટ થઈ રહ્યું છે. તમારા હાલના સંદેશા હજુ પણ ઉપલબ્ધ છે."</string>
     <string name="respondkit_remove" formatted="false">"કાઢી નાખો"</string>
     <string name="respondkit_remove_file">"%1$s કાઢી નાખો"</string>
     <string name="respondkit_request_failed" formatted="false">"સપોર્ટ વિનંતી નિષ્ફળ થઈ."</string>

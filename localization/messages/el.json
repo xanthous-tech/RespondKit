@@ -97,5 +97,8 @@
   "respondkit_logout_failed": "Δεν ήταν δυνατή η ανάκληση της προηγούμενης συνεδρίας υποστήριξης. Θα λήξει αυτόματα.",
   "respondkit_history_save_failed": "Δεν ήταν δυνατή η αποθήκευση του ιστορικού υποστήριξης.",
   "respondkit_done": "Τέλος",
-  "respondkit_unread_reply": "Μη αναγνωσμένη απάντηση"
+  "respondkit_unread_reply": "Μη αναγνωσμένη απάντηση",
+  "respondkit_reconnecting": "Γίνεται επανασύνδεση. Τα υπάρχοντα μηνύματά σας εξακολουθούν να είναι διαθέσιμα.",
+  "respondkit_conversation_label": "Συνομιλία",
+  "respondkit_identity_unverified": "Δεν ήταν δυνατή η επαλήθευση της ταυτότητας υποστήριξης."
 }

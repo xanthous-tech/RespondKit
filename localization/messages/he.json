@@ -100,5 +100,8 @@
   "respondkit_logout_failed": "לא ניתן היה לבטל את סשן התמיכה הקודם. התוקף שלו יפוג אוטומטית.",
   "respondkit_history_save_failed": "לא ניתן היה לשמור את היסטוריית התמיכה.",
   "respondkit_done": "סיום",
-  "respondkit_unread_reply": "תשובה שלא נקראה"
+  "respondkit_unread_reply": "תשובה שלא נקראה",
+  "respondkit_reconnecting": "מתחבר מחדש. ההודעות הקיימות שלך עדיין זמינות.",
+  "respondkit_conversation_label": "שיחה",
+  "respondkit_identity_unverified": "לא ניתן היה לאמת את זהות התמיכה."
 }

@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"S\'està confirmant…"</string>
     <string name="respondkit_connecting" formatted="false">"L\'assistència encara s\'està connectant."</string>
     <string name="respondkit_conversation">"Conversa %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Conversa"</string>
     <string name="respondkit_conversations" formatted="false">"Converses"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Converses · %1$d sense llegir"</item>
@@ -31,6 +32,7 @@
     <string name="respondkit_history_failed" formatted="false">"No s\'ha pogut carregar l\'historial de la conversa. Torna a tocar «Més»."</string>
     <string name="respondkit_history_save_failed" formatted="false">"No s\'ha pogut desar l\'historial d\'assistència."</string>
     <string name="respondkit_identity_changed" formatted="false">"La identitat d\'assistència ha canviat en una altra pestanya. Torna a connectar per recarregar el teu compte."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"No s\'ha pogut verificar la identitat d\'assistència."</string>
     <string name="respondkit_intro" formatted="false">"Envia un missatge i mantén aquesta pàgina oberta per rebre una resposta ràpida."</string>
     <string name="respondkit_intro_short" formatted="false">"Envia un missatge per començar una conversa."</string>
     <string name="respondkit_latest" formatted="false">"Missatges més recents"</string>
@@ -55,6 +57,7 @@
     <string name="respondkit_ready" formatted="false">"A punt"</string>
     <string name="respondkit_reconnect" formatted="false">"Torna a connectar"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Torna a connectar abans de pujar fitxers."</string>
+    <string name="respondkit_reconnecting" formatted="false">"S\'està tornant a connectar. Els teus missatges continuen disponibles."</string>
     <string name="respondkit_remove" formatted="false">"Elimina"</string>
     <string name="respondkit_remove_file">"Elimina %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"La sol·licitud d\'assistència ha fallat."</string>

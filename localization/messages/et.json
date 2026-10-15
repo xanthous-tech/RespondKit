@@ -97,5 +97,8 @@
   "respondkit_logout_failed": "Eelmist tugiseanssi ei õnnestunud tühistada. See aegub automaatselt.",
   "respondkit_history_save_failed": "Toe ajalugu ei õnnestunud salvestada.",
   "respondkit_done": "Valmis",
-  "respondkit_unread_reply": "Lugemata vastus"
+  "respondkit_unread_reply": "Lugemata vastus",
+  "respondkit_reconnecting": "Ühenduse taastamine. Teie olemasolevad sõnumid on endiselt saadaval.",
+  "respondkit_conversation_label": "Vestlus",
+  "respondkit_identity_unverified": "Toe identiteeti ei õnnestunud kinnitada."
 }

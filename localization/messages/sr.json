@@ -100,5 +100,8 @@
   "respondkit_logout_failed": "Претходна сесија подршке није могла да буде опозвана. Аутоматски ће истећи.",
   "respondkit_history_save_failed": "Историја подршке није могла да буде сачувана.",
   "respondkit_done": "Готово",
-  "respondkit_unread_reply": "Непрочитан одговор"
+  "respondkit_unread_reply": "Непрочитан одговор",
+  "respondkit_reconnecting": "Поновно повезивање. Ваше постојеће поруке су и даље доступне.",
+  "respondkit_conversation_label": "Разговор",
+  "respondkit_identity_unverified": "Идентитет подршке није могао да буде потврђен."
 }

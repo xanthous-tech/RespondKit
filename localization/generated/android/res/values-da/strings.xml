@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"Bekræfter…"</string>
     <string name="respondkit_connecting" formatted="false">"Support er stadig ved at oprette forbindelse."</string>
     <string name="respondkit_conversation">"Samtale %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Samtale"</string>
     <string name="respondkit_conversations" formatted="false">"Samtaler"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Samtaler · %1$d ulæst"</item>
@@ -30,6 +31,7 @@
     <string name="respondkit_history_failed" formatted="false">"Samtalehistorikken kunne ikke indlæses. Prøv »Flere« igen."</string>
     <string name="respondkit_history_save_failed" formatted="false">"Supporthistorikken kunne ikke gemmes."</string>
     <string name="respondkit_identity_changed" formatted="false">"Supportidentiteten blev ændret i en anden fane. Opret forbindelse igen for at genindlæse din konto."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"Supportidentiteten kunne ikke bekræftes."</string>
     <string name="respondkit_intro" formatted="false">"Send en besked, og hold siden åben for at få et hurtigt svar."</string>
     <string name="respondkit_intro_short" formatted="false">"Send en besked for at starte en samtale."</string>
     <string name="respondkit_latest" formatted="false">"Seneste beskeder"</string>
@@ -53,6 +55,7 @@
     <string name="respondkit_ready" formatted="false">"Klar"</string>
     <string name="respondkit_reconnect" formatted="false">"Opret forbindelse igen"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Opret forbindelse igen før upload."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Genopretter forbindelsen. Dine eksisterende beskeder er stadig tilgængelige."</string>
     <string name="respondkit_remove" formatted="false">"Fjern"</string>
     <string name="respondkit_remove_file">"Fjern %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"Supportanmodningen mislykkedes."</string>

@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"Confirming…"</string>
     <string name="respondkit_connecting" formatted="false">"Support is still connecting."</string>
     <string name="respondkit_conversation">"Conversation %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Conversation"</string>
     <string name="respondkit_conversations" formatted="false">"Conversations"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Conversations · %1$d unread"</item>
@@ -30,6 +31,7 @@
     <string name="respondkit_history_failed" formatted="false">"Conversation history could not be loaded. Try More again."</string>
     <string name="respondkit_history_save_failed" formatted="false">"Could not save support history."</string>
     <string name="respondkit_identity_changed" formatted="false">"Support identity changed in another tab. Reconnect to reload your account."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"Support identity could not be verified."</string>
     <string name="respondkit_intro" formatted="false">"Send a message and keep this page open for a quick reply."</string>
     <string name="respondkit_intro_short" formatted="false">"Send a message to start a conversation."</string>
     <string name="respondkit_latest" formatted="false">"Latest messages"</string>
@@ -53,6 +55,7 @@
     <string name="respondkit_ready" formatted="false">"Ready"</string>
     <string name="respondkit_reconnect" formatted="false">"Reconnect"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Reconnect before uploading."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Reconnecting. Your existing messages are still available."</string>
     <string name="respondkit_remove" formatted="false">"Remove"</string>
     <string name="respondkit_remove_file">"Remove %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"Support request failed."</string>

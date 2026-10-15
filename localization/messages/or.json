@@ -94,5 +94,8 @@
   "respondkit_logout_failed": "ପୂର୍ବ ସହାୟତା ସେସନ୍ ବାତିଲ କରାଯାଇପାରିଲା ନାହିଁ। ଏହା ସ୍ୱୟଂଚାଳିତ ଭାବେ ସମାପ୍ତ ହେବ।",
   "respondkit_history_save_failed": "ସହାୟତା ଇତିହାସ ସେଭ୍ କରାଯାଇପାରିଲା ନାହିଁ।",
   "respondkit_done": "ହୋଇଗଲା",
-  "respondkit_unread_reply": "ପଢ଼ାଯାଇନଥିବା ଉତ୍ତର"
+  "respondkit_unread_reply": "ପଢ଼ାଯାଇନଥିବା ଉତ୍ତର",
+  "respondkit_reconnecting": "ପୁଣି ସଂଯୋଗ କରାଯାଉଛି। ଆପଣଙ୍କ ବିଦ୍ୟମାନ ବାର୍ତ୍ତାଗୁଡ଼ିକ ଏବେ ବି ଉପଲବ୍ଧ।",
+  "respondkit_conversation_label": "ବାର୍ତ୍ତାଳାପ",
+  "respondkit_identity_unverified": "ସହାୟତା ପରିଚୟ ଯାଞ୍ଚ କରାଯାଇପାରିଲା ନାହିଁ।"
 }

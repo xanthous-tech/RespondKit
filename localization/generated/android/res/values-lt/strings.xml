@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"Patvirtinama…"</string>
     <string name="respondkit_connecting" formatted="false">"Pagalba vis dar jungiasi."</string>
     <string name="respondkit_conversation">"Pokalbis %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Pokalbis"</string>
     <string name="respondkit_conversations" formatted="false">"Pokalbiai"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Pokalbiai · %1$d neperskaitytas"</item>
@@ -32,6 +33,7 @@
     <string name="respondkit_history_failed" formatted="false">"Nepavyko įkelti pokalbio istorijos. Dar kartą spustelėkite Daugiau."</string>
     <string name="respondkit_history_save_failed" formatted="false">"Nepavyko išsaugoti pagalbos istorijos."</string>
     <string name="respondkit_identity_changed" formatted="false">"Pagalbos tapatybė pasikeitė kitame skirtuke. Prisijunkite iš naujo, kad iš naujo įkeltumėte savo paskyrą."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"Nepavyko patvirtinti pagalbos tapatybės."</string>
     <string name="respondkit_intro" formatted="false">"Parašykite žinutę ir neuždarykite šio puslapio – greitai atsakysime."</string>
     <string name="respondkit_intro_short" formatted="false">"Parašykite žinutę ir pradėkite pokalbį."</string>
     <string name="respondkit_latest" formatted="false">"Naujausios žinutės"</string>
@@ -57,6 +59,7 @@
     <string name="respondkit_ready" formatted="false">"Paruošta"</string>
     <string name="respondkit_reconnect" formatted="false">"Prisijungti iš naujo"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Prieš įkeldami prisijunkite iš naujo."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Jungiamasi iš naujo. Esamos žinutės vis dar pasiekiamos."</string>
     <string name="respondkit_remove" formatted="false">"Pašalinti"</string>
     <string name="respondkit_remove_file">"Pašalinti %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"Pagalbos užklausa nepavyko."</string>

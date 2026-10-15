@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"Подтверждение…"</string>
     <string name="respondkit_connecting" formatted="false">"Чат поддержки ещё подключается."</string>
     <string name="respondkit_conversation">"Диалог от %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Разговор"</string>
     <string name="respondkit_conversations" formatted="false">"Диалоги"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Диалоги · %1$d непрочитанный"</item>
@@ -32,6 +33,7 @@
     <string name="respondkit_history_failed" formatted="false">"Не удалось загрузить историю диалога. Нажмите «Ещё» повторно."</string>
     <string name="respondkit_history_save_failed" formatted="false">"Не удалось сохранить историю обращений в поддержку."</string>
     <string name="respondkit_identity_changed" formatted="false">"Профиль поддержки изменён в другой вкладке. Переподключитесь, чтобы заново загрузить аккаунт."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"Не удалось подтвердить личность для поддержки."</string>
     <string name="respondkit_intro" formatted="false">"Отправьте сообщение и не закрывайте эту страницу, чтобы быстро получить ответ."</string>
     <string name="respondkit_intro_short" formatted="false">"Отправьте сообщение, чтобы начать диалог."</string>
     <string name="respondkit_latest" formatted="false">"Последние сообщения"</string>
@@ -57,6 +59,7 @@
     <string name="respondkit_ready" formatted="false">"Готово"</string>
     <string name="respondkit_reconnect" formatted="false">"Переподключиться"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Переподключитесь перед загрузкой файлов."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Повторное подключение. Ваши сообщения по-прежнему доступны."</string>
     <string name="respondkit_remove" formatted="false">"Удалить"</string>
     <string name="respondkit_remove_file">"Удалить %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"Ошибка запроса к поддержке."</string>

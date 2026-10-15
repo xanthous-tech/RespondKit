@@ -100,5 +100,8 @@
   "respondkit_logout_failed": "No s'ha pogut revocar la sessió d'assistència anterior. Caducarà automàticament.",
   "respondkit_history_save_failed": "No s'ha pogut desar l'historial d'assistència.",
   "respondkit_done": "Fet",
-  "respondkit_unread_reply": "Resposta no llegida"
+  "respondkit_unread_reply": "Resposta no llegida",
+  "respondkit_reconnecting": "S'està tornant a connectar. Els teus missatges continuen disponibles.",
+  "respondkit_conversation_label": "Conversa",
+  "respondkit_identity_unverified": "No s'ha pogut verificar la identitat d'assistència."
 }

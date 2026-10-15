@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"Potwierdzanie…"</string>
     <string name="respondkit_connecting" formatted="false">"Czat pomocy wciąż się łączy."</string>
     <string name="respondkit_conversation">"Rozmowa z %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Rozmowa"</string>
     <string name="respondkit_conversations" formatted="false">"Rozmowy"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Rozmowy · %1$d nieprzeczytana"</item>
@@ -32,6 +33,7 @@
     <string name="respondkit_history_failed" formatted="false">"Nie udało się wczytać historii rozmowy. Spróbuj ponownie, wybierając Więcej."</string>
     <string name="respondkit_history_save_failed" formatted="false">"Nie udało się zapisać historii pomocy."</string>
     <string name="respondkit_identity_changed" formatted="false">"Tożsamość w czacie pomocy zmieniła się w innej karcie. Połącz ponownie, aby wczytać swoje konto."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"Nie udało się zweryfikować tożsamości pomocy."</string>
     <string name="respondkit_intro" formatted="false">"Wyślij wiadomość i nie zamykaj tej strony, aby szybko otrzymać odpowiedź."</string>
     <string name="respondkit_intro_short" formatted="false">"Wyślij wiadomość, aby rozpocząć rozmowę."</string>
     <string name="respondkit_latest" formatted="false">"Najnowsze wiadomości"</string>
@@ -57,6 +59,7 @@
     <string name="respondkit_ready" formatted="false">"Gotowe"</string>
     <string name="respondkit_reconnect" formatted="false">"Połącz ponownie"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Połącz ponownie przed przesłaniem plików."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Ponowne łączenie. Twoje dotychczasowe wiadomości są nadal dostępne."</string>
     <string name="respondkit_remove" formatted="false">"Usuń"</string>
     <string name="respondkit_remove_file">"Usuń %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"Zapytanie do pomocy nie powiodło się."</string>

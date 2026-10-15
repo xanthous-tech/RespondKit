@@ -95,5 +95,8 @@
   "respondkit_logout_failed": "De vorige supportsessie kon niet worden ingetrokken. Deze verloopt automatisch.",
   "respondkit_history_save_failed": "Kan de supportgeschiedenis niet opslaan.",
   "respondkit_done": "Gereed",
-  "respondkit_unread_reply": "Ongelezen antwoord"
+  "respondkit_unread_reply": "Ongelezen antwoord",
+  "respondkit_reconnecting": "Opnieuw verbinden. Je bestaande berichten zijn nog steeds beschikbaar.",
+  "respondkit_conversation_label": "Gesprek",
+  "respondkit_identity_unverified": "De support-identiteit kan niet worden geverifieerd."
 }

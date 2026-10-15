@@ -98,5 +98,8 @@
   "respondkit_logout_failed": "Não foi possível revogar a sessão de suporte anterior. Irá expirar automaticamente.",
   "respondkit_history_save_failed": "Não foi possível guardar o histórico de suporte.",
   "respondkit_done": "OK",
-  "respondkit_unread_reply": "Resposta não lida"
+  "respondkit_unread_reply": "Resposta não lida",
+  "respondkit_reconnecting": "A restabelecer a ligação. As suas mensagens continuam disponíveis.",
+  "respondkit_conversation_label": "Conversa",
+  "respondkit_identity_unverified": "Não foi possível verificar a identidade de suporte."
 }

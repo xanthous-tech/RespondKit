@@ -97,5 +97,8 @@
   "respondkit_logout_failed": "Az előző ügyfélszolgálati munkamenetet nem sikerült visszavonni. Automatikusan lejár.",
   "respondkit_history_save_failed": "Nem sikerült menteni az ügyfélszolgálati előzményeket.",
   "respondkit_done": "Kész",
-  "respondkit_unread_reply": "Olvasatlan válasz"
+  "respondkit_unread_reply": "Olvasatlan válasz",
+  "respondkit_reconnecting": "Újracsatlakozás. A korábbi üzenetei továbbra is elérhetők.",
+  "respondkit_conversation_label": "Beszélgetés",
+  "respondkit_identity_unverified": "Nem sikerült ellenőrizni az ügyfélszolgálati azonosítót."
 }

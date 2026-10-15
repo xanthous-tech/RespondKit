@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"Onaylanıyor…"</string>
     <string name="respondkit_connecting" formatted="false">"Destek bağlantısı hâlâ kuruluyor."</string>
     <string name="respondkit_conversation">"Sohbet %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Görüşme"</string>
     <string name="respondkit_conversations" formatted="false">"Sohbetler"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Sohbetler · %1$d okunmamış"</item>
@@ -30,6 +31,7 @@
     <string name="respondkit_history_failed" formatted="false">"Sohbet geçmişi yüklenemedi. “Daha fazla” seçeneğini tekrar deneyin."</string>
     <string name="respondkit_history_save_failed" formatted="false">"Destek geçmişi kaydedilemedi."</string>
     <string name="respondkit_identity_changed" formatted="false">"Destek hesabı başka bir sekmede değişti. Hesabınızı yeniden yüklemek için yeniden bağlanın."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"Destek kimliği doğrulanamadı."</string>
     <string name="respondkit_intro" formatted="false">"Mesaj gönderin ve hızlı yanıt için bu sayfayı açık tutun."</string>
     <string name="respondkit_intro_short" formatted="false">"Sohbet başlatmak için mesaj gönderin."</string>
     <string name="respondkit_latest" formatted="false">"En son mesajlar"</string>
@@ -53,6 +55,7 @@
     <string name="respondkit_ready" formatted="false">"Hazır"</string>
     <string name="respondkit_reconnect" formatted="false">"Yeniden bağlan"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Yüklemeden önce yeniden bağlanın."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Yeniden bağlanılıyor. Mevcut mesajlarınız hâlâ kullanılabilir."</string>
     <string name="respondkit_remove" formatted="false">"Kaldır"</string>
     <string name="respondkit_remove_file">"%1$s dosyasını kaldır"</string>
     <string name="respondkit_request_failed" formatted="false">"Destek isteği başarısız oldu."</string>

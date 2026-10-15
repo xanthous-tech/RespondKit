@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"Потврђивање…"</string>
     <string name="respondkit_connecting" formatted="false">"Подршка се још повезује."</string>
     <string name="respondkit_conversation">"Разговор %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Разговор"</string>
     <string name="respondkit_conversations" formatted="false">"Разговори"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Разговори · %1$d непрочитан"</item>
@@ -31,6 +32,7 @@
     <string name="respondkit_history_failed" formatted="false">"Није могуће учитати историју разговора. Поново изаберите „Још“."</string>
     <string name="respondkit_history_save_failed" formatted="false">"Историја подршке није могла да буде сачувана."</string>
     <string name="respondkit_identity_changed" formatted="false">"Налог за подршку је промењен у другој картици. Поново се повежите да бисте поново учитали свој налог."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"Идентитет подршке није могао да буде потврђен."</string>
     <string name="respondkit_intro" formatted="false">"Пошаљите поруку и држите ову страницу отвореном за брз одговор."</string>
     <string name="respondkit_intro_short" formatted="false">"Пошаљите поруку да бисте започели разговор."</string>
     <string name="respondkit_latest" formatted="false">"Најновије поруке"</string>
@@ -55,6 +57,7 @@
     <string name="respondkit_ready" formatted="false">"Спремно"</string>
     <string name="respondkit_reconnect" formatted="false">"Поново се повежи"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Поново се повежите пре отпремања."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Поновно повезивање. Ваше постојеће поруке су и даље доступне."</string>
     <string name="respondkit_remove" formatted="false">"Уклони"</string>
     <string name="respondkit_remove_file">"Уклони %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"Захтев подршци није успео."</string>

@@ -88,5 +88,8 @@
   "respondkit_logout_failed": "Sesi sokongan sebelumnya tidak dapat dibatalkan. Sesi itu akan tamat tempoh secara automatik.",
   "respondkit_history_save_failed": "Sejarah sokongan tidak dapat disimpan.",
   "respondkit_done": "Selesai",
-  "respondkit_unread_reply": "Balasan belum dibaca"
+  "respondkit_unread_reply": "Balasan belum dibaca",
+  "respondkit_reconnecting": "Menyambung semula. Mesej sedia ada anda masih tersedia.",
+  "respondkit_conversation_label": "Perbualan",
+  "respondkit_identity_unverified": "Identiti sokongan tidak dapat disahkan."
 }

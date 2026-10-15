@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"جارٍ التأكيد…"</string>
     <string name="respondkit_connecting" formatted="false">"لا يزال الدعم قيد الاتصال."</string>
     <string name="respondkit_conversation">"محادثة %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"المحادثة"</string>
     <string name="respondkit_conversations" formatted="false">"المحادثات"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="zero">"المحادثات · %1$d غير مقروءة"</item>
@@ -34,6 +35,7 @@
     <string name="respondkit_history_failed" formatted="false">"تعذّر تحميل سجل المحادثة. اضغط على «المزيد» للمحاولة مرة أخرى."</string>
     <string name="respondkit_history_save_failed" formatted="false">"تعذّر حفظ سجل الدعم."</string>
     <string name="respondkit_identity_changed" formatted="false">"تغيّرت هوية الدعم في علامة تبويب أخرى. أعد الاتصال لإعادة تحميل حسابك."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"تعذّر التحقق من هوية الدعم."</string>
     <string name="respondkit_intro" formatted="false">"أرسل رسالة وأبقِ هذه الصفحة مفتوحة لتلقي رد سريع."</string>
     <string name="respondkit_intro_short" formatted="false">"أرسل رسالة لبدء محادثة."</string>
     <string name="respondkit_latest" formatted="false">"أحدث الرسائل"</string>
@@ -61,6 +63,7 @@
     <string name="respondkit_ready" formatted="false">"جاهز"</string>
     <string name="respondkit_reconnect" formatted="false">"إعادة الاتصال"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"أعد الاتصال قبل الرفع."</string>
+    <string name="respondkit_reconnecting" formatted="false">"جارٍ إعادة الاتصال. لا تزال رسائلك الحالية متاحة."</string>
     <string name="respondkit_remove" formatted="false">"إزالة"</string>
     <string name="respondkit_remove_file">"إزالة %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"فشل طلب الدعم."</string>

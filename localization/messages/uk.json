@@ -103,5 +103,8 @@
   "respondkit_logout_failed": "Не вдалося відкликати попередній сеанс підтримки. Він завершиться автоматично.",
   "respondkit_history_save_failed": "Не вдалося зберегти історію звернень до підтримки.",
   "respondkit_done": "Готово",
-  "respondkit_unread_reply": "Непрочитана відповідь"
+  "respondkit_unread_reply": "Непрочитана відповідь",
+  "respondkit_reconnecting": "Повторне підключення. Ваші наявні повідомлення досі доступні.",
+  "respondkit_conversation_label": "Розмова",
+  "respondkit_identity_unverified": "Не вдалося підтвердити особу для підтримки."
 }

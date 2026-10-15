@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"تصدیق ہو رہی ہے…"</string>
     <string name="respondkit_connecting" formatted="false">"سپورٹ ابھی منسلک ہو رہی ہے۔"</string>
     <string name="respondkit_conversation">"گفتگو %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"گفتگو"</string>
     <string name="respondkit_conversations" formatted="false">"گفتگوئیں"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"گفتگوئیں · %1$d ان پڑھی"</item>
@@ -30,6 +31,7 @@
     <string name="respondkit_history_failed" formatted="false">"گفتگو کی سرگزشت لوڈ نہیں ہو سکی۔ ‘مزید’ پر دوبارہ کوشش کریں۔"</string>
     <string name="respondkit_history_save_failed" formatted="false">"سپورٹ کی سرگزشت محفوظ نہیں کی جا سکی۔"</string>
     <string name="respondkit_identity_changed" formatted="false">"کسی دوسرے ٹیب میں سپورٹ اکاؤنٹ تبدیل ہو گیا۔ اپنا اکاؤنٹ دوبارہ لوڈ کرنے کے لیے دوبارہ منسلک ہوں۔"</string>
+    <string name="respondkit_identity_unverified" formatted="false">"سپورٹ شناخت کی تصدیق نہیں ہو سکی۔"</string>
     <string name="respondkit_intro" formatted="false">"پیغام بھیجیں اور فوری جواب کے لیے یہ صفحہ کھلا رکھیں۔"</string>
     <string name="respondkit_intro_short" formatted="false">"گفتگو شروع کرنے کے لیے پیغام بھیجیں۔"</string>
     <string name="respondkit_latest" formatted="false">"تازہ ترین پیغامات"</string>
@@ -53,6 +55,7 @@
     <string name="respondkit_ready" formatted="false">"تیار"</string>
     <string name="respondkit_reconnect" formatted="false">"دوبارہ منسلک ہوں"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"اپ لوڈ کرنے سے پہلے دوبارہ منسلک ہوں۔"</string>
+    <string name="respondkit_reconnecting" formatted="false">"دوبارہ کنیکٹ ہو رہا ہے۔ آپ کے موجودہ پیغامات اب بھی دستیاب ہیں۔"</string>
     <string name="respondkit_remove" formatted="false">"ہٹائیں"</string>
     <string name="respondkit_remove_file">"%1$s ہٹائیں"</string>
     <string name="respondkit_request_failed" formatted="false">"سپورٹ کی درخواست ناکام ہو گئی۔"</string>

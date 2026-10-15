@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"Megerősítés…"</string>
     <string name="respondkit_connecting" formatted="false">"A kapcsolódás az ügyfélszolgálathoz még folyamatban van."</string>
     <string name="respondkit_conversation">"Beszélgetés – %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Beszélgetés"</string>
     <string name="respondkit_conversations" formatted="false">"Beszélgetések"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Beszélgetések · %1$d olvasatlan"</item>
@@ -30,6 +31,7 @@
     <string name="respondkit_history_failed" formatted="false">"Nem sikerült betölteni a beszélgetés előzményeit. Próbálja újra a „Továbbiak” gombbal."</string>
     <string name="respondkit_history_save_failed" formatted="false">"Nem sikerült menteni az ügyfélszolgálati előzményeket."</string>
     <string name="respondkit_identity_changed" formatted="false">"Egy másik lapon megváltozott az ügyfélszolgálati azonosító. Csatlakozzon újra a fiókja újbóli betöltéséhez."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"Nem sikerült ellenőrizni az ügyfélszolgálati azonosítót."</string>
     <string name="respondkit_intro" formatted="false">"Küldjön üzenetet, és tartsa nyitva ezt az oldalt a gyors válaszért."</string>
     <string name="respondkit_intro_short" formatted="false">"Küldjön üzenetet a beszélgetés indításához."</string>
     <string name="respondkit_latest" formatted="false">"Legújabb üzenetek"</string>
@@ -53,6 +55,7 @@
     <string name="respondkit_ready" formatted="false">"Kész"</string>
     <string name="respondkit_reconnect" formatted="false">"Újracsatlakozás"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Feltöltés előtt csatlakozzon újra."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Újracsatlakozás. A korábbi üzenetei továbbra is elérhetők."</string>
     <string name="respondkit_remove" formatted="false">"Eltávolítás"</string>
     <string name="respondkit_remove_file">"%1$s eltávolítása"</string>
     <string name="respondkit_request_failed" formatted="false">"Az ügyfélszolgálati kérés sikertelen volt."</string>

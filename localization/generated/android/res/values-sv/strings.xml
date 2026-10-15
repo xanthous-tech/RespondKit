@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"Bekräftar…"</string>
     <string name="respondkit_connecting" formatted="false">"Supporten ansluter fortfarande."</string>
     <string name="respondkit_conversation">"Konversation %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Konversation"</string>
     <string name="respondkit_conversations" formatted="false">"Konversationer"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Konversationer · %1$d oläst"</item>
@@ -30,6 +31,7 @@
     <string name="respondkit_history_failed" formatted="false">"Det gick inte att läsa in konversationshistoriken. Försök med Mer igen."</string>
     <string name="respondkit_history_save_failed" formatted="false">"Det gick inte att spara supporthistoriken."</string>
     <string name="respondkit_identity_changed" formatted="false">"Supportkontot ändrades i en annan flik. Anslut igen för att läsa in ditt konto på nytt."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"Det gick inte att verifiera supportidentiteten."</string>
     <string name="respondkit_intro" formatted="false">"Skicka ett meddelande och håll den här sidan öppen för ett snabbt svar."</string>
     <string name="respondkit_intro_short" formatted="false">"Skicka ett meddelande för att starta en konversation."</string>
     <string name="respondkit_latest" formatted="false">"Senaste meddelandena"</string>
@@ -53,6 +55,7 @@
     <string name="respondkit_ready" formatted="false">"Klar"</string>
     <string name="respondkit_reconnect" formatted="false">"Anslut igen"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Anslut igen innan du laddar upp."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Återansluter. Dina befintliga meddelanden är fortfarande tillgängliga."</string>
     <string name="respondkit_remove" formatted="false">"Ta bort"</string>
     <string name="respondkit_remove_file">"Ta bort %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"Supportförfrågan misslyckades."</string>

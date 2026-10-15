@@ -106,5 +106,8 @@
   "respondkit_logout_failed": "Ankstesnės pagalbos sesijos atšaukti nepavyko. Ji baigsis automatiškai.",
   "respondkit_history_save_failed": "Nepavyko išsaugoti pagalbos istorijos.",
   "respondkit_done": "Atlikta",
-  "respondkit_unread_reply": "Neperskaitytas atsakymas"
+  "respondkit_unread_reply": "Neperskaitytas atsakymas",
+  "respondkit_reconnecting": "Jungiamasi iš naujo. Esamos žinutės vis dar pasiekiamos.",
+  "respondkit_conversation_label": "Pokalbis",
+  "respondkit_identity_unverified": "Nepavyko patvirtinti pagalbos tapatybės."
 }

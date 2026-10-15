@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"உறுதிப்படுத்துகிறது…"</string>
     <string name="respondkit_connecting" formatted="false">"ஆதரவு இன்னும் இணைக்கப்படுகிறது."</string>
     <string name="respondkit_conversation">"உரையாடல் %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"உரையாடல்"</string>
     <string name="respondkit_conversations" formatted="false">"உரையாடல்கள்"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"உரையாடல்கள் · %1$d படிக்காதது"</item>
@@ -30,6 +31,7 @@
     <string name="respondkit_history_failed" formatted="false">"உரையாடல் வரலாற்றை ஏற்ற முடியவில்லை. ‘மேலும்’ என்பதை மீண்டும் தேர்ந்தெடுக்கவும்."</string>
     <string name="respondkit_history_save_failed" formatted="false">"ஆதரவு வரலாற்றைச் சேமிக்க முடியவில்லை."</string>
     <string name="respondkit_identity_changed" formatted="false">"வேறொரு தாவலில் ஆதரவுக் கணக்கு மாற்றப்பட்டது. உங்கள் கணக்கை மீண்டும் ஏற்ற மீண்டும் இணையவும்."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"ஆதரவு அடையாளத்தைச் சரிபார்க்க முடியவில்லை."</string>
     <string name="respondkit_intro" formatted="false">"செய்தியை அனுப்பிவிட்டு, விரைவான பதிலுக்கு இந்தப் பக்கத்தைத் திறந்தே வைத்திருங்கள்."</string>
     <string name="respondkit_intro_short" formatted="false">"உரையாடலைத் தொடங்க ஒரு செய்தியை அனுப்புங்கள்."</string>
     <string name="respondkit_latest" formatted="false">"சமீபத்திய செய்திகள்"</string>
@@ -53,6 +55,7 @@
     <string name="respondkit_ready" formatted="false">"தயார்"</string>
     <string name="respondkit_reconnect" formatted="false">"மீண்டும் இணை"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"பதிவேற்றும் முன் மீண்டும் இணையவும்."</string>
+    <string name="respondkit_reconnecting" formatted="false">"மீண்டும் இணைக்கிறது. உங்கள் தற்போதைய செய்திகள் இன்னும் கிடைக்கின்றன."</string>
     <string name="respondkit_remove" formatted="false">"அகற்று"</string>
     <string name="respondkit_remove_file">"அகற்று: %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"ஆதரவுக் கோரிக்கை தோல்வியடைந்தது."</string>

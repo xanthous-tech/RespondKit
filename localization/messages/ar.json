@@ -109,5 +109,8 @@
   "respondkit_logout_failed": "تعذّر إلغاء جلسة الدعم السابقة. ستنتهي صلاحيتها تلقائيًا.",
   "respondkit_history_save_failed": "تعذّر حفظ سجل الدعم.",
   "respondkit_done": "تم",
-  "respondkit_unread_reply": "رد غير مقروء"
+  "respondkit_unread_reply": "رد غير مقروء",
+  "respondkit_reconnecting": "جارٍ إعادة الاتصال. لا تزال رسائلك الحالية متاحة.",
+  "respondkit_conversation_label": "المحادثة",
+  "respondkit_identity_unverified": "تعذّر التحقق من هوية الدعم."
 }

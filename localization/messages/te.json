@@ -97,5 +97,8 @@
   "respondkit_logout_failed": "మునుపటి సపోర్ట్ సెషన్‌ను రద్దు చేయడం సాధ్యపడలేదు. అది ఆటోమేటిక్‌గా గడువు ముగుస్తుంది.",
   "respondkit_history_save_failed": "సపోర్ట్ చరిత్రను సేవ్ చేయడం సాధ్యపడలేదు.",
   "respondkit_done": "పూర్తయింది",
-  "respondkit_unread_reply": "చదవని ప్రత్యుత్తరం"
+  "respondkit_unread_reply": "చదవని ప్రత్యుత్తరం",
+  "respondkit_reconnecting": "మళ్లీ కనెక్ట్ అవుతోంది. మీ ప్రస్తుత సందేశాలు ఇంకా అందుబాటులో ఉన్నాయి.",
+  "respondkit_conversation_label": "సంభాషణ",
+  "respondkit_identity_unverified": "సపోర్ట్ గుర్తింపును ధృవీకరించడం సాధ్యపడలేదు."
 }

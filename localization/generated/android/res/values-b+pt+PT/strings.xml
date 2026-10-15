@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"A confirmar…"</string>
     <string name="respondkit_connecting" formatted="false">"O suporte ainda está a estabelecer ligação."</string>
     <string name="respondkit_conversation">"Conversa de %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Conversa"</string>
     <string name="respondkit_conversations" formatted="false">"Conversas"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Conversas · %1$d por ler"</item>
@@ -31,6 +32,7 @@
     <string name="respondkit_history_failed" formatted="false">"Não foi possível carregar o histórico da conversa. Use o botão Mais para tentar novamente."</string>
     <string name="respondkit_history_save_failed" formatted="false">"Não foi possível guardar o histórico de suporte."</string>
     <string name="respondkit_identity_changed" formatted="false">"A identidade de suporte mudou noutro separador. Restabeleça a ligação para recarregar a sua conta."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"Não foi possível verificar a identidade de suporte."</string>
     <string name="respondkit_intro" formatted="false">"Envie uma mensagem e mantenha esta página aberta para obter uma resposta rápida."</string>
     <string name="respondkit_intro_short" formatted="false">"Envie uma mensagem para iniciar uma conversa."</string>
     <string name="respondkit_latest" formatted="false">"Mensagens mais recentes"</string>
@@ -55,6 +57,7 @@
     <string name="respondkit_ready" formatted="false">"Pronto"</string>
     <string name="respondkit_reconnect" formatted="false">"Restabelecer ligação"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Restabeleça a ligação antes de carregar ficheiros."</string>
+    <string name="respondkit_reconnecting" formatted="false">"A restabelecer a ligação. As suas mensagens continuam disponíveis."</string>
     <string name="respondkit_remove" formatted="false">"Remover"</string>
     <string name="respondkit_remove_file">"Remover %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"O pedido ao suporte falhou."</string>

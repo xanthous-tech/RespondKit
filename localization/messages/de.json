@@ -97,5 +97,8 @@
   "respondkit_logout_failed": "Die vorherige Support-Sitzung konnte nicht widerrufen werden. Sie läuft automatisch ab.",
   "respondkit_history_save_failed": "Der Support-Verlauf konnte nicht gespeichert werden.",
   "respondkit_done": "Fertig",
-  "respondkit_unread_reply": "Ungelesene Antwort"
+  "respondkit_unread_reply": "Ungelesene Antwort",
+  "respondkit_reconnecting": "Verbindung wird wiederhergestellt. Deine bisherigen Nachrichten sind weiterhin verfügbar.",
+  "respondkit_conversation_label": "Unterhaltung",
+  "respondkit_identity_unverified": "Die Support-Identität konnte nicht bestätigt werden."
 }

@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"Kinukumpirma…"</string>
     <string name="respondkit_connecting" formatted="false">"Kumokonekta pa ang suporta."</string>
     <string name="respondkit_conversation">"Pag-uusap %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Usapan"</string>
     <string name="respondkit_conversations" formatted="false">"Mga pag-uusap"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Mga pag-uusap · %1$d hindi pa nababasa"</item>
@@ -30,6 +31,7 @@
     <string name="respondkit_history_failed" formatted="false">"Hindi ma-load ang history ng pag-uusap. Subukang muli ang “Higit pa”."</string>
     <string name="respondkit_history_save_failed" formatted="false">"Hindi ma-save ang history ng support."</string>
     <string name="respondkit_identity_changed" formatted="false">"Napalitan ang account sa suporta sa ibang tab. Kumonektang muli para i-reload ang account mo."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"Hindi ma-verify ang support identity."</string>
     <string name="respondkit_intro" formatted="false">"Magpadala ng mensahe at panatilihing bukas ang page na ito para sa mabilis na sagot."</string>
     <string name="respondkit_intro_short" formatted="false">"Magpadala ng mensahe para magsimula ng pag-uusap."</string>
     <string name="respondkit_latest" formatted="false">"Mga pinakabagong mensahe"</string>
@@ -53,6 +55,7 @@
     <string name="respondkit_ready" formatted="false">"Handa na"</string>
     <string name="respondkit_reconnect" formatted="false">"Kumonektang muli"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Kumonektang muli bago mag-upload."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Muling kumokonekta. Available pa rin ang mga dati mong mensahe."</string>
     <string name="respondkit_remove" formatted="false">"Alisin"</string>
     <string name="respondkit_remove_file">"Alisin ang %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"Nabigo ang kahilingan sa suporta."</string>

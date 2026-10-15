@@ -103,5 +103,8 @@
   "respondkit_logout_failed": "Předchozí relaci podpory se nepodařilo zrušit. Platnost vyprší automaticky.",
   "respondkit_history_save_failed": "Historii podpory se nepodařilo uložit.",
   "respondkit_done": "Hotovo",
-  "respondkit_unread_reply": "Nepřečtená odpověď"
+  "respondkit_unread_reply": "Nepřečtená odpověď",
+  "respondkit_reconnecting": "Probíhá opětovné připojení. Vaše dosavadní zprávy jsou stále k dispozici.",
+  "respondkit_conversation_label": "Konverzace",
+  "respondkit_identity_unverified": "Identitu pro podporu se nepodařilo ověřit."
 }

@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"पुष्टी करत आहे…"</string>
     <string name="respondkit_connecting" formatted="false">"सहाय्य अजून कनेक्ट होत आहे."</string>
     <string name="respondkit_conversation">"संभाषण %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"संभाषण"</string>
     <string name="respondkit_conversations" formatted="false">"संभाषणे"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"संभाषणे · %1$d न वाचलेले"</item>
@@ -30,6 +31,7 @@
     <string name="respondkit_history_failed" formatted="false">"संभाषणाचा इतिहास लोड करता आला नाही. आणखी बटण पुन्हा वापरून पहा."</string>
     <string name="respondkit_history_save_failed" formatted="false">"सहाय्य इतिहास जतन करता आला नाही."</string>
     <string name="respondkit_identity_changed" formatted="false">"दुसऱ्या टॅबमध्ये सहाय्य खाते बदलले. तुमचे खाते रीलोड करण्यासाठी पुन्हा कनेक्ट करा."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"सहाय्य ओळख सत्यापित करता आली नाही."</string>
     <string name="respondkit_intro" formatted="false">"संदेश पाठवा आणि लवकर उत्तर मिळण्यासाठी हे पेज उघडे ठेवा."</string>
     <string name="respondkit_intro_short" formatted="false">"संभाषण सुरू करण्यासाठी संदेश पाठवा."</string>
     <string name="respondkit_latest" formatted="false">"नवीनतम संदेश"</string>
@@ -53,6 +55,7 @@
     <string name="respondkit_ready" formatted="false">"तयार"</string>
     <string name="respondkit_reconnect" formatted="false">"पुन्हा कनेक्ट करा"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"अपलोड करण्यापूर्वी पुन्हा कनेक्ट करा."</string>
+    <string name="respondkit_reconnecting" formatted="false">"पुन्हा कनेक्ट होत आहे. तुमचे विद्यमान संदेश अजूनही उपलब्ध आहेत."</string>
     <string name="respondkit_remove" formatted="false">"काढा"</string>
     <string name="respondkit_remove_file">"%1$s काढा"</string>
     <string name="respondkit_request_failed" formatted="false">"सहाय्य विनंती अयशस्वी झाली."</string>

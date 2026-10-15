@@ -100,5 +100,8 @@
   "respondkit_logout_failed": "La session d'assistance précédente n'a pas pu être révoquée. Elle expirera automatiquement.",
   "respondkit_history_save_failed": "Impossible d'enregistrer l'historique d'assistance.",
   "respondkit_done": "OK",
-  "respondkit_unread_reply": "Réponse non lue"
+  "respondkit_unread_reply": "Réponse non lue",
+  "respondkit_reconnecting": "Reconnexion en cours. Vos messages existants restent disponibles.",
+  "respondkit_conversation_label": "Conversation",
+  "respondkit_identity_unverified": "Impossible de vérifier l'identité d'assistance."
 }

@@ -106,5 +106,8 @@
   "respondkit_logout_failed": "Nie udało się unieważnić poprzedniej sesji pomocy. Wygaśnie ona automatycznie.",
   "respondkit_history_save_failed": "Nie udało się zapisać historii pomocy.",
   "respondkit_done": "Gotowe",
-  "respondkit_unread_reply": "Nieprzeczytana odpowiedź"
+  "respondkit_unread_reply": "Nieprzeczytana odpowiedź",
+  "respondkit_reconnecting": "Ponowne łączenie. Twoje dotychczasowe wiadomości są nadal dostępne.",
+  "respondkit_conversation_label": "Rozmowa",
+  "respondkit_identity_unverified": "Nie udało się zweryfikować tożsamości pomocy."
 }

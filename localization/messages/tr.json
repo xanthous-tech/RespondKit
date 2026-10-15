@@ -94,5 +94,8 @@
   "respondkit_logout_failed": "Önceki destek oturumu iptal edilemedi. Otomatik olarak sona erecek.",
   "respondkit_history_save_failed": "Destek geçmişi kaydedilemedi.",
   "respondkit_done": "Bitti",
-  "respondkit_unread_reply": "Okunmamış yanıt"
+  "respondkit_unread_reply": "Okunmamış yanıt",
+  "respondkit_reconnecting": "Yeniden bağlanılıyor. Mevcut mesajlarınız hâlâ kullanılabilir.",
+  "respondkit_conversation_label": "Görüşme",
+  "respondkit_identity_unverified": "Destek kimliği doğrulanamadı."
 }

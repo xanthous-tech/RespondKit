@@ -100,5 +100,8 @@
   "respondkit_logout_failed": "No se pudo revocar la sesión de soporte anterior. Caducará automáticamente.",
   "respondkit_history_save_failed": "No se pudo guardar el historial de soporte.",
   "respondkit_done": "Listo",
-  "respondkit_unread_reply": "Respuesta no leída"
+  "respondkit_unread_reply": "Respuesta no leída",
+  "respondkit_reconnecting": "Reconectando. Tus mensajes siguen disponibles.",
+  "respondkit_conversation_label": "Conversación",
+  "respondkit_identity_unverified": "No se pudo verificar la identidad de soporte."
 }

@@ -96,5 +96,8 @@
   "respondkit_logout_failed": "پچھلا سپورٹ سیشن منسوخ نہیں کیا جا سکا۔ یہ خود بخود ختم ہو جائے گا۔",
   "respondkit_history_save_failed": "سپورٹ کی سرگزشت محفوظ نہیں کی جا سکی۔",
   "respondkit_done": "ہو گیا",
-  "respondkit_unread_reply": "نہ پڑھا گیا جواب"
+  "respondkit_unread_reply": "نہ پڑھا گیا جواب",
+  "respondkit_reconnecting": "دوبارہ کنیکٹ ہو رہا ہے۔ آپ کے موجودہ پیغامات اب بھی دستیاب ہیں۔",
+  "respondkit_conversation_label": "گفتگو",
+  "respondkit_identity_unverified": "سپورٹ شناخت کی تصدیق نہیں ہو سکی۔"
 }

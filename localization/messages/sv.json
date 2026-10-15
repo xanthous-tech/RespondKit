@@ -97,5 +97,8 @@
   "respondkit_logout_failed": "Den tidigare supportsessionen kunde inte återkallas. Den upphör automatiskt.",
   "respondkit_history_save_failed": "Det gick inte att spara supporthistoriken.",
   "respondkit_done": "Klar",
-  "respondkit_unread_reply": "Oläst svar"
+  "respondkit_unread_reply": "Oläst svar",
+  "respondkit_reconnecting": "Återansluter. Dina befintliga meddelanden är fortfarande tillgängliga.",
+  "respondkit_conversation_label": "Konversation",
+  "respondkit_identity_unverified": "Det gick inte att verifiera supportidentiteten."
 }

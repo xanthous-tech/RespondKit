@@ -100,5 +100,8 @@
   "respondkit_logout_failed": "മുമ്പത്തെ സപ്പോർട്ട് സെഷൻ റദ്ദാക്കാനായില്ല. അത് സ്വയമേവ കാലഹരണപ്പെടും.",
   "respondkit_history_save_failed": "സപ്പോർട്ട് ചരിത്രം സംരക്ഷിക്കാനായില്ല.",
   "respondkit_done": "പൂർത്തിയായി",
-  "respondkit_unread_reply": "വായിക്കാത്ത മറുപടി"
+  "respondkit_unread_reply": "വായിക്കാത്ത മറുപടി",
+  "respondkit_reconnecting": "വീണ്ടും കണക്റ്റ് ചെയ്യുന്നു. നിങ്ങളുടെ നിലവിലുള്ള സന്ദേശങ്ങൾ ഇപ്പോഴും ലഭ്യമാണ്.",
+  "respondkit_conversation_label": "സംഭാഷണം",
+  "respondkit_identity_unverified": "സപ്പോർട്ട് ഐഡന്റിറ്റി സ്ഥിരീകരിക്കാനായില്ല."
 }

@@ -97,5 +97,8 @@
   "respondkit_logout_failed": "Hindi mabawi ang naunang support session. Kusa itong mag-e-expire.",
   "respondkit_history_save_failed": "Hindi ma-save ang history ng support.",
   "respondkit_done": "Tapos na",
-  "respondkit_unread_reply": "Hindi pa nababasang sagot"
+  "respondkit_unread_reply": "Hindi pa nababasang sagot",
+  "respondkit_reconnecting": "Muling kumokonekta. Available pa rin ang mga dati mong mensahe.",
+  "respondkit_conversation_label": "Usapan",
+  "respondkit_identity_unverified": "Hindi ma-verify ang support identity."
 }

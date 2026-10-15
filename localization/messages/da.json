@@ -97,5 +97,8 @@
   "respondkit_logout_failed": "Den tidligere supportsession kunne ikke tilbagekaldes. Den udløber automatisk.",
   "respondkit_history_save_failed": "Supporthistorikken kunne ikke gemmes.",
   "respondkit_done": "Færdig",
-  "respondkit_unread_reply": "Ulæst svar"
+  "respondkit_unread_reply": "Ulæst svar",
+  "respondkit_reconnecting": "Genopretter forbindelsen. Dine eksisterende beskeder er stadig tilgængelige.",
+  "respondkit_conversation_label": "Samtale",
+  "respondkit_identity_unverified": "Supportidentiteten kunne ikke bekræftes."
 }

@@ -97,5 +97,8 @@
   "respondkit_logout_failed": "અગાઉનું સપોર્ટ સત્ર રદ કરી શકાયું નથી. તે આપમેળે સમાપ્ત થશે.",
   "respondkit_history_save_failed": "સપોર્ટ ઇતિહાસ સાચવી શકાયો નથી.",
   "respondkit_done": "પૂર્ણ",
-  "respondkit_unread_reply": "ન વાંચેલો જવાબ"
+  "respondkit_unread_reply": "ન વાંચેલો જવાબ",
+  "respondkit_reconnecting": "ફરી કનેક્ટ થઈ રહ્યું છે. તમારા હાલના સંદેશા હજુ પણ ઉપલબ્ધ છે.",
+  "respondkit_conversation_label": "વાતચીત",
+  "respondkit_identity_unverified": "સપોર્ટ ઓળખ ચકાસી શકાઈ નથી."
 }

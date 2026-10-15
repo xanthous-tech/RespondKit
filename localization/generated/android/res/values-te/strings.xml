@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"నిర్ధారిస్తోంది…"</string>
     <string name="respondkit_connecting" formatted="false">"మద్దతు ఇంకా కనెక్ట్ అవుతోంది."</string>
     <string name="respondkit_conversation">"సంభాషణ %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"సంభాషణ"</string>
     <string name="respondkit_conversations" formatted="false">"సంభాషణలు"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"సంభాషణలు · %1$d చదవనిది"</item>
@@ -30,6 +31,7 @@
     <string name="respondkit_history_failed" formatted="false">"సంభాషణ చరిత్రను లోడ్ చేయడం సాధ్యం కాలేదు. ‘మరిన్ని’ని మళ్లీ ఎంచుకోండి."</string>
     <string name="respondkit_history_save_failed" formatted="false">"సపోర్ట్ చరిత్రను సేవ్ చేయడం సాధ్యపడలేదు."</string>
     <string name="respondkit_identity_changed" formatted="false">"మరో ట్యాబ్‌లో మద్దతు ఖాతా మారింది. మీ ఖాతాను మళ్లీ లోడ్ చేయడానికి మళ్లీ కనెక్ట్ చేయండి."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"సపోర్ట్ గుర్తింపును ధృవీకరించడం సాధ్యపడలేదు."</string>
     <string name="respondkit_intro" formatted="false">"సందేశం పంపి, త్వరగా సమాధానం పొందడానికి ఈ పేజీని తెరిచే ఉంచండి."</string>
     <string name="respondkit_intro_short" formatted="false">"సంభాషణను ప్రారంభించడానికి సందేశం పంపండి."</string>
     <string name="respondkit_latest" formatted="false">"తాజా సందేశాలు"</string>
@@ -53,6 +55,7 @@
     <string name="respondkit_ready" formatted="false">"సిద్ధం"</string>
     <string name="respondkit_reconnect" formatted="false">"మళ్లీ కనెక్ట్ చేయి"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"అప్‌లోడ్ చేసే ముందు మళ్లీ కనెక్ట్ చేయండి."</string>
+    <string name="respondkit_reconnecting" formatted="false">"మళ్లీ కనెక్ట్ అవుతోంది. మీ ప్రస్తుత సందేశాలు ఇంకా అందుబాటులో ఉన్నాయి."</string>
     <string name="respondkit_remove" formatted="false">"తీసివేయి"</string>
     <string name="respondkit_remove_file">"తీసివేయి: %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"మద్దతు అభ్యర్థన విఫలమైంది."</string>

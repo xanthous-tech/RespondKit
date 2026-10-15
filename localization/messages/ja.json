@@ -88,5 +88,8 @@
   "respondkit_logout_failed": "以前のサポートセッションを取り消せませんでした。自動的に期限切れになります。",
   "respondkit_history_save_failed": "サポート履歴を保存できませんでした。",
   "respondkit_done": "完了",
-  "respondkit_unread_reply": "未読の返信"
+  "respondkit_unread_reply": "未読の返信",
+  "respondkit_reconnecting": "再接続しています。これまでのメッセージは引き続きご覧いただけます。",
+  "respondkit_conversation_label": "会話",
+  "respondkit_identity_unverified": "サポートの本人確認ができませんでした。"
 }

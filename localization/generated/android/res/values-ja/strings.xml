@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"確認中…"</string>
     <string name="respondkit_connecting" formatted="false">"サポートに接続しています。"</string>
     <string name="respondkit_conversation">"%1$sの会話"</string>
+    <string name="respondkit_conversation_label" formatted="false">"会話"</string>
     <string name="respondkit_conversations" formatted="false">"会話"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="other">"会話 · 未読%1$d件"</item>
@@ -29,6 +30,7 @@
     <string name="respondkit_history_failed" formatted="false">"会話履歴を読み込めませんでした。もう一度「さらに表示」をお試しください。"</string>
     <string name="respondkit_history_save_failed" formatted="false">"サポート履歴を保存できませんでした。"</string>
     <string name="respondkit_identity_changed" formatted="false">"別のタブでサポートのアカウントが切り替わりました。アカウントを再読み込みするには再接続してください。"</string>
+    <string name="respondkit_identity_unverified" formatted="false">"サポートの本人確認ができませんでした。"</string>
     <string name="respondkit_intro" formatted="false">"メッセージを送信して、このページを開いたままお待ちください。すぐにお返事します。"</string>
     <string name="respondkit_intro_short" formatted="false">"メッセージを送信して会話を始めましょう。"</string>
     <string name="respondkit_latest" formatted="false">"最新のメッセージ"</string>
@@ -51,6 +53,7 @@
     <string name="respondkit_ready" formatted="false">"準備完了"</string>
     <string name="respondkit_reconnect" formatted="false">"再接続"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"アップロードする前に再接続してください。"</string>
+    <string name="respondkit_reconnecting" formatted="false">"再接続しています。これまでのメッセージは引き続きご覧いただけます。"</string>
     <string name="respondkit_remove" formatted="false">"削除"</string>
     <string name="respondkit_remove_file">"%1$sを削除"</string>
     <string name="respondkit_request_failed" formatted="false">"サポートへのリクエストに失敗しました。"</string>

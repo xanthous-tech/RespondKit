@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"Επιβεβαίωση…"</string>
     <string name="respondkit_connecting" formatted="false">"Η υποστήριξη συνδέεται ακόμα."</string>
     <string name="respondkit_conversation">"Συνομιλία %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Συνομιλία"</string>
     <string name="respondkit_conversations" formatted="false">"Συνομιλίες"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Συνομιλίες · %1$d μη αναγνωσμένη"</item>
@@ -30,6 +31,7 @@
     <string name="respondkit_history_failed" formatted="false">"Δεν ήταν δυνατή η φόρτωση του ιστορικού συνομιλίας. Πατήστε ξανά «Περισσότερα»."</string>
     <string name="respondkit_history_save_failed" formatted="false">"Δεν ήταν δυνατή η αποθήκευση του ιστορικού υποστήριξης."</string>
     <string name="respondkit_identity_changed" formatted="false">"Η ταυτότητα υποστήριξης άλλαξε σε άλλη καρτέλα. Επανασυνδεθείτε για να φορτώσετε ξανά τον λογαριασμό σας."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"Δεν ήταν δυνατή η επαλήθευση της ταυτότητας υποστήριξης."</string>
     <string name="respondkit_intro" formatted="false">"Στείλτε ένα μήνυμα και κρατήστε αυτή τη σελίδα ανοιχτή για γρήγορη απάντηση."</string>
     <string name="respondkit_intro_short" formatted="false">"Στείλτε ένα μήνυμα για να ξεκινήσετε μια συνομιλία."</string>
     <string name="respondkit_latest" formatted="false">"Πιο πρόσφατα μηνύματα"</string>
@@ -53,6 +55,7 @@
     <string name="respondkit_ready" formatted="false">"Έτοιμο"</string>
     <string name="respondkit_reconnect" formatted="false">"Επανασύνδεση"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Επανασυνδεθείτε πριν από τη μεταφόρτωση."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Γίνεται επανασύνδεση. Τα υπάρχοντα μηνύματά σας εξακολουθούν να είναι διαθέσιμα."</string>
     <string name="respondkit_remove" formatted="false">"Αφαίρεση"</string>
     <string name="respondkit_remove_file">"Αφαίρεση %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"Το αίτημα υποστήριξης απέτυχε."</string>

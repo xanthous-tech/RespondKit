@@ -103,5 +103,8 @@
   "respondkit_logout_failed": "Iepriekšējo atbalsta sesiju neizdevās atsaukt. Tās derīgums beigsies automātiski.",
   "respondkit_history_save_failed": "Atbalsta vēsturi neizdevās saglabāt.",
   "respondkit_done": "Gatavs",
-  "respondkit_unread_reply": "Nelasīta atbilde"
+  "respondkit_unread_reply": "Nelasīta atbilde",
+  "respondkit_reconnecting": "Notiek atkārtota savienošana. Jūsu esošie ziņojumi joprojām ir pieejami.",
+  "respondkit_conversation_label": "Saruna",
+  "respondkit_identity_unverified": "Atbalsta identitāti neizdevās pārbaudīt."
 }

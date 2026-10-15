@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"Potvrđivanje…"</string>
     <string name="respondkit_connecting" formatted="false">"Povezivanje s podrškom još je u tijeku."</string>
     <string name="respondkit_conversation">"Razgovor %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Razgovor"</string>
     <string name="respondkit_conversations" formatted="false">"Razgovori"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Razgovori · %1$d nepročitan"</item>
@@ -31,6 +32,7 @@
     <string name="respondkit_history_failed" formatted="false">"Povijest razgovora nije moguće učitati. Pokušajte ponovno s „Prikaži više”."</string>
     <string name="respondkit_history_save_failed" formatted="false">"Povijest podrške nije bilo moguće spremiti."</string>
     <string name="respondkit_identity_changed" formatted="false">"Identitet za podršku promijenjen je u drugoj kartici. Ponovno se povežite kako biste ponovno učitali račun."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"Identitet podrške nije bilo moguće potvrditi."</string>
     <string name="respondkit_intro" formatted="false">"Pošaljite poruku i ostavite ovu stranicu otvorenom za brz odgovor."</string>
     <string name="respondkit_intro_short" formatted="false">"Pošaljite poruku da biste započeli razgovor."</string>
     <string name="respondkit_latest" formatted="false">"Najnovije poruke"</string>
@@ -55,6 +57,7 @@
     <string name="respondkit_ready" formatted="false">"Spremno"</string>
     <string name="respondkit_reconnect" formatted="false">"Ponovno se poveži"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Ponovno se povežite prije prijenosa."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Ponovno povezivanje. Vaše postojeće poruke i dalje su dostupne."</string>
     <string name="respondkit_remove" formatted="false">"Ukloni"</string>
     <string name="respondkit_remove_file">"Ukloni %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"Zahtjev za podršku nije uspio."</string>

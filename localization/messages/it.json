@@ -103,5 +103,8 @@
   "respondkit_logout_failed": "Impossibile revocare la sessione di assistenza precedente. Scadrà automaticamente.",
   "respondkit_history_save_failed": "Impossibile salvare la cronologia dell'assistenza.",
   "respondkit_done": "Fine",
-  "respondkit_unread_reply": "Risposta non letta"
+  "respondkit_unread_reply": "Risposta non letta",
+  "respondkit_reconnecting": "Riconnessione in corso. I tuoi messaggi esistenti sono ancora disponibili.",
+  "respondkit_conversation_label": "Conversazione",
+  "respondkit_identity_unverified": "Impossibile verificare l'identità dell'assistenza."
 }

@@ -94,5 +94,8 @@
   "respondkit_logout_failed": "Không thể thu hồi phiên hỗ trợ trước đó. Phiên sẽ tự động hết hạn.",
   "respondkit_history_save_failed": "Không thể lưu lịch sử hỗ trợ.",
   "respondkit_done": "Xong",
-  "respondkit_unread_reply": "Câu trả lời chưa đọc"
+  "respondkit_unread_reply": "Câu trả lời chưa đọc",
+  "respondkit_reconnecting": "Đang kết nối lại. Các tin nhắn hiện có của bạn vẫn còn đó.",
+  "respondkit_conversation_label": "Cuộc trò chuyện",
+  "respondkit_identity_unverified": "Không thể xác minh danh tính hỗ trợ."
 }

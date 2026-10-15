@@ -97,5 +97,8 @@
   "respondkit_logout_failed": "আগের সহায়তা সেশনটি বাতিল করা যায়নি। এটি স্বয়ংক্রিয়ভাবে মেয়াদোত্তীর্ণ হবে।",
   "respondkit_history_save_failed": "সহায়তার ইতিহাস সংরক্ষণ করা যায়নি।",
   "respondkit_done": "সম্পন্ন",
-  "respondkit_unread_reply": "অপঠিত উত্তর"
+  "respondkit_unread_reply": "অপঠিত উত্তর",
+  "respondkit_reconnecting": "আবার সংযোগ করা হচ্ছে। আপনার আগের বার্তাগুলি এখনও উপলব্ধ।",
+  "respondkit_conversation_label": "কথোপকথন",
+  "respondkit_identity_unverified": "সহায়তার পরিচয় যাচাই করা যায়নি।"
 }

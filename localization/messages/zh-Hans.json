@@ -94,5 +94,8 @@
   "respondkit_logout_failed": "无法撤销之前的支持会话。该会话将自动过期。",
   "respondkit_history_save_failed": "无法保存支持记录。",
   "respondkit_done": "完成",
-  "respondkit_unread_reply": "未读回复"
+  "respondkit_unread_reply": "未读回复",
+  "respondkit_reconnecting": "正在重新连接。您现有的消息仍然可用。",
+  "respondkit_conversation_label": "对话",
+  "respondkit_identity_unverified": "无法验证支持身份。"
 }

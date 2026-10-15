@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"নিশ্চিত করা হচ্ছে…"</string>
     <string name="respondkit_connecting" formatted="false">"সহায়তা এখনও সংযুক্ত হচ্ছে।"</string>
     <string name="respondkit_conversation">"কথোপকথন %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"কথোপকথন"</string>
     <string name="respondkit_conversations" formatted="false">"কথোপকথন"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"কথোপকথন · %1$dটি অপঠিত"</item>
@@ -30,6 +31,7 @@
     <string name="respondkit_history_failed" formatted="false">"কথোপকথনের ইতিহাস লোড করা যায়নি। আবার ‘আরও’ ট্যাপ করুন।"</string>
     <string name="respondkit_history_save_failed" formatted="false">"সহায়তার ইতিহাস সংরক্ষণ করা যায়নি।"</string>
     <string name="respondkit_identity_changed" formatted="false">"অন্য একটি ট্যাবে সহায়তার পরিচয় পরিবর্তিত হয়েছে। আপনার অ্যাকাউন্ট আবার লোড করতে পুনরায় সংযোগ করুন।"</string>
+    <string name="respondkit_identity_unverified" formatted="false">"সহায়তার পরিচয় যাচাই করা যায়নি।"</string>
     <string name="respondkit_intro" formatted="false">"একটি বার্তা পাঠান এবং দ্রুত উত্তর পেতে এই পেজটি খোলা রাখুন।"</string>
     <string name="respondkit_intro_short" formatted="false">"কথোপকথন শুরু করতে একটি বার্তা পাঠান।"</string>
     <string name="respondkit_latest" formatted="false">"সর্বশেষ বার্তা"</string>
@@ -53,6 +55,7 @@
     <string name="respondkit_ready" formatted="false">"প্রস্তুত"</string>
     <string name="respondkit_reconnect" formatted="false">"আবার সংযোগ করুন"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"আপলোড করার আগে আবার সংযোগ করুন।"</string>
+    <string name="respondkit_reconnecting" formatted="false">"আবার সংযোগ করা হচ্ছে। আপনার আগের বার্তাগুলি এখনও উপলব্ধ।"</string>
     <string name="respondkit_remove" formatted="false">"সরান"</string>
     <string name="respondkit_remove_file">"%1$s সরান"</string>
     <string name="respondkit_request_failed" formatted="false">"সহায়তার অনুরোধ ব্যর্থ হয়েছে।"</string>

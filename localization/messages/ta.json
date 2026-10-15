@@ -97,5 +97,8 @@
   "respondkit_logout_failed": "முந்தைய ஆதரவு அமர்வைத் திரும்பப்பெற முடியவில்லை. அது தானாகவே காலாவதியாகும்.",
   "respondkit_history_save_failed": "ஆதரவு வரலாற்றைச் சேமிக்க முடியவில்லை.",
   "respondkit_done": "முடிந்தது",
-  "respondkit_unread_reply": "படிக்காத பதில்"
+  "respondkit_unread_reply": "படிக்காத பதில்",
+  "respondkit_reconnecting": "மீண்டும் இணைக்கிறது. உங்கள் தற்போதைய செய்திகள் இன்னும் கிடைக்கின்றன.",
+  "respondkit_conversation_label": "உரையாடல்",
+  "respondkit_identity_unverified": "ஆதரவு அடையாளத்தைச் சரிபார்க்க முடியவில்லை."
 }

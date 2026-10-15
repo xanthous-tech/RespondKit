@@ -88,5 +88,8 @@
   "respondkit_logout_failed": "Sesi dukungan sebelumnya tidak dapat dicabut. Sesi akan berakhir secara otomatis.",
   "respondkit_history_save_failed": "Riwayat dukungan tidak dapat disimpan.",
   "respondkit_done": "Selesai",
-  "respondkit_unread_reply": "Balasan belum dibaca"
+  "respondkit_unread_reply": "Balasan belum dibaca",
+  "respondkit_reconnecting": "Menghubungkan ulang. Pesan Anda yang ada masih tersedia.",
+  "respondkit_conversation_label": "Percakapan",
+  "respondkit_identity_unverified": "Identitas dukungan tidak dapat diverifikasi."
 }

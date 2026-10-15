@@ -91,5 +91,8 @@
   "respondkit_logout_failed": "Previous support session could not be revoked. It will expire automatically.",
   "respondkit_history_save_failed": "Could not save support history.",
   "respondkit_done": "Done",
-  "respondkit_unread_reply": "Unread reply"
+  "respondkit_unread_reply": "Unread reply",
+  "respondkit_reconnecting": "Reconnecting. Your existing messages are still available.",
+  "respondkit_conversation_label": "Conversation",
+  "respondkit_identity_unverified": "Support identity could not be verified."
 }

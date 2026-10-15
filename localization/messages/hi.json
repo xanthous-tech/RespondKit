@@ -97,5 +97,8 @@
   "respondkit_logout_failed": "पिछला सहायता सत्र रद्द नहीं किया जा सका। यह अपने आप समाप्त हो जाएगा।",
   "respondkit_history_save_failed": "सहायता इतिहास सहेजा नहीं जा सका।",
   "respondkit_done": "हो गया",
-  "respondkit_unread_reply": "अपठित जवाब"
+  "respondkit_unread_reply": "अपठित जवाब",
+  "respondkit_reconnecting": "फिर से कनेक्ट हो रहा है। आपके मौजूदा संदेश अब भी उपलब्ध हैं।",
+  "respondkit_conversation_label": "बातचीत",
+  "respondkit_identity_unverified": "सहायता पहचान सत्यापित नहीं की जा सकी।"
 }

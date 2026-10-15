@@ -106,5 +106,8 @@
   "respondkit_logout_failed": "Не удалось отозвать предыдущий сеанс поддержки. Он истечёт автоматически.",
   "respondkit_history_save_failed": "Не удалось сохранить историю обращений в поддержку.",
   "respondkit_done": "Готово",
-  "respondkit_unread_reply": "Непрочитанный ответ"
+  "respondkit_unread_reply": "Непрочитанный ответ",
+  "respondkit_reconnecting": "Повторное подключение. Ваши сообщения по-прежнему доступны.",
+  "respondkit_conversation_label": "Разговор",
+  "respondkit_identity_unverified": "Не удалось подтвердить личность для поддержки."
 }

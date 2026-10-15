@@ -97,5 +97,8 @@
   "respondkit_logout_failed": "Предишната сесия за поддръжка не можа да бъде прекратена. Тя ще изтече автоматично.",
   "respondkit_history_save_failed": "Историята на поддръжката не можа да бъде запазена.",
   "respondkit_done": "Готово",
-  "respondkit_unread_reply": "Непрочетен отговор"
+  "respondkit_unread_reply": "Непрочетен отговор",
+  "respondkit_reconnecting": "Повторно свързване. Съществуващите ви съобщения са все още налични.",
+  "respondkit_conversation_label": "Разговор",
+  "respondkit_identity_unverified": "Самоличността за поддръжка не можа да бъде потвърдена."
 }

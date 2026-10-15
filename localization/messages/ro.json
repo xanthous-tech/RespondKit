@@ -99,5 +99,8 @@
   "respondkit_logout_failed": "Sesiunea de asistență anterioară nu a putut fi revocată. Va expira automat.",
   "respondkit_history_save_failed": "Istoricul asistenței nu a putut fi salvat.",
   "respondkit_done": "Gata",
-  "respondkit_unread_reply": "Răspuns necitit"
+  "respondkit_unread_reply": "Răspuns necitit",
+  "respondkit_reconnecting": "Se reconectează. Mesajele existente sunt în continuare disponibile.",
+  "respondkit_conversation_label": "Conversație",
+  "respondkit_identity_unverified": "Identitatea de asistență nu a putut fi verificată."
 }

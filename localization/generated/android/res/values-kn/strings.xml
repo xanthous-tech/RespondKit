@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"ದೃಢೀಕರಿಸಲಾಗುತ್ತಿದೆ…"</string>
     <string name="respondkit_connecting" formatted="false">"ಬೆಂಬಲ ಇನ್ನೂ ಸಂಪರ್ಕಗೊಳ್ಳುತ್ತಿದೆ."</string>
     <string name="respondkit_conversation">"ಸಂಭಾಷಣೆ %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"ಸಂಭಾಷಣೆ"</string>
     <string name="respondkit_conversations" formatted="false">"ಸಂಭಾಷಣೆಗಳು"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"ಸಂಭಾಷಣೆಗಳು · %1$d ಓದಿಲ್ಲ"</item>
@@ -30,6 +31,7 @@
     <string name="respondkit_history_failed" formatted="false">"ಸಂಭಾಷಣೆಯ ಇತಿಹಾಸವನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ಇನ್ನಷ್ಟು ಬಟನ್ ಅನ್ನು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."</string>
     <string name="respondkit_history_save_failed" formatted="false">"ಬೆಂಬಲ ಇತಿಹಾಸವನ್ನು ಉಳಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ."</string>
     <string name="respondkit_identity_changed" formatted="false">"ಮತ್ತೊಂದು ಟ್ಯಾಬ್‌ನಲ್ಲಿ ಬೆಂಬಲ ಖಾತೆ ಬದಲಾಗಿದೆ. ನಿಮ್ಮ ಖಾತೆಯನ್ನು ಮರುಲೋಡ್ ಮಾಡಲು ಮರುಸಂಪರ್ಕಿಸಿ."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"ಬೆಂಬಲ ಗುರುತನ್ನು ಪರಿಶೀಲಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ."</string>
     <string name="respondkit_intro" formatted="false">"ಸಂದೇಶ ಕಳುಹಿಸಿ ಮತ್ತು ತ್ವರಿತ ಉತ್ತರಕ್ಕಾಗಿ ಈ ಪುಟವನ್ನು ತೆರೆದಿಡಿ."</string>
     <string name="respondkit_intro_short" formatted="false">"ಸಂಭಾಷಣೆ ಪ್ರಾರಂಭಿಸಲು ಸಂದೇಶ ಕಳುಹಿಸಿ."</string>
     <string name="respondkit_latest" formatted="false">"ಇತ್ತೀಚಿನ ಸಂದೇಶಗಳು"</string>
@@ -53,6 +55,7 @@
     <string name="respondkit_ready" formatted="false">"ಸಿದ್ಧವಾಗಿದೆ"</string>
     <string name="respondkit_reconnect" formatted="false">"ಮರುಸಂಪರ್ಕಿಸಿ"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"ಅಪ್‌ಲೋಡ್ ಮಾಡುವ ಮೊದಲು ಮರುಸಂಪರ್ಕಿಸಿ."</string>
+    <string name="respondkit_reconnecting" formatted="false">"ಮರುಸಂಪರ್ಕಿಸಲಾಗುತ್ತಿದೆ. ನಿಮ್ಮ ಈಗಿನ ಸಂದೇಶಗಳು ಇನ್ನೂ ಲಭ್ಯವಿವೆ."</string>
     <string name="respondkit_remove" formatted="false">"ತೆಗೆದುಹಾಕಿ"</string>
     <string name="respondkit_remove_file">"%1$s ತೆಗೆದುಹಾಕಿ"</string>
     <string name="respondkit_request_failed" formatted="false">"ಬೆಂಬಲ ವಿನಂತಿ ವಿಫಲವಾಗಿದೆ."</string>

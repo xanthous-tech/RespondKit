@@ -106,5 +106,8 @@
   "respondkit_logout_failed": "Prejšnje seje podpore ni bilo mogoče preklicati. Samodejno bo potekla.",
   "respondkit_history_save_failed": "Zgodovine podpore ni bilo mogoče shraniti.",
   "respondkit_done": "Končano",
-  "respondkit_unread_reply": "Neprebran odgovor"
+  "respondkit_unread_reply": "Neprebran odgovor",
+  "respondkit_reconnecting": "Vnovično povezovanje. Vaša obstoječa sporočila so še vedno na voljo.",
+  "respondkit_conversation_label": "Pogovor",
+  "respondkit_identity_unverified": "Identitete za podporo ni bilo mogoče preveriti."
 }

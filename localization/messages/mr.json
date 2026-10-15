@@ -100,5 +100,8 @@
   "respondkit_logout_failed": "मागील सहाय्य सत्र रद्द करता आले नाही. ते आपोआप कालबाह्य होईल.",
   "respondkit_history_save_failed": "सहाय्य इतिहास जतन करता आला नाही.",
   "respondkit_done": "पूर्ण",
-  "respondkit_unread_reply": "न वाचलेले उत्तर"
+  "respondkit_unread_reply": "न वाचलेले उत्तर",
+  "respondkit_reconnecting": "पुन्हा कनेक्ट होत आहे. तुमचे विद्यमान संदेश अजूनही उपलब्ध आहेत.",
+  "respondkit_conversation_label": "संभाषण",
+  "respondkit_identity_unverified": "सहाय्य ओळख सत्यापित करता आली नाही."
 }

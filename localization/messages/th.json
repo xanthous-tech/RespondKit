@@ -94,5 +94,8 @@
   "respondkit_logout_failed": "ไม่สามารถเพิกถอนเซสชันการสนับสนุนก่อนหน้าได้ เซสชันจะหมดอายุโดยอัตโนมัติ",
   "respondkit_history_save_failed": "ไม่สามารถบันทึกประวัติการสนับสนุนได้",
   "respondkit_done": "เสร็จสิ้น",
-  "respondkit_unread_reply": "คำตอบที่ยังไม่ได้อ่าน"
+  "respondkit_unread_reply": "คำตอบที่ยังไม่ได้อ่าน",
+  "respondkit_reconnecting": "กำลังเชื่อมต่อใหม่ ข้อความที่มีอยู่ของคุณยังคงใช้งานได้",
+  "respondkit_conversation_label": "การสนทนา",
+  "respondkit_identity_unverified": "ไม่สามารถยืนยันตัวตนสำหรับการสนับสนุนได้"
 }

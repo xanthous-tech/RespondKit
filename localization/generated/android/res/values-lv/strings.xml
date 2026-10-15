@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"Apstiprina…"</string>
     <string name="respondkit_connecting" formatted="false">"Atbalsts joprojām tiek savienots."</string>
     <string name="respondkit_conversation">"Saruna %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Saruna"</string>
     <string name="respondkit_conversations" formatted="false">"Sarunas"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="zero">"Sarunas · %1$d nelasītas"</item>
@@ -31,6 +32,7 @@
     <string name="respondkit_history_failed" formatted="false">"Neizdevās ielādēt sarunas vēsturi. Vēlreiz noklikšķiniet uz Vairāk."</string>
     <string name="respondkit_history_save_failed" formatted="false">"Atbalsta vēsturi neizdevās saglabāt."</string>
     <string name="respondkit_identity_changed" formatted="false">"Atbalsta identitāte tika mainīta citā cilnē. Lai atkārtoti ielādētu savu kontu, savienojiet vēlreiz."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"Atbalsta identitāti neizdevās pārbaudīt."</string>
     <string name="respondkit_intro" formatted="false">"Nosūtiet ziņu un neaizveriet šo lapu – drīz atbildēsim."</string>
     <string name="respondkit_intro_short" formatted="false">"Nosūtiet ziņu, lai sāktu sarunu."</string>
     <string name="respondkit_latest" formatted="false">"Jaunākās ziņas"</string>
@@ -55,6 +57,7 @@
     <string name="respondkit_ready" formatted="false">"Gatavs"</string>
     <string name="respondkit_reconnect" formatted="false">"Savienot vēlreiz"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Pirms augšupielādes savienojiet vēlreiz."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Notiek atkārtota savienošana. Jūsu esošie ziņojumi joprojām ir pieejami."</string>
     <string name="respondkit_remove" formatted="false">"Noņemt"</string>
     <string name="respondkit_remove_file">"Noņemt %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"Atbalsta pieprasījums neizdevās."</string>

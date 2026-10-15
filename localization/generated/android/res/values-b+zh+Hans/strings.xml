@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"正在确认…"</string>
     <string name="respondkit_connecting" formatted="false">"客服仍在连接中。"</string>
     <string name="respondkit_conversation">"对话 %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"对话"</string>
     <string name="respondkit_conversations" formatted="false">"对话"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="other">"对话 · %1$d 条未读"</item>
@@ -29,6 +30,7 @@
     <string name="respondkit_history_failed" formatted="false">"无法加载对话记录。请再次选择“更多”。"</string>
     <string name="respondkit_history_save_failed" formatted="false">"无法保存支持记录。"</string>
     <string name="respondkit_identity_changed" formatted="false">"客服身份已在其他标签页中更改。请重新连接以重新加载您的账户。"</string>
+    <string name="respondkit_identity_unverified" formatted="false">"无法验证支持身份。"</string>
     <string name="respondkit_intro" formatted="false">"发送消息后请保持此页面打开，以便及时收到回复。"</string>
     <string name="respondkit_intro_short" formatted="false">"发送消息即可开始对话。"</string>
     <string name="respondkit_latest" formatted="false">"最新消息"</string>
@@ -51,6 +53,7 @@
     <string name="respondkit_ready" formatted="false">"已就绪"</string>
     <string name="respondkit_reconnect" formatted="false">"重新连接"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"请先重新连接再上传。"</string>
+    <string name="respondkit_reconnecting" formatted="false">"正在重新连接。您现有的消息仍然可用。"</string>
     <string name="respondkit_remove" formatted="false">"移除"</string>
     <string name="respondkit_remove_file">"移除 %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"客服请求失败。"</string>

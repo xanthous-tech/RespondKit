@@ -96,5 +96,8 @@
   "respondkit_logout_failed": "ਪਿਛਲਾ ਸਹਾਇਤਾ ਸੈਸ਼ਨ ਰੱਦ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ। ਇਹ ਆਪਣੇ ਆਪ ਖਤਮ ਹੋ ਜਾਵੇਗਾ।",
   "respondkit_history_save_failed": "ਸਹਾਇਤਾ ਇਤਿਹਾਸ ਸੁਰੱਖਿਅਤ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ।",
   "respondkit_done": "ਹੋ ਗਿਆ",
-  "respondkit_unread_reply": "ਨਾ ਪੜ੍ਹਿਆ ਜਵਾਬ"
+  "respondkit_unread_reply": "ਨਾ ਪੜ੍ਹਿਆ ਜਵਾਬ",
+  "respondkit_reconnecting": "ਮੁੜ ਕਨੈਕਟ ਹੋ ਰਿਹਾ ਹੈ। ਤੁਹਾਡੇ ਮੌਜੂਦਾ ਸੁਨੇਹੇ ਹਾਲੇ ਵੀ ਉਪਲਬਧ ਹਨ।",
+  "respondkit_conversation_label": "ਗੱਲਬਾਤ",
+  "respondkit_identity_unverified": "ਸਹਾਇਤਾ ਪਛਾਣ ਦੀ ਪੁਸ਼ਟੀ ਨਹੀਂ ਹੋ ਸਕੀ।"
 }

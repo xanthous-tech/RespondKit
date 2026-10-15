@@ -14,6 +14,7 @@
     <string name="respondkit_confirming" formatted="false">"ନିଶ୍ଚିତ କରାଯାଉଛି…"</string>
     <string name="respondkit_connecting" formatted="false">"ସହାୟତା ଏବେ ବି ସଂଯୋଗ ହେଉଛି।"</string>
     <string name="respondkit_conversation">"ବାର୍ତ୍ତାଳାପ %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"ବାର୍ତ୍ତାଳାପ"</string>
     <string name="respondkit_conversations" formatted="false">"ବାର୍ତ୍ତାଳାପଗୁଡ଼ିକ"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"ବାର୍ତ୍ତାଳାପଗୁଡ଼ିକ · %1$dଟି ଅପଠିତ"</item>
@@ -30,6 +31,7 @@
     <string name="respondkit_history_failed" formatted="false">"ବାର୍ତ୍ତାଳାପ ଇତିହାସ ଲୋଡ୍ କରାଯାଇପାରିଲା ନାହିଁ। ଅଧିକ ବଟନ୍ ସହ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।"</string>
     <string name="respondkit_history_save_failed" formatted="false">"ସହାୟତା ଇତିହାସ ସେଭ୍ କରାଯାଇପାରିଲା ନାହିଁ।"</string>
     <string name="respondkit_identity_changed" formatted="false">"ଅନ୍ୟ ଏକ ଟ୍ୟାବ୍‌ରେ ସହାୟତା ପରିଚୟ ବଦଳିଯାଇଛି। ଆପଣଙ୍କ ଆକାଉଣ୍ଟ ପୁଣି ଲୋଡ୍ କରିବାକୁ ପୁଣି ସଂଯୋଗ କରନ୍ତୁ।"</string>
+    <string name="respondkit_identity_unverified" formatted="false">"ସହାୟତା ପରିଚୟ ଯାଞ୍ଚ କରାଯାଇପାରିଲା ନାହିଁ।"</string>
     <string name="respondkit_intro" formatted="false">"ଏକ ମେସେଜ୍ ପଠାନ୍ତୁ ଏବଂ ଶୀଘ୍ର ଉତ୍ତର ପାଇଁ ଏହି ପୃଷ୍ଠାଟି ଖୋଲା ରଖନ୍ତୁ।"</string>
     <string name="respondkit_intro_short" formatted="false">"ବାର୍ତ୍ତାଳାପ ଆରମ୍ଭ କରିବାକୁ ଏକ ମେସେଜ୍ ପଠାନ୍ତୁ।"</string>
     <string name="respondkit_latest" formatted="false">"ସର୍ବଶେଷ ମେସେଜ୍"</string>
@@ -53,6 +55,7 @@
     <string name="respondkit_ready" formatted="false">"ପ୍ରସ୍ତୁତ"</string>
     <string name="respondkit_reconnect" formatted="false">"ପୁଣି ସଂଯୋଗ କରନ୍ତୁ"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"ଅପଲୋଡ୍ କରିବା ପୂର୍ବରୁ ପୁଣି ସଂଯୋଗ କରନ୍ତୁ।"</string>
+    <string name="respondkit_reconnecting" formatted="false">"ପୁଣି ସଂଯୋଗ କରାଯାଉଛି। ଆପଣଙ୍କ ବିଦ୍ୟମାନ ବାର୍ତ୍ତାଗୁଡ଼ିକ ଏବେ ବି ଉପଲବ୍ଧ।"</string>
     <string name="respondkit_remove" formatted="false">"ହଟାନ୍ତୁ"</string>
     <string name="respondkit_remove_file">"%1$s ହଟାନ୍ତୁ"</string>
     <string name="respondkit_request_failed" formatted="false">"ସହାୟତା ଅନୁରୋଧ ବିଫଳ ହେଲା।"</string>

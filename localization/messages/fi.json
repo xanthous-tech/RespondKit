@@ -97,5 +97,8 @@
   "respondkit_logout_failed": "Edellistä tukiistuntoa ei voitu peruuttaa. Se vanhenee automaattisesti.",
   "respondkit_history_save_failed": "Tukihistoriaa ei voitu tallentaa.",
   "respondkit_done": "Valmis",
-  "respondkit_unread_reply": "Lukematon vastaus"
+  "respondkit_unread_reply": "Lukematon vastaus",
+  "respondkit_reconnecting": "Yhdistetään uudelleen. Aiemmat viestisi ovat yhä saatavilla.",
+  "respondkit_conversation_label": "Keskustelu",
+  "respondkit_identity_unverified": "Tuen tunnistetta ei voitu vahvistaa."
 }

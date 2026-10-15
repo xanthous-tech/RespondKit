@@ -100,5 +100,8 @@
   "respondkit_logout_failed": "Den forrige støtteøkten kunne ikke tilbakekalles. Den utløper automatisk.",
   "respondkit_history_save_failed": "Kunne ikke lagre støttehistorikken.",
   "respondkit_done": "Ferdig",
-  "respondkit_unread_reply": "Ulest svar"
+  "respondkit_unread_reply": "Ulest svar",
+  "respondkit_reconnecting": "Kobler til på nytt. De eksisterende meldingene dine er fortsatt tilgjengelige.",
+  "respondkit_conversation_label": "Samtale",
+  "respondkit_identity_unverified": "Støtteidentiteten kunne ikke bekreftes."
 }
