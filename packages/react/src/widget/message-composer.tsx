@@ -5,8 +5,11 @@ import { useRef, useState, useEffect, type FormEvent, type KeyboardEvent } from 
 import { Button } from "#components/ui/button";
 import { Textarea } from "#components/ui/textarea";
 
+import { messages } from "./messages";
+
 interface MessageComposerProps {
   readonly disabled: boolean;
+  readonly locale?: string | undefined;
   readonly scope?: string;
   readonly onSend: (text: string, attachments: AttachmentV1[]) => void;
   readonly onUpload: (
@@ -24,7 +27,13 @@ interface Picked {
   attachment?: AttachmentV1;
   error?: string | undefined;
 }
-export function MessageComposer({ disabled, onSend, onUpload, scope }: MessageComposerProps) {
+export function MessageComposer({
+  disabled,
+  locale,
+  onSend,
+  onUpload,
+  scope,
+}: MessageComposerProps) {
   const [files, setFiles] = useState<Picked[]>([]);
   const fileInput = useRef<HTMLInputElement>(null);
   const controllers = useRef(new Map<string, AbortController>());
@@ -142,7 +151,7 @@ export function MessageComposer({ disabled, onSend, onUpload, scope }: MessageCo
         className="ac:size-11 ac:shrink-0"
         disabled={disabled}
         onClick={() => fileInput.current?.click()}
-        aria-label="Attach files"
+        aria-label={messages(locale).respondkit_attach_files()}
       >
         <PaperclipIcon />
       </Button>

@@ -16,6 +16,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "#compo
 import { EmailPrompt } from "./email-prompt";
 import { MessageComposer } from "./message-composer";
 import { MessageList } from "./message-list";
+import { messages as catalog } from "./messages";
 import { respondKitAccentPalette, type RespondKitAccentColor } from "./theme";
 import type { RespondKitContext } from "./types";
 import { useRespondKit } from "./use-respondkit";
@@ -152,7 +153,9 @@ export function RespondKitWidget({
                 >
                   {title}
                 </h2>
-                <p className="ac:m-0 ac:text-sm ac:text-muted-foreground">Ask us anything</p>
+                <p className="ac:m-0 ac:text-sm ac:text-muted-foreground">
+                  {catalog(context.locale).respondkit_ask_anything()}
+                </p>
               </div>
               <Tooltip>
                 <TooltipTrigger
@@ -233,6 +236,7 @@ export function RespondKitWidget({
                   />
                 ) : null}
                 <MessageComposer
+                  locale={context.locale}
                   scope={`${context.userId ?? "anonymous"}:${selectedThreadId ?? "new"}`}
                   disabled={bootstrapState !== "ready"}
                   onSend={sendMessage}

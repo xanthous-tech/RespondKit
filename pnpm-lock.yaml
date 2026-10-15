@@ -159,6 +159,9 @@ importers:
       '@respondkit/paraglide-ios':
         specifier: workspace:*
         version: link:packages/paraglide-ios
+      '@respondkit/paraglide-resources':
+        specifier: workspace:*
+        version: link:packages/paraglide-resources
       publint:
         specifier: 'catalog:'
         version: 0.3.24

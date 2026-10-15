@@ -23,6 +23,36 @@ actor FakeAPI: RespondKitAPI {
   var unauthorizedOnce = false
   var suspendStatuses = false
   var statusContinuation: CheckedContinuation<Void, Never>?
+  var contactEmail: String?
+  func setContactEmail(_ value: String?) { contactEmail = value }
+  var contactCalls = 0
+  var contactFailures = 0
+  var suspendContact = false
+  var contactContinuation: CheckedContinuation<Void, Never>?
+  var statusCalls = 0
+  var beforeContactFailure: (@Sendable () async throws -> Void)?
+  func failContact(times: Int, before: (@Sendable () async throws -> Void)? = nil) {
+    contactFailures = times
+    beforeContactFailure = before
+  }
+  func setSuspendContact(_ value: Bool) { suspendContact = value }
+  func resumeContact() {
+    contactContinuation?.resume()
+    contactContinuation = nil
+  }
+  func contact(token: String) async throws -> ContactInfo {
+    contactCalls += 1
+    if contactFailures > 0 {
+      contactFailures -= 1
+      try await beforeContactFailure?()
+      throw RespondKitError("Contact unavailable.")
+    }
+    if suspendContact {
+      suspendContact = false
+      await withCheckedContinuation { contactContinuation = $0 }
+    }
+    return ContactInfo(email: contactEmail)
+  }
   func seed() throws {
     let page: StatusPage = try fixture("statuses")
     statusPages[""] = StatusPage(threads: page.threads, nextCursor: "page_two")
@@ -50,6 +80,7 @@ actor FakeAPI: RespondKitAPI {
     return result.session
   }
   func statuses(token: String, after: String?) async throws -> StatusPage {
+    statusCalls += 1
     if suspendStatuses { await withCheckedContinuation { statusContinuation = $0 } }
     if unauthorizedOnce {
       unauthorizedOnce = false
@@ -93,13 +124,89 @@ actor FakeAPI: RespondKitAPI {
 
 @MainActor
 struct StoreTests {
-  func make(_ api: FakeAPI, storage: MemoryPersistence = MemoryPersistence()) throws
-    -> RespondKitStore
-  {
+  func make(
+    _ api: FakeAPI, storage: MemoryPersistence = MemoryPersistence(),
+    context: CustomerContext = .init()
+  ) throws -> RespondKitStore {
     let config = try RespondKitConfiguration(
       baseURL: URL(string: "https://support.example.com")!, inboxID: "inbox_test",
       origin: "https://example.com")
-    return try RespondKitStore(configuration: config, persistence: storage, api: api)
+    return try RespondKitStore(
+      configuration: config, context: context, persistence: storage, api: api)
+  }
+
+  @Test func hostSuppliedEmailNeverAsks() async throws {
+    let store = try make(FakeAPI(), context: CustomerContext(email: "ann@example.com"))
+    #expect(!store.asksForEmail)
+    await store.openConversation()
+    #expect(!store.asksForEmail)
+    #expect(store.emailAddress == "ann@example.com")
+  }
+
+  @Test func storedContactEmailNeverAsks() async throws {
+    let api = FakeAPI()
+    await api.setContactEmail("ann@example.com")
+    let store = try make(api)
+    #expect(!store.asksForEmail)
+    await store.openConversation()
+    #expect(!store.asksForEmail)
+    #expect(store.emailAddress == "ann@example.com")
+  }
+
+  @Test func missingEmailAsksOnlyOnceTheContactIsKnown() async throws {
+    let api = FakeAPI()
+    let store = try make(api)
+    #expect(!store.asksForEmail)
+    await store.openConversation()
+    #expect(store.asksForEmail)
+    try store.updateIdentity(context: CustomerContext(userId: "another_user"))
+    #expect(!store.asksForEmail)
+    try store.updateIdentity(
+      context: CustomerContext(userId: "another_user", email: "ann@example.com"))
+    await store.refresh()
+    #expect(!store.asksForEmail)
+  }
+  @Test(arguments: [nil, "ann@example.com"])
+  func failedContactLookupKeepsTheAskHiddenAndRetries(email: String?) async throws {
+    let api = FakeAPI()
+    await api.setContactEmail(email)
+    await api.failContact(times: 1)
+    let store = try make(api)
+    await store.openConversation()
+    #expect(!store.asksForEmail)
+    await store.refresh()
+    #expect(store.asksForEmail == (email == nil))
+    #expect(store.emailAddress == email)
+    await store.refresh()
+    #expect(await api.contactCalls == 2)
+    #expect(await api.sessionCalls == 1)
+  }
+
+  @Test func identitySwitchDuringAFailedLookupUsesNothingFromTheOldSession() async throws {
+    let api = FakeAPI()
+    let store = try make(api)
+    await api.failContact(times: 1) {
+      try await MainActor.run { try store.updateIdentity(context: CustomerContext(userId: "bob")) }
+    }
+    await store.refresh()
+    #expect(await api.statusCalls == 0)
+    #expect(!store.asksForEmail)
+  }
+
+  @Test func canceledContactLookupResumesOnTheCachedSession() async throws {
+    let api = FakeAPI()
+    await api.setSuspendContact(true)
+    let store = try make(api)
+    let open = Task { await store.openConversation() }
+    while await api.contactCalls == 0 { await Task.yield() }
+    open.cancel()
+    await api.resumeContact()
+    await open.value
+    #expect(!store.asksForEmail)
+    await store.refresh()
+    #expect(store.asksForEmail)
+    #expect(await api.contactCalls == 2)
+    #expect(await api.sessionCalls == 1)
   }
   @Test func emptyHistoryAndTranscriptStayVisibleDuringRefreshes() async throws {
     let api = FakeAPI()

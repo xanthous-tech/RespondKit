@@ -13,6 +13,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.respondkit.core.*
 import java.io.File
@@ -23,7 +26,13 @@ private data class PickedFile(val id: String, val uri: Uri, val name: String, va
     val type: String = "application/octet-stream", val attachment: SupportAttachment? = null, val error: String? = null)
 
 @Composable
-internal fun AttachmentPicker(store: RespondKitStore, clear: Int, isSending: Boolean, onChange: (List<SupportAttachment>, Boolean) -> Unit) {
+internal fun AttachmentPicker(
+    store: RespondKitStore,
+    clear: Int,
+    isSending: Boolean,
+    onChange: (List<SupportAttachment>, Boolean) -> Unit,
+    content: @Composable (attachButton: @Composable () -> Unit) -> Unit,
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var picked by remember(store.attachmentScope, clear) { mutableStateOf(emptyList<PickedFile>()) }
@@ -68,15 +77,6 @@ internal fun AttachmentPicker(store: RespondKitStore, clear: Int, isSending: Boo
     val photos = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { if (requestedScope == store.attachmentScope) select(it); requestedScope = null }
     val files = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { if (requestedScope == store.attachmentScope) select(it); requestedScope = null }
     Column(Modifier.fillMaxWidth()) {
-        Box {
-            TextButton(onClick = { expanded = true }, enabled = !isSending) { Text("Attach files") }
-            DropdownMenu(expanded, onDismissRequest = { expanded = false }) {
-                DropdownMenuItem(text = { Text("Photo library") }, onClick = {
-                    expanded = false; requestedScope = store.attachmentScope; photos.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
-                })
-                DropdownMenuItem(text = { Text("Files") }, onClick = { expanded = false; requestedScope = store.attachmentScope; files.launch(arrayOf("*/*")) })
-            }
-        }
         Column(Modifier.heightIn(max = 128.dp).verticalScroll(rememberScrollState())) {
         picked.forEach { item ->
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -87,6 +87,25 @@ internal fun AttachmentPicker(store: RespondKitStore, clear: Int, isSending: Boo
             }
             if (item.error != null) Text(item.error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
         }
+        }
+        content {
+            Box {
+                CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+                    IconButton(
+                        onClick = { expanded = true },
+                        enabled = !isSending,
+                        modifier = Modifier.size(44.dp).testTag("respondkit-attach"),
+                    ) {
+                        Icon(painterResource(R.drawable.respondkit_attach), stringResource(R.string.respondkit_attach_files), Modifier.size(16.dp))
+                    }
+                }
+                DropdownMenu(expanded, onDismissRequest = { expanded = false }) {
+                    DropdownMenuItem(text = { Text(stringResource(R.string.respondkit_photo_library)) }, onClick = {
+                        expanded = false; requestedScope = store.attachmentScope; photos.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
+                    })
+                    DropdownMenuItem(text = { Text(stringResource(R.string.respondkit_files)) }, onClick = { expanded = false; requestedScope = store.attachmentScope; files.launch(arrayOf("*/*")) })
+                }
+            }
         }
     }
 }

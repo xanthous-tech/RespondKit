@@ -66,6 +66,11 @@ try {
       ...packages.map(({ name }) => packageTarballs.get(name)!),
       "react@19.2.8",
       "react-dom@19.2.8",
+      // The React Native versions the SDK is built and tested with; open peer ranges would pull newer releases.
+      "react-native@0.87.1",
+      "react-native-device-info@15.0.2",
+      "react-native-get-random-values@2.0.0",
+      "react-native-safe-area-context@5.10.1",
       "@types/react@19.2.18",
       "@types/react-dom@19.2.5",
       "@tailwindcss/vite@4.3.3",

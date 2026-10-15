@@ -9,9 +9,9 @@ pnpm localization:check
 
 `project.inlang/settings.json` defines the base language and release locales. Add each new locale there and supply all message IDs in `messages/{locale}.json`. This is ordinary inlang message-format JSON, compatible with Paraglide JS. The native exporters are intentionally limited to the contract below. They do not load arbitrary inlang plugins.
 
-The generator writes `generated/ios/RespondKit.xcstrings` and `generated/android/res/values*/strings.xml`. Commit the outputs with the JSON changes. `pnpm ready` fails if an output is missing, modified, or left behind after removing a locale. Generated files belong to this pipeline; edits in Xcode or Android Studio must be made in JSON instead. No translation services run during compilation.
+The generator writes `native/swift/Sources/RespondKitUI/Resources/RespondKit.xcstrings` (the SwiftPM resource of `RespondKitUI`) `generated/android/res/values*/strings.xml` (a resource directory of the Compose module), and one TypeScript module copied to `packages/react/src/widget/messages.ts` and `packages/react-native/src/messages.ts`. Commit the outputs with the JSON changes. `pnpm ready` fails if an output is missing, modified, or left behind after removing a locale. Generated files belong to this pipeline; edits in Xcode or Android Studio must be made in JSON instead. No translation services run during compilation.
 
-These are build tools and an English source catalog. The current SDK views still use their existing strings; the generated resources are not yet installed in the SDK bundles. Migrating lookups and adding UI locale selection are separate integration work. No new languages are advertised by the SDK in this change.
+Every client reads the empty state, the "Ask us anything" subtitle and the attach menu from the generated output, and Compose also reads its closed-conversation strings from it. Other views still use English literals. The web widget picks its catalog from the host's `context.locale`, React Native from the device locale; both fall back to the closest shipped locale, then English. The catalog is English only, so adding a language means adding it to `settings.json` with a complete `messages/{locale}.json`.
 
 ## Portable message contract
 
@@ -55,9 +55,9 @@ The output contains patterns, not sentences pre-rendered for example counts. Xco
 
 - `@respondkit/paraglide-ios`: `compileXCStrings(input)` returns the catalog JSON as a string.
 - `@respondkit/paraglide-android`: `compileAndroidResources(input)` returns a map of relative resource paths to XML strings.
-- `@respondkit/paraglide-resources`: shared validation, placeholder conversion, and plural expansion.
+- `@respondkit/paraglide-resources`: shared validation, placeholder conversion, and plural expansion. `compileJavaScriptMessages(input)` returns the TypeScript module for web and React Native: `messages(locale)` gives typed functions per message ID.
 
-These are private workspace packages for now. They build independently with `pnpm --filter @respondkit/paraglide-ios build` and the equivalent Android command. They are not published npm packages. Paraglide and its plugin are test-only dependencies; native compiler code has no network calls or Paraglide runtime dependency.
+These are private workspace packages for now. They build independently with `pnpm --filter @respondkit/paraglide-ios build` and the equivalent Android command. They are not published npm packages. Paraglide and its plugin are test-only dependencies; the compilers have no network calls or Paraglide runtime dependency.
 
 ```ts
 import { compileXCStrings } from "@respondkit/paraglide-ios";
@@ -90,7 +90,7 @@ stringResource(R.string.respondkit_remove_file, fileName)
 pluralStringResource(R.plurals.respondkit_show_new, count, count)
 ```
 
-Both counts are required in the last call: the first selects the plural category, the second fills the displayed number. React and React Native can consume the same JSON through Paraglide's JavaScript compiler; RN locale handling and Metro/Hermes integration still need separate validation.
+Both counts are required in the last call: the first selects the plural category, the second fills the displayed number. Web and React Native use the generated TypeScript module rather than Paraglide's JavaScript compiler, which would load the inlang project and its CDN-hosted plugin at build time.
 
 ## Inspected translation surface
 

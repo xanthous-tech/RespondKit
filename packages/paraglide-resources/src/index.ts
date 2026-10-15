@@ -187,3 +187,62 @@ export function formatPattern(value: Pattern, platform: "ios" | "android", count
     return `%${position}$${type}`;
   });
 }
+
+function javascriptPattern(value: Pattern): string {
+  const parts = value.text.split(/\{([a-zA-Z_][a-zA-Z0-9_]*)\}/);
+  return (
+    parts
+      .map((part, index) => (index % 2 ? `String(inputs.${part})` : JSON.stringify(part)))
+      .filter((part, index) => part !== '""' || (index === 0 && parts.length === 1))
+      .join(" + ") || '""'
+  );
+}
+/** One TypeScript module for web and React Native: `messages(locale)` falls back to the base locale. */
+export function compileJavaScriptMessages(input: ResourceInput): string {
+  const project = parseResources(input);
+  const catalog = (locale: string) =>
+    project.keys.map((key) => {
+      const message = project.catalogs[locale]![key]!;
+      if (message.kind === "text") {
+        const { parameters } = message.pattern;
+        const signature = parameters.length
+          ? `inputs: { ${parameters.map((name) => `${name}: string`).join("; ")} }`
+          : "";
+        return `    ${key}: (${signature}) => ${javascriptPattern(message.pattern)},`;
+      }
+      const forms = Object.entries(message.forms).map(
+        ([category, form]) => `${category}: ${javascriptPattern(form)}`,
+      );
+      const select = `new Intl.PluralRules(${JSON.stringify(locale)}).select(inputs.${message.count}) as "other"`;
+      return `    ${key}: (inputs: { ${message.count}: number }) => ({ ${forms.join(", ")} })[${select}],`;
+    });
+  const base = JSON.stringify(project.sourceLocale);
+  return [
+    "// Generated from localization/messages by `pnpm localization:generate`. Edit the source catalogs.",
+    "const catalogs = {",
+    ...project.locales.flatMap((locale) => [
+      `  ${JSON.stringify(locale)}: {`,
+      ...catalog(locale),
+      "  },",
+    ]),
+    "};",
+    `export type Messages = (typeof catalogs)[${base}];`,
+    "function canonical(locale: string): string | undefined {",
+    "  try {",
+    "    return Intl.getCanonicalLocales(locale)[0];",
+    "  } catch {",
+    "    return undefined;",
+    "  }",
+    "}",
+    "/** The closest shipped catalog for a BCP 47 tag, else the base locale. */",
+    "export function messages(locale?: string): Messages {",
+    "  let tag = locale ? canonical(locale) : undefined;",
+    "  while (tag) {",
+    "    if (tag in catalogs) return catalogs[tag as keyof typeof catalogs];",
+    '    tag = tag.includes("-") ? tag.slice(0, tag.lastIndexOf("-")) : undefined;',
+    "  }",
+    `  return catalogs[${base}];`,
+    "}",
+    "",
+  ].join("\n");
+}

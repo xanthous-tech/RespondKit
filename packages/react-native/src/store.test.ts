@@ -222,6 +222,62 @@ describe("React Native store", () => {
     expect(store.getSnapshot().email).toBe("customer@example.com");
     expect(client.sendMessage).not.toHaveBeenCalled();
   });
+  it.each([
+    ["the host supplied", { email: "host@example.com" }, {}, false],
+    ["the server stores", {}, { email: "stored@example.com" }, false],
+    ["nobody has", {}, {}, true],
+  ])("asks for email only after lookup when %s an address", async (_, context, contact, asks) => {
+    const client = api();
+    client.getContact.mockResolvedValue(contact);
+    const store = await RespondKitStore.create({
+      apiBaseUrl: "https://api.example.com",
+      inboxId: "inbox_test",
+      origin: "https://app.example.com",
+      persistence: memoryPersistence(),
+      createId: (prefix) => `${prefix}_${++counter}`,
+      client,
+      context,
+    });
+    stores.push(store);
+    const seen = [store.getSnapshot().asksForEmail];
+    store.subscribe(() => seen.push(store.getSnapshot().asksForEmail));
+    await store.openConversation();
+    expect(seen[0]).toBe(false);
+    expect(seen.includes(true)).toBe(asks);
+    expect(store.getSnapshot().asksForEmail).toBe(asks);
+    await store.updateIdentity({ ...context, userId: "user_next" });
+    expect(store.getSnapshot().asksForEmail).toBe(false);
+  });
+  it.each([
+    ["the stored address", { email: "stored@example.com" }, false],
+    ["the ask", {}, true],
+  ] as [string, { email?: string }, boolean][])(
+    "keeps the ask hidden after a failed lookup and retries it into %s",
+    async (_, contact, asks) => {
+      const client = api();
+      client.getContact.mockRejectedValueOnce(new Error("503")).mockResolvedValue(contact);
+      const store = await make(client);
+      await store.openConversation();
+      expect(store.getSnapshot()).toMatchObject({ asksForEmail: false, email: undefined });
+      await store.refresh();
+      expect(client.getContact).toHaveBeenCalledTimes(2);
+      expect(client.createSession).toHaveBeenCalledTimes(1);
+      expect(store.getSnapshot()).toMatchObject({ asksForEmail: asks, email: contact.email });
+      await store.refresh();
+      expect(client.getContact).toHaveBeenCalledTimes(2);
+    },
+  );
+  it("uses nothing from the old session when identity switches during a failed lookup", async () => {
+    const client = api();
+    const store = await make(client);
+    client.getContact.mockImplementationOnce(async () => {
+      void store.updateIdentity({ userId: "user_next" });
+      throw new Error("503");
+    });
+    await store.saveEmail("customer@example.com");
+    expect(client.saveContact).not.toHaveBeenCalled();
+    expect(store.getSnapshot()).toMatchObject({ asksForEmail: false, email: undefined });
+  });
   it("fails closed on corrupt storage and never sends before pending data is saved", async () => {
     await expect(
       make(api(), { load: async () => "bad json", save: async () => undefined }),

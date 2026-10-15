@@ -33,6 +33,12 @@ private class FakeApi : RespondKitApi {
     var firstPage = StatusPage(emptyList())
     var secondPage = StatusPage(emptyList())
     var messagePage = MessagePage("thread_one", emptyList(), "0", false)
+    var storedEmail: String? = null
+    var contactCalls = 0
+    var contactFailures = 0
+    var beforeContactFailure: (() -> Unit)? = null
+    var statusCalls = 0
+    var contactGate: CompletableDeferred<Unit>? = null
 
     fun seed() {
         firstPage = fixture<StatusPage>("statuses").copy(nextCursor = "page_two")
@@ -64,6 +70,7 @@ private class FakeApi : RespondKitApi {
     }
 
     override suspend fun statuses(token: String, after: String?): StatusPage {
+        statusCalls++
         statusesEntered.complete(Unit)
         waitForStatuses?.await()
         if (unauthorizedOnce) {
@@ -111,18 +118,34 @@ private class FakeApi : RespondKitApi {
         if (failRead) throw RespondKitException("Offline", retryable = true)
     }
 
+    override suspend fun contact(token: String): ContactInfo {
+        contactCalls++
+        if (contactFailures > 0) {
+            contactFailures--
+            beforeContactFailure?.invoke()
+            throw RespondKitException("Contact unavailable.")
+        }
+        contactGate?.also { contactGate = null }?.await()
+        return ContactInfo(email = storedEmail)
+    }
+
     override suspend fun logout(token: String) {}
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RespondKitStoreTest {
-    private fun TestScope.store(api: FakeApi, storage: MemoryPersistence = MemoryPersistence()) =
+    private fun TestScope.store(
+        api: FakeApi,
+        storage: MemoryPersistence = MemoryPersistence(),
+        context: CustomerContext = CustomerContext(),
+    ) =
         RespondKitStore(
             RespondKitConfiguration(
                 "https://support.example.com",
                 "inbox_test",
                 "https://example.com",
             ),
+            context = context,
             persistence = storage,
             api = api,
             scope = backgroundScope,
@@ -340,6 +363,83 @@ class RespondKitStoreTest {
         assertEquals(api.sent[0], api.sent[1])
         assertEquals("Different draft", restored.state.value.draft)
         assertEquals(1, api.created.size)
+    }
+
+    @Test
+    fun hostSuppliedEmailNeverAsks() = runTest {
+        val api = FakeApi()
+        val store = store(api, context = CustomerContext(email = "ada@example.com"))
+        assertFalse(store.state.value.asksForEmail)
+        store.openConversation()
+        assertFalse(store.state.value.asksForEmail)
+        assertEquals(0, api.contactCalls)
+    }
+
+    @Test
+    fun storedContactEmailNeverAsks() = runTest {
+        val api = FakeApi().apply { storedEmail = "ada@example.com" }
+        val store = store(api)
+        assertFalse(store.state.value.asksForEmail)
+        store.openConversation()
+        assertFalse(store.state.value.asksForEmail)
+        assertEquals("ada@example.com", store.state.value.emailAddress)
+    }
+
+    @Test
+    fun asksForEmailOnlyAfterContactLookupAndAgainAfterIdentityChange() = runTest {
+        val api = FakeApi()
+        val store = store(api)
+        assertFalse(store.state.value.asksForEmail)
+        store.openConversation()
+        assertTrue(store.state.value.asksForEmail)
+        store.updateIdentity(CustomerContext(userId = "bob"))
+        assertFalse(store.state.value.asksForEmail)
+        store.refresh()
+        assertTrue(store.state.value.asksForEmail)
+    }
+
+    @Test
+    fun failedContactLookupKeepsTheAskHiddenAndRetries() = runTest {
+        for (email in listOf(null, "ada@example.com")) {
+            val api = FakeApi().apply {
+                storedEmail = email
+                contactFailures = 1
+            }
+            val store = store(api)
+            store.openConversation()
+            assertFalse(store.state.value.asksForEmail)
+            store.refresh()
+            assertEquals(email == null, store.state.value.asksForEmail)
+            assertEquals(email, store.state.value.emailAddress)
+            store.refresh()
+            assertEquals(2, api.contactCalls)
+            assertEquals(1, api.sessionCalls)
+        }
+    }
+
+    @Test
+    fun identitySwitchDuringAFailedLookupUsesNothingFromTheOldSession() = runTest {
+        val api = FakeApi().apply { contactFailures = 1 }
+        val store = store(api)
+        api.beforeContactFailure = { store.updateIdentity(CustomerContext(userId = "bob")) }
+        assertFailsWith<CancellationException> { store.refresh() }
+        assertEquals(0, api.statusCalls)
+        assertFalse(store.state.value.asksForEmail)
+    }
+
+    @Test
+    fun canceledContactLookupResumesOnTheCachedSession() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        val api = FakeApi().apply { contactGate = gate }
+        val store = store(api)
+        val open = launch { store.openConversation() }
+        while (api.contactCalls == 0) yield()
+        open.cancelAndJoin()
+        assertFalse(store.state.value.asksForEmail)
+        store.refresh()
+        assertTrue(store.state.value.asksForEmail)
+        assertEquals(2, api.contactCalls)
+        assertEquals(1, api.sessionCalls)
     }
 
     @Test

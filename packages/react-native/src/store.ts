@@ -83,6 +83,8 @@ export interface SupportSnapshot {
   readonly sending: boolean;
   readonly error: string | undefined;
   readonly email: string | undefined;
+  /** True only once this identity's contact lookup has finished without finding an email. */
+  readonly asksForEmail: boolean;
   readonly fresh: boolean;
 }
 export interface StoreOptions {
@@ -134,6 +136,7 @@ export class RespondKitStore {
   private pollEpoch = 0;
   private visible = false;
   private loadedHistory = false;
+  private contactResolved = false;
   private freshThreads = new Set<string>();
   private loading = false;
   private sending = false;
@@ -217,6 +220,7 @@ export class RespondKitStore {
       sending: this.sending,
       error: this.error,
       email: this.context.email,
+      asksForEmail: this.contactResolved && !this.context.email,
       fresh:
         this.loadedHistory && (!this.data.selected || this.freshThreads.has(this.data.selected)),
     };
@@ -258,8 +262,15 @@ export class RespondKitStore {
   }
   private async token(epoch: number): Promise<string> {
     this.check(epoch);
-    if (this.session && Date.parse(this.session.expiresAt) > Date.now() + 15_000)
-      return this.session.token;
+    const token =
+      this.session && Date.parse(this.session.expiresAt) > Date.now() + 15_000
+        ? this.session.token
+        : await this.createSession(epoch);
+    await this.resolveContact(token, epoch);
+    this.check(epoch);
+    return token;
+  }
+  private async createSession(epoch: number): Promise<string> {
     const identityToken = await this.getIdentityToken?.();
     this.check(epoch);
     if (this.getIdentityToken && !identityToken)
@@ -272,14 +283,22 @@ export class RespondKitStore {
     });
     this.check(epoch);
     this.session = result.session;
+    return result.session.token;
+  }
+  /** A failed or interrupted lookup leaves the contact unknown, so the ask stays hidden and the next request retries it. */
+  private async resolveContact(token: string, epoch: number) {
+    if (this.contactResolved) return;
     if (!this.context.email) {
-      const contact = await this.client
-        .getContact(result.session.token)
-        .catch(() => ({}) as { email?: string });
+      let contact: { email?: string | undefined };
+      try {
+        contact = await this.client.getContact(token);
+      } catch {
+        return;
+      }
       this.check(epoch);
       if (contact.email) this.context = { ...this.context, email: contact.email };
     }
-    return result.session.token;
+    this.contactResolved = true;
   }
   private async authorized<T>(epoch: number, action: (token: string) => Promise<T>): Promise<T> {
     try {
@@ -355,6 +374,7 @@ export class RespondKitStore {
     };
     this.getIdentityToken = getIdentityToken;
     this.session = undefined;
+    this.contactResolved = false;
     this.loading = false;
     this.sending = false;
     this.error = undefined;

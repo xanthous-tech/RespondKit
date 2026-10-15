@@ -22,6 +22,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinkifyIt } from "linkify-it";
 import { useRespondKit } from "./hooks";
+import { messages } from "./messages";
 import type { RespondKitStore, SupportSnapshot } from "./store";
 
 const links = new LinkifyIt().set({ fuzzyEmail: false, fuzzyIP: false });
@@ -138,6 +139,7 @@ export function RespondKitScreen({
   accentForegroundColor = "#ffffff",
 }: RespondKitScreenProps) {
   const state = useRespondKit(store);
+  const t = messages(Intl.DateTimeFormat().resolvedOptions().locale);
   const [attachments, setAttachments] = useState<AttachmentV1[]>([]);
   const [uploading, setUploading] = useState(false);
   const [attachmentReset, setAttachmentReset] = useState(0);
@@ -249,7 +251,7 @@ export function RespondKitScreen({
             <Text accessibilityRole="header" style={styles.title}>
               {title}
             </Text>
-            <Text style={styles.muted}>Ask us anything</Text>
+            <Text style={styles.muted}>{t.respondkit_ask_anything()}</Text>
           </View>
           <Pressable
             onPress={onClose}
@@ -326,9 +328,9 @@ export function RespondKitScreen({
                   </View>
                 ) : (
                   <View style={styles.empty}>
-                    <Text style={[styles.text, { fontWeight: "500" }]}>How can we help?</Text>
+                    <Text style={[styles.text, { fontWeight: "500" }]}>{t.respondkit_help()}</Text>
                     <Text style={[styles.muted, { textAlign: "center" }]}>
-                      Send a message and keep this page open for a quick reply.
+                      {t.respondkit_intro()}
                     </Text>
                   </View>
                 )
@@ -418,7 +420,7 @@ export function RespondKitScreen({
           </View>
         ) : (
           <>
-            {!state.email ? (
+            {state.asksForEmail ? (
               <View style={styles.email}>
                 <Text style={styles.muted}>Where can we email you a reply?</Text>
                 <View style={styles.emailRow}>

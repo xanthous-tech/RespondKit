@@ -1,10 +1,13 @@
 // The pinned message-format plugin ships JavaScript without declarations.
 import { readFileSync } from "node:fs";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { runInNewContext } from "node:vm";
 import { compileMessage } from "@inlang/paraglide-js";
 import plugin from "@inlang/plugin-message-format";
 import { expect, it } from "vite-plus/test";
-import { parseResources } from "./index";
+import { compileJavaScriptMessages, parseResources } from "./index";
 
 async function functions(catalog, locale) {
   const imported = await plugin.importFiles({
@@ -96,5 +99,50 @@ it("accepts every real English UI catalog entry in both parsers", async () => {
         : { [message.count]: 3 };
     const pattern = message.kind === "text" ? message.pattern : message.forms.other;
     expect(render(pattern, inputs)).toBe(actual[key](inputs));
+  }
+});
+
+const catalogPlural = (match) => [
+  {
+    declarations: ["input count", "local category = count: plural"],
+    selectors: ["category"],
+    match,
+  },
+];
+it("compiles a TypeScript message module that falls back to the closest shipped locale", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "respondkit-messages-"));
+  try {
+    const file = join(directory, "messages.ts");
+    await writeFile(
+      file,
+      compileJavaScriptMessages({
+        sourceLocale: "en",
+        catalogs: {
+          en: {
+            help: 'Say "hi"',
+            remove: "Remove {name}",
+            new: catalogPlural({ "category=one": "{count} new", "category=*": "{count} news" }),
+          },
+          fr: {
+            help: "Aide",
+            remove: "Retirer {name}",
+            new: catalogPlural({
+              "category=one": "{count} nouveau",
+              "category=*": "{count} nouveaux",
+            }),
+          },
+        },
+      }),
+    );
+    const { messages } = await import(file);
+    expect(messages().help()).toBe('Say "hi"');
+    expect(messages("fr-CA").help()).toBe("Aide");
+    expect(messages("de").help()).toBe('Say "hi"');
+    expect(messages("not a tag").help()).toBe('Say "hi"');
+    expect(messages("fr").remove({ name: "a.png" })).toBe("Retirer a.png");
+    expect([1, 2].map((count) => messages("en").new({ count }))).toEqual(["1 new", "2 news"]);
+    expect(messages("fr").new({ count: 0 })).toBe("0 nouveau");
+  } finally {
+    await rm(directory, { recursive: true });
   }
 });

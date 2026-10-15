@@ -49,7 +49,7 @@
           VStack(alignment: .leading, spacing: 0) {
             Text(title).font(.system(size: titleSize, weight: .semibold)).lineLimit(1).frame(
               minHeight: 24)
-            Text("Ask us anything").font(.system(size: textSize)).foregroundStyle(WidgetStyle.muted)
+            Text("respondkit_ask_anything", tableName: "RespondKit", bundle: .module).font(.system(size: textSize)).foregroundStyle(WidgetStyle.muted)
               .frame(minHeight: 20)
           }
           Spacer(minLength: 0)
@@ -123,8 +123,9 @@
                     }.accessibilityLabel("Loading messages")
                   } else {
                     VStack(spacing: 4) {
-                      Text("How can we help?").fontWeight(.medium)
-                      Text("Send a message and keep this page open for a quick reply.")
+                      Text("respondkit_help", tableName: "RespondKit", bundle: .module)
+                        .fontWeight(.medium)
+                      Text("respondkit_intro", tableName: "RespondKit", bundle: .module)
                         .foregroundStyle(WidgetStyle.muted)
                     }
                     .font(.system(size: textSize)).multilineTextAlignment(.center)
@@ -200,7 +201,7 @@
             Button("Send another message") { store.selectThread(nil) }
           }.font(.system(size: textSize)).padding(12)
         } else {
-          if store.emailAddress == nil { EmailCapture(store: store) }
+          if store.asksForEmail { EmailCapture(store: store) }
           Composer(store: store, accentForegroundColor: accentForegroundColor)
         }
       }
@@ -273,18 +274,31 @@
         }
         HStack(alignment: .bottom, spacing: 8) {
           Menu {
-            Button("Photo library", systemImage: "photo.on.rectangle") {
+            Button {
               pickerScope = store.attachmentScope
               showPhotos = true
+            } label: {
+              Label {
+                Text("respondkit_photo_library", tableName: "RespondKit", bundle: .module)
+              } icon: {
+                Image(systemName: "photo.on.rectangle")
+              }
             }
-            Button("Files", systemImage: "folder") {
+            Button {
               pickerScope = store.attachmentScope
               showFiles = true
+            } label: {
+              Label {
+                Text("respondkit_files", tableName: "RespondKit", bundle: .module)
+              } icon: {
+                Image(systemName: "folder")
+              }
             }
           } label: {
             Image(systemName: "paperclip").frame(width: 44, height: 44)
           }
-          .accessibilityLabel("Attach files").disabled(store.isSending)
+          .accessibilityLabel(
+            Text("respondkit_attach_files", tableName: "RespondKit", bundle: .module)).disabled(store.isSending)
           TextField(
             "Write a message…", text: Binding(get: { store.draft }, set: { store.setDraft($0) }),
             axis: .vertical

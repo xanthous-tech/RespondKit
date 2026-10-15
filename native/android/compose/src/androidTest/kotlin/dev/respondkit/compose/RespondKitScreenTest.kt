@@ -194,6 +194,38 @@ class RespondKitScreenTest {
     }
 
     @Test
+    fun attachIconSitsLeftOfTheMessageFieldInTheSendRow() {
+        compose.setContent {
+            val scope = rememberCoroutineScope()
+            val store = remember {
+                RespondKitStore(
+                    RespondKitConfiguration(
+                        "https://support.example.com",
+                        "inbox_test",
+                        "https://example.com",
+                    ),
+                    persistence = MemoryPersistence(),
+                    api = Api(),
+                    scope = scope,
+                )
+            }
+            RespondKitScreen(store, onClose = {})
+        }
+        val attach = compose.onNodeWithContentDescription("Attach files").assertHasClickAction()
+            .getUnclippedBoundsInRoot()
+        val field = compose.onNodeWithTag("respondkit-composer").getUnclippedBoundsInRoot()
+        val send = compose.onNodeWithTag("respondkit-send").getUnclippedBoundsInRoot()
+        org.junit.Assert.assertTrue("attach is left of the field", attach.right <= field.left)
+        org.junit.Assert.assertEquals(send.top, attach.top)
+        org.junit.Assert.assertEquals(send.bottom, attach.bottom)
+        org.junit.Assert.assertTrue("attach shares the field row", attach.top < field.bottom && attach.bottom > field.top)
+        compose.onNodeWithText("Attach files").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Attach files").performClick()
+        compose.onNodeWithText("Photo library").assertExists()
+        compose.onNodeWithText("Files").assertExists()
+    }
+
+    @Test
     fun screenInheritsHostAccentAndSupportsOverride() {
         val inherited = Color(0xFF14B8A6)
         val override = Color(0xFFF43F5E)
