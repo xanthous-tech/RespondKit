@@ -23,6 +23,9 @@ actor FakeAPI: RespondKitAPI {
   var unauthorizedOnce = false
   var suspendStatuses = false
   var statusContinuation: CheckedContinuation<Void, Never>?
+  var contactEmail: String?
+  func setContactEmail(_ value: String?) { contactEmail = value }
+  func contact(token: String) async throws -> ContactInfo { ContactInfo(email: contactEmail) }
   func seed() throws {
     let page: StatusPage = try fixture("statuses")
     statusPages[""] = StatusPage(threads: page.threads, nextCursor: "page_two")
@@ -93,13 +96,47 @@ actor FakeAPI: RespondKitAPI {
 
 @MainActor
 struct StoreTests {
-  func make(_ api: FakeAPI, storage: MemoryPersistence = MemoryPersistence()) throws
-    -> RespondKitStore
-  {
+  func make(
+    _ api: FakeAPI, storage: MemoryPersistence = MemoryPersistence(),
+    context: CustomerContext = .init()
+  ) throws -> RespondKitStore {
     let config = try RespondKitConfiguration(
       baseURL: URL(string: "https://support.example.com")!, inboxID: "inbox_test",
       origin: "https://example.com")
-    return try RespondKitStore(configuration: config, persistence: storage, api: api)
+    return try RespondKitStore(
+      configuration: config, context: context, persistence: storage, api: api)
+  }
+
+  @Test func hostSuppliedEmailNeverAsks() async throws {
+    let store = try make(FakeAPI(), context: CustomerContext(email: "ann@example.com"))
+    #expect(!store.asksForEmail)
+    await store.openConversation()
+    #expect(!store.asksForEmail)
+    #expect(store.emailAddress == "ann@example.com")
+  }
+
+  @Test func storedContactEmailNeverAsks() async throws {
+    let api = FakeAPI()
+    await api.setContactEmail("ann@example.com")
+    let store = try make(api)
+    #expect(!store.asksForEmail)
+    await store.openConversation()
+    #expect(!store.asksForEmail)
+    #expect(store.emailAddress == "ann@example.com")
+  }
+
+  @Test func missingEmailAsksOnlyOnceTheContactIsKnown() async throws {
+    let api = FakeAPI()
+    let store = try make(api)
+    #expect(!store.asksForEmail)
+    await store.openConversation()
+    #expect(store.asksForEmail)
+    try store.updateIdentity(context: CustomerContext(userId: "another_user"))
+    #expect(!store.asksForEmail)
+    try store.updateIdentity(
+      context: CustomerContext(userId: "another_user", email: "ann@example.com"))
+    await store.refresh()
+    #expect(!store.asksForEmail)
   }
   @Test func emptyHistoryAndTranscriptStayVisibleDuringRefreshes() async throws {
     let api = FakeAPI()
