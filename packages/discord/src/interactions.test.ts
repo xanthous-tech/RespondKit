@@ -9,6 +9,7 @@ import {
   parseDiscordInteraction,
   verifyDiscordSignature,
 } from "./interactions";
+import { languageLabel, resolveLanguageInput } from "./languages";
 
 function bytesToHex(bytes: ArrayBuffer): string {
   return [...new Uint8Array(bytes)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
@@ -193,6 +194,69 @@ describe("Discord interaction parsing and authorization", () => {
         JSON.stringify({ ...base, data: { type: 3, name: "reply", target_id: "12345" } }),
       ),
     ).toThrow(DiscordInteractionParseError);
+  });
+
+  it("takes language names as well as codes, and leaves names only the model knows for the API", () => {
+    const base = replyPayload();
+    const reply = (translate: string) =>
+      parseDiscordInteraction(
+        JSON.stringify({
+          ...base,
+          data: {
+            type: 1,
+            name: "reply",
+            options: [
+              { type: 3, name: "message", value: "Hello" },
+              { type: 3, name: "translate", value: translate },
+            ],
+          },
+        }),
+      );
+    expect(reply("Burmese")).toMatchObject({ command: "reply", translate: "my" });
+    expect(reply("myanmar")).toMatchObject({ translate: "my" });
+    expect(reply("简体中文")).toMatchObject({ translate: "zh-Hans" });
+    expect(reply("Japanese")).toMatchObject({ translate: "ja" });
+    expect(reply("日本語")).toMatchObject({ translate: "ja" });
+    expect(reply("zh-TW")).toMatchObject({ translate: "zh-TW" });
+    expect(reply("customer")).toMatchObject({ translate: "customer" });
+    const unknown = reply("Kreyòl ayisyen");
+    expect(unknown).toMatchObject({ command: "reply", languageQuery: "Kreyòl ayisyen" });
+    expect(unknown).not.toHaveProperty("translate");
+    if (unknown.kind === "command")
+      expect(() => normalizeDiscordCommand(unknown)).toThrow("not resolved");
+    expect(() => reply("en; DROP TABLE message")).toThrow(DiscordInteractionParseError);
+    expect(resolveLanguageInput("Thai")).toBe("th");
+    expect(resolveLanguageInput("Nonsense")).toBeNull();
+    expect(languageLabel("my")).toBe("Burmese (my)");
+  });
+
+  it("parses /approve with the draft and an optional language", () => {
+    const approve = (options: unknown[]) =>
+      parseDiscordInteraction(
+        JSON.stringify({ ...replyPayload(), data: { type: 1, name: "approve", options } }),
+      );
+    const link = {
+      type: 3,
+      name: "id",
+      value: "https://discord.com/channels/1/2/1560165589727846485",
+    };
+    expect(approve([link, { type: 3, name: "translate", value: "Burmese" }])).toMatchObject({
+      command: "approve",
+      draft: "https://discord.com/channels/1/2/1560165589727846485",
+      translate: "my",
+    });
+    const plain = approve([link]);
+    expect(plain).toMatchObject({ command: "approve" });
+    expect("translate" in plain).toBe(false);
+    expect(approve([link, { type: 3, name: "translate", value: "Customer" }])).toMatchObject({
+      translate: "customer",
+    });
+    expect(approve([link, { type: 3, name: "translate", value: "Klingonese" }])).toMatchObject({
+      languageQuery: "Klingonese",
+    });
+    expect(() => approve([{ type: 3, name: "translate", value: "my" }])).toThrow(
+      DiscordInteractionParseError,
+    );
   });
 
   it("denies commands from the wrong forum even when the operator is allowed", () => {

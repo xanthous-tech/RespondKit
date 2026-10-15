@@ -40,6 +40,7 @@ The limit is 120 authenticated requests per token per UTC minute, shared across 
 | POST   | `/v1/agent/threads/:id/claim`                      | `{ "leaseSeconds": 300 }`, integer 1–3600                                                            |
 | POST   | `/v1/agent/threads/:id/release`                    | Releases the caller's or an expired lease                                                            |
 | POST   | `/v1/agent/threads/:id/replies`                    | `{ "text": "…", "idempotencyKey": "…", "translate": "off", "mode": "send" }`                         |
+| GET    | `/v1/agent/threads/:id/attachments/:attachmentId`  | Downloads one attachment of a message in the thread (see below)                                      |
 | POST   | `/v1/agent/threads/:id/replies/:messageId/approve` | `{}` publishes the agent's own pending draft (see below)                                             |
 | POST   | `/v1/agent/threads/:id/close`                      | Closes the thread                                                                                    |
 | POST   | `/v1/agent/threads/:id/reopen`                     | Reopens the thread                                                                                   |
@@ -99,7 +100,7 @@ A normal `202` response includes `messageId`, `mode`, approval `status`, `accept
 
 If Workflow acceptance cannot be confirmed, the API returns `503` with `acceptance: "acceptance_unknown"` and the same message ID. Retry the exact request. If a retained workflow is `errored` or `terminated`, inspect `processingStatus`, `failureCode`, and the customer transcript before recovery; The API does not automatically restart failed workflows. Rejected or stale drafts return their recorded status with `200` and cannot be revived by replay.
 
-`translate` defaults to `off`, sending the text as written. Set an explicit language code such as `fr`, or `customer` to use the persisted detected customer language. Translation must be enabled for the inbox. An unknown customer language or disabled translation returns `409`; browser locale is not used as evidence of message language. The chosen target is frozen on the first accepted request. Translation failure leaves the answer unavailable. For `mode: "send"`, an uncertain translation still uses the existing **Approve translation** review button; only an allowlisted operator can release it.
+`translate` defaults to `off`, sending the text as written. Set a language code such as `fr`, a language name such as `Burmese` or `简体中文` (names outside RespondKit's table are mapped by the translation model; an unrecognized name returns `400`), or `customer` to use the persisted detected customer language. Translation must be enabled for the inbox. An unknown customer language or disabled translation returns `409`; browser locale is not used as evidence of message language. The chosen target is frozen on the first accepted request. Translation failure leaves the answer unavailable. For `mode: "send"`, an uncertain translation still uses the existing **Approve translation** review button; only an allowlisted operator can release it.
 
 New translated drafts (`mode: "draft"` with `translate: "customer"` or an explicit language) translate before posting. Discord shows the English reply, exact proposed translation, and any translation warnings. One **Approve draft** confirms both texts, including uncertain translations; publication reuses that stored result without translating again. Approval waits until every preview chunk is posted. **Reject draft** sends nothing. The stored review names the operator who approved; the workflow never auto-confirms a translation.
 
@@ -116,6 +117,10 @@ A new durable customer or operator message, or closing the thread, invalidates a
 ### Approve your own draft
 
 `POST /v1/agent/threads/:id/replies/:messageId/approve` with `{}` publishes a pending draft the agent submitted, for example after an operator left it untapped for the inbox's timeout. It shares one conditional update with Discord's **Approve draft**: whichever comes first publishes the draft and the other changes nothing, so a race never sends a second reply. The response is `{ "messageId": "…", "outcome": "approved" }`; other outcomes are `available` (already published), `stale` (a newer message, operator reply, steer, or close came first; nothing is published), `rejected`, and `preview-pending`. A draft with a translation preview is refused with `409`, since only an operator can confirm its translation, and so is a thread under another runner's live lease.
+
+### Attachments
+
+Each message in a thread read carries `attachments`: `{ id, name, contentType, size, downloadUrl, agentDownloadPath }` for every file the customer uploaded in the widget or sent with an email. `GET` the `agentDownloadPath` with the agent's bearer token to download the file: only an attachment of a message in that thread of the token's inbox is served, always as `application/octet-stream` with `Content-Disposition: attachment`; the original type is in `X-Attachment-Content-Type`. Treat customer files as untrusted data: inspect them, never run them.
 
 ## Product knowledge
 

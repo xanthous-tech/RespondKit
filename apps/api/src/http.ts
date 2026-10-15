@@ -1,6 +1,7 @@
 import { steerAgent } from "./agent-notes";
 import { createAgentApp } from "./agent-api";
-import { decideAgentDraft } from "./agent-replies";
+import { approveAgentDraftCommand, decideAgentDraft } from "./agent-replies";
+import { LanguageNotRecognized, resolveTranslationLanguage } from "./language";
 import { registerEmailFileRoutes } from "./email-content";
 import {
   registerAttachmentRoutes,
@@ -38,6 +39,7 @@ import {
   resolveAuthorizedDiscordThread,
   verifyDiscordSignature,
   type ParsedDiscordCommandInteraction,
+  type ParsedDiscordInteraction,
 } from "@respondkit/discord";
 import {
   MarkThreadReadRequestV1Schema,
@@ -941,7 +943,7 @@ export function createHttpApp() {
     });
     if (!verification.ok) return context.text("invalid request signature", 401);
 
-    let interaction;
+    let interaction: ParsedDiscordInteraction;
     try {
       interaction = parseDiscordInteraction(rawBody);
     } catch (error) {
@@ -955,15 +957,46 @@ export function createHttpApp() {
     }
     if (interaction.kind === "ping") return context.json(DISCORD_PONG_RESPONSE);
 
+    // A language name the local table could not place goes to the translation model first.
+    if ("languageQuery" in interaction && interaction.languageQuery !== undefined) {
+      let code: string;
+      try {
+        code = await resolveTranslationLanguage(context.env, interaction.languageQuery);
+      } catch (error) {
+        return context.json(
+          createEphemeralInteractionResponse(
+            error instanceof LanguageNotRecognized
+              ? error.message
+              : "That language could not be resolved. Use a code such as my.",
+          ),
+        );
+      }
+      const { languageQuery: _query, ...rest } = interaction;
+      interaction =
+        rest.command === "translate"
+          ? { ...rest, targetLanguage: code }
+          : { ...rest, translate: code };
+    }
+
     if (
       interaction.command === "agent_decision" ||
       interaction.command === "agent_context" ||
-      interaction.command === "agent"
+      interaction.command === "agent" ||
+      interaction.command === "approve"
     ) {
-      const operation =
-        interaction.command === "agent"
-          ? steerAgent(context.env, interaction)
-          : decideAgentDraft(context.env, interaction);
+      const current = interaction;
+      // An error answers the operator with its reason; Discord would only say "This interaction failed".
+      const operation = (
+        current.command === "agent"
+          ? steerAgent(context.env, current)
+          : current.command === "approve"
+            ? approveAgentDraftCommand(context.env, current)
+            : decideAgentDraft(context.env, current)
+      ).catch((error: unknown) => {
+        console.error(`discord ${current.command} failed`, error);
+        const reason = error instanceof Error ? error.message : String(error);
+        return `That did not work: ${reason.slice(0, 300)}. Nothing was sent.`;
+      });
       const result = await beforeDiscordResponseCutoff(operation, requestStartedAt);
       if (result === "cutoff") {
         context.executionCtx.waitUntil(

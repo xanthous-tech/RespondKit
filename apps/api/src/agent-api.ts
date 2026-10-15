@@ -9,11 +9,7 @@ import {
   threads,
   translationJobs,
 } from "@respondkit/conversations";
-import {
-  discordIntegrations,
-  discordThreads,
-  normalizeTranslationLanguage,
-} from "@respondkit/discord";
+import { discordIntegrations, discordThreads } from "@respondkit/discord";
 import {
   findInboxByPublicId,
   findVisitorCustomer,
@@ -26,6 +22,7 @@ import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { activityConnection, ActivityError, fetchActivity } from "./activity-service";
 import { createDatabase } from "./db";
+import { resolveTranslationLanguage } from "./language";
 import type { Env } from "./env";
 import { readBearerToken } from "./session";
 import { translationEnabled } from "./translation-service";
@@ -321,6 +318,11 @@ export function createAgentApp() {
         : null,
       messages: page.map((message) => ({
         ...message,
+        // Each attachment also carries the agent's own download path, authorised by its token.
+        attachments: (message.attachments ?? []).map((attachment) => ({
+          ...attachment,
+          agentDownloadPath: `/v1/agent/threads/${encodeURIComponent(thread.id)}/attachments/${encodeURIComponent(attachment.id)}`,
+        })),
         sequence: String(eventPage.find((event) => event.message_id === message.id)!.sequence),
         translations: translations.filter((t) => t.messageId === message.id),
         onDemandTranslations: jobs
@@ -477,9 +479,12 @@ export function createAgentApp() {
           translate = thread.customerLanguage;
         } else {
           try {
-            translate = normalizeTranslationLanguage(translate);
+            translate = await resolveTranslationLanguage(c.env, translate);
           } catch {
-            throw new HTTPException(400, { message: "Invalid translation language" });
+            throw new HTTPException(400, {
+              message:
+                "Invalid translation language: use a code such as my or a name such as Burmese",
+            });
           }
         }
       }
@@ -599,6 +604,41 @@ export function createAgentApp() {
       decidedBy: `agent:${name}`,
     });
     return c.json({ messageId, outcome });
+  });
+  /**
+   * One attachment of a message in this thread, for the agent to inspect: the
+   * token's inbox only, a completed upload or email file already attached to a
+   * message of this thread. Always a download, never rendered on the API origin.
+   */
+  app.get("/threads/:id/attachments/:attachmentId", async (c) => {
+    const { inbox } = c.get("agent");
+    const threadId = c.req.param("id");
+    const attachmentId = z
+      .string()
+      .regex(/^att_[a-f0-9]{64}$/)
+      .parse(c.req.param("attachmentId"));
+    const row = await c.env.DB.prepare(
+      `SELECT a.object_key,a.name,a.content_type,a.size FROM attachment a JOIN message m ON m.id=a.message_id
+       WHERE a.id=? AND a.inbox_id=? AND a.workspace_id=? AND a.status='ready' AND m.thread_id=? AND m.inbox_id=?`,
+    )
+      .bind(attachmentId, inbox.inboxId, inbox.workspaceId, threadId, inbox.inboxId)
+      .first<{ object_key: string; name: string; content_type: string; size: number }>();
+    if (!row) throw new HTTPException(404, { message: "Attachment not found in this thread" });
+    if (!c.env.ATTACHMENTS)
+      throw new HTTPException(503, { message: "Attachments are not configured." });
+    const object = await c.env.ATTACHMENTS.get(row.object_key);
+    if (!object) throw new HTTPException(404, { message: "Attachment content is missing" });
+    return new Response(object.body, {
+      headers: {
+        "Content-Type": "application/octet-stream",
+        "Content-Length": String(object.size),
+        "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(row.name).replace(/'/g, "%27")}`,
+        "X-Attachment-Content-Type": row.content_type,
+        "X-Content-Type-Options": "nosniff",
+        "Content-Security-Policy": "sandbox; default-src 'none'",
+        "Cache-Control": "private, no-store",
+      },
+    });
   });
   for (const action of ["close", "reopen"] as const) {
     app.post(`/threads/:id/${action}`, async (c) => {
