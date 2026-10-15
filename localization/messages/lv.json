@@ -1,0 +1,100 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Atbalsts",
+  "respondkit_ask_anything": "Jautājiet mums jebko",
+  "respondkit_open_chat": "Atvērt atbalsta tērzēšanu",
+  "respondkit_close_chat": "Aizvērt atbalsta tērzēšanu",
+  "respondkit_close": "Aizvērt",
+  "respondkit_help": "Kā varam palīdzēt?",
+  "respondkit_intro": "Nosūtiet ziņu un neaizveriet šo lapu – drīz atbildēsim.",
+  "respondkit_intro_short": "Nosūtiet ziņu, lai sāktu sarunu.",
+  "respondkit_return": "Atbildes būs redzamas šeit, kad atgriezīsieties lietotnē.",
+  "respondkit_conversations": "Sarunas",
+  "respondkit_conversation": "Saruna {date}",
+  "respondkit_new_conversation": "Jauna saruna",
+  "respondkit_unread": "Nelasīta atbalsta atbilde",
+  "respondkit_open": "Atvērta",
+  "respondkit_closed": "Slēgta",
+  "respondkit_more": "Vairāk",
+  "respondkit_loading": "Ielādē…",
+  "respondkit_loading_messages": "Ielādē ziņas",
+  "respondkit_support_messages": "Atbalsta ziņas",
+  "respondkit_latest": "Jaunākās ziņas",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=zero": "{count} jaunas",
+        "category=one": "{count} jauna",
+        "category=other": "{count} jaunas",
+        "category=*": "{count} jaunas"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=zero": "Rādīt {count} jaunas ziņas",
+        "category=one": "Rādīt {count} jaunu ziņu",
+        "category=other": "Rādīt {count} jaunas ziņas",
+        "category=*": "Rādīt {count} jaunas ziņas"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=zero": "Sarunas · {count} nelasītas",
+        "category=one": "Sarunas · {count} nelasīta",
+        "category=other": "Sarunas · {count} nelasītas",
+        "category=*": "Sarunas · {count} nelasītas"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Šī saruna ir slēgta.",
+  "respondkit_another_message": "Sūtīt vēl vienu ziņu",
+  "respondkit_message": "Ziņa",
+  "respondkit_write_message": "Rakstiet ziņu…",
+  "respondkit_send": "Sūtīt",
+  "respondkit_send_message": "Sūtīt ziņu",
+  "respondkit_sending": "Sūta…",
+  "respondkit_sent": "Nosūtīta",
+  "respondkit_failed": "Neizdevās",
+  "respondkit_confirming": "Apstiprina…",
+  "respondkit_unknown": "Nav apstiprināta – droši mēģiniet vēlreiz",
+  "respondkit_retry": "Mēģināt vēlreiz",
+  "respondkit_retry_message": "Sūtīt ziņu vēlreiz",
+  "respondkit_try_again": "Mēģiniet vēlreiz",
+  "respondkit_reconnect": "Savienot vēlreiz",
+  "respondkit_email_prompt": "Uz kādu e-pasta adresi varam nosūtīt atbildi?",
+  "respondkit_email_address": "E-pasta adrese",
+  "respondkit_save_email": "Saglabāt e-pastu",
+  "respondkit_saving": "Saglabā…",
+  "respondkit_email_failed": "Neizdevās saglabāt jūsu e-pasta adresi. Lūdzu, pārbaudiet to un mēģiniet vēlreiz.",
+  "respondkit_attach_files": "Pievienot failus",
+  "respondkit_attached_files": "Pievienotie faili",
+  "respondkit_photo_library": "Fotoattēlu bibliotēka",
+  "respondkit_files": "Faili",
+  "respondkit_cancel": "Atcelt",
+  "respondkit_ready": "Gatavs",
+  "respondkit_upload_failed": "Augšupielāde neizdevās",
+  "respondkit_remove": "Noņemt",
+  "respondkit_remove_file": "Noņemt {name}",
+  "respondkit_selected_file": "Atlasītais fails",
+  "respondkit_picker_failed": "Nevar atvērt failu atlasītāju",
+  "respondkit_file_open_failed": "Nevar atvērt atlasīto failu.",
+  "respondkit_start_failed": "Neizdevās sākt atbalsta tērzēšanu.",
+  "respondkit_request_failed": "Atbalsta pieprasījums neizdevās.",
+  "respondkit_history_failed": "Neizdevās ielādēt sarunas vēsturi. Vēlreiz noklikšķiniet uz Vairāk.",
+  "respondkit_messages_failed": "Neizdevās ielādēt jaunās ziņas.",
+  "respondkit_sign_in_again": "Pierakstieties vēlreiz, lai atjaunotu atbalsta vēsturi.",
+  "respondkit_session_expired": "Jūsu atbalsta sesija ir beigusies. Lai turpinātu, savienojiet vēlreiz.",
+  "respondkit_identity_changed": "Atbalsta identitāte tika mainīta citā cilnē. Lai atkārtoti ielādētu savu kontu, savienojiet vēlreiz.",
+  "respondkit_connecting": "Atbalsts joprojām tiek savienots.",
+  "respondkit_reconnect_upload": "Pirms augšupielādes savienojiet vēlreiz."
+}

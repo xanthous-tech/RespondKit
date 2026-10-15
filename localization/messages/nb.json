@@ -1,0 +1,97 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Kundestøtte",
+  "respondkit_ask_anything": "Spør oss om hva som helst",
+  "respondkit_open_chat": "Åpne kundestøttechatten",
+  "respondkit_close_chat": "Lukk kundestøttechatten",
+  "respondkit_close": "Lukk",
+  "respondkit_help": "Hva kan vi hjelpe deg med?",
+  "respondkit_intro": "Send en melding og la denne siden være åpen, så får du raskt svar.",
+  "respondkit_intro_short": "Send en melding for å starte en samtale.",
+  "respondkit_return": "Svarene vises her når du kommer tilbake til appen.",
+  "respondkit_conversations": "Samtaler",
+  "respondkit_conversation": "Samtale {date}",
+  "respondkit_new_conversation": "Ny samtale",
+  "respondkit_unread": "Ulest svar fra kundestøtte",
+  "respondkit_open": "Åpen",
+  "respondkit_closed": "Lukket",
+  "respondkit_more": "Mer",
+  "respondkit_loading": "Laster inn…",
+  "respondkit_loading_messages": "Laster inn meldinger",
+  "respondkit_support_messages": "Meldinger fra kundestøtte",
+  "respondkit_latest": "Nyeste meldinger",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} ny",
+        "category=other": "{count} nye",
+        "category=*": "{count} nye"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Vis {count} ny melding",
+        "category=other": "Vis {count} nye meldinger",
+        "category=*": "Vis {count} nye meldinger"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Samtaler · {count} ulest",
+        "category=other": "Samtaler · {count} uleste",
+        "category=*": "Samtaler · {count} uleste"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Denne samtalen er lukket.",
+  "respondkit_another_message": "Send en ny melding",
+  "respondkit_message": "Melding",
+  "respondkit_write_message": "Skriv en melding…",
+  "respondkit_send": "Send",
+  "respondkit_send_message": "Send melding",
+  "respondkit_sending": "Sender…",
+  "respondkit_sent": "Sendt",
+  "respondkit_failed": "Mislyktes",
+  "respondkit_confirming": "Bekrefter…",
+  "respondkit_unknown": "Ikke bekreftet – trygt å prøve igjen",
+  "respondkit_retry": "Prøv igjen",
+  "respondkit_retry_message": "Send meldingen på nytt",
+  "respondkit_try_again": "Prøv igjen",
+  "respondkit_reconnect": "Koble til på nytt",
+  "respondkit_email_prompt": "Hvilken e-postadresse kan vi sende svaret til?",
+  "respondkit_email_address": "E-postadresse",
+  "respondkit_save_email": "Lagre e-post",
+  "respondkit_saving": "Lagrer…",
+  "respondkit_email_failed": "Vi kunne ikke lagre e-postadressen din. Sjekk den og prøv igjen.",
+  "respondkit_attach_files": "Legg ved filer",
+  "respondkit_attached_files": "Vedlagte filer",
+  "respondkit_photo_library": "Bildebibliotek",
+  "respondkit_files": "Filer",
+  "respondkit_cancel": "Avbryt",
+  "respondkit_ready": "Klar",
+  "respondkit_upload_failed": "Opplastingen mislyktes",
+  "respondkit_remove": "Fjern",
+  "respondkit_remove_file": "Fjern {name}",
+  "respondkit_selected_file": "Valgt fil",
+  "respondkit_picker_failed": "Kan ikke åpne filvelgeren",
+  "respondkit_file_open_failed": "Kan ikke åpne den valgte filen.",
+  "respondkit_start_failed": "Kunne ikke starte kundestøttechatten.",
+  "respondkit_request_failed": "Forespørselen til kundestøtte mislyktes.",
+  "respondkit_history_failed": "Kunne ikke laste inn samtalehistorikken. Prøv Mer igjen.",
+  "respondkit_messages_failed": "Kunne ikke laste inn nye meldinger.",
+  "respondkit_sign_in_again": "Logg inn på nytt for å gjenopprette kundestøttehistorikken.",
+  "respondkit_session_expired": "Kundestøtteøkten har utløpt. Koble til på nytt for å fortsette.",
+  "respondkit_identity_changed": "Kundestøtteidentiteten ble endret i en annen fane. Koble til på nytt for å laste inn kontoen din igjen.",
+  "respondkit_connecting": "Kundestøtte kobler fortsatt til.",
+  "respondkit_reconnect_upload": "Koble til på nytt før du laster opp."
+}

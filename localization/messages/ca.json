@@ -1,0 +1,97 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Assistència",
+  "respondkit_ask_anything": "Pregunta'ns el que vulguis",
+  "respondkit_open_chat": "Obre el xat d'assistència",
+  "respondkit_close_chat": "Tanca el xat d'assistència",
+  "respondkit_close": "Tanca",
+  "respondkit_help": "Com et podem ajudar?",
+  "respondkit_intro": "Envia un missatge i mantén aquesta pàgina oberta per rebre una resposta ràpida.",
+  "respondkit_intro_short": "Envia un missatge per començar una conversa.",
+  "respondkit_return": "Les respostes apareixeran aquí quan tornis a l'aplicació.",
+  "respondkit_conversations": "Converses",
+  "respondkit_conversation": "Conversa {date}",
+  "respondkit_new_conversation": "Conversa nova",
+  "respondkit_unread": "Resposta d'assistència no llegida",
+  "respondkit_open": "Oberta",
+  "respondkit_closed": "Tancada",
+  "respondkit_more": "Més",
+  "respondkit_loading": "S'està carregant…",
+  "respondkit_loading_messages": "S'estan carregant els missatges",
+  "respondkit_support_messages": "Missatges d'assistència",
+  "respondkit_latest": "Missatges més recents",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} nou",
+        "category=many": "{count} nous",
+        "category=*": "{count} nous"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Mostra {count} missatge nou",
+        "category=many": "Mostra {count} missatges nous",
+        "category=*": "Mostra {count} missatges nous"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Converses · {count} sense llegir",
+        "category=many": "Converses · {count} sense llegir",
+        "category=*": "Converses · {count} sense llegir"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Aquesta conversa està tancada.",
+  "respondkit_another_message": "Envia un altre missatge",
+  "respondkit_message": "Missatge",
+  "respondkit_write_message": "Escriu un missatge…",
+  "respondkit_send": "Envia",
+  "respondkit_send_message": "Envia el missatge",
+  "respondkit_sending": "S'està enviant…",
+  "respondkit_sent": "Enviat",
+  "respondkit_failed": "Error",
+  "respondkit_confirming": "S'està confirmant…",
+  "respondkit_unknown": "No confirmat: pots tornar-ho a provar sense risc",
+  "respondkit_retry": "Torna-ho a provar",
+  "respondkit_retry_message": "Torna a enviar el missatge",
+  "respondkit_try_again": "Torna-ho a provar",
+  "respondkit_reconnect": "Torna a connectar",
+  "respondkit_email_prompt": "A quin correu et podem enviar la resposta?",
+  "respondkit_email_address": "Adreça electrònica",
+  "respondkit_save_email": "Desa el correu",
+  "respondkit_saving": "S'està desant…",
+  "respondkit_email_failed": "No hem pogut desar el teu correu. Comprova'l i torna-ho a provar.",
+  "respondkit_attach_files": "Adjunta fitxers",
+  "respondkit_attached_files": "Fitxers adjunts",
+  "respondkit_photo_library": "Fototeca",
+  "respondkit_files": "Fitxers",
+  "respondkit_cancel": "Cancel·la",
+  "respondkit_ready": "A punt",
+  "respondkit_upload_failed": "No s'ha pogut pujar",
+  "respondkit_remove": "Elimina",
+  "respondkit_remove_file": "Elimina {name}",
+  "respondkit_selected_file": "Fitxer seleccionat",
+  "respondkit_picker_failed": "No es pot obrir el selector de fitxers",
+  "respondkit_file_open_failed": "No es pot obrir el fitxer seleccionat.",
+  "respondkit_start_failed": "No s'ha pogut iniciar el xat d'assistència.",
+  "respondkit_request_failed": "La sol·licitud d'assistència ha fallat.",
+  "respondkit_history_failed": "No s'ha pogut carregar l'historial de la conversa. Torna a tocar «Més».",
+  "respondkit_messages_failed": "No s'han pogut carregar els missatges nous.",
+  "respondkit_sign_in_again": "Torna a iniciar la sessió per recuperar l'historial d'assistència.",
+  "respondkit_session_expired": "La sessió d'assistència ha caducat. Torna a connectar per continuar.",
+  "respondkit_identity_changed": "La identitat d'assistència ha canviat en una altra pestanya. Torna a connectar per recarregar el teu compte.",
+  "respondkit_connecting": "L'assistència encara s'està connectant.",
+  "respondkit_reconnect_upload": "Torna a connectar abans de pujar fitxers."
+}

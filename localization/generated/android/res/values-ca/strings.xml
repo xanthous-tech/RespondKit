@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"Envia un altre missatge"</string>
+    <string name="respondkit_ask_anything" formatted="false">"Pregunta\'ns el que vulguis"</string>
+    <string name="respondkit_attach_files" formatted="false">"Adjunta fitxers"</string>
+    <string name="respondkit_attached_files" formatted="false">"Fitxers adjunts"</string>
+    <string name="respondkit_cancel" formatted="false">"Cancel·la"</string>
+    <string name="respondkit_close" formatted="false">"Tanca"</string>
+    <string name="respondkit_close_chat" formatted="false">"Tanca el xat d\'assistència"</string>
+    <string name="respondkit_closed" formatted="false">"Tancada"</string>
+    <string name="respondkit_closed_help" formatted="false">"Aquesta conversa està tancada."</string>
+    <string name="respondkit_confirming" formatted="false">"S\'està confirmant…"</string>
+    <string name="respondkit_connecting" formatted="false">"L\'assistència encara s\'està connectant."</string>
+    <string name="respondkit_conversation">"Conversa %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"Converses"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="one">"Converses · %1$d sense llegir"</item>
+        <item quantity="many">"Converses · %1$d sense llegir"</item>
+        <item quantity="other">"Converses · %1$d sense llegir"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"Adreça electrònica"</string>
+    <string name="respondkit_email_failed" formatted="false">"No hem pogut desar el teu correu. Comprova\'l i torna-ho a provar."</string>
+    <string name="respondkit_email_prompt" formatted="false">"A quin correu et podem enviar la resposta?"</string>
+    <string name="respondkit_failed" formatted="false">"Error"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"No es pot obrir el fitxer seleccionat."</string>
+    <string name="respondkit_files" formatted="false">"Fitxers"</string>
+    <string name="respondkit_help" formatted="false">"Com et podem ajudar?"</string>
+    <string name="respondkit_history_failed" formatted="false">"No s\'ha pogut carregar l\'historial de la conversa. Torna a tocar «Més»."</string>
+    <string name="respondkit_identity_changed" formatted="false">"La identitat d\'assistència ha canviat en una altra pestanya. Torna a connectar per recarregar el teu compte."</string>
+    <string name="respondkit_intro" formatted="false">"Envia un missatge i mantén aquesta pàgina oberta per rebre una resposta ràpida."</string>
+    <string name="respondkit_intro_short" formatted="false">"Envia un missatge per començar una conversa."</string>
+    <string name="respondkit_latest" formatted="false">"Missatges més recents"</string>
+    <string name="respondkit_loading" formatted="false">"S\'està carregant…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"S\'estan carregant els missatges"</string>
+    <string name="respondkit_message" formatted="false">"Missatge"</string>
+    <string name="respondkit_messages_failed" formatted="false">"No s\'han pogut carregar els missatges nous."</string>
+    <string name="respondkit_more" formatted="false">"Més"</string>
+    <string name="respondkit_new_conversation" formatted="false">"Conversa nova"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="one">"%1$d nou"</item>
+        <item quantity="many">"%1$d nous"</item>
+        <item quantity="other">"%1$d nous"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"Oberta"</string>
+    <string name="respondkit_open_chat" formatted="false">"Obre el xat d\'assistència"</string>
+    <string name="respondkit_photo_library" formatted="false">"Fototeca"</string>
+    <string name="respondkit_picker_failed" formatted="false">"No es pot obrir el selector de fitxers"</string>
+    <string name="respondkit_ready" formatted="false">"A punt"</string>
+    <string name="respondkit_reconnect" formatted="false">"Torna a connectar"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"Torna a connectar abans de pujar fitxers."</string>
+    <string name="respondkit_remove" formatted="false">"Elimina"</string>
+    <string name="respondkit_remove_file">"Elimina %1$s"</string>
+    <string name="respondkit_request_failed" formatted="false">"La sol·licitud d\'assistència ha fallat."</string>
+    <string name="respondkit_retry" formatted="false">"Torna-ho a provar"</string>
+    <string name="respondkit_retry_message" formatted="false">"Torna a enviar el missatge"</string>
+    <string name="respondkit_return" formatted="false">"Les respostes apareixeran aquí quan tornis a l\'aplicació."</string>
+    <string name="respondkit_save_email" formatted="false">"Desa el correu"</string>
+    <string name="respondkit_saving" formatted="false">"S\'està desant…"</string>
+    <string name="respondkit_selected_file" formatted="false">"Fitxer seleccionat"</string>
+    <string name="respondkit_send" formatted="false">"Envia"</string>
+    <string name="respondkit_send_message" formatted="false">"Envia el missatge"</string>
+    <string name="respondkit_sending" formatted="false">"S\'està enviant…"</string>
+    <string name="respondkit_sent" formatted="false">"Enviat"</string>
+    <string name="respondkit_session_expired" formatted="false">"La sessió d\'assistència ha caducat. Torna a connectar per continuar."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="one">"Mostra %1$d missatge nou"</item>
+        <item quantity="many">"Mostra %1$d missatges nous"</item>
+        <item quantity="other">"Mostra %1$d missatges nous"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"Torna a iniciar la sessió per recuperar l\'historial d\'assistència."</string>
+    <string name="respondkit_start_failed" formatted="false">"No s\'ha pogut iniciar el xat d\'assistència."</string>
+    <string name="respondkit_support" formatted="false">"Assistència"</string>
+    <string name="respondkit_support_messages" formatted="false">"Missatges d\'assistència"</string>
+    <string name="respondkit_try_again" formatted="false">"Torna-ho a provar"</string>
+    <string name="respondkit_unknown" formatted="false">"No confirmat: pots tornar-ho a provar sense risc"</string>
+    <string name="respondkit_unread" formatted="false">"Resposta d\'assistència no llegida"</string>
+    <string name="respondkit_upload_failed" formatted="false">"No s\'ha pogut pujar"</string>
+    <string name="respondkit_write_message" formatted="false">"Escriu un missatge…"</string>
+</resources>

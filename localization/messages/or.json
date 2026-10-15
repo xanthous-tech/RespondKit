@@ -1,0 +1,91 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "ସହାୟତା",
+  "respondkit_ask_anything": "ଆମକୁ ଯାହା ବି ପଚାରନ୍ତୁ",
+  "respondkit_open_chat": "ସହାୟତା ଚାଟ୍ ଖୋଲନ୍ତୁ",
+  "respondkit_close_chat": "ସହାୟତା ଚାଟ୍ ବନ୍ଦ କରନ୍ତୁ",
+  "respondkit_close": "ବନ୍ଦ କରନ୍ତୁ",
+  "respondkit_help": "ଆମେ କିପରି ସାହାଯ୍ୟ କରିପାରିବା?",
+  "respondkit_intro": "ଏକ ମେସେଜ୍ ପଠାନ୍ତୁ ଏବଂ ଶୀଘ୍ର ଉତ୍ତର ପାଇଁ ଏହି ପୃଷ୍ଠାଟି ଖୋଲା ରଖନ୍ତୁ।",
+  "respondkit_intro_short": "ବାର୍ତ୍ତାଳାପ ଆରମ୍ଭ କରିବାକୁ ଏକ ମେସେଜ୍ ପଠାନ୍ତୁ।",
+  "respondkit_return": "ଆପଣ ଆପ୍‌କୁ ଫେରିଲେ ଉତ୍ତରଗୁଡ଼ିକ ଏଠାରେ ଦେଖାଯିବ।",
+  "respondkit_conversations": "ବାର୍ତ୍ତାଳାପଗୁଡ଼ିକ",
+  "respondkit_conversation": "ବାର୍ତ୍ତାଳାପ {date}",
+  "respondkit_new_conversation": "ନୂଆ ବାର୍ତ୍ତାଳାପ",
+  "respondkit_unread": "ଅପଠିତ ସହାୟତା ଉତ୍ତର",
+  "respondkit_open": "ଖୋଲା",
+  "respondkit_closed": "ବନ୍ଦ",
+  "respondkit_more": "ଅଧିକ",
+  "respondkit_loading": "ଲୋଡ୍ ହେଉଛି…",
+  "respondkit_loading_messages": "ମେସେଜ୍ ଲୋଡ୍ ହେଉଛି",
+  "respondkit_support_messages": "ସହାୟତା ମେସେଜ୍",
+  "respondkit_latest": "ସର୍ବଶେଷ ମେସେଜ୍",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=*": "{count}ଟି ନୂଆ"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=*": "{count}ଟି ନୂଆ ମେସେଜ୍ ଦେଖାନ୍ତୁ"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=*": "ବାର୍ତ୍ତାଳାପଗୁଡ଼ିକ · {count}ଟି ଅପଠିତ"
+      }
+    }
+  ],
+  "respondkit_closed_help": "ଏହି ବାର୍ତ୍ତାଳାପ ବନ୍ଦ ହୋଇଯାଇଛି।",
+  "respondkit_another_message": "ଆଉ ଏକ ମେସେଜ୍ ପଠାନ୍ତୁ",
+  "respondkit_message": "ମେସେଜ୍",
+  "respondkit_write_message": "ଏକ ମେସେଜ୍ ଲେଖନ୍ତୁ…",
+  "respondkit_send": "ପଠାନ୍ତୁ",
+  "respondkit_send_message": "ମେସେଜ୍ ପଠାନ୍ତୁ",
+  "respondkit_sending": "ପଠାଯାଉଛି…",
+  "respondkit_sent": "ପଠାଗଲା",
+  "respondkit_failed": "ବିଫଳ ହେଲା",
+  "respondkit_confirming": "ନିଶ୍ଚିତ କରାଯାଉଛି…",
+  "respondkit_unknown": "ନିଶ୍ଚିତ ହୋଇନାହିଁ — ନିରାପଦରେ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ",
+  "respondkit_retry": "ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ",
+  "respondkit_retry_message": "ମେସେଜ୍ ପୁଣି ପଠାନ୍ତୁ",
+  "respondkit_try_again": "ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ",
+  "respondkit_reconnect": "ପୁଣି ସଂଯୋଗ କରନ୍ତୁ",
+  "respondkit_email_prompt": "ଆମେ ଆପଣଙ୍କୁ କେଉଁ ଇମେଲରେ ଉତ୍ତର ପଠାଇବୁ?",
+  "respondkit_email_address": "ଇମେଲ ଠିକଣା",
+  "respondkit_save_email": "ଇମେଲ ସେଭ୍ କରନ୍ତୁ",
+  "respondkit_saving": "ସେଭ୍ ହେଉଛି…",
+  "respondkit_email_failed": "ଆମେ ଆପଣଙ୍କ ଇମେଲ ସେଭ୍ କରିପାରିଲୁ ନାହିଁ। ଦୟାକରି ଏହାକୁ ଯାଞ୍ଚ କରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।",
+  "respondkit_attach_files": "ଫାଇଲ୍ ସଂଲଗ୍ନ କରନ୍ତୁ",
+  "respondkit_attached_files": "ସଂଲଗ୍ନ ଫାଇଲ୍",
+  "respondkit_photo_library": "ଫଟୋ ଲାଇବ୍ରେରୀ",
+  "respondkit_files": "ଫାଇଲ୍",
+  "respondkit_cancel": "ବାତିଲ୍ କରନ୍ତୁ",
+  "respondkit_ready": "ପ୍ରସ୍ତୁତ",
+  "respondkit_upload_failed": "ଅପଲୋଡ୍ ବିଫଳ ହେଲା",
+  "respondkit_remove": "ହଟାନ୍ତୁ",
+  "respondkit_remove_file": "{name} ହଟାନ୍ତୁ",
+  "respondkit_selected_file": "ଚୟନିତ ଫାଇଲ୍",
+  "respondkit_picker_failed": "ଫାଇଲ୍ ପିକର୍ ଖୋଲାଯାଇପାରିଲା ନାହିଁ",
+  "respondkit_file_open_failed": "ଚୟନିତ ଫାଇଲ୍ ଖୋଲାଯାଇପାରିଲା ନାହିଁ।",
+  "respondkit_start_failed": "ସହାୟତା ଚାଟ୍ ଆରମ୍ଭ କରାଯାଇପାରିଲା ନାହିଁ।",
+  "respondkit_request_failed": "ସହାୟତା ଅନୁରୋଧ ବିଫଳ ହେଲା।",
+  "respondkit_history_failed": "ବାର୍ତ୍ତାଳାପ ଇତିହାସ ଲୋଡ୍ କରାଯାଇପାରିଲା ନାହିଁ। ଅଧିକ ବଟନ୍ ସହ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।",
+  "respondkit_messages_failed": "ନୂଆ ମେସେଜ୍ ଲୋଡ୍ କରାଯାଇପାରିଲା ନାହିଁ।",
+  "respondkit_sign_in_again": "ଆପଣଙ୍କ ସହାୟତା ଇତିହାସ ଫେରାଇ ଆଣିବାକୁ ପୁଣି ସାଇନ୍ ଇନ୍ କରନ୍ତୁ।",
+  "respondkit_session_expired": "ଆପଣଙ୍କ ସହାୟତା ସେସନ୍‌ର ମିଆଦ ଶେଷ ହୋଇଛି। ଜାରି ରଖିବାକୁ ପୁଣି ସଂଯୋଗ କରନ୍ତୁ।",
+  "respondkit_identity_changed": "ଅନ୍ୟ ଏକ ଟ୍ୟାବ୍‌ରେ ସହାୟତା ପରିଚୟ ବଦଳିଯାଇଛି। ଆପଣଙ୍କ ଆକାଉଣ୍ଟ ପୁଣି ଲୋଡ୍ କରିବାକୁ ପୁଣି ସଂଯୋଗ କରନ୍ତୁ।",
+  "respondkit_connecting": "ସହାୟତା ଏବେ ବି ସଂଯୋଗ ହେଉଛି।",
+  "respondkit_reconnect_upload": "ଅପଲୋଡ୍ କରିବା ପୂର୍ବରୁ ପୁଣି ସଂଯୋଗ କରନ୍ତୁ।"
+}

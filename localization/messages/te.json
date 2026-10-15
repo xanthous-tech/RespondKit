@@ -1,0 +1,94 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "మద్దతు",
+  "respondkit_ask_anything": "మమ్మల్ని ఏదైనా అడగండి",
+  "respondkit_open_chat": "మద్దతు చాట్‌ను తెరువు",
+  "respondkit_close_chat": "మద్దతు చాట్‌ను మూసివేయి",
+  "respondkit_close": "మూసివేయి",
+  "respondkit_help": "మేము ఎలా సహాయపడగలం?",
+  "respondkit_intro": "సందేశం పంపి, త్వరగా సమాధానం పొందడానికి ఈ పేజీని తెరిచే ఉంచండి.",
+  "respondkit_intro_short": "సంభాషణను ప్రారంభించడానికి సందేశం పంపండి.",
+  "respondkit_return": "మీరు యాప్‌కు తిరిగి వచ్చినప్పుడు సమాధానాలు ఇక్కడ కనిపిస్తాయి.",
+  "respondkit_conversations": "సంభాషణలు",
+  "respondkit_conversation": "సంభాషణ {date}",
+  "respondkit_new_conversation": "కొత్త సంభాషణ",
+  "respondkit_unread": "చదవని మద్దతు సమాధానం",
+  "respondkit_open": "తెరిచి ఉంది",
+  "respondkit_closed": "మూసివేయబడింది",
+  "respondkit_more": "మరిన్ని",
+  "respondkit_loading": "లోడ్ అవుతోంది…",
+  "respondkit_loading_messages": "సందేశాలు లోడ్ అవుతున్నాయి",
+  "respondkit_support_messages": "మద్దతు సందేశాలు",
+  "respondkit_latest": "తాజా సందేశాలు",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} కొత్తది",
+        "category=*": "{count} కొత్తవి"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} కొత్త సందేశాన్ని చూపు",
+        "category=*": "{count} కొత్త సందేశాలను చూపు"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "సంభాషణలు · {count} చదవనిది",
+        "category=*": "సంభాషణలు · {count} చదవనివి"
+      }
+    }
+  ],
+  "respondkit_closed_help": "ఈ సంభాషణ మూసివేయబడింది.",
+  "respondkit_another_message": "మరో సందేశం పంపు",
+  "respondkit_message": "సందేశం",
+  "respondkit_write_message": "సందేశం రాయండి…",
+  "respondkit_send": "పంపు",
+  "respondkit_send_message": "సందేశం పంపు",
+  "respondkit_sending": "పంపుతోంది…",
+  "respondkit_sent": "పంపబడింది",
+  "respondkit_failed": "విఫలమైంది",
+  "respondkit_confirming": "నిర్ధారిస్తోంది…",
+  "respondkit_unknown": "నిర్ధారించబడలేదు — సురక్షితంగా మళ్లీ ప్రయత్నించవచ్చు",
+  "respondkit_retry": "మళ్లీ ప్రయత్నించు",
+  "respondkit_retry_message": "సందేశాన్ని మళ్లీ పంపు",
+  "respondkit_try_again": "మళ్లీ ప్రయత్నించండి",
+  "respondkit_reconnect": "మళ్లీ కనెక్ట్ చేయి",
+  "respondkit_email_prompt": "మీకు సమాధానం ఏ ఈమెయిల్‌కు పంపాలి?",
+  "respondkit_email_address": "ఈమెయిల్ చిరునామా",
+  "respondkit_save_email": "ఈమెయిల్‌ను సేవ్ చేయి",
+  "respondkit_saving": "సేవ్ అవుతోంది…",
+  "respondkit_email_failed": "మీ ఈమెయిల్‌ను సేవ్ చేయలేకపోయాము. దాన్ని తనిఖీ చేసి, మళ్లీ ప్రయత్నించండి.",
+  "respondkit_attach_files": "ఫైల్స్‌ను జోడించు",
+  "respondkit_attached_files": "జోడించిన ఫైల్స్",
+  "respondkit_photo_library": "ఫోటో లైబ్రరీ",
+  "respondkit_files": "ఫైల్స్",
+  "respondkit_cancel": "రద్దు చేయి",
+  "respondkit_ready": "సిద్ధం",
+  "respondkit_upload_failed": "అప్‌లోడ్ విఫలమైంది",
+  "respondkit_remove": "తీసివేయి",
+  "respondkit_remove_file": "తీసివేయి: {name}",
+  "respondkit_selected_file": "ఎంచుకున్న ఫైల్",
+  "respondkit_picker_failed": "ఫైల్ పికర్‌ను తెరవడం సాధ్యం కాలేదు",
+  "respondkit_file_open_failed": "ఎంచుకున్న ఫైల్‌ను తెరవడం సాధ్యం కాలేదు.",
+  "respondkit_start_failed": "మద్దతు చాట్‌ను ప్రారంభించడం సాధ్యం కాలేదు.",
+  "respondkit_request_failed": "మద్దతు అభ్యర్థన విఫలమైంది.",
+  "respondkit_history_failed": "సంభాషణ చరిత్రను లోడ్ చేయడం సాధ్యం కాలేదు. ‘మరిన్ని’ని మళ్లీ ఎంచుకోండి.",
+  "respondkit_messages_failed": "కొత్త సందేశాలను లోడ్ చేయడం సాధ్యం కాలేదు.",
+  "respondkit_sign_in_again": "మీ మద్దతు చరిత్రను పునరుద్ధరించడానికి మళ్లీ సైన్ ఇన్ చేయండి.",
+  "respondkit_session_expired": "మీ మద్దతు సెషన్ గడువు ముగిసింది. కొనసాగించడానికి మళ్లీ కనెక్ట్ చేయండి.",
+  "respondkit_identity_changed": "మరో ట్యాబ్‌లో మద్దతు ఖాతా మారింది. మీ ఖాతాను మళ్లీ లోడ్ చేయడానికి మళ్లీ కనెక్ట్ చేయండి.",
+  "respondkit_connecting": "మద్దతు ఇంకా కనెక్ట్ అవుతోంది.",
+  "respondkit_reconnect_upload": "అప్‌లోడ్ చేసే ముందు మళ్లీ కనెక్ట్ చేయండి."
+}

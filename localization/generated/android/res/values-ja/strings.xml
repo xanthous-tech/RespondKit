@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"新しいメッセージを送信"</string>
+    <string name="respondkit_ask_anything" formatted="false">"何でもお気軽にどうぞ"</string>
+    <string name="respondkit_attach_files" formatted="false">"ファイルを添付"</string>
+    <string name="respondkit_attached_files" formatted="false">"添付ファイル"</string>
+    <string name="respondkit_cancel" formatted="false">"キャンセル"</string>
+    <string name="respondkit_close" formatted="false">"閉じる"</string>
+    <string name="respondkit_close_chat" formatted="false">"サポートチャットを閉じる"</string>
+    <string name="respondkit_closed" formatted="false">"終了"</string>
+    <string name="respondkit_closed_help" formatted="false">"この会話は終了しました。"</string>
+    <string name="respondkit_confirming" formatted="false">"確認中…"</string>
+    <string name="respondkit_connecting" formatted="false">"サポートに接続しています。"</string>
+    <string name="respondkit_conversation">"%1$sの会話"</string>
+    <string name="respondkit_conversations" formatted="false">"会話"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="other">"会話 · 未読%1$d件"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"メールアドレス"</string>
+    <string name="respondkit_email_failed" formatted="false">"メールアドレスを保存できませんでした。内容を確認して、もう一度お試しください。"</string>
+    <string name="respondkit_email_prompt" formatted="false">"返信をお送りするメールアドレスを教えてください"</string>
+    <string name="respondkit_failed" formatted="false">"送信失敗"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"選択したファイルを開けません。"</string>
+    <string name="respondkit_files" formatted="false">"ファイル"</string>
+    <string name="respondkit_help" formatted="false">"どのようなご用件ですか？"</string>
+    <string name="respondkit_history_failed" formatted="false">"会話履歴を読み込めませんでした。もう一度「さらに表示」をお試しください。"</string>
+    <string name="respondkit_identity_changed" formatted="false">"別のタブでサポートのアカウントが切り替わりました。アカウントを再読み込みするには再接続してください。"</string>
+    <string name="respondkit_intro" formatted="false">"メッセージを送信して、このページを開いたままお待ちください。すぐにお返事します。"</string>
+    <string name="respondkit_intro_short" formatted="false">"メッセージを送信して会話を始めましょう。"</string>
+    <string name="respondkit_latest" formatted="false">"最新のメッセージ"</string>
+    <string name="respondkit_loading" formatted="false">"読み込み中…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"メッセージを読み込み中"</string>
+    <string name="respondkit_message" formatted="false">"メッセージ"</string>
+    <string name="respondkit_messages_failed" formatted="false">"新着メッセージを読み込めませんでした。"</string>
+    <string name="respondkit_more" formatted="false">"さらに表示"</string>
+    <string name="respondkit_new_conversation" formatted="false">"新しい会話"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="other">"新着%1$d件"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"対応中"</string>
+    <string name="respondkit_open_chat" formatted="false">"サポートチャットを開く"</string>
+    <string name="respondkit_photo_library" formatted="false">"フォトライブラリ"</string>
+    <string name="respondkit_picker_failed" formatted="false">"ファイル選択画面を開けません"</string>
+    <string name="respondkit_ready" formatted="false">"準備完了"</string>
+    <string name="respondkit_reconnect" formatted="false">"再接続"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"アップロードする前に再接続してください。"</string>
+    <string name="respondkit_remove" formatted="false">"削除"</string>
+    <string name="respondkit_remove_file">"%1$sを削除"</string>
+    <string name="respondkit_request_failed" formatted="false">"サポートへのリクエストに失敗しました。"</string>
+    <string name="respondkit_retry" formatted="false">"再試行"</string>
+    <string name="respondkit_retry_message" formatted="false">"メッセージを再送信"</string>
+    <string name="respondkit_return" formatted="false">"アプリに戻ると、返信がここに表示されます。"</string>
+    <string name="respondkit_save_email" formatted="false">"メールアドレスを保存"</string>
+    <string name="respondkit_saving" formatted="false">"保存中…"</string>
+    <string name="respondkit_selected_file" formatted="false">"選択したファイル"</string>
+    <string name="respondkit_send" formatted="false">"送信"</string>
+    <string name="respondkit_send_message" formatted="false">"メッセージを送信"</string>
+    <string name="respondkit_sending" formatted="false">"送信中…"</string>
+    <string name="respondkit_sent" formatted="false">"送信済み"</string>
+    <string name="respondkit_session_expired" formatted="false">"サポートセッションの有効期限が切れました。続けるには再接続してください。"</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="other">"新着メッセージ%1$d件を表示"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"サポート履歴を復元するには、もう一度サインインしてください。"</string>
+    <string name="respondkit_start_failed" formatted="false">"サポートチャットを開始できませんでした。"</string>
+    <string name="respondkit_support" formatted="false">"サポート"</string>
+    <string name="respondkit_support_messages" formatted="false">"サポートメッセージ"</string>
+    <string name="respondkit_try_again" formatted="false">"もう一度試す"</string>
+    <string name="respondkit_unknown" formatted="false">"未確認 — 安全に再送できます"</string>
+    <string name="respondkit_unread" formatted="false">"未読のサポート返信"</string>
+    <string name="respondkit_upload_failed" formatted="false">"アップロードに失敗しました"</string>
+    <string name="respondkit_write_message" formatted="false">"メッセージを入力…"</string>
+</resources>

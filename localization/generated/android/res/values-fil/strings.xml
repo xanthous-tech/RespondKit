@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"Magpadala ng isa pang mensahe"</string>
+    <string name="respondkit_ask_anything" formatted="false">"Magtanong sa amin ng kahit ano"</string>
+    <string name="respondkit_attach_files" formatted="false">"Mag-attach ng mga file"</string>
+    <string name="respondkit_attached_files" formatted="false">"Mga naka-attach na file"</string>
+    <string name="respondkit_cancel" formatted="false">"Kanselahin"</string>
+    <string name="respondkit_close" formatted="false">"Isara"</string>
+    <string name="respondkit_close_chat" formatted="false">"Isara ang support chat"</string>
+    <string name="respondkit_closed" formatted="false">"Sarado"</string>
+    <string name="respondkit_closed_help" formatted="false">"Sarado na ang pag-uusap na ito."</string>
+    <string name="respondkit_confirming" formatted="false">"Kinukumpirma…"</string>
+    <string name="respondkit_connecting" formatted="false">"Kumokonekta pa ang suporta."</string>
+    <string name="respondkit_conversation">"Pag-uusap %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"Mga pag-uusap"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="one">"Mga pag-uusap · %1$d hindi pa nababasa"</item>
+        <item quantity="other">"Mga pag-uusap · %1$d hindi pa nababasa"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"Email address"</string>
+    <string name="respondkit_email_failed" formatted="false">"Hindi namin na-save ang email mo. Pakitingnan ito at subukang muli."</string>
+    <string name="respondkit_email_prompt" formatted="false">"Saang email namin ipapadala ang sagot?"</string>
+    <string name="respondkit_failed" formatted="false">"Nabigo"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"Hindi mabuksan ang napiling file."</string>
+    <string name="respondkit_files" formatted="false">"Mga file"</string>
+    <string name="respondkit_help" formatted="false">"Paano kami makakatulong?"</string>
+    <string name="respondkit_history_failed" formatted="false">"Hindi ma-load ang history ng pag-uusap. Subukang muli ang “Higit pa”."</string>
+    <string name="respondkit_identity_changed" formatted="false">"Napalitan ang account sa suporta sa ibang tab. Kumonektang muli para i-reload ang account mo."</string>
+    <string name="respondkit_intro" formatted="false">"Magpadala ng mensahe at panatilihing bukas ang page na ito para sa mabilis na sagot."</string>
+    <string name="respondkit_intro_short" formatted="false">"Magpadala ng mensahe para magsimula ng pag-uusap."</string>
+    <string name="respondkit_latest" formatted="false">"Mga pinakabagong mensahe"</string>
+    <string name="respondkit_loading" formatted="false">"Naglo-load…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"Nilo-load ang mga mensahe"</string>
+    <string name="respondkit_message" formatted="false">"Mensahe"</string>
+    <string name="respondkit_messages_failed" formatted="false">"Hindi ma-load ang mga bagong mensahe."</string>
+    <string name="respondkit_more" formatted="false">"Higit pa"</string>
+    <string name="respondkit_new_conversation" formatted="false">"Bagong pag-uusap"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="one">"%1$d bago"</item>
+        <item quantity="other">"%1$d bago"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"Bukas"</string>
+    <string name="respondkit_open_chat" formatted="false">"Buksan ang support chat"</string>
+    <string name="respondkit_photo_library" formatted="false">"Library ng mga larawan"</string>
+    <string name="respondkit_picker_failed" formatted="false">"Hindi mabuksan ang pagpili ng file"</string>
+    <string name="respondkit_ready" formatted="false">"Handa na"</string>
+    <string name="respondkit_reconnect" formatted="false">"Kumonektang muli"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"Kumonektang muli bago mag-upload."</string>
+    <string name="respondkit_remove" formatted="false">"Alisin"</string>
+    <string name="respondkit_remove_file">"Alisin ang %1$s"</string>
+    <string name="respondkit_request_failed" formatted="false">"Nabigo ang kahilingan sa suporta."</string>
+    <string name="respondkit_retry" formatted="false">"Subukang muli"</string>
+    <string name="respondkit_retry_message" formatted="false">"Ipadalang muli ang mensahe"</string>
+    <string name="respondkit_return" formatted="false">"Dito lalabas ang mga sagot pagbalik mo sa app."</string>
+    <string name="respondkit_save_email" formatted="false">"I-save ang email"</string>
+    <string name="respondkit_saving" formatted="false">"Sine-save…"</string>
+    <string name="respondkit_selected_file" formatted="false">"Napiling file"</string>
+    <string name="respondkit_send" formatted="false">"Ipadala"</string>
+    <string name="respondkit_send_message" formatted="false">"Ipadala ang mensahe"</string>
+    <string name="respondkit_sending" formatted="false">"Ipinapadala…"</string>
+    <string name="respondkit_sent" formatted="false">"Naipadala"</string>
+    <string name="respondkit_session_expired" formatted="false">"Nag-expire na ang session mo sa suporta. Kumonektang muli para magpatuloy."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="one">"Ipakita ang %1$d bagong mensahe"</item>
+        <item quantity="other">"Ipakita ang %1$d bagong mensahe"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"Mag-sign in muli para maibalik ang history mo sa suporta."</string>
+    <string name="respondkit_start_failed" formatted="false">"Hindi masimulan ang support chat."</string>
+    <string name="respondkit_support" formatted="false">"Suporta"</string>
+    <string name="respondkit_support_messages" formatted="false">"Mga mensahe ng suporta"</string>
+    <string name="respondkit_try_again" formatted="false">"Subukang muli"</string>
+    <string name="respondkit_unknown" formatted="false">"Hindi nakumpirma — ligtas subukang muli"</string>
+    <string name="respondkit_unread" formatted="false">"Hindi pa nababasang sagot ng suporta"</string>
+    <string name="respondkit_upload_failed" formatted="false">"Nabigo ang pag-upload"</string>
+    <string name="respondkit_write_message" formatted="false">"Sumulat ng mensahe…"</string>
+</resources>

@@ -1,0 +1,91 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Hỗ trợ",
+  "respondkit_ask_anything": "Hãy hỏi chúng tôi bất cứ điều gì",
+  "respondkit_open_chat": "Mở trò chuyện hỗ trợ",
+  "respondkit_close_chat": "Đóng trò chuyện hỗ trợ",
+  "respondkit_close": "Đóng",
+  "respondkit_help": "Chúng tôi có thể giúp gì cho bạn?",
+  "respondkit_intro": "Gửi tin nhắn và giữ trang này mở để nhận phản hồi nhanh.",
+  "respondkit_intro_short": "Gửi tin nhắn để bắt đầu cuộc trò chuyện.",
+  "respondkit_return": "Phản hồi sẽ hiển thị tại đây khi bạn quay lại ứng dụng.",
+  "respondkit_conversations": "Cuộc trò chuyện",
+  "respondkit_conversation": "Cuộc trò chuyện {date}",
+  "respondkit_new_conversation": "Cuộc trò chuyện mới",
+  "respondkit_unread": "Phản hồi hỗ trợ chưa đọc",
+  "respondkit_open": "Đang mở",
+  "respondkit_closed": "Đã đóng",
+  "respondkit_more": "Xem thêm",
+  "respondkit_loading": "Đang tải…",
+  "respondkit_loading_messages": "Đang tải tin nhắn",
+  "respondkit_support_messages": "Tin nhắn hỗ trợ",
+  "respondkit_latest": "Tin nhắn mới nhất",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=*": "{count} mới"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=*": "Hiển thị {count} tin nhắn mới"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=*": "Cuộc trò chuyện · {count} chưa đọc"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Cuộc trò chuyện này đã đóng.",
+  "respondkit_another_message": "Gửi tin nhắn khác",
+  "respondkit_message": "Tin nhắn",
+  "respondkit_write_message": "Viết tin nhắn…",
+  "respondkit_send": "Gửi",
+  "respondkit_send_message": "Gửi tin nhắn",
+  "respondkit_sending": "Đang gửi…",
+  "respondkit_sent": "Đã gửi",
+  "respondkit_failed": "Không thành công",
+  "respondkit_confirming": "Đang xác nhận…",
+  "respondkit_unknown": "Chưa xác nhận — có thể thử lại an toàn",
+  "respondkit_retry": "Thử lại",
+  "respondkit_retry_message": "Gửi lại tin nhắn",
+  "respondkit_try_again": "Thử lại",
+  "respondkit_reconnect": "Kết nối lại",
+  "respondkit_email_prompt": "Chúng tôi nên gửi phản hồi đến email nào?",
+  "respondkit_email_address": "Địa chỉ email",
+  "respondkit_save_email": "Lưu email",
+  "respondkit_saving": "Đang lưu…",
+  "respondkit_email_failed": "Không thể lưu email của bạn. Vui lòng kiểm tra và thử lại.",
+  "respondkit_attach_files": "Đính kèm tệp",
+  "respondkit_attached_files": "Tệp đính kèm",
+  "respondkit_photo_library": "Thư viện ảnh",
+  "respondkit_files": "Tệp",
+  "respondkit_cancel": "Hủy",
+  "respondkit_ready": "Sẵn sàng",
+  "respondkit_upload_failed": "Tải lên không thành công",
+  "respondkit_remove": "Xóa",
+  "respondkit_remove_file": "Xóa {name}",
+  "respondkit_selected_file": "Tệp đã chọn",
+  "respondkit_picker_failed": "Không thể mở trình chọn tệp",
+  "respondkit_file_open_failed": "Không thể mở tệp đã chọn.",
+  "respondkit_start_failed": "Không thể bắt đầu trò chuyện hỗ trợ.",
+  "respondkit_request_failed": "Yêu cầu hỗ trợ không thành công.",
+  "respondkit_history_failed": "Không thể tải lịch sử trò chuyện. Hãy chọn “Xem thêm” lần nữa.",
+  "respondkit_messages_failed": "Không thể tải tin nhắn mới.",
+  "respondkit_sign_in_again": "Đăng nhập lại để khôi phục lịch sử hỗ trợ của bạn.",
+  "respondkit_session_expired": "Phiên hỗ trợ của bạn đã hết hạn. Hãy kết nối lại để tiếp tục.",
+  "respondkit_identity_changed": "Tài khoản hỗ trợ đã thay đổi ở một thẻ khác. Hãy kết nối lại để tải lại tài khoản của bạn.",
+  "respondkit_connecting": "Đang kết nối với bộ phận hỗ trợ.",
+  "respondkit_reconnect_upload": "Hãy kết nối lại trước khi tải lên."
+}

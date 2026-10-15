@@ -1,0 +1,100 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Підтримка",
+  "respondkit_ask_anything": "Запитуйте нас про будь-що",
+  "respondkit_open_chat": "Відкрити чат підтримки",
+  "respondkit_close_chat": "Закрити чат підтримки",
+  "respondkit_close": "Закрити",
+  "respondkit_help": "Чим можемо допомогти?",
+  "respondkit_intro": "Надішліть повідомлення й не закривайте цю сторінку, щоб швидко отримати відповідь.",
+  "respondkit_intro_short": "Надішліть повідомлення, щоб почати розмову.",
+  "respondkit_return": "Відповіді з’являться тут, коли ви повернетеся в застосунок.",
+  "respondkit_conversations": "Розмови",
+  "respondkit_conversation": "Розмова {date}",
+  "respondkit_new_conversation": "Нова розмова",
+  "respondkit_unread": "Непрочитана відповідь підтримки",
+  "respondkit_open": "Відкрита",
+  "respondkit_closed": "Закрита",
+  "respondkit_more": "Ще",
+  "respondkit_loading": "Завантаження…",
+  "respondkit_loading_messages": "Завантаження повідомлень",
+  "respondkit_support_messages": "Повідомлення підтримки",
+  "respondkit_latest": "Останні повідомлення",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} нове",
+        "category=few": "{count} нові",
+        "category=many": "{count} нових",
+        "category=*": "{count} нового"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Показати {count} нове повідомлення",
+        "category=few": "Показати {count} нові повідомлення",
+        "category=many": "Показати {count} нових повідомлень",
+        "category=*": "Показати {count} нового повідомлення"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Розмови · {count} непрочитана",
+        "category=few": "Розмови · {count} непрочитані",
+        "category=many": "Розмови · {count} непрочитаних",
+        "category=*": "Розмови · {count} непрочитаної"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Цю розмову закрито.",
+  "respondkit_another_message": "Надіслати ще одне повідомлення",
+  "respondkit_message": "Повідомлення",
+  "respondkit_write_message": "Напишіть повідомлення…",
+  "respondkit_send": "Надіслати",
+  "respondkit_send_message": "Надіслати повідомлення",
+  "respondkit_sending": "Надсилання…",
+  "respondkit_sent": "Надіслано",
+  "respondkit_failed": "Помилка",
+  "respondkit_confirming": "Підтвердження…",
+  "respondkit_unknown": "Не підтверджено — можна безпечно повторити",
+  "respondkit_retry": "Повторити",
+  "respondkit_retry_message": "Повторити надсилання",
+  "respondkit_try_again": "Спробувати ще раз",
+  "respondkit_reconnect": "Перепідключитися",
+  "respondkit_email_prompt": "На яку адресу надіслати вам відповідь?",
+  "respondkit_email_address": "Електронна адреса",
+  "respondkit_save_email": "Зберегти адресу",
+  "respondkit_saving": "Збереження…",
+  "respondkit_email_failed": "Не вдалося зберегти вашу електронну адресу. Перевірте її та спробуйте ще раз.",
+  "respondkit_attach_files": "Прикріпити файли",
+  "respondkit_attached_files": "Прикріплені файли",
+  "respondkit_photo_library": "Фототека",
+  "respondkit_files": "Файли",
+  "respondkit_cancel": "Скасувати",
+  "respondkit_ready": "Готово",
+  "respondkit_upload_failed": "Не вдалося завантажити",
+  "respondkit_remove": "Видалити",
+  "respondkit_remove_file": "Видалити {name}",
+  "respondkit_selected_file": "Вибраний файл",
+  "respondkit_picker_failed": "Не вдається відкрити вибір файлів",
+  "respondkit_file_open_failed": "Не вдається відкрити вибраний файл.",
+  "respondkit_start_failed": "Не вдалося запустити чат підтримки.",
+  "respondkit_request_failed": "Запит до підтримки не виконано.",
+  "respondkit_history_failed": "Не вдалося завантажити історію розмови. Спробуйте «Ще» знову.",
+  "respondkit_messages_failed": "Не вдалося завантажити нові повідомлення.",
+  "respondkit_sign_in_again": "Увійдіть знову, щоб відновити історію звернень до підтримки.",
+  "respondkit_session_expired": "Сеанс підтримки завершився. Перепідключіться, щоб продовжити.",
+  "respondkit_identity_changed": "Обліковий запис підтримки змінено в іншій вкладці. Перепідключіться, щоб перезавантажити свій обліковий запис.",
+  "respondkit_connecting": "Підтримка ще підключається.",
+  "respondkit_reconnect_upload": "Перепідключіться перед завантаженням."
+}

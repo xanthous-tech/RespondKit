@@ -1,0 +1,94 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "ஆதரவு",
+  "respondkit_ask_anything": "எதை வேண்டுமானாலும் கேளுங்கள்",
+  "respondkit_open_chat": "ஆதரவு அரட்டையைத் திற",
+  "respondkit_close_chat": "ஆதரவு அரட்டையை மூடு",
+  "respondkit_close": "மூடு",
+  "respondkit_help": "நாங்கள் எப்படி உதவலாம்?",
+  "respondkit_intro": "செய்தியை அனுப்பிவிட்டு, விரைவான பதிலுக்கு இந்தப் பக்கத்தைத் திறந்தே வைத்திருங்கள்.",
+  "respondkit_intro_short": "உரையாடலைத் தொடங்க ஒரு செய்தியை அனுப்புங்கள்.",
+  "respondkit_return": "நீங்கள் ஆப்ஸுக்குத் திரும்பும்போது பதில்கள் இங்கே தோன்றும்.",
+  "respondkit_conversations": "உரையாடல்கள்",
+  "respondkit_conversation": "உரையாடல் {date}",
+  "respondkit_new_conversation": "புதிய உரையாடல்",
+  "respondkit_unread": "படிக்காத ஆதரவுப் பதில்",
+  "respondkit_open": "திறந்துள்ளது",
+  "respondkit_closed": "மூடப்பட்டது",
+  "respondkit_more": "மேலும்",
+  "respondkit_loading": "ஏற்றுகிறது…",
+  "respondkit_loading_messages": "செய்திகளை ஏற்றுகிறது",
+  "respondkit_support_messages": "ஆதரவுச் செய்திகள்",
+  "respondkit_latest": "சமீபத்திய செய்திகள்",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} புதியது",
+        "category=*": "{count} புதியவை"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} புதிய செய்தியைக் காட்டு",
+        "category=*": "{count} புதிய செய்திகளைக் காட்டு"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "உரையாடல்கள் · {count} படிக்காதது",
+        "category=*": "உரையாடல்கள் · {count} படிக்காதவை"
+      }
+    }
+  ],
+  "respondkit_closed_help": "இந்த உரையாடல் மூடப்பட்டுள்ளது.",
+  "respondkit_another_message": "மற்றொரு செய்தியை அனுப்பு",
+  "respondkit_message": "செய்தி",
+  "respondkit_write_message": "செய்தியை எழுதுங்கள்…",
+  "respondkit_send": "அனுப்பு",
+  "respondkit_send_message": "செய்தியை அனுப்பு",
+  "respondkit_sending": "அனுப்புகிறது…",
+  "respondkit_sent": "அனுப்பப்பட்டது",
+  "respondkit_failed": "தோல்வியடைந்தது",
+  "respondkit_confirming": "உறுதிப்படுத்துகிறது…",
+  "respondkit_unknown": "உறுதிப்படுத்தப்படவில்லை — பாதுகாப்பாக மீண்டும் முயலலாம்",
+  "respondkit_retry": "மீண்டும் முயல்",
+  "respondkit_retry_message": "செய்தியை மீண்டும் அனுப்பு",
+  "respondkit_try_again": "மீண்டும் முயலவும்",
+  "respondkit_reconnect": "மீண்டும் இணை",
+  "respondkit_email_prompt": "பதிலை எந்த மின்னஞ்சலுக்கு அனுப்ப வேண்டும்?",
+  "respondkit_email_address": "மின்னஞ்சல் முகவரி",
+  "respondkit_save_email": "மின்னஞ்சலைச் சேமி",
+  "respondkit_saving": "சேமிக்கிறது…",
+  "respondkit_email_failed": "உங்கள் மின்னஞ்சலைச் சேமிக்க முடியவில்லை. சரிபார்த்து மீண்டும் முயலவும்.",
+  "respondkit_attach_files": "கோப்புகளை இணை",
+  "respondkit_attached_files": "இணைக்கப்பட்ட கோப்புகள்",
+  "respondkit_photo_library": "படத் தொகுப்பு",
+  "respondkit_files": "கோப்புகள்",
+  "respondkit_cancel": "ரத்துசெய்",
+  "respondkit_ready": "தயார்",
+  "respondkit_upload_failed": "பதிவேற்றம் தோல்வியடைந்தது",
+  "respondkit_remove": "அகற்று",
+  "respondkit_remove_file": "அகற்று: {name}",
+  "respondkit_selected_file": "தேர்ந்தெடுத்த கோப்பு",
+  "respondkit_picker_failed": "கோப்புத் தேர்வியைத் திறக்க முடியவில்லை",
+  "respondkit_file_open_failed": "தேர்ந்தெடுத்த கோப்பைத் திறக்க முடியவில்லை.",
+  "respondkit_start_failed": "ஆதரவு அரட்டையைத் தொடங்க முடியவில்லை.",
+  "respondkit_request_failed": "ஆதரவுக் கோரிக்கை தோல்வியடைந்தது.",
+  "respondkit_history_failed": "உரையாடல் வரலாற்றை ஏற்ற முடியவில்லை. ‘மேலும்’ என்பதை மீண்டும் தேர்ந்தெடுக்கவும்.",
+  "respondkit_messages_failed": "புதிய செய்திகளை ஏற்ற முடியவில்லை.",
+  "respondkit_sign_in_again": "உங்கள் ஆதரவு வரலாற்றை மீட்டெடுக்க மீண்டும் உள்நுழையவும்.",
+  "respondkit_session_expired": "உங்கள் ஆதரவு அமர்வு காலாவதியாகிவிட்டது. தொடர மீண்டும் இணையவும்.",
+  "respondkit_identity_changed": "வேறொரு தாவலில் ஆதரவுக் கணக்கு மாற்றப்பட்டது. உங்கள் கணக்கை மீண்டும் ஏற்ற மீண்டும் இணையவும்.",
+  "respondkit_connecting": "ஆதரவு இன்னும் இணைக்கப்படுகிறது.",
+  "respondkit_reconnect_upload": "பதிவேற்றும் முன் மீண்டும் இணையவும்."
+}

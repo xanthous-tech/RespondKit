@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"Nog een bericht sturen"</string>
+    <string name="respondkit_ask_anything" formatted="false">"Stel ons gerust je vraag"</string>
+    <string name="respondkit_attach_files" formatted="false">"Bestanden bijvoegen"</string>
+    <string name="respondkit_attached_files" formatted="false">"Bijgevoegde bestanden"</string>
+    <string name="respondkit_cancel" formatted="false">"Annuleren"</string>
+    <string name="respondkit_close" formatted="false">"Sluiten"</string>
+    <string name="respondkit_close_chat" formatted="false">"Supportchat sluiten"</string>
+    <string name="respondkit_closed" formatted="false">"Gesloten"</string>
+    <string name="respondkit_closed_help" formatted="false">"Dit gesprek is gesloten."</string>
+    <string name="respondkit_confirming" formatted="false">"Bevestigen…"</string>
+    <string name="respondkit_connecting" formatted="false">"Support maakt nog verbinding."</string>
+    <string name="respondkit_conversation">"Gesprek %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"Gesprekken"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="one">"Gesprekken · %1$d ongelezen"</item>
+        <item quantity="other">"Gesprekken · %1$d ongelezen"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"E-mailadres"</string>
+    <string name="respondkit_email_failed" formatted="false">"We konden je e-mailadres niet opslaan. Controleer het en probeer het opnieuw."</string>
+    <string name="respondkit_email_prompt" formatted="false">"Op welk e-mailadres kunnen we je antwoorden?"</string>
+    <string name="respondkit_failed" formatted="false">"Mislukt"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"Kan het geselecteerde bestand niet openen."</string>
+    <string name="respondkit_files" formatted="false">"Bestanden"</string>
+    <string name="respondkit_help" formatted="false">"Waarmee kunnen we je helpen?"</string>
+    <string name="respondkit_history_failed" formatted="false">"De gespreksgeschiedenis kon niet worden geladen. Probeer het opnieuw via Meer."</string>
+    <string name="respondkit_identity_changed" formatted="false">"Je supportidentiteit is in een ander tabblad gewijzigd. Maak opnieuw verbinding om je account opnieuw te laden."</string>
+    <string name="respondkit_intro" formatted="false">"Stuur een bericht en houd deze pagina open voor een snel antwoord."</string>
+    <string name="respondkit_intro_short" formatted="false">"Stuur een bericht om een gesprek te starten."</string>
+    <string name="respondkit_latest" formatted="false">"Nieuwste berichten"</string>
+    <string name="respondkit_loading" formatted="false">"Laden…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"Berichten laden"</string>
+    <string name="respondkit_message" formatted="false">"Bericht"</string>
+    <string name="respondkit_messages_failed" formatted="false">"Nieuwe berichten konden niet worden geladen."</string>
+    <string name="respondkit_more" formatted="false">"Meer"</string>
+    <string name="respondkit_new_conversation" formatted="false">"Nieuw gesprek"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="one">"%1$d nieuw"</item>
+        <item quantity="other">"%1$d nieuw"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"Open"</string>
+    <string name="respondkit_open_chat" formatted="false">"Supportchat openen"</string>
+    <string name="respondkit_photo_library" formatted="false">"Fotobibliotheek"</string>
+    <string name="respondkit_picker_failed" formatted="false">"Kan bestandskiezer niet openen"</string>
+    <string name="respondkit_ready" formatted="false">"Klaar"</string>
+    <string name="respondkit_reconnect" formatted="false">"Opnieuw verbinden"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"Maak opnieuw verbinding voordat je iets uploadt."</string>
+    <string name="respondkit_remove" formatted="false">"Verwijderen"</string>
+    <string name="respondkit_remove_file">"%1$s verwijderen"</string>
+    <string name="respondkit_request_failed" formatted="false">"Supportverzoek mislukt."</string>
+    <string name="respondkit_retry" formatted="false">"Opnieuw proberen"</string>
+    <string name="respondkit_retry_message" formatted="false">"Bericht opnieuw versturen"</string>
+    <string name="respondkit_return" formatted="false">"Antwoorden verschijnen hier zodra je terugkeert naar de app."</string>
+    <string name="respondkit_save_email" formatted="false">"E-mailadres opslaan"</string>
+    <string name="respondkit_saving" formatted="false">"Opslaan…"</string>
+    <string name="respondkit_selected_file" formatted="false">"Geselecteerd bestand"</string>
+    <string name="respondkit_send" formatted="false">"Versturen"</string>
+    <string name="respondkit_send_message" formatted="false">"Bericht versturen"</string>
+    <string name="respondkit_sending" formatted="false">"Versturen…"</string>
+    <string name="respondkit_sent" formatted="false">"Verstuurd"</string>
+    <string name="respondkit_session_expired" formatted="false">"Je supportsessie is verlopen. Maak opnieuw verbinding om door te gaan."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="one">"%1$d nieuw bericht tonen"</item>
+        <item quantity="other">"%1$d nieuwe berichten tonen"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"Log opnieuw in om je supportgeschiedenis te herstellen."</string>
+    <string name="respondkit_start_failed" formatted="false">"De supportchat kon niet worden gestart."</string>
+    <string name="respondkit_support" formatted="false">"Support"</string>
+    <string name="respondkit_support_messages" formatted="false">"Supportberichten"</string>
+    <string name="respondkit_try_again" formatted="false">"Probeer het opnieuw"</string>
+    <string name="respondkit_unknown" formatted="false">"Niet bevestigd — opnieuw proberen is veilig"</string>
+    <string name="respondkit_unread" formatted="false">"Ongelezen antwoord van support"</string>
+    <string name="respondkit_upload_failed" formatted="false">"Uploaden mislukt"</string>
+    <string name="respondkit_write_message" formatted="false">"Typ een bericht…"</string>
+</resources>

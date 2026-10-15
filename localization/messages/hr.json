@@ -1,0 +1,97 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Podrška",
+  "respondkit_ask_anything": "Pitajte nas bilo što",
+  "respondkit_open_chat": "Otvori chat podrške",
+  "respondkit_close_chat": "Zatvori chat podrške",
+  "respondkit_close": "Zatvori",
+  "respondkit_help": "Kako vam možemo pomoći?",
+  "respondkit_intro": "Pošaljite poruku i ostavite ovu stranicu otvorenom za brz odgovor.",
+  "respondkit_intro_short": "Pošaljite poruku da biste započeli razgovor.",
+  "respondkit_return": "Odgovori će se prikazati ovdje kad se vratite u aplikaciju.",
+  "respondkit_conversations": "Razgovori",
+  "respondkit_conversation": "Razgovor {date}",
+  "respondkit_new_conversation": "Novi razgovor",
+  "respondkit_unread": "Nepročitan odgovor podrške",
+  "respondkit_open": "Otvoren",
+  "respondkit_closed": "Zatvoren",
+  "respondkit_more": "Prikaži više",
+  "respondkit_loading": "Učitavanje…",
+  "respondkit_loading_messages": "Učitavanje poruka",
+  "respondkit_support_messages": "Poruke podrške",
+  "respondkit_latest": "Najnovije poruke",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} nova",
+        "category=few": "{count} nove",
+        "category=*": "{count} novih"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Prikaži {count} novu poruku",
+        "category=few": "Prikaži {count} nove poruke",
+        "category=*": "Prikaži {count} novih poruka"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Razgovori · {count} nepročitan",
+        "category=few": "Razgovori · {count} nepročitana",
+        "category=*": "Razgovori · {count} nepročitanih"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Ovaj je razgovor zatvoren.",
+  "respondkit_another_message": "Pošalji novu poruku",
+  "respondkit_message": "Poruka",
+  "respondkit_write_message": "Napišite poruku…",
+  "respondkit_send": "Pošalji",
+  "respondkit_send_message": "Pošalji poruku",
+  "respondkit_sending": "Slanje…",
+  "respondkit_sent": "Poslano",
+  "respondkit_failed": "Nije uspjelo",
+  "respondkit_confirming": "Potvrđivanje…",
+  "respondkit_unknown": "Nije potvrđeno — ponovni pokušaj je siguran",
+  "respondkit_retry": "Pokušaj ponovno",
+  "respondkit_retry_message": "Ponovno pošalji poruku",
+  "respondkit_try_again": "Pokušaj ponovno",
+  "respondkit_reconnect": "Ponovno se poveži",
+  "respondkit_email_prompt": "Na koju vam adresu e-pošte možemo poslati odgovor?",
+  "respondkit_email_address": "Adresa e-pošte",
+  "respondkit_save_email": "Spremi adresu",
+  "respondkit_saving": "Spremanje…",
+  "respondkit_email_failed": "Nismo uspjeli spremiti vašu adresu e-pošte. Provjerite je i pokušajte ponovno.",
+  "respondkit_attach_files": "Priloži datoteke",
+  "respondkit_attached_files": "Priložene datoteke",
+  "respondkit_photo_library": "Galerija fotografija",
+  "respondkit_files": "Datoteke",
+  "respondkit_cancel": "Odustani",
+  "respondkit_ready": "Spremno",
+  "respondkit_upload_failed": "Prijenos nije uspio",
+  "respondkit_remove": "Ukloni",
+  "respondkit_remove_file": "Ukloni {name}",
+  "respondkit_selected_file": "Odabrana datoteka",
+  "respondkit_picker_failed": "Nije moguće otvoriti odabir datoteka",
+  "respondkit_file_open_failed": "Nije moguće otvoriti odabranu datoteku.",
+  "respondkit_start_failed": "Chat podrške nije moguće pokrenuti.",
+  "respondkit_request_failed": "Zahtjev za podršku nije uspio.",
+  "respondkit_history_failed": "Povijest razgovora nije moguće učitati. Pokušajte ponovno s „Prikaži više”.",
+  "respondkit_messages_failed": "Nove poruke nije moguće učitati.",
+  "respondkit_sign_in_again": "Ponovno se prijavite da biste vratili povijest podrške.",
+  "respondkit_session_expired": "Vaša je sesija podrške istekla. Ponovno se povežite za nastavak.",
+  "respondkit_identity_changed": "Identitet za podršku promijenjen je u drugoj kartici. Ponovno se povežite kako biste ponovno učitali račun.",
+  "respondkit_connecting": "Povezivanje s podrškom još je u tijeku.",
+  "respondkit_reconnect_upload": "Ponovno se povežite prije prijenosa."
+}

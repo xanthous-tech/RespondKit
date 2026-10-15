@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"再傳送一則訊息"</string>
+    <string name="respondkit_ask_anything" formatted="false">"有任何問題都可以問我們"</string>
+    <string name="respondkit_attach_files" formatted="false">"附加檔案"</string>
+    <string name="respondkit_attached_files" formatted="false">"已附加的檔案"</string>
+    <string name="respondkit_cancel" formatted="false">"取消"</string>
+    <string name="respondkit_close" formatted="false">"關閉"</string>
+    <string name="respondkit_close_chat" formatted="false">"關閉客服聊天"</string>
+    <string name="respondkit_closed" formatted="false">"已關閉"</string>
+    <string name="respondkit_closed_help" formatted="false">"此對話已關閉。"</string>
+    <string name="respondkit_confirming" formatted="false">"確認中…"</string>
+    <string name="respondkit_connecting" formatted="false">"客服仍在連線中。"</string>
+    <string name="respondkit_conversation">"對話 %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"對話"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="other">"對話 · %1$d 則未讀"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"電子郵件地址"</string>
+    <string name="respondkit_email_failed" formatted="false">"無法儲存您的電子郵件地址，請確認後再試一次。"</string>
+    <string name="respondkit_email_prompt" formatted="false">"我們該把回覆寄到哪個電子郵件地址？"</string>
+    <string name="respondkit_failed" formatted="false">"失敗"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"無法開啟所選檔案。"</string>
+    <string name="respondkit_files" formatted="false">"檔案"</string>
+    <string name="respondkit_help" formatted="false">"有什麼可以幫您的嗎？"</string>
+    <string name="respondkit_history_failed" formatted="false">"無法載入對話記錄，請再次選擇「更多」。"</string>
+    <string name="respondkit_identity_changed" formatted="false">"客服身分已在其他分頁中變更，請重新連線以重新載入您的帳號。"</string>
+    <string name="respondkit_intro" formatted="false">"傳送訊息後請保持此頁面開啟，即可盡快收到回覆。"</string>
+    <string name="respondkit_intro_short" formatted="false">"傳送訊息即可開始對話。"</string>
+    <string name="respondkit_latest" formatted="false">"最新訊息"</string>
+    <string name="respondkit_loading" formatted="false">"載入中…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"正在載入訊息"</string>
+    <string name="respondkit_message" formatted="false">"訊息"</string>
+    <string name="respondkit_messages_failed" formatted="false">"無法載入新訊息。"</string>
+    <string name="respondkit_more" formatted="false">"更多"</string>
+    <string name="respondkit_new_conversation" formatted="false">"新對話"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="other">"%1$d 則新訊息"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"進行中"</string>
+    <string name="respondkit_open_chat" formatted="false">"開啟客服聊天"</string>
+    <string name="respondkit_photo_library" formatted="false">"相簿"</string>
+    <string name="respondkit_picker_failed" formatted="false">"無法開啟檔案選擇器"</string>
+    <string name="respondkit_ready" formatted="false">"已就緒"</string>
+    <string name="respondkit_reconnect" formatted="false">"重新連線"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"請先重新連線再上傳。"</string>
+    <string name="respondkit_remove" formatted="false">"移除"</string>
+    <string name="respondkit_remove_file">"移除 %1$s"</string>
+    <string name="respondkit_request_failed" formatted="false">"客服要求失敗。"</string>
+    <string name="respondkit_retry" formatted="false">"重試"</string>
+    <string name="respondkit_retry_message" formatted="false">"重新傳送訊息"</string>
+    <string name="respondkit_return" formatted="false">"回到 App 後，回覆會顯示在這裡。"</string>
+    <string name="respondkit_save_email" formatted="false">"儲存電子郵件"</string>
+    <string name="respondkit_saving" formatted="false">"儲存中…"</string>
+    <string name="respondkit_selected_file" formatted="false">"已選取的檔案"</string>
+    <string name="respondkit_send" formatted="false">"傳送"</string>
+    <string name="respondkit_send_message" formatted="false">"傳送訊息"</string>
+    <string name="respondkit_sending" formatted="false">"傳送中…"</string>
+    <string name="respondkit_sent" formatted="false">"已傳送"</string>
+    <string name="respondkit_session_expired" formatted="false">"客服工作階段已過期，請重新連線以繼續。"</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="other">"顯示 %1$d 則新訊息"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"請重新登入以還原您的客服記錄。"</string>
+    <string name="respondkit_start_failed" formatted="false">"無法啟動客服聊天。"</string>
+    <string name="respondkit_support" formatted="false">"客服"</string>
+    <string name="respondkit_support_messages" formatted="false">"客服訊息"</string>
+    <string name="respondkit_try_again" formatted="false">"再試一次"</string>
+    <string name="respondkit_unknown" formatted="false">"未確認 — 可放心重試"</string>
+    <string name="respondkit_unread" formatted="false">"未讀的客服回覆"</string>
+    <string name="respondkit_upload_failed" formatted="false">"上傳失敗"</string>
+    <string name="respondkit_write_message" formatted="false">"輸入訊息…"</string>
+</resources>

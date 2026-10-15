@@ -1,0 +1,97 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "ಬೆಂಬಲ",
+  "respondkit_ask_anything": "ನಮ್ಮನ್ನು ಏನು ಬೇಕಾದರೂ ಕೇಳಿ",
+  "respondkit_open_chat": "ಬೆಂಬಲ ಚಾಟ್ ತೆರೆಯಿರಿ",
+  "respondkit_close_chat": "ಬೆಂಬಲ ಚಾಟ್ ಮುಚ್ಚಿರಿ",
+  "respondkit_close": "ಮುಚ್ಚಿರಿ",
+  "respondkit_help": "ನಾವು ಹೇಗೆ ಸಹಾಯ ಮಾಡಬಹುದು?",
+  "respondkit_intro": "ಸಂದೇಶ ಕಳುಹಿಸಿ ಮತ್ತು ತ್ವರಿತ ಉತ್ತರಕ್ಕಾಗಿ ಈ ಪುಟವನ್ನು ತೆರೆದಿಡಿ.",
+  "respondkit_intro_short": "ಸಂಭಾಷಣೆ ಪ್ರಾರಂಭಿಸಲು ಸಂದೇಶ ಕಳುಹಿಸಿ.",
+  "respondkit_return": "ನೀವು ಆ್ಯಪ್‌ಗೆ ಹಿಂತಿರುಗಿದಾಗ ಉತ್ತರಗಳು ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ.",
+  "respondkit_conversations": "ಸಂಭಾಷಣೆಗಳು",
+  "respondkit_conversation": "ಸಂಭಾಷಣೆ {date}",
+  "respondkit_new_conversation": "ಹೊಸ ಸಂಭಾಷಣೆ",
+  "respondkit_unread": "ಓದದ ಬೆಂಬಲ ಉತ್ತರ",
+  "respondkit_open": "ತೆರೆದಿದೆ",
+  "respondkit_closed": "ಮುಚ್ಚಲಾಗಿದೆ",
+  "respondkit_more": "ಇನ್ನಷ್ಟು",
+  "respondkit_loading": "ಲೋಡ್ ಆಗುತ್ತಿದೆ…",
+  "respondkit_loading_messages": "ಸಂದೇಶಗಳು ಲೋಡ್ ಆಗುತ್ತಿವೆ",
+  "respondkit_support_messages": "ಬೆಂಬಲ ಸಂದೇಶಗಳು",
+  "respondkit_latest": "ಇತ್ತೀಚಿನ ಸಂದೇಶಗಳು",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} ಹೊಸದು",
+        "category=other": "{count} ಹೊಸವು",
+        "category=*": "{count} ಹೊಸವು"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} ಹೊಸ ಸಂದೇಶವನ್ನು ತೋರಿಸಿ",
+        "category=other": "{count} ಹೊಸ ಸಂದೇಶಗಳನ್ನು ತೋರಿಸಿ",
+        "category=*": "{count} ಹೊಸ ಸಂದೇಶಗಳನ್ನು ತೋರಿಸಿ"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "ಸಂಭಾಷಣೆಗಳು · {count} ಓದಿಲ್ಲ",
+        "category=other": "ಸಂಭಾಷಣೆಗಳು · {count} ಓದಿಲ್ಲ",
+        "category=*": "ಸಂಭಾಷಣೆಗಳು · {count} ಓದಿಲ್ಲ"
+      }
+    }
+  ],
+  "respondkit_closed_help": "ಈ ಸಂಭಾಷಣೆಯನ್ನು ಮುಚ್ಚಲಾಗಿದೆ.",
+  "respondkit_another_message": "ಇನ್ನೊಂದು ಸಂದೇಶ ಕಳುಹಿಸಿ",
+  "respondkit_message": "ಸಂದೇಶ",
+  "respondkit_write_message": "ಸಂದೇಶ ಬರೆಯಿರಿ…",
+  "respondkit_send": "ಕಳುಹಿಸಿ",
+  "respondkit_send_message": "ಸಂದೇಶ ಕಳುಹಿಸಿ",
+  "respondkit_sending": "ಕಳುಹಿಸಲಾಗುತ್ತಿದೆ…",
+  "respondkit_sent": "ಕಳುಹಿಸಲಾಗಿದೆ",
+  "respondkit_failed": "ವಿಫಲವಾಗಿದೆ",
+  "respondkit_confirming": "ದೃಢೀಕರಿಸಲಾಗುತ್ತಿದೆ…",
+  "respondkit_unknown": "ದೃಢೀಕರಿಸಲಾಗಿಲ್ಲ — ಸುರಕ್ಷಿತವಾಗಿ ಮರುಪ್ರಯತ್ನಿಸಬಹುದು",
+  "respondkit_retry": "ಮರುಪ್ರಯತ್ನಿಸಿ",
+  "respondkit_retry_message": "ಸಂದೇಶವನ್ನು ಮರುಕಳುಹಿಸಿ",
+  "respondkit_try_again": "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
+  "respondkit_reconnect": "ಮರುಸಂಪರ್ಕಿಸಿ",
+  "respondkit_email_prompt": "ನಿಮಗೆ ಉತ್ತರವನ್ನು ಯಾವ ಇಮೇಲ್‌ಗೆ ಕಳುಹಿಸಬೇಕು?",
+  "respondkit_email_address": "ಇಮೇಲ್ ವಿಳಾಸ",
+  "respondkit_save_email": "ಇಮೇಲ್ ಉಳಿಸಿ",
+  "respondkit_saving": "ಉಳಿಸಲಾಗುತ್ತಿದೆ…",
+  "respondkit_email_failed": "ನಿಮ್ಮ ಇಮೇಲ್ ಉಳಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಅದನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+  "respondkit_attach_files": "ಫೈಲ್‌ಗಳನ್ನು ಲಗತ್ತಿಸಿ",
+  "respondkit_attached_files": "ಲಗತ್ತಿಸಿದ ಫೈಲ್‌ಗಳು",
+  "respondkit_photo_library": "ಫೋಟೋ ಲೈಬ್ರರಿ",
+  "respondkit_files": "ಫೈಲ್‌ಗಳು",
+  "respondkit_cancel": "ರದ್ದುಮಾಡಿ",
+  "respondkit_ready": "ಸಿದ್ಧವಾಗಿದೆ",
+  "respondkit_upload_failed": "ಅಪ್‌ಲೋಡ್ ವಿಫಲವಾಗಿದೆ",
+  "respondkit_remove": "ತೆಗೆದುಹಾಕಿ",
+  "respondkit_remove_file": "{name} ತೆಗೆದುಹಾಕಿ",
+  "respondkit_selected_file": "ಆಯ್ಕೆ ಮಾಡಿದ ಫೈಲ್",
+  "respondkit_picker_failed": "ಫೈಲ್ ಪಿಕರ್ ತೆರೆಯಲು ಸಾಧ್ಯವಿಲ್ಲ",
+  "respondkit_file_open_failed": "ಆಯ್ಕೆ ಮಾಡಿದ ಫೈಲ್ ತೆರೆಯಲು ಸಾಧ್ಯವಿಲ್ಲ.",
+  "respondkit_start_failed": "ಬೆಂಬಲ ಚಾಟ್ ಪ್ರಾರಂಭಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ.",
+  "respondkit_request_failed": "ಬೆಂಬಲ ವಿನಂತಿ ವಿಫಲವಾಗಿದೆ.",
+  "respondkit_history_failed": "ಸಂಭಾಷಣೆಯ ಇತಿಹಾಸವನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ಇನ್ನಷ್ಟು ಬಟನ್ ಅನ್ನು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+  "respondkit_messages_failed": "ಹೊಸ ಸಂದೇಶಗಳನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ.",
+  "respondkit_sign_in_again": "ನಿಮ್ಮ ಬೆಂಬಲ ಇತಿಹಾಸವನ್ನು ಮರುಸ್ಥಾಪಿಸಲು ಮತ್ತೆ ಸೈನ್ ಇನ್ ಮಾಡಿ.",
+  "respondkit_session_expired": "ನಿಮ್ಮ ಬೆಂಬಲ ಸೆಷನ್‌ನ ಅವಧಿ ಮುಗಿದಿದೆ. ಮುಂದುವರಿಯಲು ಮರುಸಂಪರ್ಕಿಸಿ.",
+  "respondkit_identity_changed": "ಮತ್ತೊಂದು ಟ್ಯಾಬ್‌ನಲ್ಲಿ ಬೆಂಬಲ ಖಾತೆ ಬದಲಾಗಿದೆ. ನಿಮ್ಮ ಖಾತೆಯನ್ನು ಮರುಲೋಡ್ ಮಾಡಲು ಮರುಸಂಪರ್ಕಿಸಿ.",
+  "respondkit_connecting": "ಬೆಂಬಲ ಇನ್ನೂ ಸಂಪರ್ಕಗೊಳ್ಳುತ್ತಿದೆ.",
+  "respondkit_reconnect_upload": "ಅಪ್‌ಲೋಡ್ ಮಾಡುವ ಮೊದಲು ಮರುಸಂಪರ್ಕಿಸಿ."
+}

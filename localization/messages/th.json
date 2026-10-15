@@ -1,0 +1,91 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "ฝ่ายสนับสนุน",
+  "respondkit_ask_anything": "ถามเราได้ทุกเรื่อง",
+  "respondkit_open_chat": "เปิดแชทฝ่ายสนับสนุน",
+  "respondkit_close_chat": "ปิดแชทฝ่ายสนับสนุน",
+  "respondkit_close": "ปิด",
+  "respondkit_help": "มีอะไรให้เราช่วยไหม",
+  "respondkit_intro": "ส่งข้อความแล้วเปิดหน้านี้ค้างไว้เพื่อรับคำตอบอย่างรวดเร็ว",
+  "respondkit_intro_short": "ส่งข้อความเพื่อเริ่มการสนทนา",
+  "respondkit_return": "คำตอบจะแสดงที่นี่เมื่อคุณกลับมาที่แอป",
+  "respondkit_conversations": "การสนทนา",
+  "respondkit_conversation": "การสนทนา {date}",
+  "respondkit_new_conversation": "การสนทนาใหม่",
+  "respondkit_unread": "คำตอบจากฝ่ายสนับสนุนที่ยังไม่ได้อ่าน",
+  "respondkit_open": "เปิดอยู่",
+  "respondkit_closed": "ปิดแล้ว",
+  "respondkit_more": "เพิ่มเติม",
+  "respondkit_loading": "กำลังโหลด…",
+  "respondkit_loading_messages": "กำลังโหลดข้อความ",
+  "respondkit_support_messages": "ข้อความในแชทฝ่ายสนับสนุน",
+  "respondkit_latest": "ข้อความล่าสุด",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=*": "ใหม่ {count} ข้อความ"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=*": "แสดงข้อความใหม่ {count} ข้อความ"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=*": "การสนทนา · ยังไม่อ่าน {count} รายการ"
+      }
+    }
+  ],
+  "respondkit_closed_help": "การสนทนานี้ปิดแล้ว",
+  "respondkit_another_message": "ส่งข้อความใหม่",
+  "respondkit_message": "ข้อความ",
+  "respondkit_write_message": "เขียนข้อความ…",
+  "respondkit_send": "ส่ง",
+  "respondkit_send_message": "ส่งข้อความ",
+  "respondkit_sending": "กำลังส่ง…",
+  "respondkit_sent": "ส่งแล้ว",
+  "respondkit_failed": "ไม่สำเร็จ",
+  "respondkit_confirming": "กำลังยืนยัน…",
+  "respondkit_unknown": "ยังไม่ได้รับการยืนยัน — ลองอีกครั้งได้อย่างปลอดภัย",
+  "respondkit_retry": "ลองอีกครั้ง",
+  "respondkit_retry_message": "ส่งข้อความอีกครั้ง",
+  "respondkit_try_again": "ลองอีกครั้ง",
+  "respondkit_reconnect": "เชื่อมต่ออีกครั้ง",
+  "respondkit_email_prompt": "ให้เราส่งคำตอบไปที่อีเมลใด",
+  "respondkit_email_address": "ที่อยู่อีเมล",
+  "respondkit_save_email": "บันทึกอีเมล",
+  "respondkit_saving": "กำลังบันทึก…",
+  "respondkit_email_failed": "เราบันทึกอีเมลของคุณไม่ได้ โปรดตรวจสอบแล้วลองอีกครั้ง",
+  "respondkit_attach_files": "แนบไฟล์",
+  "respondkit_attached_files": "ไฟล์ที่แนบ",
+  "respondkit_photo_library": "คลังรูปภาพ",
+  "respondkit_files": "ไฟล์",
+  "respondkit_cancel": "ยกเลิก",
+  "respondkit_ready": "พร้อมแล้ว",
+  "respondkit_upload_failed": "อัปโหลดไม่สำเร็จ",
+  "respondkit_remove": "นำออก",
+  "respondkit_remove_file": "นำ {name} ออก",
+  "respondkit_selected_file": "ไฟล์ที่เลือก",
+  "respondkit_picker_failed": "เปิดตัวเลือกไฟล์ไม่ได้",
+  "respondkit_file_open_failed": "เปิดไฟล์ที่เลือกไม่ได้",
+  "respondkit_start_failed": "เริ่มแชทกับฝ่ายสนับสนุนไม่ได้",
+  "respondkit_request_failed": "คำขอไปยังฝ่ายสนับสนุนไม่สำเร็จ",
+  "respondkit_history_failed": "โหลดประวัติการสนทนาไม่ได้ ลองเลือก “เพิ่มเติม” อีกครั้ง",
+  "respondkit_messages_failed": "โหลดข้อความใหม่ไม่ได้",
+  "respondkit_sign_in_again": "ลงชื่อเข้าใช้อีกครั้งเพื่อกู้คืนประวัติการติดต่อฝ่ายสนับสนุน",
+  "respondkit_session_expired": "เซสชันฝ่ายสนับสนุนหมดอายุแล้ว เชื่อมต่ออีกครั้งเพื่อดำเนินการต่อ",
+  "respondkit_identity_changed": "บัญชีฝ่ายสนับสนุนมีการเปลี่ยนแปลงในแท็บอื่น เชื่อมต่ออีกครั้งเพื่อโหลดบัญชีของคุณใหม่",
+  "respondkit_connecting": "กำลังเชื่อมต่อกับฝ่ายสนับสนุน",
+  "respondkit_reconnect_upload": "เชื่อมต่ออีกครั้งก่อนอัปโหลด"
+}

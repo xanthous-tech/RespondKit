@@ -1,0 +1,94 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Suporta",
+  "respondkit_ask_anything": "Magtanong sa amin ng kahit ano",
+  "respondkit_open_chat": "Buksan ang support chat",
+  "respondkit_close_chat": "Isara ang support chat",
+  "respondkit_close": "Isara",
+  "respondkit_help": "Paano kami makakatulong?",
+  "respondkit_intro": "Magpadala ng mensahe at panatilihing bukas ang page na ito para sa mabilis na sagot.",
+  "respondkit_intro_short": "Magpadala ng mensahe para magsimula ng pag-uusap.",
+  "respondkit_return": "Dito lalabas ang mga sagot pagbalik mo sa app.",
+  "respondkit_conversations": "Mga pag-uusap",
+  "respondkit_conversation": "Pag-uusap {date}",
+  "respondkit_new_conversation": "Bagong pag-uusap",
+  "respondkit_unread": "Hindi pa nababasang sagot ng suporta",
+  "respondkit_open": "Bukas",
+  "respondkit_closed": "Sarado",
+  "respondkit_more": "Higit pa",
+  "respondkit_loading": "Naglo-load…",
+  "respondkit_loading_messages": "Nilo-load ang mga mensahe",
+  "respondkit_support_messages": "Mga mensahe ng suporta",
+  "respondkit_latest": "Mga pinakabagong mensahe",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} bago",
+        "category=*": "{count} bago"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Ipakita ang {count} bagong mensahe",
+        "category=*": "Ipakita ang {count} bagong mensahe"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Mga pag-uusap · {count} hindi pa nababasa",
+        "category=*": "Mga pag-uusap · {count} hindi pa nababasa"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Sarado na ang pag-uusap na ito.",
+  "respondkit_another_message": "Magpadala ng isa pang mensahe",
+  "respondkit_message": "Mensahe",
+  "respondkit_write_message": "Sumulat ng mensahe…",
+  "respondkit_send": "Ipadala",
+  "respondkit_send_message": "Ipadala ang mensahe",
+  "respondkit_sending": "Ipinapadala…",
+  "respondkit_sent": "Naipadala",
+  "respondkit_failed": "Nabigo",
+  "respondkit_confirming": "Kinukumpirma…",
+  "respondkit_unknown": "Hindi nakumpirma — ligtas subukang muli",
+  "respondkit_retry": "Subukang muli",
+  "respondkit_retry_message": "Ipadalang muli ang mensahe",
+  "respondkit_try_again": "Subukang muli",
+  "respondkit_reconnect": "Kumonektang muli",
+  "respondkit_email_prompt": "Saang email namin ipapadala ang sagot?",
+  "respondkit_email_address": "Email address",
+  "respondkit_save_email": "I-save ang email",
+  "respondkit_saving": "Sine-save…",
+  "respondkit_email_failed": "Hindi namin na-save ang email mo. Pakitingnan ito at subukang muli.",
+  "respondkit_attach_files": "Mag-attach ng mga file",
+  "respondkit_attached_files": "Mga naka-attach na file",
+  "respondkit_photo_library": "Library ng mga larawan",
+  "respondkit_files": "Mga file",
+  "respondkit_cancel": "Kanselahin",
+  "respondkit_ready": "Handa na",
+  "respondkit_upload_failed": "Nabigo ang pag-upload",
+  "respondkit_remove": "Alisin",
+  "respondkit_remove_file": "Alisin ang {name}",
+  "respondkit_selected_file": "Napiling file",
+  "respondkit_picker_failed": "Hindi mabuksan ang pagpili ng file",
+  "respondkit_file_open_failed": "Hindi mabuksan ang napiling file.",
+  "respondkit_start_failed": "Hindi masimulan ang support chat.",
+  "respondkit_request_failed": "Nabigo ang kahilingan sa suporta.",
+  "respondkit_history_failed": "Hindi ma-load ang history ng pag-uusap. Subukang muli ang “Higit pa”.",
+  "respondkit_messages_failed": "Hindi ma-load ang mga bagong mensahe.",
+  "respondkit_sign_in_again": "Mag-sign in muli para maibalik ang history mo sa suporta.",
+  "respondkit_session_expired": "Nag-expire na ang session mo sa suporta. Kumonektang muli para magpatuloy.",
+  "respondkit_identity_changed": "Napalitan ang account sa suporta sa ibang tab. Kumonektang muli para i-reload ang account mo.",
+  "respondkit_connecting": "Kumokonekta pa ang suporta.",
+  "respondkit_reconnect_upload": "Kumonektang muli bago mag-upload."
+}

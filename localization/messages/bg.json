@@ -1,0 +1,94 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Поддръжка",
+  "respondkit_ask_anything": "Попитайте ни каквото и да е",
+  "respondkit_open_chat": "Отваряне на чата за поддръжка",
+  "respondkit_close_chat": "Затваряне на чата за поддръжка",
+  "respondkit_close": "Затваряне",
+  "respondkit_help": "Как можем да помогнем?",
+  "respondkit_intro": "Изпратете съобщение и оставете тази страница отворена за бърз отговор.",
+  "respondkit_intro_short": "Изпратете съобщение, за да започнете разговор.",
+  "respondkit_return": "Отговорите ще се появят тук, когато се върнете в приложението.",
+  "respondkit_conversations": "Разговори",
+  "respondkit_conversation": "Разговор {date}",
+  "respondkit_new_conversation": "Нов разговор",
+  "respondkit_unread": "Непрочетен отговор от поддръжката",
+  "respondkit_open": "Отворен",
+  "respondkit_closed": "Затворен",
+  "respondkit_more": "Още",
+  "respondkit_loading": "Зареждане…",
+  "respondkit_loading_messages": "Зареждане на съобщенията",
+  "respondkit_support_messages": "Съобщения с поддръжката",
+  "respondkit_latest": "Най-новите съобщения",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} ново",
+        "category=*": "{count} нови"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Показване на {count} ново съобщение",
+        "category=*": "Показване на {count} нови съобщения"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Разговори · {count} непрочетен",
+        "category=*": "Разговори · {count} непрочетени"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Този разговор е затворен.",
+  "respondkit_another_message": "Изпращане на ново съобщение",
+  "respondkit_message": "Съобщение",
+  "respondkit_write_message": "Напишете съобщение…",
+  "respondkit_send": "Изпращане",
+  "respondkit_send_message": "Изпращане на съобщението",
+  "respondkit_sending": "Изпраща се…",
+  "respondkit_sent": "Изпратено",
+  "respondkit_failed": "Неуспешно",
+  "respondkit_confirming": "Потвърждава се…",
+  "respondkit_unknown": "Не е потвърдено – можете безопасно да опитате отново",
+  "respondkit_retry": "Повторен опит",
+  "respondkit_retry_message": "Повторно изпращане на съобщението",
+  "respondkit_try_again": "Опитайте отново",
+  "respondkit_reconnect": "Повторно свързване",
+  "respondkit_email_prompt": "На кой имейл да ви изпратим отговор?",
+  "respondkit_email_address": "Имейл адрес",
+  "respondkit_save_email": "Запазване на имейла",
+  "respondkit_saving": "Запазва се…",
+  "respondkit_email_failed": "Не успяхме да запазим имейла ви. Проверете го и опитайте отново.",
+  "respondkit_attach_files": "Прикачване на файлове",
+  "respondkit_attached_files": "Прикачени файлове",
+  "respondkit_photo_library": "Библиотека със снимки",
+  "respondkit_files": "Файлове",
+  "respondkit_cancel": "Отказ",
+  "respondkit_ready": "Готово",
+  "respondkit_upload_failed": "Неуспешно качване",
+  "respondkit_remove": "Премахване",
+  "respondkit_remove_file": "Премахване на {name}",
+  "respondkit_selected_file": "Избран файл",
+  "respondkit_picker_failed": "Изборът на файлове не може да се отвори",
+  "respondkit_file_open_failed": "Избраният файл не може да се отвори.",
+  "respondkit_start_failed": "Чатът за поддръжка не можа да стартира.",
+  "respondkit_request_failed": "Заявката към поддръжката е неуспешна.",
+  "respondkit_history_failed": "Историята на разговора не можа да се зареди. Натиснете „Още“ отново.",
+  "respondkit_messages_failed": "Новите съобщения не можаха да се заредят.",
+  "respondkit_sign_in_again": "Влезте отново, за да възстановите историята си с поддръжката.",
+  "respondkit_session_expired": "Сесията ви с поддръжката изтече. Свържете се отново, за да продължите.",
+  "respondkit_identity_changed": "Самоличността за поддръжка е променена в друг раздел. Свържете се отново, за да презаредите акаунта си.",
+  "respondkit_connecting": "Поддръжката все още се свързва.",
+  "respondkit_reconnect_upload": "Свържете се отново преди качване."
+}

@@ -1,0 +1,91 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Destek",
+  "respondkit_ask_anything": "Aklınıza takılan her şeyi sorun",
+  "respondkit_open_chat": "Destek sohbetini aç",
+  "respondkit_close_chat": "Destek sohbetini kapat",
+  "respondkit_close": "Kapat",
+  "respondkit_help": "Nasıl yardımcı olabiliriz?",
+  "respondkit_intro": "Mesaj gönderin ve hızlı yanıt için bu sayfayı açık tutun.",
+  "respondkit_intro_short": "Sohbet başlatmak için mesaj gönderin.",
+  "respondkit_return": "Uygulamaya döndüğünüzde yanıtlar burada görünecek.",
+  "respondkit_conversations": "Sohbetler",
+  "respondkit_conversation": "Sohbet {date}",
+  "respondkit_new_conversation": "Yeni sohbet",
+  "respondkit_unread": "Okunmamış destek yanıtı",
+  "respondkit_open": "Açık",
+  "respondkit_closed": "Kapalı",
+  "respondkit_more": "Daha fazla",
+  "respondkit_loading": "Yükleniyor…",
+  "respondkit_loading_messages": "Mesajlar yükleniyor",
+  "respondkit_support_messages": "Destek mesajları",
+  "respondkit_latest": "En son mesajlar",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=*": "{count} yeni"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=*": "{count} yeni mesajı göster"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=*": "Sohbetler · {count} okunmamış"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Bu sohbet kapatıldı.",
+  "respondkit_another_message": "Yeni bir mesaj gönder",
+  "respondkit_message": "Mesaj",
+  "respondkit_write_message": "Bir mesaj yazın…",
+  "respondkit_send": "Gönder",
+  "respondkit_send_message": "Mesajı gönder",
+  "respondkit_sending": "Gönderiliyor…",
+  "respondkit_sent": "Gönderildi",
+  "respondkit_failed": "Başarısız",
+  "respondkit_confirming": "Onaylanıyor…",
+  "respondkit_unknown": "Onaylanmadı — güvenle tekrar deneyebilirsiniz",
+  "respondkit_retry": "Tekrar dene",
+  "respondkit_retry_message": "Mesajı tekrar gönder",
+  "respondkit_try_again": "Tekrar deneyin",
+  "respondkit_reconnect": "Yeniden bağlan",
+  "respondkit_email_prompt": "Yanıtı hangi e-posta adresine gönderelim?",
+  "respondkit_email_address": "E-posta adresi",
+  "respondkit_save_email": "E-postayı kaydet",
+  "respondkit_saving": "Kaydediliyor…",
+  "respondkit_email_failed": "E-posta adresiniz kaydedilemedi. Lütfen kontrol edip tekrar deneyin.",
+  "respondkit_attach_files": "Dosya ekle",
+  "respondkit_attached_files": "Ekli dosyalar",
+  "respondkit_photo_library": "Fotoğraf arşivi",
+  "respondkit_files": "Dosyalar",
+  "respondkit_cancel": "İptal",
+  "respondkit_ready": "Hazır",
+  "respondkit_upload_failed": "Yükleme başarısız",
+  "respondkit_remove": "Kaldır",
+  "respondkit_remove_file": "{name} dosyasını kaldır",
+  "respondkit_selected_file": "Seçilen dosya",
+  "respondkit_picker_failed": "Dosya seçici açılamıyor",
+  "respondkit_file_open_failed": "Seçilen dosya açılamıyor.",
+  "respondkit_start_failed": "Destek sohbeti başlatılamadı.",
+  "respondkit_request_failed": "Destek isteği başarısız oldu.",
+  "respondkit_history_failed": "Sohbet geçmişi yüklenemedi. “Daha fazla” seçeneğini tekrar deneyin.",
+  "respondkit_messages_failed": "Yeni mesajlar yüklenemedi.",
+  "respondkit_sign_in_again": "Destek geçmişinizi geri yüklemek için tekrar oturum açın.",
+  "respondkit_session_expired": "Destek oturumunuzun süresi doldu. Devam etmek için yeniden bağlanın.",
+  "respondkit_identity_changed": "Destek hesabı başka bir sekmede değişti. Hesabınızı yeniden yüklemek için yeniden bağlanın.",
+  "respondkit_connecting": "Destek bağlantısı hâlâ kuruluyor.",
+  "respondkit_reconnect_upload": "Yüklemeden önce yeniden bağlanın."
+}

@@ -1,0 +1,94 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Support",
+  "respondkit_ask_anything": "Wir beantworten gern alle Fragen",
+  "respondkit_open_chat": "Support-Chat öffnen",
+  "respondkit_close_chat": "Support-Chat schließen",
+  "respondkit_close": "Schließen",
+  "respondkit_help": "Wie können wir helfen?",
+  "respondkit_intro": "Schreib uns eine Nachricht und lass diese Seite für eine schnelle Antwort geöffnet.",
+  "respondkit_intro_short": "Schreib uns eine Nachricht, um eine Unterhaltung zu beginnen.",
+  "respondkit_return": "Antworten erscheinen hier, sobald du zur App zurückkehrst.",
+  "respondkit_conversations": "Unterhaltungen",
+  "respondkit_conversation": "Unterhaltung {date}",
+  "respondkit_new_conversation": "Neue Unterhaltung",
+  "respondkit_unread": "Ungelesene Support-Antwort",
+  "respondkit_open": "Offen",
+  "respondkit_closed": "Geschlossen",
+  "respondkit_more": "Mehr",
+  "respondkit_loading": "Wird geladen…",
+  "respondkit_loading_messages": "Nachrichten werden geladen",
+  "respondkit_support_messages": "Support-Nachrichten",
+  "respondkit_latest": "Neueste Nachrichten",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} neu",
+        "category=*": "{count} neu"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} neue Nachricht anzeigen",
+        "category=*": "{count} neue Nachrichten anzeigen"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Unterhaltungen · {count} ungelesen",
+        "category=*": "Unterhaltungen · {count} ungelesen"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Diese Unterhaltung ist geschlossen.",
+  "respondkit_another_message": "Weitere Nachricht senden",
+  "respondkit_message": "Nachricht",
+  "respondkit_write_message": "Nachricht schreiben…",
+  "respondkit_send": "Senden",
+  "respondkit_send_message": "Nachricht senden",
+  "respondkit_sending": "Wird gesendet…",
+  "respondkit_sent": "Gesendet",
+  "respondkit_failed": "Fehlgeschlagen",
+  "respondkit_confirming": "Wird bestätigt…",
+  "respondkit_unknown": "Nicht bestätigt – erneutes Senden ist sicher",
+  "respondkit_retry": "Wiederholen",
+  "respondkit_retry_message": "Nachricht erneut senden",
+  "respondkit_try_again": "Erneut versuchen",
+  "respondkit_reconnect": "Neu verbinden",
+  "respondkit_email_prompt": "An welche E-Mail-Adresse dürfen wir antworten?",
+  "respondkit_email_address": "E-Mail-Adresse",
+  "respondkit_save_email": "E-Mail speichern",
+  "respondkit_saving": "Wird gespeichert…",
+  "respondkit_email_failed": "Die E-Mail-Adresse konnte nicht gespeichert werden. Bitte prüfen und erneut versuchen.",
+  "respondkit_attach_files": "Dateien anhängen",
+  "respondkit_attached_files": "Angehängte Dateien",
+  "respondkit_photo_library": "Fotomediathek",
+  "respondkit_files": "Dateien",
+  "respondkit_cancel": "Abbrechen",
+  "respondkit_ready": "Bereit",
+  "respondkit_upload_failed": "Upload fehlgeschlagen",
+  "respondkit_remove": "Entfernen",
+  "respondkit_remove_file": "{name} entfernen",
+  "respondkit_selected_file": "Ausgewählte Datei",
+  "respondkit_picker_failed": "Dateiauswahl kann nicht geöffnet werden",
+  "respondkit_file_open_failed": "Die ausgewählte Datei kann nicht geöffnet werden.",
+  "respondkit_start_failed": "Der Support-Chat konnte nicht gestartet werden.",
+  "respondkit_request_failed": "Support-Anfrage fehlgeschlagen.",
+  "respondkit_history_failed": "Der Verlauf konnte nicht geladen werden. Bitte erneut auf „Mehr“ tippen.",
+  "respondkit_messages_failed": "Neue Nachrichten konnten nicht geladen werden.",
+  "respondkit_sign_in_again": "Melde dich erneut an, um deinen Support-Verlauf wiederherzustellen.",
+  "respondkit_session_expired": "Die Support-Sitzung ist abgelaufen. Neu verbinden, um fortzufahren.",
+  "respondkit_identity_changed": "Die Support-Identität wurde in einem anderen Tab geändert. Neu verbinden, um dein Konto neu zu laden.",
+  "respondkit_connecting": "Support wird noch verbunden.",
+  "respondkit_reconnect_upload": "Vor dem Hochladen neu verbinden."
+}

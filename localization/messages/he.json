@@ -1,0 +1,97 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "תמיכה",
+  "respondkit_ask_anything": "אפשר לשאול אותנו כל דבר",
+  "respondkit_open_chat": "פתיחת צ׳אט התמיכה",
+  "respondkit_close_chat": "סגירת צ׳אט התמיכה",
+  "respondkit_close": "סגירה",
+  "respondkit_help": "איך נוכל לעזור?",
+  "respondkit_intro": "אפשר לשלוח הודעה ולהשאיר את הדף הזה פתוח כדי לקבל תשובה מהירה.",
+  "respondkit_intro_short": "אפשר לשלוח הודעה כדי להתחיל שיחה.",
+  "respondkit_return": "התשובות יופיעו כאן כשחוזרים לאפליקציה.",
+  "respondkit_conversations": "שיחות",
+  "respondkit_conversation": "שיחה מ־{date}",
+  "respondkit_new_conversation": "שיחה חדשה",
+  "respondkit_unread": "תשובה מהתמיכה שלא נקראה",
+  "respondkit_open": "פתוחה",
+  "respondkit_closed": "סגורה",
+  "respondkit_more": "עוד",
+  "respondkit_loading": "בטעינה…",
+  "respondkit_loading_messages": "ההודעות נטענות",
+  "respondkit_support_messages": "הודעות תמיכה",
+  "respondkit_latest": "ההודעות האחרונות",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} חדשה",
+        "category=two": "{count} חדשות",
+        "category=*": "{count} חדשות"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "הצגת {count} הודעה חדשה",
+        "category=two": "הצגת {count} הודעות חדשות",
+        "category=*": "הצגת {count} הודעות חדשות"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "שיחות · {count} שלא נקראה",
+        "category=two": "שיחות · {count} שלא נקראו",
+        "category=*": "שיחות · {count} שלא נקראו"
+      }
+    }
+  ],
+  "respondkit_closed_help": "השיחה הזו סגורה.",
+  "respondkit_another_message": "שליחת הודעה נוספת",
+  "respondkit_message": "הודעה",
+  "respondkit_write_message": "כתיבת הודעה…",
+  "respondkit_send": "שליחה",
+  "respondkit_send_message": "שליחת הודעה",
+  "respondkit_sending": "בשליחה…",
+  "respondkit_sent": "נשלחה",
+  "respondkit_failed": "נכשלה",
+  "respondkit_confirming": "בתהליך אישור…",
+  "respondkit_unknown": "לא אושרה — אפשר לנסות שוב בבטחה",
+  "respondkit_retry": "ניסיון חוזר",
+  "respondkit_retry_message": "שליחה חוזרת של ההודעה",
+  "respondkit_try_again": "ניסיון חוזר",
+  "respondkit_reconnect": "התחברות מחדש",
+  "respondkit_email_prompt": "לאיזו כתובת אימייל נשלח את התשובה?",
+  "respondkit_email_address": "כתובת אימייל",
+  "respondkit_save_email": "שמירת האימייל",
+  "respondkit_saving": "בשמירה…",
+  "respondkit_email_failed": "לא הצלחנו לשמור את כתובת האימייל. כדאי לבדוק אותה ולנסות שוב.",
+  "respondkit_attach_files": "צירוף קבצים",
+  "respondkit_attached_files": "קבצים מצורפים",
+  "respondkit_photo_library": "ספריית התמונות",
+  "respondkit_files": "קבצים",
+  "respondkit_cancel": "ביטול",
+  "respondkit_ready": "מוכן",
+  "respondkit_upload_failed": "ההעלאה נכשלה",
+  "respondkit_remove": "הסרה",
+  "respondkit_remove_file": "הסרת {name}",
+  "respondkit_selected_file": "הקובץ שנבחר",
+  "respondkit_picker_failed": "לא ניתן לפתוח את בוחר הקבצים",
+  "respondkit_file_open_failed": "לא ניתן לפתוח את הקובץ שנבחר.",
+  "respondkit_start_failed": "לא ניתן היה להפעיל את צ׳אט התמיכה.",
+  "respondkit_request_failed": "בקשת התמיכה נכשלה.",
+  "respondkit_history_failed": "לא ניתן היה לטעון את היסטוריית השיחה. אפשר ללחוץ שוב על ״עוד״.",
+  "respondkit_messages_failed": "לא ניתן היה לטעון הודעות חדשות.",
+  "respondkit_sign_in_again": "צריך להתחבר שוב כדי לשחזר את היסטוריית התמיכה.",
+  "respondkit_session_expired": "פג תוקף הסשן מול התמיכה. צריך להתחבר מחדש כדי להמשיך.",
+  "respondkit_identity_changed": "זהות התמיכה השתנתה בכרטיסייה אחרת. צריך להתחבר מחדש כדי לטעון מחדש את החשבון.",
+  "respondkit_connecting": "החיבור לתמיכה עדיין מתבצע.",
+  "respondkit_reconnect_upload": "צריך להתחבר מחדש לפני ההעלאה."
+}

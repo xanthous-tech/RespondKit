@@ -1,0 +1,92 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Support",
+  "respondkit_ask_anything": "Stel ons gerust je vraag",
+  "respondkit_open_chat": "Supportchat openen",
+  "respondkit_close_chat": "Supportchat sluiten",
+  "respondkit_close": "Sluiten",
+  "respondkit_help": "Waarmee kunnen we je helpen?",
+  "respondkit_intro": "Stuur een bericht en houd deze pagina open voor een snel antwoord.",
+  "respondkit_intro_short": "Stuur een bericht om een gesprek te starten.",
+  "respondkit_return": "Antwoorden verschijnen hier zodra je terugkeert naar de app.",
+  "respondkit_conversations": "Gesprekken",
+  "respondkit_conversation": "Gesprek {date}",
+  "respondkit_new_conversation": "Nieuw gesprek",
+  "respondkit_unread": "Ongelezen antwoord van support",
+  "respondkit_open": "Open",
+  "respondkit_closed": "Gesloten",
+  "respondkit_more": "Meer",
+  "respondkit_loading": "Laden…",
+  "respondkit_loading_messages": "Berichten laden",
+  "respondkit_support_messages": "Supportberichten",
+  "respondkit_latest": "Nieuwste berichten",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=*": "{count} nieuw"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} nieuw bericht tonen",
+        "category=*": "{count} nieuwe berichten tonen"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=*": "Gesprekken · {count} ongelezen"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Dit gesprek is gesloten.",
+  "respondkit_another_message": "Nog een bericht sturen",
+  "respondkit_message": "Bericht",
+  "respondkit_write_message": "Typ een bericht…",
+  "respondkit_send": "Versturen",
+  "respondkit_send_message": "Bericht versturen",
+  "respondkit_sending": "Versturen…",
+  "respondkit_sent": "Verstuurd",
+  "respondkit_failed": "Mislukt",
+  "respondkit_confirming": "Bevestigen…",
+  "respondkit_unknown": "Niet bevestigd — opnieuw proberen is veilig",
+  "respondkit_retry": "Opnieuw proberen",
+  "respondkit_retry_message": "Bericht opnieuw versturen",
+  "respondkit_try_again": "Probeer het opnieuw",
+  "respondkit_reconnect": "Opnieuw verbinden",
+  "respondkit_email_prompt": "Op welk e-mailadres kunnen we je antwoorden?",
+  "respondkit_email_address": "E-mailadres",
+  "respondkit_save_email": "E-mailadres opslaan",
+  "respondkit_saving": "Opslaan…",
+  "respondkit_email_failed": "We konden je e-mailadres niet opslaan. Controleer het en probeer het opnieuw.",
+  "respondkit_attach_files": "Bestanden bijvoegen",
+  "respondkit_attached_files": "Bijgevoegde bestanden",
+  "respondkit_photo_library": "Fotobibliotheek",
+  "respondkit_files": "Bestanden",
+  "respondkit_cancel": "Annuleren",
+  "respondkit_ready": "Klaar",
+  "respondkit_upload_failed": "Uploaden mislukt",
+  "respondkit_remove": "Verwijderen",
+  "respondkit_remove_file": "{name} verwijderen",
+  "respondkit_selected_file": "Geselecteerd bestand",
+  "respondkit_picker_failed": "Kan bestandskiezer niet openen",
+  "respondkit_file_open_failed": "Kan het geselecteerde bestand niet openen.",
+  "respondkit_start_failed": "De supportchat kon niet worden gestart.",
+  "respondkit_request_failed": "Supportverzoek mislukt.",
+  "respondkit_history_failed": "De gespreksgeschiedenis kon niet worden geladen. Probeer het opnieuw via Meer.",
+  "respondkit_messages_failed": "Nieuwe berichten konden niet worden geladen.",
+  "respondkit_sign_in_again": "Log opnieuw in om je supportgeschiedenis te herstellen.",
+  "respondkit_session_expired": "Je supportsessie is verlopen. Maak opnieuw verbinding om door te gaan.",
+  "respondkit_identity_changed": "Je supportidentiteit is in een ander tabblad gewijzigd. Maak opnieuw verbinding om je account opnieuw te laden.",
+  "respondkit_connecting": "Support maakt nog verbinding.",
+  "respondkit_reconnect_upload": "Maak opnieuw verbinding voordat je iets uploadt."
+}

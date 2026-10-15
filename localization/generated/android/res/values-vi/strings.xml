@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"Gửi tin nhắn khác"</string>
+    <string name="respondkit_ask_anything" formatted="false">"Hãy hỏi chúng tôi bất cứ điều gì"</string>
+    <string name="respondkit_attach_files" formatted="false">"Đính kèm tệp"</string>
+    <string name="respondkit_attached_files" formatted="false">"Tệp đính kèm"</string>
+    <string name="respondkit_cancel" formatted="false">"Hủy"</string>
+    <string name="respondkit_close" formatted="false">"Đóng"</string>
+    <string name="respondkit_close_chat" formatted="false">"Đóng trò chuyện hỗ trợ"</string>
+    <string name="respondkit_closed" formatted="false">"Đã đóng"</string>
+    <string name="respondkit_closed_help" formatted="false">"Cuộc trò chuyện này đã đóng."</string>
+    <string name="respondkit_confirming" formatted="false">"Đang xác nhận…"</string>
+    <string name="respondkit_connecting" formatted="false">"Đang kết nối với bộ phận hỗ trợ."</string>
+    <string name="respondkit_conversation">"Cuộc trò chuyện %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"Cuộc trò chuyện"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="other">"Cuộc trò chuyện · %1$d chưa đọc"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"Địa chỉ email"</string>
+    <string name="respondkit_email_failed" formatted="false">"Không thể lưu email của bạn. Vui lòng kiểm tra và thử lại."</string>
+    <string name="respondkit_email_prompt" formatted="false">"Chúng tôi nên gửi phản hồi đến email nào?"</string>
+    <string name="respondkit_failed" formatted="false">"Không thành công"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"Không thể mở tệp đã chọn."</string>
+    <string name="respondkit_files" formatted="false">"Tệp"</string>
+    <string name="respondkit_help" formatted="false">"Chúng tôi có thể giúp gì cho bạn?"</string>
+    <string name="respondkit_history_failed" formatted="false">"Không thể tải lịch sử trò chuyện. Hãy chọn “Xem thêm” lần nữa."</string>
+    <string name="respondkit_identity_changed" formatted="false">"Tài khoản hỗ trợ đã thay đổi ở một thẻ khác. Hãy kết nối lại để tải lại tài khoản của bạn."</string>
+    <string name="respondkit_intro" formatted="false">"Gửi tin nhắn và giữ trang này mở để nhận phản hồi nhanh."</string>
+    <string name="respondkit_intro_short" formatted="false">"Gửi tin nhắn để bắt đầu cuộc trò chuyện."</string>
+    <string name="respondkit_latest" formatted="false">"Tin nhắn mới nhất"</string>
+    <string name="respondkit_loading" formatted="false">"Đang tải…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"Đang tải tin nhắn"</string>
+    <string name="respondkit_message" formatted="false">"Tin nhắn"</string>
+    <string name="respondkit_messages_failed" formatted="false">"Không thể tải tin nhắn mới."</string>
+    <string name="respondkit_more" formatted="false">"Xem thêm"</string>
+    <string name="respondkit_new_conversation" formatted="false">"Cuộc trò chuyện mới"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="other">"%1$d mới"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"Đang mở"</string>
+    <string name="respondkit_open_chat" formatted="false">"Mở trò chuyện hỗ trợ"</string>
+    <string name="respondkit_photo_library" formatted="false">"Thư viện ảnh"</string>
+    <string name="respondkit_picker_failed" formatted="false">"Không thể mở trình chọn tệp"</string>
+    <string name="respondkit_ready" formatted="false">"Sẵn sàng"</string>
+    <string name="respondkit_reconnect" formatted="false">"Kết nối lại"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"Hãy kết nối lại trước khi tải lên."</string>
+    <string name="respondkit_remove" formatted="false">"Xóa"</string>
+    <string name="respondkit_remove_file">"Xóa %1$s"</string>
+    <string name="respondkit_request_failed" formatted="false">"Yêu cầu hỗ trợ không thành công."</string>
+    <string name="respondkit_retry" formatted="false">"Thử lại"</string>
+    <string name="respondkit_retry_message" formatted="false">"Gửi lại tin nhắn"</string>
+    <string name="respondkit_return" formatted="false">"Phản hồi sẽ hiển thị tại đây khi bạn quay lại ứng dụng."</string>
+    <string name="respondkit_save_email" formatted="false">"Lưu email"</string>
+    <string name="respondkit_saving" formatted="false">"Đang lưu…"</string>
+    <string name="respondkit_selected_file" formatted="false">"Tệp đã chọn"</string>
+    <string name="respondkit_send" formatted="false">"Gửi"</string>
+    <string name="respondkit_send_message" formatted="false">"Gửi tin nhắn"</string>
+    <string name="respondkit_sending" formatted="false">"Đang gửi…"</string>
+    <string name="respondkit_sent" formatted="false">"Đã gửi"</string>
+    <string name="respondkit_session_expired" formatted="false">"Phiên hỗ trợ của bạn đã hết hạn. Hãy kết nối lại để tiếp tục."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="other">"Hiển thị %1$d tin nhắn mới"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"Đăng nhập lại để khôi phục lịch sử hỗ trợ của bạn."</string>
+    <string name="respondkit_start_failed" formatted="false">"Không thể bắt đầu trò chuyện hỗ trợ."</string>
+    <string name="respondkit_support" formatted="false">"Hỗ trợ"</string>
+    <string name="respondkit_support_messages" formatted="false">"Tin nhắn hỗ trợ"</string>
+    <string name="respondkit_try_again" formatted="false">"Thử lại"</string>
+    <string name="respondkit_unknown" formatted="false">"Chưa xác nhận — có thể thử lại an toàn"</string>
+    <string name="respondkit_unread" formatted="false">"Phản hồi hỗ trợ chưa đọc"</string>
+    <string name="respondkit_upload_failed" formatted="false">"Tải lên không thành công"</string>
+    <string name="respondkit_write_message" formatted="false">"Viết tin nhắn…"</string>
+</resources>

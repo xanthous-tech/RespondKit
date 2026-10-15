@@ -1,0 +1,94 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Tuki",
+  "respondkit_ask_anything": "Kysy meiltä mitä tahansa",
+  "respondkit_open_chat": "Avaa tukichat",
+  "respondkit_close_chat": "Sulje tukichat",
+  "respondkit_close": "Sulje",
+  "respondkit_help": "Miten voimme auttaa?",
+  "respondkit_intro": "Lähetä viesti ja pidä tämä sivu auki, niin saat vastauksen nopeasti.",
+  "respondkit_intro_short": "Aloita keskustelu lähettämällä viesti.",
+  "respondkit_return": "Vastaukset näkyvät täällä, kun palaat sovellukseen.",
+  "respondkit_conversations": "Keskustelut",
+  "respondkit_conversation": "Keskustelu {date}",
+  "respondkit_new_conversation": "Uusi keskustelu",
+  "respondkit_unread": "Lukematon vastaus tuelta",
+  "respondkit_open": "Avoin",
+  "respondkit_closed": "Suljettu",
+  "respondkit_more": "Lisää",
+  "respondkit_loading": "Ladataan…",
+  "respondkit_loading_messages": "Ladataan viestejä",
+  "respondkit_support_messages": "Tukiviestit",
+  "respondkit_latest": "Uusimmat viestit",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} uusi",
+        "category=*": "{count} uutta"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Näytä {count} uusi viesti",
+        "category=*": "Näytä {count} uutta viestiä"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Keskustelut · {count} lukematon",
+        "category=*": "Keskustelut · {count} lukematonta"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Tämä keskustelu on suljettu.",
+  "respondkit_another_message": "Lähetä uusi viesti",
+  "respondkit_message": "Viesti",
+  "respondkit_write_message": "Kirjoita viesti…",
+  "respondkit_send": "Lähetä",
+  "respondkit_send_message": "Lähetä viesti",
+  "respondkit_sending": "Lähetetään…",
+  "respondkit_sent": "Lähetetty",
+  "respondkit_failed": "Epäonnistui",
+  "respondkit_confirming": "Vahvistetaan…",
+  "respondkit_unknown": "Ei vahvistettu – voit turvallisesti yrittää uudelleen",
+  "respondkit_retry": "Yritä uudelleen",
+  "respondkit_retry_message": "Lähetä viesti uudelleen",
+  "respondkit_try_again": "Yritä uudelleen",
+  "respondkit_reconnect": "Yhdistä uudelleen",
+  "respondkit_email_prompt": "Mihin sähköpostiosoitteeseen voimme lähettää vastauksen?",
+  "respondkit_email_address": "Sähköpostiosoite",
+  "respondkit_save_email": "Tallenna sähköposti",
+  "respondkit_saving": "Tallennetaan…",
+  "respondkit_email_failed": "Sähköpostiosoitteen tallennus epäonnistui. Tarkista osoite ja yritä uudelleen.",
+  "respondkit_attach_files": "Liitä tiedostoja",
+  "respondkit_attached_files": "Liitetyt tiedostot",
+  "respondkit_photo_library": "Kuvakirjasto",
+  "respondkit_files": "Tiedostot",
+  "respondkit_cancel": "Peruuta",
+  "respondkit_ready": "Valmis",
+  "respondkit_upload_failed": "Lataus epäonnistui",
+  "respondkit_remove": "Poista",
+  "respondkit_remove_file": "Poista {name}",
+  "respondkit_selected_file": "Valittu tiedosto",
+  "respondkit_picker_failed": "Tiedostovalitsinta ei voi avata",
+  "respondkit_file_open_failed": "Valittua tiedostoa ei voi avata.",
+  "respondkit_start_failed": "Tukichatin käynnistäminen epäonnistui.",
+  "respondkit_request_failed": "Tukipyyntö epäonnistui.",
+  "respondkit_history_failed": "Keskusteluhistoriaa ei voitu ladata. Kokeile Lisää-painiketta uudelleen.",
+  "respondkit_messages_failed": "Uusia viestejä ei voitu ladata.",
+  "respondkit_sign_in_again": "Palauta tukihistoriasi kirjautumalla uudelleen sisään.",
+  "respondkit_session_expired": "Tukiistuntosi on vanhentunut. Jatka yhdistämällä uudelleen.",
+  "respondkit_identity_changed": "Tuen tunnistetiedot vaihtuivat toisessa välilehdessä. Lataa tilisi uudelleen yhdistämällä uudelleen.",
+  "respondkit_connecting": "Yhteyttä tukeen muodostetaan vielä.",
+  "respondkit_reconnect_upload": "Yhdistä uudelleen ennen tiedostojen lataamista."
+}

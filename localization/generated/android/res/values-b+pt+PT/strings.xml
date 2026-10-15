@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"Enviar outra mensagem"</string>
+    <string name="respondkit_ask_anything" formatted="false">"Pergunte-nos o que quiser"</string>
+    <string name="respondkit_attach_files" formatted="false">"Anexar ficheiros"</string>
+    <string name="respondkit_attached_files" formatted="false">"Ficheiros anexados"</string>
+    <string name="respondkit_cancel" formatted="false">"Cancelar"</string>
+    <string name="respondkit_close" formatted="false">"Fechar"</string>
+    <string name="respondkit_close_chat" formatted="false">"Fechar chat de suporte"</string>
+    <string name="respondkit_closed" formatted="false">"Encerrada"</string>
+    <string name="respondkit_closed_help" formatted="false">"Esta conversa foi encerrada."</string>
+    <string name="respondkit_confirming" formatted="false">"A confirmar…"</string>
+    <string name="respondkit_connecting" formatted="false">"O suporte ainda está a estabelecer ligação."</string>
+    <string name="respondkit_conversation">"Conversa de %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"Conversas"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="one">"Conversas · %1$d por ler"</item>
+        <item quantity="many">"Conversas · %1$d por ler"</item>
+        <item quantity="other">"Conversas · %1$d por ler"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"Endereço de e-mail"</string>
+    <string name="respondkit_email_failed" formatted="false">"Não foi possível guardar o seu e-mail. Verifique-o e tente novamente."</string>
+    <string name="respondkit_email_prompt" formatted="false">"Para que e-mail podemos enviar a resposta?"</string>
+    <string name="respondkit_failed" formatted="false">"Falhou"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"Não foi possível abrir o ficheiro selecionado."</string>
+    <string name="respondkit_files" formatted="false">"Ficheiros"</string>
+    <string name="respondkit_help" formatted="false">"Como podemos ajudar?"</string>
+    <string name="respondkit_history_failed" formatted="false">"Não foi possível carregar o histórico da conversa. Use o botão Mais para tentar novamente."</string>
+    <string name="respondkit_identity_changed" formatted="false">"A identidade de suporte mudou noutro separador. Restabeleça a ligação para recarregar a sua conta."</string>
+    <string name="respondkit_intro" formatted="false">"Envie uma mensagem e mantenha esta página aberta para obter uma resposta rápida."</string>
+    <string name="respondkit_intro_short" formatted="false">"Envie uma mensagem para iniciar uma conversa."</string>
+    <string name="respondkit_latest" formatted="false">"Mensagens mais recentes"</string>
+    <string name="respondkit_loading" formatted="false">"A carregar…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"A carregar mensagens"</string>
+    <string name="respondkit_message" formatted="false">"Mensagem"</string>
+    <string name="respondkit_messages_failed" formatted="false">"Não foi possível carregar as novas mensagens."</string>
+    <string name="respondkit_more" formatted="false">"Mais"</string>
+    <string name="respondkit_new_conversation" formatted="false">"Nova conversa"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="one">"%1$d nova"</item>
+        <item quantity="many">"%1$d novas"</item>
+        <item quantity="other">"%1$d novas"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"Aberta"</string>
+    <string name="respondkit_open_chat" formatted="false">"Abrir chat de suporte"</string>
+    <string name="respondkit_photo_library" formatted="false">"Biblioteca de fotografias"</string>
+    <string name="respondkit_picker_failed" formatted="false">"Não foi possível abrir o seletor de ficheiros"</string>
+    <string name="respondkit_ready" formatted="false">"Pronto"</string>
+    <string name="respondkit_reconnect" formatted="false">"Restabelecer ligação"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"Restabeleça a ligação antes de carregar ficheiros."</string>
+    <string name="respondkit_remove" formatted="false">"Remover"</string>
+    <string name="respondkit_remove_file">"Remover %1$s"</string>
+    <string name="respondkit_request_failed" formatted="false">"O pedido ao suporte falhou."</string>
+    <string name="respondkit_retry" formatted="false">"Tentar novamente"</string>
+    <string name="respondkit_retry_message" formatted="false">"Reenviar mensagem"</string>
+    <string name="respondkit_return" formatted="false">"As respostas vão aparecer aqui quando voltar à app."</string>
+    <string name="respondkit_save_email" formatted="false">"Guardar e-mail"</string>
+    <string name="respondkit_saving" formatted="false">"A guardar…"</string>
+    <string name="respondkit_selected_file" formatted="false">"Ficheiro selecionado"</string>
+    <string name="respondkit_send" formatted="false">"Enviar"</string>
+    <string name="respondkit_send_message" formatted="false">"Enviar mensagem"</string>
+    <string name="respondkit_sending" formatted="false">"A enviar…"</string>
+    <string name="respondkit_sent" formatted="false">"Enviada"</string>
+    <string name="respondkit_session_expired" formatted="false">"A sua sessão de suporte expirou. Restabeleça a ligação para continuar."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="one">"Mostrar %1$d nova mensagem"</item>
+        <item quantity="many">"Mostrar %1$d novas mensagens"</item>
+        <item quantity="other">"Mostrar %1$d novas mensagens"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"Inicie sessão novamente para recuperar o seu histórico de suporte."</string>
+    <string name="respondkit_start_failed" formatted="false">"Não foi possível iniciar o chat de suporte."</string>
+    <string name="respondkit_support" formatted="false">"Suporte"</string>
+    <string name="respondkit_support_messages" formatted="false">"Mensagens do suporte"</string>
+    <string name="respondkit_try_again" formatted="false">"Tentar novamente"</string>
+    <string name="respondkit_unknown" formatted="false">"Não confirmada — pode tentar novamente em segurança"</string>
+    <string name="respondkit_unread" formatted="false">"Resposta do suporte por ler"</string>
+    <string name="respondkit_upload_failed" formatted="false">"Falha ao carregar"</string>
+    <string name="respondkit_write_message" formatted="false">"Escreva uma mensagem…"</string>
+</resources>

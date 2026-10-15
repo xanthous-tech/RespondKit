@@ -1,0 +1,103 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Podpora",
+  "respondkit_ask_anything": "Vprašajte nas karkoli",
+  "respondkit_open_chat": "Odpri klepet s podporo",
+  "respondkit_close_chat": "Zapri klepet s podporo",
+  "respondkit_close": "Zapri",
+  "respondkit_help": "Kako vam lahko pomagamo?",
+  "respondkit_intro": "Pošljite sporočilo in pustite to stran odprto, da boste hitro prejeli odgovor.",
+  "respondkit_intro_short": "Pošljite sporočilo, da začnete pogovor.",
+  "respondkit_return": "Odgovori bodo prikazani tukaj, ko se vrnete v aplikacijo.",
+  "respondkit_conversations": "Pogovori",
+  "respondkit_conversation": "Pogovor {date}",
+  "respondkit_new_conversation": "Nov pogovor",
+  "respondkit_unread": "Neprebran odgovor podpore",
+  "respondkit_open": "Odprt",
+  "respondkit_closed": "Zaprt",
+  "respondkit_more": "Več",
+  "respondkit_loading": "Nalaganje…",
+  "respondkit_loading_messages": "Nalaganje sporočil",
+  "respondkit_support_messages": "Sporočila podpore",
+  "respondkit_latest": "Najnovejša sporočila",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} novo",
+        "category=two": "{count} novi",
+        "category=few": "{count} nova",
+        "category=other": "{count} novih",
+        "category=*": "{count} novih"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Prikaži {count} novo sporočilo",
+        "category=two": "Prikaži {count} novi sporočili",
+        "category=few": "Prikaži {count} nova sporočila",
+        "category=other": "Prikaži {count} novih sporočil",
+        "category=*": "Prikaži {count} novih sporočil"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Pogovori · {count} neprebran",
+        "category=two": "Pogovori · {count} neprebrana",
+        "category=few": "Pogovori · {count} neprebrani",
+        "category=other": "Pogovori · {count} neprebranih",
+        "category=*": "Pogovori · {count} neprebranih"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Ta pogovor je zaprt.",
+  "respondkit_another_message": "Pošlji novo sporočilo",
+  "respondkit_message": "Sporočilo",
+  "respondkit_write_message": "Napišite sporočilo…",
+  "respondkit_send": "Pošlji",
+  "respondkit_send_message": "Pošlji sporočilo",
+  "respondkit_sending": "Pošiljanje…",
+  "respondkit_sent": "Poslano",
+  "respondkit_failed": "Ni uspelo",
+  "respondkit_confirming": "Potrjevanje…",
+  "respondkit_unknown": "Ni potrjeno — varno lahko poskusite znova",
+  "respondkit_retry": "Poskusi znova",
+  "respondkit_retry_message": "Znova pošlji sporočilo",
+  "respondkit_try_again": "Poskusi znova",
+  "respondkit_reconnect": "Znova poveži",
+  "respondkit_email_prompt": "Na kateri e-poštni naslov vam lahko odgovorimo?",
+  "respondkit_email_address": "E-poštni naslov",
+  "respondkit_save_email": "Shrani e-poštni naslov",
+  "respondkit_saving": "Shranjevanje…",
+  "respondkit_email_failed": "E-poštnega naslova nismo mogli shraniti. Preverite ga in poskusite znova.",
+  "respondkit_attach_files": "Priloži datoteke",
+  "respondkit_attached_files": "Priložene datoteke",
+  "respondkit_photo_library": "Knjižnica fotografij",
+  "respondkit_files": "Datoteke",
+  "respondkit_cancel": "Prekliči",
+  "respondkit_ready": "Pripravljeno",
+  "respondkit_upload_failed": "Nalaganje ni uspelo",
+  "respondkit_remove": "Odstrani",
+  "respondkit_remove_file": "Odstrani {name}",
+  "respondkit_selected_file": "Izbrana datoteka",
+  "respondkit_picker_failed": "Izbirnika datotek ni mogoče odpreti",
+  "respondkit_file_open_failed": "Izbrane datoteke ni mogoče odpreti.",
+  "respondkit_start_failed": "Klepeta s podporo ni bilo mogoče zagnati.",
+  "respondkit_request_failed": "Zahteva za podporo ni uspela.",
+  "respondkit_history_failed": "Zgodovine pogovora ni bilo mogoče naložiti. Poskusite znova z gumbom Več.",
+  "respondkit_messages_failed": "Novih sporočil ni bilo mogoče naložiti.",
+  "respondkit_sign_in_again": "Znova se prijavite, da obnovite zgodovino podpore.",
+  "respondkit_session_expired": "Seja podpore je potekla. Za nadaljevanje se znova povežite.",
+  "respondkit_identity_changed": "Identiteta podpore se je spremenila v drugem zavihku. Znova se povežite, da ponovno naložite svoj račun.",
+  "respondkit_connecting": "Podpora se še povezuje.",
+  "respondkit_reconnect_upload": "Pred nalaganjem se znova povežite."
+}

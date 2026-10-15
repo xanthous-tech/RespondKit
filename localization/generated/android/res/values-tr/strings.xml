@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"Yeni bir mesaj gönder"</string>
+    <string name="respondkit_ask_anything" formatted="false">"Aklınıza takılan her şeyi sorun"</string>
+    <string name="respondkit_attach_files" formatted="false">"Dosya ekle"</string>
+    <string name="respondkit_attached_files" formatted="false">"Ekli dosyalar"</string>
+    <string name="respondkit_cancel" formatted="false">"İptal"</string>
+    <string name="respondkit_close" formatted="false">"Kapat"</string>
+    <string name="respondkit_close_chat" formatted="false">"Destek sohbetini kapat"</string>
+    <string name="respondkit_closed" formatted="false">"Kapalı"</string>
+    <string name="respondkit_closed_help" formatted="false">"Bu sohbet kapatıldı."</string>
+    <string name="respondkit_confirming" formatted="false">"Onaylanıyor…"</string>
+    <string name="respondkit_connecting" formatted="false">"Destek bağlantısı hâlâ kuruluyor."</string>
+    <string name="respondkit_conversation">"Sohbet %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"Sohbetler"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="one">"Sohbetler · %1$d okunmamış"</item>
+        <item quantity="other">"Sohbetler · %1$d okunmamış"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"E-posta adresi"</string>
+    <string name="respondkit_email_failed" formatted="false">"E-posta adresiniz kaydedilemedi. Lütfen kontrol edip tekrar deneyin."</string>
+    <string name="respondkit_email_prompt" formatted="false">"Yanıtı hangi e-posta adresine gönderelim?"</string>
+    <string name="respondkit_failed" formatted="false">"Başarısız"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"Seçilen dosya açılamıyor."</string>
+    <string name="respondkit_files" formatted="false">"Dosyalar"</string>
+    <string name="respondkit_help" formatted="false">"Nasıl yardımcı olabiliriz?"</string>
+    <string name="respondkit_history_failed" formatted="false">"Sohbet geçmişi yüklenemedi. “Daha fazla” seçeneğini tekrar deneyin."</string>
+    <string name="respondkit_identity_changed" formatted="false">"Destek hesabı başka bir sekmede değişti. Hesabınızı yeniden yüklemek için yeniden bağlanın."</string>
+    <string name="respondkit_intro" formatted="false">"Mesaj gönderin ve hızlı yanıt için bu sayfayı açık tutun."</string>
+    <string name="respondkit_intro_short" formatted="false">"Sohbet başlatmak için mesaj gönderin."</string>
+    <string name="respondkit_latest" formatted="false">"En son mesajlar"</string>
+    <string name="respondkit_loading" formatted="false">"Yükleniyor…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"Mesajlar yükleniyor"</string>
+    <string name="respondkit_message" formatted="false">"Mesaj"</string>
+    <string name="respondkit_messages_failed" formatted="false">"Yeni mesajlar yüklenemedi."</string>
+    <string name="respondkit_more" formatted="false">"Daha fazla"</string>
+    <string name="respondkit_new_conversation" formatted="false">"Yeni sohbet"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="one">"%1$d yeni"</item>
+        <item quantity="other">"%1$d yeni"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"Açık"</string>
+    <string name="respondkit_open_chat" formatted="false">"Destek sohbetini aç"</string>
+    <string name="respondkit_photo_library" formatted="false">"Fotoğraf arşivi"</string>
+    <string name="respondkit_picker_failed" formatted="false">"Dosya seçici açılamıyor"</string>
+    <string name="respondkit_ready" formatted="false">"Hazır"</string>
+    <string name="respondkit_reconnect" formatted="false">"Yeniden bağlan"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"Yüklemeden önce yeniden bağlanın."</string>
+    <string name="respondkit_remove" formatted="false">"Kaldır"</string>
+    <string name="respondkit_remove_file">"%1$s dosyasını kaldır"</string>
+    <string name="respondkit_request_failed" formatted="false">"Destek isteği başarısız oldu."</string>
+    <string name="respondkit_retry" formatted="false">"Tekrar dene"</string>
+    <string name="respondkit_retry_message" formatted="false">"Mesajı tekrar gönder"</string>
+    <string name="respondkit_return" formatted="false">"Uygulamaya döndüğünüzde yanıtlar burada görünecek."</string>
+    <string name="respondkit_save_email" formatted="false">"E-postayı kaydet"</string>
+    <string name="respondkit_saving" formatted="false">"Kaydediliyor…"</string>
+    <string name="respondkit_selected_file" formatted="false">"Seçilen dosya"</string>
+    <string name="respondkit_send" formatted="false">"Gönder"</string>
+    <string name="respondkit_send_message" formatted="false">"Mesajı gönder"</string>
+    <string name="respondkit_sending" formatted="false">"Gönderiliyor…"</string>
+    <string name="respondkit_sent" formatted="false">"Gönderildi"</string>
+    <string name="respondkit_session_expired" formatted="false">"Destek oturumunuzun süresi doldu. Devam etmek için yeniden bağlanın."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="one">"%1$d yeni mesajı göster"</item>
+        <item quantity="other">"%1$d yeni mesajı göster"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"Destek geçmişinizi geri yüklemek için tekrar oturum açın."</string>
+    <string name="respondkit_start_failed" formatted="false">"Destek sohbeti başlatılamadı."</string>
+    <string name="respondkit_support" formatted="false">"Destek"</string>
+    <string name="respondkit_support_messages" formatted="false">"Destek mesajları"</string>
+    <string name="respondkit_try_again" formatted="false">"Tekrar deneyin"</string>
+    <string name="respondkit_unknown" formatted="false">"Onaylanmadı — güvenle tekrar deneyebilirsiniz"</string>
+    <string name="respondkit_unread" formatted="false">"Okunmamış destek yanıtı"</string>
+    <string name="respondkit_upload_failed" formatted="false">"Yükleme başarısız"</string>
+    <string name="respondkit_write_message" formatted="false">"Bir mesaj yazın…"</string>
+</resources>

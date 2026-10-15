@@ -1,0 +1,94 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "સપોર્ટ",
+  "respondkit_ask_anything": "અમને કંઈ પણ પૂછો",
+  "respondkit_open_chat": "સપોર્ટ ચેટ ખોલો",
+  "respondkit_close_chat": "સપોર્ટ ચેટ બંધ કરો",
+  "respondkit_close": "બંધ કરો",
+  "respondkit_help": "અમે તમારી કેવી રીતે મદદ કરી શકીએ?",
+  "respondkit_intro": "મેસેજ મોકલો અને ઝડપી જવાબ માટે આ પેજ ખુલ્લું રાખો.",
+  "respondkit_intro_short": "વાતચીત શરૂ કરવા માટે મેસેજ મોકલો.",
+  "respondkit_return": "તમે ઍપ પર પાછા આવશો ત્યારે જવાબો અહીં દેખાશે.",
+  "respondkit_conversations": "વાતચીતો",
+  "respondkit_conversation": "વાતચીત {date}",
+  "respondkit_new_conversation": "નવી વાતચીત",
+  "respondkit_unread": "સપોર્ટનો ન વાંચેલો જવાબ",
+  "respondkit_open": "ખુલ્લી",
+  "respondkit_closed": "બંધ",
+  "respondkit_more": "વધુ",
+  "respondkit_loading": "લોડ થઈ રહ્યું છે…",
+  "respondkit_loading_messages": "મેસેજ લોડ થઈ રહ્યા છે",
+  "respondkit_support_messages": "સપોર્ટ મેસેજ",
+  "respondkit_latest": "નવીનતમ મેસેજ",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} નવો",
+        "category=*": "{count} નવા"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} નવો મેસેજ બતાવો",
+        "category=*": "{count} નવા મેસેજ બતાવો"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "વાતચીતો · {count} ન વાંચેલી",
+        "category=*": "વાતચીતો · {count} ન વાંચેલી"
+      }
+    }
+  ],
+  "respondkit_closed_help": "આ વાતચીત બંધ છે.",
+  "respondkit_another_message": "બીજો મેસેજ મોકલો",
+  "respondkit_message": "મેસેજ",
+  "respondkit_write_message": "મેસેજ લખો…",
+  "respondkit_send": "મોકલો",
+  "respondkit_send_message": "મેસેજ મોકલો",
+  "respondkit_sending": "મોકલી રહ્યાં છીએ…",
+  "respondkit_sent": "મોકલ્યો",
+  "respondkit_failed": "નિષ્ફળ",
+  "respondkit_confirming": "પુષ્ટિ કરી રહ્યાં છીએ…",
+  "respondkit_unknown": "પુષ્ટિ થઈ નથી — ફરી પ્રયાસ કરવો સુરક્ષિત છે",
+  "respondkit_retry": "ફરી પ્રયાસ કરો",
+  "respondkit_retry_message": "મેસેજ ફરી મોકલો",
+  "respondkit_try_again": "ફરી પ્રયાસ કરો",
+  "respondkit_reconnect": "ફરી કનેક્ટ કરો",
+  "respondkit_email_prompt": "અમે તમને જવાબ કયા ઇમેઇલ પર મોકલીએ?",
+  "respondkit_email_address": "ઇમેઇલ ઍડ્રેસ",
+  "respondkit_save_email": "ઇમેઇલ સાચવો",
+  "respondkit_saving": "સાચવી રહ્યાં છીએ…",
+  "respondkit_email_failed": "અમે તમારો ઇમેઇલ સાચવી શક્યા નહીં. કૃપા કરીને તેને તપાસો અને ફરી પ્રયાસ કરો.",
+  "respondkit_attach_files": "ફાઇલો જોડો",
+  "respondkit_attached_files": "જોડેલી ફાઇલો",
+  "respondkit_photo_library": "ફોટો લાઇબ્રેરી",
+  "respondkit_files": "ફાઇલો",
+  "respondkit_cancel": "રદ કરો",
+  "respondkit_ready": "તૈયાર",
+  "respondkit_upload_failed": "અપલોડ નિષ્ફળ થયું",
+  "respondkit_remove": "કાઢી નાખો",
+  "respondkit_remove_file": "{name} કાઢી નાખો",
+  "respondkit_selected_file": "પસંદ કરેલી ફાઇલ",
+  "respondkit_picker_failed": "ફાઇલ પસંદગીકર્તા ખોલી શકાતું નથી",
+  "respondkit_file_open_failed": "પસંદ કરેલી ફાઇલ ખોલી શકાતી નથી.",
+  "respondkit_start_failed": "સપોર્ટ ચેટ શરૂ કરી શકાઈ નથી.",
+  "respondkit_request_failed": "સપોર્ટ વિનંતી નિષ્ફળ થઈ.",
+  "respondkit_history_failed": "વાતચીતનો ઇતિહાસ લોડ થઈ શક્યો નથી. “વધુ” ફરી અજમાવો.",
+  "respondkit_messages_failed": "નવા મેસેજ લોડ થઈ શક્યા નથી.",
+  "respondkit_sign_in_again": "તમારો સપોર્ટ ઇતિહાસ પાછો મેળવવા માટે ફરી સાઇન ઇન કરો.",
+  "respondkit_session_expired": "તમારું સપોર્ટ સેશન સમાપ્ત થઈ ગયું છે. ચાલુ રાખવા માટે ફરી કનેક્ટ કરો.",
+  "respondkit_identity_changed": "બીજા ટૅબમાં સપોર્ટ ઓળખ બદલાઈ ગઈ છે. તમારું એકાઉન્ટ ફરી લોડ કરવા માટે ફરી કનેક્ટ કરો.",
+  "respondkit_connecting": "સપોર્ટ હજી કનેક્ટ થઈ રહ્યું છે.",
+  "respondkit_reconnect_upload": "અપલોડ કરતાં પહેલાં ફરી કનેક્ટ કરો."
+}

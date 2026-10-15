@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"إرسال رسالة أخرى"</string>
+    <string name="respondkit_ask_anything" formatted="false">"اسألنا عن أي شيء"</string>
+    <string name="respondkit_attach_files" formatted="false">"إرفاق ملفات"</string>
+    <string name="respondkit_attached_files" formatted="false">"الملفات المرفقة"</string>
+    <string name="respondkit_cancel" formatted="false">"إلغاء"</string>
+    <string name="respondkit_close" formatted="false">"إغلاق"</string>
+    <string name="respondkit_close_chat" formatted="false">"إغلاق دردشة الدعم"</string>
+    <string name="respondkit_closed" formatted="false">"مغلقة"</string>
+    <string name="respondkit_closed_help" formatted="false">"تم إغلاق هذه المحادثة."</string>
+    <string name="respondkit_confirming" formatted="false">"جارٍ التأكيد…"</string>
+    <string name="respondkit_connecting" formatted="false">"لا يزال الدعم قيد الاتصال."</string>
+    <string name="respondkit_conversation">"محادثة %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"المحادثات"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="zero">"المحادثات · %1$d غير مقروءة"</item>
+        <item quantity="one">"المحادثات · %1$d غير مقروءة"</item>
+        <item quantity="two">"المحادثات · %1$d غير مقروءتين"</item>
+        <item quantity="few">"المحادثات · %1$d غير مقروءة"</item>
+        <item quantity="many">"المحادثات · %1$d غير مقروءة"</item>
+        <item quantity="other">"المحادثات · %1$d غير مقروءة"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"عنوان البريد الإلكتروني"</string>
+    <string name="respondkit_email_failed" formatted="false">"تعذّر حفظ بريدك الإلكتروني. يُرجى التحقق منه والمحاولة مرة أخرى."</string>
+    <string name="respondkit_email_prompt" formatted="false">"على أي بريد إلكتروني نرسل إليك الرد؟"</string>
+    <string name="respondkit_failed" formatted="false">"فشل"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"تعذّر فتح الملف المحدد."</string>
+    <string name="respondkit_files" formatted="false">"الملفات"</string>
+    <string name="respondkit_help" formatted="false">"كيف يمكننا مساعدتك؟"</string>
+    <string name="respondkit_history_failed" formatted="false">"تعذّر تحميل سجل المحادثة. اضغط على «المزيد» للمحاولة مرة أخرى."</string>
+    <string name="respondkit_identity_changed" formatted="false">"تغيّرت هوية الدعم في علامة تبويب أخرى. أعد الاتصال لإعادة تحميل حسابك."</string>
+    <string name="respondkit_intro" formatted="false">"أرسل رسالة وأبقِ هذه الصفحة مفتوحة لتلقي رد سريع."</string>
+    <string name="respondkit_intro_short" formatted="false">"أرسل رسالة لبدء محادثة."</string>
+    <string name="respondkit_latest" formatted="false">"أحدث الرسائل"</string>
+    <string name="respondkit_loading" formatted="false">"جارٍ التحميل…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"جارٍ تحميل الرسائل"</string>
+    <string name="respondkit_message" formatted="false">"الرسالة"</string>
+    <string name="respondkit_messages_failed" formatted="false">"تعذّر تحميل الرسائل الجديدة."</string>
+    <string name="respondkit_more" formatted="false">"المزيد"</string>
+    <string name="respondkit_new_conversation" formatted="false">"محادثة جديدة"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="zero">"%1$d جديدة"</item>
+        <item quantity="one">"%1$d جديدة"</item>
+        <item quantity="two">"%1$d جديدتان"</item>
+        <item quantity="few">"%1$d جديدة"</item>
+        <item quantity="many">"%1$d جديدة"</item>
+        <item quantity="other">"%1$d جديدة"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"مفتوحة"</string>
+    <string name="respondkit_open_chat" formatted="false">"فتح دردشة الدعم"</string>
+    <string name="respondkit_photo_library" formatted="false">"مكتبة الصور"</string>
+    <string name="respondkit_picker_failed" formatted="false">"تعذّر فتح منتقي الملفات"</string>
+    <string name="respondkit_ready" formatted="false">"جاهز"</string>
+    <string name="respondkit_reconnect" formatted="false">"إعادة الاتصال"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"أعد الاتصال قبل الرفع."</string>
+    <string name="respondkit_remove" formatted="false">"إزالة"</string>
+    <string name="respondkit_remove_file">"إزالة %1$s"</string>
+    <string name="respondkit_request_failed" formatted="false">"فشل طلب الدعم."</string>
+    <string name="respondkit_retry" formatted="false">"إعادة المحاولة"</string>
+    <string name="respondkit_retry_message" formatted="false">"إعادة إرسال الرسالة"</string>
+    <string name="respondkit_return" formatted="false">"ستظهر الردود هنا عند عودتك إلى التطبيق."</string>
+    <string name="respondkit_save_email" formatted="false">"حفظ البريد الإلكتروني"</string>
+    <string name="respondkit_saving" formatted="false">"جارٍ الحفظ…"</string>
+    <string name="respondkit_selected_file" formatted="false">"الملف المحدد"</string>
+    <string name="respondkit_send" formatted="false">"إرسال"</string>
+    <string name="respondkit_send_message" formatted="false">"إرسال الرسالة"</string>
+    <string name="respondkit_sending" formatted="false">"جارٍ الإرسال…"</string>
+    <string name="respondkit_sent" formatted="false">"تم الإرسال"</string>
+    <string name="respondkit_session_expired" formatted="false">"انتهت جلسة الدعم. أعد الاتصال للمتابعة."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="zero">"عرض %1$d رسالة جديدة"</item>
+        <item quantity="one">"عرض %1$d رسالة جديدة"</item>
+        <item quantity="two">"عرض %1$d رسالتين جديدتين"</item>
+        <item quantity="few">"عرض %1$d رسائل جديدة"</item>
+        <item quantity="many">"عرض %1$d رسالة جديدة"</item>
+        <item quantity="other">"عرض %1$d رسالة جديدة"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"سجّل الدخول مرة أخرى لاستعادة سجل الدعم."</string>
+    <string name="respondkit_start_failed" formatted="false">"تعذّر بدء دردشة الدعم."</string>
+    <string name="respondkit_support" formatted="false">"الدعم"</string>
+    <string name="respondkit_support_messages" formatted="false">"رسائل الدعم"</string>
+    <string name="respondkit_try_again" formatted="false">"حاول مرة أخرى"</string>
+    <string name="respondkit_unknown" formatted="false">"لم يتم التأكيد — يمكنك إعادة المحاولة بأمان"</string>
+    <string name="respondkit_unread" formatted="false">"رد غير مقروء من الدعم"</string>
+    <string name="respondkit_upload_failed" formatted="false">"فشل الرفع"</string>
+    <string name="respondkit_write_message" formatted="false">"اكتب رسالة…"</string>
+</resources>

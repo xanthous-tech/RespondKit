@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"മറ്റൊരു സന്ദേശം അയയ്ക്കുക"</string>
+    <string name="respondkit_ask_anything" formatted="false">"എന്തും ഞങ്ങളോട് ചോദിക്കൂ"</string>
+    <string name="respondkit_attach_files" formatted="false">"ഫയലുകൾ അറ്റാച്ച് ചെയ്യുക"</string>
+    <string name="respondkit_attached_files" formatted="false">"അറ്റാച്ച് ചെയ്ത ഫയലുകൾ"</string>
+    <string name="respondkit_cancel" formatted="false">"റദ്ദാക്കുക"</string>
+    <string name="respondkit_close" formatted="false">"അടയ്ക്കുക"</string>
+    <string name="respondkit_close_chat" formatted="false">"പിന്തുണ ചാറ്റ് അടയ്ക്കുക"</string>
+    <string name="respondkit_closed" formatted="false">"അടച്ചത്"</string>
+    <string name="respondkit_closed_help" formatted="false">"ഈ സംഭാഷണം അവസാനിപ്പിച്ചു."</string>
+    <string name="respondkit_confirming" formatted="false">"സ്ഥിരീകരിക്കുന്നു…"</string>
+    <string name="respondkit_connecting" formatted="false">"പിന്തുണ ഇപ്പോഴും കണക്റ്റ് ചെയ്യുന്നു."</string>
+    <string name="respondkit_conversation">"സംഭാഷണം %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"സംഭാഷണങ്ങൾ"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="one">"സംഭാഷണങ്ങൾ · %1$d വായിക്കാത്തത്"</item>
+        <item quantity="other">"സംഭാഷണങ്ങൾ · %1$d വായിക്കാത്തവ"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"ഇമെയിൽ വിലാസം"</string>
+    <string name="respondkit_email_failed" formatted="false">"നിങ്ങളുടെ ഇമെയിൽ സംരക്ഷിക്കാനായില്ല. അത് പരിശോധിച്ച് വീണ്ടും ശ്രമിക്കുക."</string>
+    <string name="respondkit_email_prompt" formatted="false">"മറുപടി ഏത് ഇമെയിലിലേക്ക് അയയ്ക്കണം?"</string>
+    <string name="respondkit_failed" formatted="false">"പരാജയപ്പെട്ടു"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"തിരഞ്ഞെടുത്ത ഫയൽ തുറക്കാനാകുന്നില്ല."</string>
+    <string name="respondkit_files" formatted="false">"ഫയലുകൾ"</string>
+    <string name="respondkit_help" formatted="false">"ഞങ്ങൾ എങ്ങനെ സഹായിക്കണം?"</string>
+    <string name="respondkit_history_failed" formatted="false">"സംഭാഷണ ചരിത്രം ലോഡ് ചെയ്യാനായില്ല. കൂടുതൽ എന്നതിൽ വീണ്ടും ശ്രമിക്കുക."</string>
+    <string name="respondkit_identity_changed" formatted="false">"മറ്റൊരു ടാബിൽ പിന്തുണ അക്കൗണ്ട് മാറി. നിങ്ങളുടെ അക്കൗണ്ട് റീലോഡ് ചെയ്യാൻ വീണ്ടും കണക്റ്റ് ചെയ്യുക."</string>
+    <string name="respondkit_intro" formatted="false">"ഒരു സന്ദേശം അയച്ച് വേഗത്തിൽ മറുപടി ലഭിക്കാൻ ഈ പേജ് തുറന്നുവയ്ക്കുക."</string>
+    <string name="respondkit_intro_short" formatted="false">"സംഭാഷണം ആരംഭിക്കാൻ ഒരു സന്ദേശം അയയ്ക്കുക."</string>
+    <string name="respondkit_latest" formatted="false">"ഏറ്റവും പുതിയ സന്ദേശങ്ങൾ"</string>
+    <string name="respondkit_loading" formatted="false">"ലോഡ് ചെയ്യുന്നു…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"സന്ദേശങ്ങൾ ലോഡ് ചെയ്യുന്നു"</string>
+    <string name="respondkit_message" formatted="false">"സന്ദേശം"</string>
+    <string name="respondkit_messages_failed" formatted="false">"പുതിയ സന്ദേശങ്ങൾ ലോഡ് ചെയ്യാനായില്ല."</string>
+    <string name="respondkit_more" formatted="false">"കൂടുതൽ"</string>
+    <string name="respondkit_new_conversation" formatted="false">"പുതിയ സംഭാഷണം"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="one">"%1$d പുതിയത്"</item>
+        <item quantity="other">"%1$d പുതിയവ"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"തുറന്നത്"</string>
+    <string name="respondkit_open_chat" formatted="false">"പിന്തുണ ചാറ്റ് തുറക്കുക"</string>
+    <string name="respondkit_photo_library" formatted="false">"ഫോട്ടോ ലൈബ്രറി"</string>
+    <string name="respondkit_picker_failed" formatted="false">"ഫയൽ പിക്കർ തുറക്കാനാകുന്നില്ല"</string>
+    <string name="respondkit_ready" formatted="false">"തയ്യാർ"</string>
+    <string name="respondkit_reconnect" formatted="false">"വീണ്ടും കണക്റ്റ് ചെയ്യുക"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"അപ്‌ലോഡ് ചെയ്യുന്നതിന് മുമ്പ് വീണ്ടും കണക്റ്റ് ചെയ്യുക."</string>
+    <string name="respondkit_remove" formatted="false">"നീക്കം ചെയ്യുക"</string>
+    <string name="respondkit_remove_file">"%1$s നീക്കം ചെയ്യുക"</string>
+    <string name="respondkit_request_failed" formatted="false">"പിന്തുണ അഭ്യർത്ഥന പരാജയപ്പെട്ടു."</string>
+    <string name="respondkit_retry" formatted="false">"വീണ്ടും ശ്രമിക്കുക"</string>
+    <string name="respondkit_retry_message" formatted="false">"സന്ദേശം വീണ്ടും അയയ്ക്കുക"</string>
+    <string name="respondkit_return" formatted="false">"ആപ്പിലേക്ക് തിരിച്ചെത്തുമ്പോൾ മറുപടികൾ ഇവിടെ ദൃശ്യമാകും."</string>
+    <string name="respondkit_save_email" formatted="false">"ഇമെയിൽ സംരക്ഷിക്കുക"</string>
+    <string name="respondkit_saving" formatted="false">"സംരക്ഷിക്കുന്നു…"</string>
+    <string name="respondkit_selected_file" formatted="false">"തിരഞ്ഞെടുത്ത ഫയൽ"</string>
+    <string name="respondkit_send" formatted="false">"അയയ്ക്കുക"</string>
+    <string name="respondkit_send_message" formatted="false">"സന്ദേശം അയയ്ക്കുക"</string>
+    <string name="respondkit_sending" formatted="false">"അയയ്ക്കുന്നു…"</string>
+    <string name="respondkit_sent" formatted="false">"അയച്ചു"</string>
+    <string name="respondkit_session_expired" formatted="false">"നിങ്ങളുടെ പിന്തുണ സെഷൻ കാലഹരണപ്പെട്ടു. തുടരാൻ വീണ്ടും കണക്റ്റ് ചെയ്യുക."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="one">"%1$d പുതിയ സന്ദേശം കാണിക്കുക"</item>
+        <item quantity="other">"%1$d പുതിയ സന്ദേശങ്ങൾ കാണിക്കുക"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"പിന്തുണ ചരിത്രം പുനഃസ്ഥാപിക്കാൻ വീണ്ടും സൈൻ ഇൻ ചെയ്യുക."</string>
+    <string name="respondkit_start_failed" formatted="false">"പിന്തുണ ചാറ്റ് ആരംഭിക്കാനായില്ല."</string>
+    <string name="respondkit_support" formatted="false">"പിന്തുണ"</string>
+    <string name="respondkit_support_messages" formatted="false">"പിന്തുണ സന്ദേശങ്ങൾ"</string>
+    <string name="respondkit_try_again" formatted="false">"വീണ്ടും ശ്രമിക്കുക"</string>
+    <string name="respondkit_unknown" formatted="false">"സ്ഥിരീകരിച്ചിട്ടില്ല — സുരക്ഷിതമായി വീണ്ടും ശ്രമിക്കാം"</string>
+    <string name="respondkit_unread" formatted="false">"വായിക്കാത്ത പിന്തുണ മറുപടി"</string>
+    <string name="respondkit_upload_failed" formatted="false">"അപ്‌ലോഡ് പരാജയപ്പെട്ടു"</string>
+    <string name="respondkit_write_message" formatted="false">"ഒരു സന്ദേശം എഴുതുക…"</string>
+</resources>

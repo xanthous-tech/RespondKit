@@ -1,0 +1,94 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Tugi",
+  "respondkit_ask_anything": "Küsi meilt mida tahes",
+  "respondkit_open_chat": "Ava tugivestlus",
+  "respondkit_close_chat": "Sulge tugivestlus",
+  "respondkit_close": "Sulge",
+  "respondkit_help": "Kuidas saame aidata?",
+  "respondkit_intro": "Saada sõnum ja hoia see leht avatuna, et saada kiire vastus.",
+  "respondkit_intro_short": "Saada sõnum, et alustada vestlust.",
+  "respondkit_return": "Vastused ilmuvad siia, kui naased rakendusse.",
+  "respondkit_conversations": "Vestlused",
+  "respondkit_conversation": "Vestlus {date}",
+  "respondkit_new_conversation": "Uus vestlus",
+  "respondkit_unread": "Lugemata vastus toelt",
+  "respondkit_open": "Avatud",
+  "respondkit_closed": "Suletud",
+  "respondkit_more": "Veel",
+  "respondkit_loading": "Laadimine…",
+  "respondkit_loading_messages": "Sõnumite laadimine",
+  "respondkit_support_messages": "Tugisõnumid",
+  "respondkit_latest": "Uusimad sõnumid",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} uus",
+        "category=*": "{count} uut"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Näita {count} uut sõnumit",
+        "category=*": "Näita {count} uut sõnumit"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Vestlused · {count} lugemata",
+        "category=*": "Vestlused · {count} lugemata"
+      }
+    }
+  ],
+  "respondkit_closed_help": "See vestlus on suletud.",
+  "respondkit_another_message": "Saada uus sõnum",
+  "respondkit_message": "Sõnum",
+  "respondkit_write_message": "Kirjuta sõnum…",
+  "respondkit_send": "Saada",
+  "respondkit_send_message": "Saada sõnum",
+  "respondkit_sending": "Saatmine…",
+  "respondkit_sent": "Saadetud",
+  "respondkit_failed": "Ebaõnnestus",
+  "respondkit_confirming": "Kinnitamine…",
+  "respondkit_unknown": "Kinnitamata – uuesti proovimine on ohutu",
+  "respondkit_retry": "Proovi uuesti",
+  "respondkit_retry_message": "Saada sõnum uuesti",
+  "respondkit_try_again": "Proovi uuesti",
+  "respondkit_reconnect": "Ühenda uuesti",
+  "respondkit_email_prompt": "Millisele e-posti aadressile võime vastuse saata?",
+  "respondkit_email_address": "E-posti aadress",
+  "respondkit_save_email": "Salvesta e-post",
+  "respondkit_saving": "Salvestamine…",
+  "respondkit_email_failed": "E-posti aadressi ei õnnestunud salvestada. Kontrolli seda ja proovi uuesti.",
+  "respondkit_attach_files": "Lisa failid",
+  "respondkit_attached_files": "Lisatud failid",
+  "respondkit_photo_library": "Fototeek",
+  "respondkit_files": "Failid",
+  "respondkit_cancel": "Tühista",
+  "respondkit_ready": "Valmis",
+  "respondkit_upload_failed": "Üleslaadimine ebaõnnestus",
+  "respondkit_remove": "Eemalda",
+  "respondkit_remove_file": "Eemalda {name}",
+  "respondkit_selected_file": "Valitud fail",
+  "respondkit_picker_failed": "Failivalijat ei saa avada",
+  "respondkit_file_open_failed": "Valitud faili ei saa avada.",
+  "respondkit_start_failed": "Tugivestlust ei õnnestunud alustada.",
+  "respondkit_request_failed": "Tugipäring ebaõnnestus.",
+  "respondkit_history_failed": "Vestluse ajalugu ei õnnestunud laadida. Vajuta uuesti „Veel“.",
+  "respondkit_messages_failed": "Uusi sõnumeid ei õnnestunud laadida.",
+  "respondkit_sign_in_again": "Logi uuesti sisse, et taastada oma tugivestluste ajalugu.",
+  "respondkit_session_expired": "Tugiseanss aegus. Jätkamiseks ühenda uuesti.",
+  "respondkit_identity_changed": "Tugiidentiteet muutus teisel vahekaardil. Ühenda uuesti, et konto uuesti laadida.",
+  "respondkit_connecting": "Tugi alles ühendub.",
+  "respondkit_reconnect_upload": "Enne üleslaadimist ühenda uuesti."
+}
