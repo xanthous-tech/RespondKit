@@ -404,29 +404,36 @@ class RespondKitStore(
     private suspend fun validToken(generation: Long): String {
         check(generation)
         persist()
-        session
+        val token = session
             ?.takeIf { Instant.parse(it.expiresAt).isAfter(Instant.now().plusSeconds(15)) }
-            ?.let {
-                return it.token
+            ?.token
+            ?: run {
+                val assertion = identityToken?.invoke()
+                check(generation)
+                if (identityToken != null && assertion.isNullOrBlank())
+                    throw RespondKitException("Support identity could not be verified.")
+                val created = api.createSession(stored.installationId, context, assertion)
+                check(generation)
+                session = created
+                created.token
             }
-        val assertion = identityToken?.invoke()
-        check(generation)
-        if (identityToken != null && assertion.isNullOrBlank())
-            throw RespondKitException("Support identity could not be verified.")
-        val created = api.createSession(stored.installationId, context, assertion)
-        check(generation)
-        session = created
+        resolveContact(token, generation)
+        return token
+    }
+
+    /** A failed or interrupted lookup leaves the contact unknown, so the ask stays hidden and the next request retries it. */
+    private suspend fun resolveContact(token: String, generation: Long) {
+        if (contactResolved) return
         if (context.email == null) {
-            val contact = try { api.contact(created.token) } catch (error: Exception) {
+            val contact = try { api.contact(token) } catch (error: Exception) {
                 if (error is CancellationException) throw error
-                null
+                return
             }
             check(generation)
-            context = context.copy(email = contact?.email)
+            context = context.copy(email = contact.email)
         }
         contactResolved = true
         publish()
-        return created.token
     }
 
     private suspend fun <T> authorized(generation: Long, action: suspend (String) -> T): T =
