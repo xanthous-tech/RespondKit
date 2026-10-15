@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import {
+  createRespondKitClient,
   RespondKitClientError,
   type RespondKitClient,
   type MessageV1,
@@ -65,7 +66,11 @@ function api() {
     logout: vi.fn().mockResolvedValue({ ok: true }),
   } satisfies RespondKitClient;
 }
-async function make(client = api(), persistence = memoryPersistence(), userId?: string) {
+async function make(
+  client: RespondKitClient = api(),
+  persistence = memoryPersistence(),
+  userId?: string,
+) {
   const store = await RespondKitStore.create({
     apiBaseUrl: "https://api.example.com",
     inboxId: "inbox_test",
@@ -298,7 +303,10 @@ describe("React Native store", () => {
     await store.setDraft("Keep me");
     await store.sendDraft();
     expect(client.sendMessage).not.toHaveBeenCalled();
-    expect(store.getSnapshot().error).toContain("Storage failed");
+    expect(store.getSnapshot()).toMatchObject({
+      error: "Support request failed.",
+      errorDetail: expect.stringContaining("Storage failed"),
+    });
   });
   it("prevents duplicate taps and blocks oversized messages", async () => {
     const client = api();
@@ -408,4 +416,25 @@ it("stops an upload before sending another chunk after an account switch", async
   resume(new Uint8Array(3));
   await rejected;
   expect(fetcher).toHaveBeenCalledTimes(1);
+});
+
+it.each([
+  ["ja-JP", "サポートへのリクエストに失敗しました。"],
+  ["zh-Hans-CN", "客服请求失败。"],
+])("shows an unreachable server in the device language (%s)", async (locale, expected) => {
+  vi.spyOn(Intl.DateTimeFormat.prototype, "resolvedOptions").mockReturnValue({
+    ...new Intl.DateTimeFormat("en").resolvedOptions(),
+    locale,
+  });
+  const client = createRespondKitClient({
+    baseUrl: "https://api.example.com",
+    fetch: () => Promise.reject(new TypeError("Network request failed")),
+  });
+  const store = await make(client);
+  await store.refresh();
+  expect(store.getSnapshot()).toMatchObject({
+    error: expected,
+    errorDetail: "Unable to reach RespondKit",
+  });
+  vi.restoreAllMocks();
 });

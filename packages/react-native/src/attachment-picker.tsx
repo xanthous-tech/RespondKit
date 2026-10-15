@@ -3,6 +3,7 @@ import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import type { AttachmentV1 } from "@respondkit/api-client";
 import { nativeFileSource, pickSupportFiles, type NativeFile } from "./files";
 import { messages } from "./messages";
+import { presentedMessage } from "./presented-error";
 import type { RespondKitStore } from "./store";
 interface Picked {
   id: string;
@@ -58,7 +59,7 @@ export function AttachmentPicker({
     } catch (cause) {
       if (!controller.signal.aborted)
         update(item.id, {
-          error: cause instanceof Error ? cause.message : t.respondkit_upload_failed(),
+          error: presentedMessage(cause, t.respondkit_upload_failed()),
         });
     } finally {
       controllers.current.delete(item.id);
@@ -79,8 +80,7 @@ export function AttachmentPicker({
       setFiles((current) => [...current, ...incoming]);
       incoming.forEach((item) => void upload(item));
     } catch (cause) {
-      if (alive.current)
-        setError(cause instanceof Error ? cause.message : t.respondkit_picker_failed());
+      if (alive.current) setError(presentedMessage(cause, t.respondkit_picker_failed()));
     }
   }
   return (
