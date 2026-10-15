@@ -29,7 +29,6 @@ import {
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { createDatabase } from "./db";
-import { resolveTranslationMessage } from "./discord-translation";
 import type { Env as ApiEnv } from "./env";
 import { createHttpApp } from "./http";
 import { deriveOperatorMessageIdentity, translationRecordId } from "./identity";
@@ -144,7 +143,7 @@ beforeEach(async () => {
 });
 
 describe("customer HTTP ingress and MessageWorkflow", () => {
-  it("keeps a customer post translatable when Discord trims its trailing whitespace", async () => {
+  it("completes a customer post when Discord trims its trailing whitespace", async () => {
     const customer = await createCustomerFixture();
     await seedReadyDiscordThread(customer.threadId);
     const text = "Kan je ook link doorsturen om te samen vatten en vertalen ";
@@ -186,31 +185,6 @@ describe("customer HTTP ingress and MessageWorkflow", () => {
         original_text: text,
         processing_status: "succeeded",
       });
-      expect(
-        await resolveTranslationMessage(
-          createTestEnv(),
-          {
-            workspaceId: TEST_TOPOLOGY.workspaceId,
-            inboxId: TEST_TOPOLOGY.inboxId,
-            threadId: customer.threadId,
-          },
-          {
-            kind: "command",
-            command: "translate",
-            interactionId: snowflakeAt(),
-            applicationId: TEST_TOPOLOGY.applicationId,
-            token: "test-only",
-            guildId: TEST_TOPOLOGY.guildId,
-            discordThreadId: TEST_TOPOLOGY.discordThreadId,
-            forumChannelId: TEST_TOPOLOGY.forumChannelId,
-            threadType: 11,
-            operatorUserId: TEST_TOPOLOGY.operatorId,
-            operatorRoleIds: [TEST_TOPOLOGY.operatorRoleId],
-            targetLanguage: "en",
-            targetMessageId: discordMessageId,
-          },
-        ),
-      ).toBe(acceptance.messageId);
     } finally {
       vi.unstubAllGlobals();
       await workflows.dispose();
@@ -1070,6 +1044,50 @@ describe("signed Discord interaction ingress", () => {
     expect(await env.DB.prepare("SELECT count(*) AS count FROM message").first()).toEqual({
       count: 0,
     });
+  });
+
+  it("records a language named in /reply as the customer's, which translate:customer then uses", async () => {
+    const customer = await createCustomerFixture();
+    await seedReadyDiscordThread(customer.threadId);
+    const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+    try {
+      await workflows.modifyAll(async (modifier) => {
+        await modifier.mockStepResult({ name: "translate-message" }, outgoingTranslation);
+      });
+      const named = await sendSignedCommand(
+        commandPayload(snowflakeAt(), "reply", [
+          { name: "message", value: "Please reopen the app." },
+          { name: "translate", value: "Burmese" },
+        ]),
+      );
+      expect(await named.json()).toMatchObject({
+        data: { content: expect.stringContaining("Queued for translation and delivery.") },
+      });
+      expect(
+        await env.DB.prepare("SELECT customer_language FROM thread WHERE id = ?")
+          .bind(customer.threadId)
+          .first("customer_language"),
+      ).toBe("my");
+      const reference = snowflakeAt(Date.now() + 1000);
+      const remembered = await sendSignedCommand(
+        commandPayload(reference, "reply", [
+          { name: "message", value: "Then try again." },
+          { name: "translate", value: "customer" },
+        ]),
+      );
+      expect(await remembered.json()).toMatchObject({
+        data: { content: expect.stringContaining("Queued for translation and delivery.") },
+      });
+      expect(
+        await env.DB.prepare(
+          "SELECT reply_translation, reply_translation_request FROM message WHERE original_text = ?",
+        )
+          .bind("Then try again.")
+          .first(),
+      ).toEqual({ reply_translation: "my", reply_translation_request: "customer" });
+    } finally {
+      await workflows.dispose();
+    }
   });
 
   it("translates an authorized /reply and publishes it to the customer transcript", async () => {

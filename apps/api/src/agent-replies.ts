@@ -6,9 +6,7 @@ import {
   type ParsedDiscordAgentContextInteraction,
   type ParsedDiscordApproveInteraction,
 } from "@respondkit/discord";
-import { agentTokenHash } from "./agent-api";
-import { translationEnabled } from "./translation-service";
-import { acceptWorkflow, workflowStatus } from "./workflow-binding";
+import { deliverNote, type InternalNote } from "./agent-notes";
 import { createDatabase } from "./db";
 import type { Env } from "./env";
 import { agentOperatorEnvelopeSchema, type AgentOperatorEnvelope } from "./workflows/envelope";
@@ -58,19 +56,17 @@ export async function decideAgentDraft(
     forumChannelId: interaction.forumChannelId,
   });
   if (!authorized.ok) return "This draft action is not authorized.";
-  if (interaction.command === "agent_context") {
-    const chunk = await env.DB.prepare(
-      "SELECT message_id FROM agent_draft_chunk WHERE discord_message_id=? AND discord_thread_id=?",
-    )
-      .bind(interaction.targetMessageId, interaction.discordThreadId)
-      .first<{ message_id: string }>();
-    if (!chunk) return "Draft not found in this support thread.";
-    return decideAgentDraft(env, {
-      ...interaction,
-      command: "agent_decision",
-      messageId: chunk.message_id,
-    });
-  }
+  const scope = {
+    workspaceId: authorized.integration.workspaceId,
+    inboxId: authorized.integration.inboxId,
+    threadId: authorized.thread.threadId,
+  };
+  // Approve draft (right-click) is /approve on that message with the default language.
+  if (interaction.command === "agent_context")
+    return handBackAgentDraft(env, interaction, scope, interaction.targetMessageId, "customer");
+  // An Approve button on a draft posted before drafts lost their buttons follows the same rule.
+  if (interaction.action === "approve")
+    return handBackAgentDraft(env, interaction, scope, interaction.messageId, "customer");
   if (interaction.action === "translate") {
     const approved =
       await env.DB.prepare(`UPDATE reply_review SET confirmed_by=coalesce(confirmed_by,?)
@@ -100,7 +96,7 @@ export async function decideAgentDraft(
     messageId: interaction.messageId,
     threadId: authorized.thread.threadId,
     inboxId: authorized.integration.inboxId,
-    action: interaction.action === "approve" ? "approve" : "reject",
+    action: "reject",
     decidedBy: interaction.operatorUserId,
   });
   return DECISION_TEXT[outcome];
@@ -199,17 +195,230 @@ export async function applyAgentDraftDecision(
 }
 
 const DISCORD_MESSAGE_ID = /(\d{17,20})\/?$/;
+const NOT_A_DRAFT = "That message is not an agent draft in this support thread.";
 
 /**
- * /approve: approve an agent draft named by its Discord message (link or ID).
- * Without a language, or with the draft's own language, this is the Approve draft
- * message command. With another language ("customer" is the thread's recorded
- * language), the draft's identity is immutable, so it files a superseding reply
- * (same English text, agent and conversation basis) in that language, already
- * approved by this operator, marks the old draft stale and records the language on
- * the thread, all in one batch. The new translation is not previewed, so the usual
- * review gate applies: if it needs review, the Approve translation button follows.
- * Idempotent per draft and language.
+ * The machine line of an approval note, `approve:{...}` between backticks; the English
+ * text follows it verbatim. The support runner wakes on it and sends the reply with
+ * `rk send-approved`, which checks the draft, the hash and that nothing newer arrived.
+ */
+export interface DraftApproval {
+  /** The approved draft's RespondKit message ID (msg_agent_...). */
+  readonly draft: string;
+  /** A language code ("en" sends the English as written), or "customer" when the thread's language is unknown. */
+  readonly language: string;
+  /** SHA-256 (hex) of the English text after the line. */
+  readonly sha256: string;
+  /** The approving operator's Discord user ID. */
+  readonly by: string;
+}
+
+export const APPROVAL_MARKER = "approve:";
+
+export function draftApprovalNote(approval: DraftApproval, english: string, draftLink: string) {
+  const draft = draftLink === "" ? "this draft" : `[this draft](${draftLink})`;
+  const action =
+    approval.language === "en"
+      ? "send it in English, as written"
+      : `translate it into ${languageName(approval.language)} and send it`;
+  return `Approved ${draft}: ${action}.\n\`${APPROVAL_MARKER}${JSON.stringify(approval)}\`\n${english}`;
+}
+
+function languageName(language: string) {
+  return language === "customer"
+    ? "the customer's language (inferred from the thread)"
+    : languageLabel(language);
+}
+
+/** What happens next, after "Handed to the agent: " or "<operator> already handed ...: ". */
+function nextStep(language: string) {
+  return language === "en"
+    ? "it will send this reply in English, as written, and post it here."
+    : `it will translate this reply into ${languageName(language)}, send it, and post both versions here.`;
+}
+
+/** What the operator is told after an approval: who sends what, and where it shows up. */
+export function handedBackText(language: string) {
+  return `Handed to the agent: ${nextStep(language)}`;
+}
+
+async function sha256Hex(text: string) {
+  const bytes = new Uint8Array(
+    await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)),
+  );
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+const when = (ms: number) => `<t:${Math.floor(ms / 1000)}:f>`;
+
+/** A reply or customer message that is not a pending draft, described for the operator. */
+async function notADraft(env: Env, scope: { threadId: string }, messageId: string) {
+  const message = await env.DB.prepare(
+    "SELECT direction,customer_availability,accepted_at FROM message WHERE id=? AND thread_id=?",
+  )
+    .bind(messageId, scope.threadId)
+    .first<{ direction: string; customer_availability: string; accepted_at: number }>();
+  if (!message) return NOT_A_DRAFT;
+  if (message.direction === "customer_to_operator")
+    return "That is a customer message, not an agent draft.";
+  return message.customer_availability === "available"
+    ? `That reply was already sent to the customer (${when(message.accepted_at)}); it is not a draft. Use /reply to send a correction.`
+    : "That reply is already on its way to the customer; it is not a draft. Check the thread in a minute.";
+}
+
+/**
+ * Approving an agent draft never sends it from here: it records the approval as an
+ * operator steer note (`approve:` line, the English text after it), which stales the
+ * draft (trigger 0011, so no other approval can publish it) and wakes the agent. The
+ * agent translates the English, sends it and posts both versions in the thread.
+ * /approve, Approve draft and old Approve buttons all come here; idempotent per interaction.
+ */
+async function handBackAgentDraft(
+  env: Env,
+  interaction:
+    | ParsedDiscordApproveInteraction
+    | ParsedDiscordAgentDecisionInteraction
+    | ParsedDiscordAgentContextInteraction,
+  scope: { workspaceId: string; inboxId: string; threadId: string },
+  draftRef: string,
+  translate: string,
+): Promise<string> {
+  let messageId: string | null = /^msg_agent_[a-f0-9]{64}$/.test(draftRef) ? draftRef : null;
+  if (messageId === null) {
+    const discordMessageId = DISCORD_MESSAGE_ID.exec(draftRef)?.[1];
+    if (discordMessageId === undefined) return "Give the draft's Discord message link or ID.";
+    const chunk = await env.DB.prepare(
+      "SELECT message_id FROM agent_draft_chunk WHERE discord_message_id=? AND discord_thread_id=?",
+    )
+      .bind(discordMessageId, interaction.discordThreadId)
+      .first<{ message_id: string }>();
+    if (!chunk) {
+      const posted = await env.DB.prepare(
+        "SELECT message_id FROM discord_message WHERE discord_message_id=? AND discord_thread_id=?",
+      )
+        .bind(discordMessageId, interaction.discordThreadId)
+        .first<{ message_id: string }>();
+      return posted ? notADraft(env, scope, posted.message_id) : NOT_A_DRAFT;
+    }
+    messageId = chunk.message_id;
+  }
+  const row = await env.DB.prepare(
+    "SELECT envelope,status,mode FROM agent_reply WHERE message_id=? AND thread_id=? AND inbox_id=?",
+  )
+    .bind(messageId, scope.threadId, scope.inboxId)
+    .first<{ envelope: string; status: string; mode: string }>();
+  if (!row) return notADraft(env, scope, messageId);
+  if (row.mode !== "draft") return notADraft(env, scope, messageId);
+  const envelope = agentOperatorEnvelopeSchema.parse(JSON.parse(row.envelope));
+
+  const noteId = `note_discord_${interaction.interactionId}`;
+  const needle = `${APPROVAL_MARKER}{"draft":"${messageId}"`;
+  const earlier = await env.DB.prepare(
+    "SELECT id,author_name,created_at,text FROM internal_note WHERE thread_id=? AND inbox_id=? AND author_kind='operator' AND kind='steer' AND instr(text,?)>0 ORDER BY ordering_key DESC LIMIT 1",
+  )
+    .bind(scope.threadId, scope.inboxId, needle)
+    .first<{ id: string; author_name: string; created_at: number; text: string }>();
+  const earlierLanguage = () => {
+    const line = earlier!.text.split("\n").find((l) => l.startsWith(`\`${APPROVAL_MARKER}`));
+    return line === undefined
+      ? "customer"
+      : (JSON.parse(line.slice(APPROVAL_MARKER.length + 1, -1)) as DraftApproval).language;
+  };
+  if (earlier?.id === noteId) return handedBackText(earlierLanguage());
+
+  const sent = await env.DB.prepare(
+    "SELECT accepted_at FROM message WHERE id=? AND customer_availability='available'",
+  )
+    .bind(messageId)
+    .first<{ accepted_at: number }>();
+  if (sent)
+    return `That draft was already approved and sent to the customer (${when(sent.accepted_at)}). Use /reply to send a correction.`;
+  if (row.status === "approved")
+    return "That draft was already approved and is on its way to the customer. Check the thread in a minute.";
+  if (row.status === "rejected")
+    return "That draft was rejected and never sent. Ask the agent for a new one with /agent, or answer with /reply.";
+  if (earlier)
+    return `${earlier.author_name} already handed this draft to the agent (${when(earlier.created_at)}): ${nextStep(earlierLanguage())}`;
+  if (row.status !== "pending")
+    return "That draft is out of date: the conversation moved on after it was written, so it can no longer be approved. Ask the agent for a new draft with /agent, or answer with /reply.";
+
+  let language = translate === "off" ? "en" : translate;
+  if (language === "customer") {
+    const thread = await env.DB.prepare("SELECT customer_language FROM thread WHERE id=?")
+      .bind(scope.threadId)
+      .first<{ customer_language: string | null }>();
+    language = thread?.customer_language ?? "customer";
+  }
+  if (language !== "customer" && new Intl.Locale(language).language === "en") language = "en";
+  const approval: DraftApproval = {
+    draft: messageId,
+    language,
+    sha256: await sha256Hex(envelope.originalText),
+    by: interaction.operatorUserId,
+  };
+  const chunk = await env.DB.prepare(
+    "SELECT discord_message_id FROM agent_draft_chunk WHERE message_id=? AND chunk_index=0",
+  )
+    .bind(messageId)
+    .first<{ discord_message_id: string }>();
+  const link = chunk
+    ? `https://discord.com/channels/${interaction.guildId}/${interaction.discordThreadId}/${chunk.discord_message_id}`
+    : "";
+  const text = draftApprovalNote(approval, envelope.originalText, link);
+  const canonical = JSON.stringify({
+    threadId: scope.threadId,
+    operatorUserId: interaction.operatorUserId,
+    approval,
+  });
+  const now = Date.now();
+  // Only while the draft is pending: the note's trigger then stales it in the same statement.
+  await env.DB.batch([
+    env.DB.prepare(`INSERT INTO internal_note(id,workspace_id,inbox_id,thread_id,author_kind,author_name,operator_discord_user_id,kind,text,interaction_id,request_json,created_at)
+      SELECT ?,workspace_id,inbox_id,thread_id,'operator',?,?,'steer',?,?,?,? FROM agent_reply
+      WHERE message_id=? AND thread_id=? AND inbox_id=? AND status='pending'
+      ON CONFLICT(interaction_id) DO NOTHING`).bind(
+      noteId,
+      interaction.operatorName || interaction.operatorUserId,
+      interaction.operatorUserId,
+      text,
+      interaction.interactionId,
+      canonical,
+      now,
+      messageId,
+      scope.threadId,
+      scope.inboxId,
+    ),
+    // A language the operator names is the customer's language from now on.
+    ...(translate === "customer" || translate === "off"
+      ? []
+      : [
+          env.DB.prepare(
+            "UPDATE thread SET customer_language=?, customer_language_updated_at=? WHERE id=? AND inbox_id=? AND EXISTS (SELECT 1 FROM internal_note WHERE id=?)",
+          ).bind(language, now, scope.threadId, scope.inboxId, noteId),
+        ]),
+  ]);
+  const note = await env.DB.prepare("SELECT * FROM internal_note WHERE interaction_id=?")
+    .bind(interaction.interactionId)
+    .first<InternalNote>();
+  if (!note)
+    return "That draft changed meanwhile (a new message, reply or note arrived). Nothing was handed to the agent; ask it for a new draft with /agent.";
+  if (note.request_json !== canonical) return "This interaction belongs to a different note.";
+  // The draft's workflow waits for a decision: wake it so it sees the draft is stale and ends.
+  try {
+    const old = await env.MESSAGE_WORKFLOW.get(envelope.workflowInstanceId);
+    const state = await old.status();
+    if (!["complete", "errored", "terminated"].includes(state.status))
+      await old.sendEvent({ type: "agent-decision", payload: {} });
+  } catch (error) {
+    console.error("approve: could not end the handed-back draft's workflow", error);
+  }
+  await deliverNote(env, note);
+  return handedBackText(language);
+}
+
+/**
+ * /approve id:<draft> translate:<customer | language | off>: hands the draft to the
+ * agent (handBackAgentDraft). The default language is the customer's.
  */
 export async function approveAgentDraftCommand(
   env: Env,
@@ -226,149 +435,15 @@ export async function approveAgentDraftCommand(
     forumChannelId: interaction.forumChannelId,
   });
   if (!authorized.ok) return "This command is not authorized.";
-  const threadId = authorized.thread.threadId;
-  const inboxId = authorized.integration.inboxId;
-
-  const draftRef = interaction.draft.trim();
-  let messageId: string | null = /^msg_agent_[a-f0-9]{64}$/.test(draftRef) ? draftRef : null;
-  if (messageId === null) {
-    const discordMessageId = DISCORD_MESSAGE_ID.exec(draftRef)?.[1];
-    if (discordMessageId === undefined) return "Give the draft's Discord message link or ID.";
-    const chunk = await env.DB.prepare(
-      "SELECT message_id FROM agent_draft_chunk WHERE discord_message_id=? AND discord_thread_id=?",
-    )
-      .bind(discordMessageId, interaction.discordThreadId)
-      .first<{ message_id: string }>();
-    if (!chunk) return "That message is not an agent draft in this support thread.";
-    messageId = chunk.message_id;
-  }
-  const row = await env.DB.prepare(
-    "SELECT idempotency_key,envelope,status,basis_row_id FROM agent_reply WHERE message_id=? AND thread_id=? AND inbox_id=? AND mode='draft'",
-  )
-    .bind(messageId, threadId, inboxId)
-    .first<{ idempotency_key: string; envelope: string; status: string; basis_row_id: number }>();
-  if (!row) return "That message is not an agent draft in this support thread.";
-  const previous = agentOperatorEnvelopeSchema.parse(JSON.parse(row.envelope));
-
-  let language = interaction.translate;
-  if (language === "customer") {
-    const thread = await env.DB.prepare("SELECT customer_language FROM thread WHERE id=?")
-      .bind(threadId)
-      .first<{ customer_language: string | null }>();
-    if (!thread?.customer_language)
-      return "This thread's customer language is unknown. Name the language instead, for example translate:Burmese.";
-    language = thread.customer_language;
-  }
-  const decide = () =>
-    decideAgentDraft(env, {
-      ...interaction,
-      command: "agent_decision",
-      action: "approve",
-      messageId: messageId!,
-    });
-  if (language === undefined || language === previous.replyTranslation) return decide();
-  if (language !== "off" && !translationEnabled(env, inboxId))
-    return "Translation is not enabled for this inbox.";
-
-  const key = `${row.idempotency_key}:approve:${language}`.slice(0, 200);
-  const identity = await agentTokenHash(JSON.stringify([inboxId, key]));
-  const newMessageId = `msg_agent_${identity}`;
-  const label = language === "off" ? "untranslated English" : languageLabel(language);
-  const already = await env.DB.prepare("SELECT status FROM agent_reply WHERE message_id=?")
-    .bind(newMessageId)
-    .first<{ status: string }>();
-  if (!already) {
-    if (row.status !== "pending") {
-      return row.status === "stale"
-        ? "That draft is stale: the conversation moved on. Ask the agent for a new draft with /agent."
-        : `That draft is already ${row.status}.`;
-    }
-    const envelope = agentOperatorEnvelopeSchema.parse({
-      ...previous,
-      messageId: newMessageId,
-      workflowInstanceId: `agent_${identity}`,
-      acceptedAt: new Date().toISOString(),
-      replyTranslation: language,
-      replyTranslationRequest: interaction.translate,
-      // Approved here, so no draft step: the workflow goes straight to translation and delivery.
-      agent: { name: previous.agent.name, mode: "send" },
-    });
-    const now = Date.now();
-    await env.DB.batch([
-      env.DB.prepare(`INSERT INTO agent_reply(message_id,workspace_id,inbox_id,thread_id,idempotency_key,request_json,envelope,mode,status,decided_by,decided_at,basis_row_id,created_at)
-        SELECT ?,workspace_id,inbox_id,id,?,?,?,'send','approved',?,?,?,? FROM thread WHERE id=? AND inbox_id=? AND status='open'
-        AND EXISTS (SELECT 1 FROM agent_reply WHERE message_id=? AND status='pending')
-        ON CONFLICT(inbox_id,idempotency_key) DO NOTHING`).bind(
-        newMessageId,
-        key,
-        JSON.stringify({
-          threadId,
-          text: previous.originalText,
-          idempotencyKey: key,
-          translate: interaction.translate,
-          mode: "send",
-          approvedFrom: messageId,
-          by: interaction.operatorUserId,
-        }),
-        JSON.stringify(envelope),
-        interaction.operatorUserId,
-        now,
-        row.basis_row_id,
-        now,
-        threadId,
-        inboxId,
-        messageId,
-      ),
-      env.DB.prepare(
-        "UPDATE agent_reply SET status='stale' WHERE message_id=? AND status='pending' AND EXISTS (SELECT 1 FROM agent_reply WHERE message_id=?)",
-      ).bind(messageId, newMessageId),
-      ...(language === "off"
-        ? []
-        : [
-            env.DB.prepare(
-              "UPDATE thread SET customer_language=?, customer_language_updated_at=? WHERE id=? AND inbox_id=? AND EXISTS (SELECT 1 FROM agent_reply WHERE message_id=?)",
-            ).bind(language, now, threadId, inboxId, newMessageId),
-          ]),
-    ]);
-    const created = await env.DB.prepare("SELECT status FROM agent_reply WHERE message_id=?")
-      .bind(newMessageId)
-      .first<{ status: string }>();
-    if (!created)
-      return "That draft changed meanwhile (approved, rejected or overtaken). Nothing was sent.";
-    // The old draft's workflow waits for a decision: wake it so it sees the draft is stale and ends.
-    try {
-      const old = await env.MESSAGE_WORKFLOW.get(previous.workflowInstanceId);
-      const state = await old.status();
-      if (!["complete", "errored", "terminated"].includes(state.status)) {
-        await old.sendEvent({ type: "agent-decision", payload: {} });
-      }
-    } catch (error) {
-      console.error("approve: could not end the superseded draft's workflow", error);
-    }
-  }
-  const available = await env.DB.prepare(
-    "SELECT id FROM message WHERE id=? AND customer_availability='available'",
-  )
-    .bind(newMessageId)
-    .first();
-  if (available) return `Draft approved in ${label}; the reply is already available in chat.`;
-  // Start the delivery workflow, or report on the one already started by an earlier /approve.
-  let status = (await workflowStatus(env.MESSAGE_WORKFLOW, `agent_${identity}`))?.status;
-  if (status === undefined) {
-    const stored = await env.DB.prepare("SELECT envelope FROM agent_reply WHERE message_id=?")
-      .bind(newMessageId)
-      .first<{ envelope: string }>();
-    const envelope = agentOperatorEnvelopeSchema.parse(JSON.parse(stored!.envelope));
-    const acceptance = await acceptWorkflow(
-      env.MESSAGE_WORKFLOW,
-      envelope.workflowInstanceId,
-      envelope,
-    );
-    if (acceptance.kind === "unknown")
-      return `Draft approved in ${label}, but delivery could not be confirmed. Run /approve again to retry; it will not send twice.`;
-    status = acceptance.kind === "existing" ? acceptance.status.status : "queued";
-  }
-  if (status === "errored" || status === "terminated")
-    return `Approval in ${label} recorded, but the workflow failed. Check the agent reply status before retrying.`;
-  return `Draft approved in ${label} for delivery.${language === "off" ? "" : ` If the translation needs review, an Approve translation button follows. This thread's customer language is now ${label}.`} Repeated approval will not send another reply.`;
+  return handBackAgentDraft(
+    env,
+    interaction,
+    {
+      workspaceId: authorized.integration.workspaceId,
+      inboxId: authorized.integration.inboxId,
+      threadId: authorized.thread.threadId,
+    },
+    interaction.draft.trim(),
+    interaction.translate ?? "customer",
+  );
 }

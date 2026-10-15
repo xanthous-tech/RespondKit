@@ -398,15 +398,24 @@ try {
     body: interaction,
     headers: { "x-signature-ed25519": signature, "x-signature-timestamp": timestamp },
   });
+  // Approving hands the draft back to the agent: an operator note with the approve line is
+  // echoed, the draft goes stale, and nothing reaches the customer from RespondKit.
   for (let attempt = 0; attempt < 100 && posts.length < 4; attempt++) await delay(100);
   assert.equal(Number(posts.length), 4);
+  assert.match(posts[3].content, /`approve:\{"draft":"msg_agent_/);
+  assert(posts[3].content.includes("You can export as text or subtitles."));
   const after = await curl(`/v1/threads/${threadId}/messages`, { headers: customerHeaders });
-  assert(JSON.stringify(after).includes("You can export as text or subtitles."));
+  assert(!JSON.stringify(after).includes("You can export as text or subtitles."));
   await curl("/v1/discord/interactions", {
     method: "POST",
     body: interaction,
     headers: { "x-signature-ed25519": signature, "x-signature-timestamp": timestamp },
   });
+  assert.equal(Number(posts.length), 4);
+  assert.equal(
+    (await sql(`SELECT status FROM agent_reply WHERE message_id='${drafted.messageId}'`))[0].status,
+    "stale",
+  );
   const unanswered = await agent("/threads?needsReply=1&state=open");
   assert.equal(unanswered.threads.length, 0);
   const noteBody = {
@@ -429,13 +438,16 @@ try {
   assert.equal(wake.threads.length, 1);
   assert(wake.threads[0].lastCustomerAt);
   assert(wake.threads[0].lastAgentAt);
+  assert(wake.threads[0].lastOperatorAt, "the approval note wakes the agent");
   const timeline = await agent(`/threads/${threadId}`);
-  assert.equal(timeline.notes.length, 1);
-  assert.equal(timeline.notes[0].id, note.note.id);
+  assert.equal(timeline.notes.length, 2);
+  assert.match(timeline.notes[0].text, /^Approved \[this draft\]/);
+  assert.equal(timeline.notes[1].id, note.note.id);
   const page1 = await agent(`/threads/${threadId}?limit=2`);
   const page2 = await agent(`/threads/${threadId}?limit=2&cursor=${page1.nextCursor}`);
-  assert.equal(page2.notes.length, 1);
-  assert.equal(page2.messages.length, 1);
+  assert.equal(page1.messages.length, 2);
+  assert.equal(page2.notes.length, 2);
+  assert.equal(page2.messages.length, 0);
   await agent(`/threads/${threadId}/ack`, { through: timeline.through });
   assert.equal((await agent("/threads?needsAgent=1")).threads.length, 0);
   const customerAfterNote = await curl(`/v1/threads/${threadId}/messages`, {
@@ -464,15 +476,16 @@ try {
   await agent(`/threads/${threadId}/ack`, { through: timeline.through });
   assert.equal((await agent("/threads?needsAgent=1")).threads.length, 1);
   const steeredRead = await agent(`/threads/${threadId}`);
-  assert.equal(steeredRead.notes[1].operatorDiscordUserId, ids.operator);
+  assert.equal(steeredRead.notes.at(-1).operatorDiscordUserId, ids.operator);
   await agent(`/threads/${threadId}/ack`, { through: steeredRead.through });
   assert.equal((await agent("/threads?needsAgent=1")).threads.length, 0);
-  for (const decision of ["Approve draft", "Reject draft"]) {
-    const longDraft = await agent(`/threads/${threadId}/replies`, {
-      text: `English ${decision}. `.repeat(130),
+  {
+    const longBody = {
+      text: "English Approve draft. ".repeat(130),
       mode: "draft",
-      idempotencyKey: `of19-${decision}`,
-    });
+      idempotencyKey: "of19-Approve draft",
+    };
+    const longDraft = await agent(`/threads/${threadId}/replies`, longBody);
     const chunks = await waitFor(async () => {
       const rows = await sql(
         `SELECT discord_message_id FROM agent_draft_chunk WHERE message_id='${longDraft.messageId}' ORDER BY chunk_index`,
@@ -482,31 +495,29 @@ try {
     const firstChunk = posts.find((post) => post.id === chunks[0].discord_message_id);
     assert(!firstChunk.components);
     assert.match(
-      (await signedCommand({ type: 3, name: decision, target_id: chunks[0].discord_message_id }))
-        .data.content,
-      decision === "Approve draft" ? /approved/ : /rejected/,
+      (
+        await signedCommand({
+          type: 3,
+          name: "Approve draft",
+          target_id: chunks[0].discord_message_id,
+        })
+      ).data.content,
+      /^Handed to the agent: it will translate this reply into the customer's language/,
     );
-    await waitFor(async () => {
-      const current = await agent(
-        `/threads/${threadId}/replies`,
-        {
-          text: `English ${decision}. `.repeat(130),
-          mode: "draft",
-          idempotencyKey: `of19-${decision}`,
-        },
-        null,
-      );
-      return current.status === (decision === "Approve draft" ? "available" : "rejected");
-    }, "draft decision completed");
+    assert.equal(
+      (await agent(`/threads/${threadId}/replies`, longBody, null)).status,
+      "stale",
+      "a handed-back draft can no longer be published as it was",
+    );
     assert.match(
       (
         await signedCommand({
           type: 3,
-          name: decision === "Approve draft" ? "Reject draft" : "Approve draft",
+          name: "Approve draft",
           target_id: chunks[1].discord_message_id,
         })
       ).data.content,
-      decision === "Approve draft" ? /approved/ : /rejected/,
+      /already handed this draft to the agent/,
     );
   }
   await signedCommand({
@@ -559,23 +570,33 @@ try {
   });
   assert(!JSON.stringify(previewCustomer).includes(translatedDraftBody.text));
   assert(!JSON.stringify(previewCustomer).includes(translatedText));
-  await signedCommand({ type: 3, name: "Approve draft", target_id: preview.discord_message_id });
-  await waitFor(
-    async () =>
-      (await agent(`/threads/${threadId}/replies`, translatedDraftBody, null)).status ===
-      "available",
-    "one approval publishes exact translation",
+  // The preview is for reading only: approval hands the English to the agent, in the thread's language.
+  assert.match(
+    (await signedCommand({ type: 3, name: "Approve draft", target_id: preview.discord_message_id }))
+      .data.content,
+    /^Handed to the agent: it will translate this reply into French \(fr\), send it, and post both versions here\.$/,
   );
-  const approvedPreview = (
-    await sql(
-      `SELECT r.result_json,r.confirmed_by,m.customer_visible_text FROM reply_review r JOIN message m ON m.id=r.message_id WHERE r.message_id='${translatedDraft.messageId}'`,
-    )
-  )[0];
-  assert.equal(approvedPreview.result_json, preview.result_json);
-  assert.equal(approvedPreview.confirmed_by, ids.operator);
-  assert.equal(approvedPreview.customer_visible_text, translatedText);
-  await agent(`/threads/${threadId}/replies`, translatedDraftBody);
-  await signedCommand({ type: 3, name: "Approve draft", target_id: preview.discord_message_id });
+  assert.equal(
+    (await agent(`/threads/${threadId}/replies`, translatedDraftBody, null)).status,
+    "stale",
+  );
+  const handedBack = await agent(`/threads/${threadId}`);
+  const approvalNote = handedBack.notes.at(-1);
+  assert.equal(approvalNote.kind, "steer");
+  const approvalLine = approvalNote.text.split("\n")[1];
+  const approval = JSON.parse(approvalLine.slice("`approve:".length, -1));
+  assert.deepEqual(approval, {
+    draft: translatedDraft.messageId,
+    language: "fr",
+    sha256: createHash("sha256").update(translatedDraftBody.text).digest("hex"),
+    by: ids.operator,
+  });
+  assert.equal(approvalNote.text.split("\n").slice(2).join("\n"), translatedDraftBody.text);
+  const previewCustomerAfter = await curl(`/v1/threads/${threadId}/messages`, {
+    headers: customerHeaders,
+  });
+  assert(!JSON.stringify(previewCustomerAfter).includes(translatedDraftBody.text));
+  await agent(`/threads/${threadId}/ack`, { through: handedBack.through });
   assert.equal(translationRequests.length - translationStart, 1);
   assert(
     !posts
@@ -613,7 +634,7 @@ try {
   await sql(`INSERT INTO agent_reply(message_id,workspace_id,inbox_id,thread_id,idempotency_key,request_json,envelope,mode,status,basis_row_id,created_at)
     SELECT '${legacyEnvelope.messageId}',workspace_id,inbox_id,id,'${legacyBody.idempotencyKey}',${literal({ threadId, ...legacyBody })},${literal(legacyEnvelope)},'draft','pending',coalesce((SELECT max(row_id) FROM message WHERE thread_id=thread.id),0),${Date.now()} FROM thread WHERE id='${threadId}'`);
   await agent(`/threads/${threadId}/replies`, legacyBody);
-  const legacyChunk = await waitFor(
+  await waitFor(
     async () =>
       (
         await sql(
@@ -622,11 +643,12 @@ try {
       )[0],
     "legacy draft posted",
   );
-  await signedCommand({
-    type: 3,
-    name: "Approve draft",
-    target_id: legacyChunk.discord_message_id,
-  });
+  // Operators now hand drafts back; the agent's own approval (its untapped-draft timeout) still
+  // approves a legacy draft in place, which then needs its translation approved.
+  assert.equal(
+    (await agent(`/threads/${threadId}/replies/${legacyEnvelope.messageId}/approve`, {})).outcome,
+    "approved",
+  );
   await waitFor(
     async () =>
       posts.find((post) =>
@@ -672,8 +694,8 @@ try {
     `SELECT status,claimed_by FROM thread WHERE id='${threadId}'; SELECT id,author_kind,author_name,customer_visible_text,processing_status FROM message WHERE thread_id='${threadId}' ORDER BY row_id; SELECT status,decided_by FROM agent_reply WHERE message_id='${drafted.messageId}';`,
   );
   assert.equal(stored[0].status, "closed");
-  assert.equal(stored.at(-1).status, "approved");
-  const doc = `# OF-19 follow-up: approved steering and joint translation approval\n\nRun: ${new Date().toISOString()}\n\nExecuted \`node apps/api/scripts/verify-agent-api.mjs\` against \`wrangler dev --local\`, using the real Hono Worker, D1 migrations 0000–0011, and MessageWorkflow. HTTP calls below were made with curl. Loopback Discord and Gemini REST fixtures captured requests. An ignored local Worker entrypoint redirects Gemini fetches to the fixture and rejects all other external fetches; the production workflow and translation adapter are unchanged by the harness. The fixture always returns needsReview=true; Ed25519 keys and agent/session credentials were generated for this run and are redacted. The ready Discord mapping was seeded locally. No remote database, Discord channel, email provider, Gemini service, or deployed Worker was touched.\n\n## Curl transcript\n\n${evidence.map((entry) => `### ${entry.request}\n\nHTTP ${entry.status}\n\n\`\`\`json\n${JSON.stringify(entry.data, null, 2)}\n\`\`\`\n`).join("\n")}\n## Discord posts captured\n\n\`\`\`json\n${JSON.stringify(posts, null, 2)}\n\`\`\`\n\n## D1 readback\n\n\`\`\`json\n${JSON.stringify({ messagesAndDrafts: stored, threadFlow: flowStored, approvedTranslations: followupStored, translationProviderCalls: translationRequests.length }, null, 2)}\n\`\`\`\n\nAssertions passed: English and uncertain translation displayed before one signed approval; exact result reused with one provider call; real operator recorded in reply_review; duplicate approval/replay does not retranslate; legacy approved translation survives steering and completes after its existing translation approval; notes stored and posted; immutable note replay/conflict; shared message/note pagination; customer payload unchanged by notes; needsAgent and monotonic ack; signed allowlisted steering with identity and duplicate interaction; context Approve and Reject on non-button draft chunks; opposite decision preserves first result; existing human /reply wakes agent; customer-created thread; unanswered listing; full read; claim; send; same-key replay; operator-only draft with Approve/Reject; signed allowlisted approval; customer-visible approved reply; duplicate approval without duplicate delivery; unanswered list empty; close persisted.\n`;
+  assert.equal(stored.at(-1).status, "stale", "the handed-back draft was never published");
+  const doc = `# OF-19 follow-up: approved steering and joint translation approval\n\nRun: ${new Date().toISOString()}\n\nExecuted \`node apps/api/scripts/verify-agent-api.mjs\` against \`wrangler dev --local\`, using the real Hono Worker, D1 migrations 0000–0011, and MessageWorkflow. HTTP calls below were made with curl. Loopback Discord and Gemini REST fixtures captured requests. An ignored local Worker entrypoint redirects Gemini fetches to the fixture and rejects all other external fetches; the production workflow and translation adapter are unchanged by the harness. The fixture always returns needsReview=true; Ed25519 keys and agent/session credentials were generated for this run and are redacted. The ready Discord mapping was seeded locally. No remote database, Discord channel, email provider, Gemini service, or deployed Worker was touched.\n\n## Curl transcript\n\n${evidence.map((entry) => `### ${entry.request}\n\nHTTP ${entry.status}\n\n\`\`\`json\n${JSON.stringify(entry.data, null, 2)}\n\`\`\`\n`).join("\n")}\n## Discord posts captured\n\n\`\`\`json\n${JSON.stringify(posts, null, 2)}\n\`\`\`\n\n## D1 readback\n\n\`\`\`json\n${JSON.stringify({ messagesAndDrafts: stored, threadFlow: flowStored, approvedTranslations: followupStored, translationProviderCalls: translationRequests.length }, null, 2)}\n\`\`\`\n\nAssertions passed: English and uncertain translation preview displayed before approval; Approve draft, /approve and old Approve buttons hand the draft back to the agent as an operator note with the approve line (draft, language, English hash, operator) and the English text, stale the draft and publish nothing; repeated approval answers that the draft was already handed back; one provider call for the preview; legacy agent-approved translation survives steering and completes after its existing translation approval; notes stored and posted; immutable note replay/conflict; shared message/note pagination; customer payload unchanged by notes; needsAgent and monotonic ack; signed allowlisted steering with identity and duplicate interaction; context Approve on non-button draft chunks; existing human /reply wakes agent; customer-created thread; unanswered listing; full read; claim; send; same-key replay; operator-only draft; signed allowlisted hand-back; nothing customer-visible from an approval; duplicate approval without a second note; unanswered list empty; close persisted.\n`;
   await mkdir(resolve(root, "docs/verification"), { recursive: true });
   await writeFile(resolve(root, "docs/verification/of-19-followup.md"), doc);
   console.log(

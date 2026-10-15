@@ -13,12 +13,9 @@ describe("Discord guild commands", () => {
       "agent",
       "approve",
       "Approve draft",
-      "Reject draft",
       "reply",
       "status",
       "retry",
-      "translate",
-      "Translate to English",
       "activity",
     ]);
     expect(

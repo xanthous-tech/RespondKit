@@ -16,12 +16,7 @@ import {
   requestMessageTranslation,
   startTranslationWorkflow,
 } from "./translation-service";
-import {
-  handleTranslationInteraction,
-  freezeTranslationSelection,
-  replyReview,
-  resolveTranslationMessage,
-} from "./discord-translation";
+import { handleTranslationInteraction, replyReview } from "./discord-translation";
 import {
   TEST_TOPOLOGY,
   createCustomerFixture,
@@ -97,7 +92,6 @@ async function fixture() {
 function interaction() {
   return {
     kind: "command" as const,
-    command: "translate" as const,
     interactionId: snowflakeAt(),
     applicationId: TEST_TOPOLOGY.applicationId,
     token: "ephemeral-test",
@@ -107,7 +101,6 @@ function interaction() {
     threadType: 11,
     operatorUserId: TEST_TOPOLOGY.operatorId,
     operatorRoleIds: [TEST_TOPOLOGY.operatorRoleId],
-    targetLanguage: "en",
   };
 }
 
@@ -208,7 +201,7 @@ describe("optional message translation", () => {
     }
   });
 
-  it("rejects other-thread targets and disabled inboxes, and resolves exact Discord messages", async () => {
+  it("rejects other-thread targets and disabled inboxes", async () => {
     const { scope, identity } = await fixture();
     const apiEnv = createTestEnv();
     await expect(
@@ -227,24 +220,6 @@ describe("optional message translation", () => {
         "en",
       ),
     ).rejects.toThrow("not enabled");
-    expect(
-      await resolveTranslationMessage(apiEnv, scope, {
-        ...interaction(),
-        targetMessageId: "100000000000000081",
-      }),
-    ).toBe(identity.messageId);
-    await expect(
-      resolveTranslationMessage(apiEnv, scope, {
-        ...interaction(),
-        messageLink: "https://discord.com/channels/1/2/3",
-      }),
-    ).rejects.toThrow("this support thread");
-    await expect(
-      resolveTranslationMessage(apiEnv, scope, {
-        ...interaction(),
-        targetMessageId: "999999999999999999",
-      }),
-    ).rejects.toThrow("original customer message");
   });
 
   it("records a provider rejection without leaking its response body or failing delivery", async () => {
@@ -280,25 +255,6 @@ describe("optional message translation", () => {
       vi.unstubAllGlobals();
       await workflows.dispose();
     }
-  });
-
-  it("freezes the latest-message selection across Discord redeliveries", async () => {
-    const { scope, identity } = await fixture();
-    const command = interaction();
-    const apiEnv = createTestEnv();
-    expect(await freezeTranslationSelection(apiEnv, scope, command)).toBe(identity.messageId);
-    const clientMessageId = `client_${crypto.randomUUID()}` as ClientMessageId;
-    const newer = await deriveCustomerMessageIdentity({ ...scope, clientMessageId });
-    await acceptCustomerIngress(createDatabase(env.DB), {
-      ...scope,
-      id: newer.messageId,
-      clientMessageId,
-      workflowInstanceId: newer.workflowInstanceId,
-      originalText: "Newer message",
-      acceptedAt: new Date(Date.now() + 1000),
-    });
-    expect(await resolveTranslationMessage(apiEnv, scope, command)).toBe(newer.messageId);
-    expect(await freezeTranslationSelection(apiEnv, scope, command)).toBe(identity.messageId);
   });
 
   it("does not post a duplicate for a message already in the target language", async () => {

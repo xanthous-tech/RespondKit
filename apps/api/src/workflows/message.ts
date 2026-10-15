@@ -762,15 +762,14 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
           });
         }
         const target = await ensureDiscordThread(step, this.env, envelope, "draft-discord");
+        // A preview only: approving hands the English to the agent, which translates it again.
         const translationPreview = previewTranslation
-          ? `**Translation (${previewTranslation.targetLanguage})**\n${previewTranslation.translatedText}\n\n${previewTranslation.needsReview ? `**Review translation wording**\n${previewTranslation.ambiguityNotes.join("\n")}\n\n` : ""}Approving confirms the English reply and this translation.\n`
-          : envelope.replyTranslation === "off"
-            ? "Sends as written.\n"
-            : `Translates to ${envelope.replyTranslation} when approved.\n`;
-        // One message, no buttons: the draft must never look sent. Operators decide with the
-        // Approve draft / Reject draft message commands (right-click, or long-press on a phone).
+          ? `**Translation preview (${previewTranslation.targetLanguage})**\n${previewTranslation.translatedText}\n\n${previewTranslation.needsReview ? `**Review translation wording**\n${previewTranslation.ambiguityNotes.join("\n")}\n\n` : ""}`
+          : "";
+        // One message, no buttons: the draft must never look sent. Operators approve with the
+        // Approve draft message command (right-click, or long-press on a phone) or /approve.
         const chunks = splitDiscordMessage(
-          `**Agent ${envelope.agent.name} · Draft, not sent**\n${envelope.originalText}\n\n${translationPreview}_To send it: right-click this message (long-press on a phone) → Apps → **Approve draft**. **Reject draft** discards it._`,
+          `**Agent ${envelope.agent.name} · Draft, not sent**\n${envelope.originalText}\n\n${translationPreview}_To send it: right-click this message (long-press on a phone) → Apps → **Approve draft**, or \`/approve\` with this message's link and a language. The agent then sends the English above in the customer's language (or the one you name) and posts both versions here. To change it, use /agent or /reply._`,
         );
         for (const [index, content] of chunks.entries()) {
           const posted = await step.do(`post-agent-draft-${index}`, DISCORD_STEP, () =>
