@@ -136,7 +136,7 @@ private fun RespondKitContent(
                     color = WidgetInk,
                     maxLines = 1,
                 )
-                Text("Ask us anything", fontSize = 14.sp, lineHeight = 20.sp, color = WidgetMuted)
+                Text(stringResource(R.string.respondkit_ask_anything), fontSize = 14.sp, lineHeight = 20.sp, color = WidgetMuted)
             }
             IconButton(
                 onClick = onClose,
@@ -270,13 +270,13 @@ private fun Conversation(store: RespondKitStore, state: SupportState, modifier: 
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Text(
-                            "How can we help?",
+                            stringResource(R.string.respondkit_help),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             color = WidgetInk,
                         )
                         Text(
-                            "Send a message and keep this page open for a quick reply.",
+                            stringResource(R.string.respondkit_intro),
                             fontSize = 14.sp,
                             color = WidgetMuted,
                             textAlign = TextAlign.Center,
@@ -319,7 +319,7 @@ private fun Conversation(store: RespondKitStore, state: SupportState, modifier: 
                 }
             }
         } else {
-            if (state.emailAddress == null) EmailCapture(store, state.isLoading)
+            if (state.asksForEmail) EmailCapture(store, state.isLoading)
             Composer(store, state)
         }
     }
@@ -351,13 +351,13 @@ private fun Composer(store: RespondKitStore, state: SupportState) {
             !state.isSending &&
             (state.draft.isNotBlank() || attachments.isNotEmpty()) && !uploading &&
             state.draft.length <= 6_000
-    Column {
-    AttachmentPicker(store, clearAttachments, state.isSending) { files, busy -> attachments = files; uploading = busy }
+    AttachmentPicker(store, clearAttachments, state.isSending, { files, busy -> attachments = files; uploading = busy }) { attachButton ->
     Row(
         Modifier.fillMaxWidth().padding(12.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.Bottom,
     ) {
+        attachButton()
         BasicTextField(
             state.draft,
             store::setDraft,

@@ -30,6 +30,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures { compose = true }
+    sourceSets["main"].res.srcDir("../../../localization/generated/android/res")
     sourceSets["androidTest"].assets.srcDir("../../fixtures")
 }
 

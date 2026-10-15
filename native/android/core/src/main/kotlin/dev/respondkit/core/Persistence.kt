@@ -39,6 +39,8 @@ internal data class StoredState(
 
 data class SupportState(
     val emailAddress: String? = null,
+    /** True once the session's contact lookup found no email; false while it is unknown. */
+    val asksForEmail: Boolean = false,
     val isFreshConversation: Boolean = false,
     val statuses: List<ThreadStatus> = emptyList(),
     val unreadThreadIds: Set<String> = emptySet(),

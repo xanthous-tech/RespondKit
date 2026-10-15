@@ -32,6 +32,7 @@ class RespondKitStore(
     private var automaticallySelectConversation = false
     private val mutex = Mutex()
     private var hasLoadedHistory = false
+    private var contactResolved = false
     private val freshThreadIds = mutableSetOf<String>()
 
     init {
@@ -136,6 +137,7 @@ class RespondKitStore(
         this.context = context.copy(device = context.device ?: this.context.device)
         this.identityToken = identityToken
         session = null
+        contactResolved = false
         if (changed) {
             freshThreadIds.clear()
             hasLoadedHistory = false
@@ -422,6 +424,7 @@ class RespondKitStore(
             check(generation)
             context = context.copy(email = contact?.email)
         }
+        contactResolved = true
         publish()
         return created.token
     }
@@ -498,6 +501,7 @@ class RespondKitStore(
             it.copy(
                 isFreshConversation = hasLoadedHistory && (it.activeThreadId == null || it.activeThreadId in freshThreadIds),
                 emailAddress = context.email,
+                asksForEmail = contactResolved && context.email == null,
                 statuses = stored.statuses,
                 unreadThreadIds =
                     stored.statuses
