@@ -112,6 +112,7 @@ export function RespondKitWidget({
     setOpen(true);
   }
 
+  const locale = context.locale ?? globalThis.navigator?.language;
   const hasUnreadReplies = unreadThreadIds.size > 0;
   const buttonProps: ComponentPropsWithRef<"button"> = {
     ref: launcherRef,
@@ -154,7 +155,7 @@ export function RespondKitWidget({
                   {title}
                 </h2>
                 <p className="ac:m-0 ac:text-sm ac:text-muted-foreground">
-                  {catalog(context.locale).respondkit_ask_anything()}
+                  {catalog(locale).respondkit_ask_anything()}
                 </p>
               </div>
               <Tooltip>
@@ -224,7 +225,7 @@ export function RespondKitWidget({
                 ) : null}
                 <MessageList
                   greeting={isFreshConversation ? greeting : undefined}
-                  locale={context.locale}
+                  locale={locale}
                   messages={messages}
                   onRetry={retryMessage}
                   transcriptState={transcriptState}
@@ -236,7 +237,7 @@ export function RespondKitWidget({
                   />
                 ) : null}
                 <MessageComposer
-                  locale={context.locale}
+                  locale={locale}
                   scope={`${context.userId ?? "anonymous"}:${selectedThreadId ?? "new"}`}
                   disabled={bootstrapState !== "ready"}
                   onSend={sendMessage}
