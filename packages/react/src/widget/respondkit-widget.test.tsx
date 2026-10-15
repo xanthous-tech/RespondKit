@@ -395,6 +395,56 @@ describe("RespondKitWidget", () => {
     expect(screen.queryByLabelText("Loading messages")).not.toBeInTheDocument();
   });
 
+  it.each([
+    [
+      "ja-JP",
+      "何でもお気軽にどうぞ",
+      "どのようなご用件ですか？",
+      "メッセージを送信して、このページを開いたままお待ちください。すぐにお返事します。",
+      "ファイルを添付",
+    ],
+    [
+      "zh-Hans-CN",
+      "有问题尽管问",
+      "有什么可以帮您？",
+      "发送消息后请保持此页面打开，以便及时收到回复。",
+      "添加附件",
+    ],
+  ])("renders the %s empty state, subtitle and attach control", async (locale, ...expected) => {
+    const [subtitle, help, intro, attach] = expected;
+    const { apiFetch, resolveTranscript } = createDelayedEmptyTranscriptApiFetch();
+    vi.stubGlobal("fetch", apiFetch);
+    render(
+      <RespondKitWidget
+        apiBaseUrl="https://support.test"
+        context={{ inboxId: "inbox_test", locale }}
+        initiallyOpen
+      />,
+    );
+    resolveTranscript();
+    expect(await screen.findByText(help!)).toBeVisible();
+    expect(screen.getByText(subtitle!)).toBeVisible();
+    expect(screen.getByText(intro!)).toBeVisible();
+    expect(screen.getByRole("button", { name: attach })).toBeInTheDocument();
+  });
+
+  it("falls back to the browser language when the host sends no locale", async () => {
+    const language = vi.spyOn(navigator, "language", "get").mockReturnValue("ja");
+    const { apiFetch, resolveTranscript } = createDelayedEmptyTranscriptApiFetch();
+    vi.stubGlobal("fetch", apiFetch);
+    render(
+      <RespondKitWidget
+        apiBaseUrl="https://support.test"
+        context={{ inboxId: "inbox_test" }}
+        initiallyOpen
+      />,
+    );
+    resolveTranscript();
+    expect(await screen.findByText("どのようなご用件ですか？")).toBeVisible();
+    expect(screen.getByText("何でもお気軽にどうぞ")).toBeVisible();
+    language.mockRestore();
+  });
+
   it.each(["interval", "reopen", "visibility"])(
     "keeps an empty transcript visible during a pending %s refresh",
     async (trigger) => {

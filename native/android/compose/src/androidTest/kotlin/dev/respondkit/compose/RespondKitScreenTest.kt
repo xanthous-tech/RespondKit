@@ -1,5 +1,6 @@
 package dev.respondkit.compose
 
+import androidx.activity.compose.LocalActivityResultRegistryOwner
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -7,6 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.semantics.SemanticsActions
@@ -223,6 +226,64 @@ class RespondKitScreenTest {
         compose.onNodeWithContentDescription("Attach files").performClick()
         compose.onNodeWithText("Photo library").assertExists()
         compose.onNodeWithText("Files").assertExists()
+    }
+
+    private fun localized(languageTags: String): android.content.Context {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val configuration = android.content.res.Configuration(context.resources.configuration)
+        configuration.setLocales(android.os.LocaleList.forLanguageTags(languageTags))
+        return context.createConfigurationContext(configuration)
+    }
+
+    private fun assertScreenTranslated(languageTags: String, help: String, intro: String, subtitle: String, attach: String, photos: String, files: String) {
+        val context = localized(languageTags)
+        compose.setContent {
+            val scope = rememberCoroutineScope()
+            val store = remember {
+                RespondKitStore(
+                    RespondKitConfiguration("https://support.example.com", "inbox_test", "https://example.com"),
+                    persistence = MemoryPersistence(), api = Api(), scope = scope,
+                )
+            }
+            val owner = LocalActivityResultRegistryOwner.current!!
+            CompositionLocalProvider(
+                LocalContext provides context,
+                LocalConfiguration provides context.resources.configuration,
+                LocalActivityResultRegistryOwner provides owner,
+            ) {
+                RespondKitScreen(store, onClose = {})
+            }
+        }
+        compose.onNodeWithText(subtitle).assertIsDisplayed()
+        compose.onNodeWithText(help).assertIsDisplayed()
+        compose.onNodeWithText(intro).assertIsDisplayed()
+        compose.onNodeWithContentDescription(attach).assertHasClickAction()
+        org.junit.Assert.assertEquals(photos, context.getString(R.string.respondkit_photo_library))
+        org.junit.Assert.assertEquals(files, context.getString(R.string.respondkit_files))
+    }
+
+    @Test
+    fun japaneseScreenIsTranslated() =
+        assertScreenTranslated("ja-JP", "どのようなご用件ですか？", "メッセージを送信して、このページを開いたままお待ちください。すぐにお返事します。", "何でもお気軽にどうぞ", "ファイルを添付", "フォトライブラリ", "ファイル")
+
+    @Test
+    fun simplifiedChineseScreenIsTranslated() =
+        assertScreenTranslated("zh-Hans-CN", "有什么可以帮您？", "发送消息后请保持此页面打开，以便及时收到回复。", "有问题尽管问", "添加附件", "照片图库", "文件")
+
+    @Test
+    fun deviceLocalesFallBackToTheClosestCatalog() {
+        val cases = listOf(
+            "zh-TW" to "zh-Hant", "zh-HK" to "zh-Hant", "zh-MO" to "zh-Hant", "zh-CN" to "zh-Hans", "zh-SG" to "zh-Hans",
+            "he-IL" to "he", "iw" to "he", "id-ID" to "id", "in" to "id", "nb-NO" to "nb", "no" to "nb",
+            "fil-PH" to "fil", "tl" to "fil", "pt" to "pt-BR", "pt-BR" to "pt-BR", "pt-PT" to "pt-PT", "pt-AO" to "pt-PT",
+            "fr-CA" to "fr-CA", "fr-BE" to "fr", "de-AT" to "de", "es-MX" to "es", "en-GB" to "en", "xx" to "en",
+        )
+        val english = localized("en").getString(R.string.respondkit_ask_anything)
+        for ((device, catalog) in cases) {
+            val expected = localized(catalog).getString(R.string.respondkit_ask_anything)
+            org.junit.Assert.assertEquals(device, expected, localized(device).getString(R.string.respondkit_ask_anything))
+            if (catalog != "en") org.junit.Assert.assertNotEquals(catalog, english, expected)
+        }
     }
 
     @Test

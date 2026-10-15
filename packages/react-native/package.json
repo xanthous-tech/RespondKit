@@ -1,6 +1,6 @@
 {
   "name": "@respondkit/react-native",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "Native React Native support conversations for RespondKit",
   "homepage": "https://respondkit.dev",
   "license": "MIT",
@@ -71,6 +71,7 @@
   "devDependencies": {
     "@types/react": "catalog:",
     "react": "catalog:",
+    "react-dom": "catalog:",
     "react-native": "0.87.1",
     "react-native-device-info": "15.0.2",
     "react-native-get-random-values": "2.0.0",
