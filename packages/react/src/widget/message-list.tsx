@@ -8,6 +8,7 @@ import { cn } from "#lib/utils";
 
 import type { DisplayMessage, TranscriptState } from "./types";
 import { MessageText } from "./message-text";
+import { messages as catalog } from "./messages";
 
 interface MessageListProps {
   readonly greeting?: string | undefined;
@@ -74,6 +75,7 @@ export function MessageList({
       return "en";
     }
   }, [locale]);
+  const t = catalog(locale);
 
   useEffect(() => {
     const viewport = viewportRef.current;
@@ -134,10 +136,8 @@ export function MessageList({
           ) : null}
           {messages.length === 0 && !greeting?.trim() ? (
             <div className="ac:my-auto ac:flex ac:flex-col ac:gap-1 ac:py-16 ac:text-center">
-              <p className="ac:text-sm ac:font-medium ac:text-foreground">How can we help?</p>
-              <p className="ac:text-sm ac:text-muted-foreground">
-                Send a message and keep this page open for a quick reply.
-              </p>
+              <p className="ac:text-sm ac:font-medium ac:text-foreground">{t.respondkit_help()}</p>
+              <p className="ac:text-sm ac:text-muted-foreground">{t.respondkit_intro()}</p>
             </div>
           ) : null}
 

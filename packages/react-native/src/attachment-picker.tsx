@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import type { AttachmentV1 } from "@respondkit/api-client";
 import { nativeFileSource, pickSupportFiles, type NativeFile } from "./files";
+import { messages } from "./messages";
 import type { RespondKitStore } from "./store";
 interface Picked {
   id: string;
@@ -17,6 +18,7 @@ export function AttachmentPicker({
   readonly store: RespondKitStore;
   readonly onChange: (files: AttachmentV1[], busy: boolean) => void;
 }) {
+  const t = messages(Intl.DateTimeFormat().resolvedOptions().locale);
   const [files, setFiles] = useState<Picked[]>([]);
   const [error, setError] = useState<string>();
   const controllers = useRef(new Map<string, AbortController>());
@@ -84,15 +86,15 @@ export function AttachmentPicker({
       <Pressable
         accessibilityRole="button"
         onPress={() =>
-          Alert.alert("Attach files", undefined, [
-            { text: "Photo library", onPress: () => void pick("photos") },
-            { text: "Files", onPress: () => void pick("files") },
-            { text: "Cancel", style: "cancel" },
+          Alert.alert(t.respondkit_attach_files(), undefined, [
+            { text: t.respondkit_photo_library(), onPress: () => void pick("photos") },
+            { text: t.respondkit_files(), onPress: () => void pick("files") },
+            { text: t.respondkit_cancel(), style: "cancel" },
           ])
         }
         style={{ paddingVertical: 8 }}
       >
-        <Text>📎 Attach files</Text>
+        <Text>📎 {t.respondkit_attach_files()}</Text>
       </Pressable>
       {error ? (
         <Text accessibilityRole="alert" style={{ color: "#b91c1c" }}>
