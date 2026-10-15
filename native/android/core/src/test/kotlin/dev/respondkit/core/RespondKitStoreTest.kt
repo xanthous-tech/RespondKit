@@ -35,6 +35,8 @@ private class FakeApi : RespondKitApi {
     var messagePage = MessagePage("thread_one", emptyList(), "0", false)
     var storedEmail: String? = null
     var contactCalls = 0
+    var contactFailures = 0
+    var contactGate: CompletableDeferred<Unit>? = null
 
     fun seed() {
         firstPage = fixture<StatusPage>("statuses").copy(nextCursor = "page_two")
@@ -115,6 +117,11 @@ private class FakeApi : RespondKitApi {
 
     override suspend fun contact(token: String): ContactInfo {
         contactCalls++
+        if (contactFailures > 0) {
+            contactFailures--
+            throw RespondKitException("Contact unavailable.")
+        }
+        contactGate?.also { contactGate = null }?.await()
         return ContactInfo(email = storedEmail)
     }
 
@@ -385,6 +392,40 @@ class RespondKitStoreTest {
         assertFalse(store.state.value.asksForEmail)
         store.refresh()
         assertTrue(store.state.value.asksForEmail)
+    }
+
+    @Test
+    fun failedContactLookupKeepsTheAskHiddenAndRetries() = runTest {
+        for (email in listOf(null, "ada@example.com")) {
+            val api = FakeApi().apply {
+                storedEmail = email
+                contactFailures = 1
+            }
+            val store = store(api)
+            store.openConversation()
+            assertFalse(store.state.value.asksForEmail)
+            store.refresh()
+            assertEquals(email == null, store.state.value.asksForEmail)
+            assertEquals(email, store.state.value.emailAddress)
+            store.refresh()
+            assertEquals(2, api.contactCalls)
+            assertEquals(1, api.sessionCalls)
+        }
+    }
+
+    @Test
+    fun canceledContactLookupResumesOnTheCachedSession() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        val api = FakeApi().apply { contactGate = gate }
+        val store = store(api)
+        val open = launch { store.openConversation() }
+        while (api.contactCalls == 0) yield()
+        open.cancelAndJoin()
+        assertFalse(store.state.value.asksForEmail)
+        store.refresh()
+        assertTrue(store.state.value.asksForEmail)
+        assertEquals(2, api.contactCalls)
+        assertEquals(1, api.sessionCalls)
     }
 
     @Test

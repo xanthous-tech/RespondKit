@@ -25,7 +25,28 @@ actor FakeAPI: RespondKitAPI {
   var statusContinuation: CheckedContinuation<Void, Never>?
   var contactEmail: String?
   func setContactEmail(_ value: String?) { contactEmail = value }
-  func contact(token: String) async throws -> ContactInfo { ContactInfo(email: contactEmail) }
+  var contactCalls = 0
+  var contactFailures = 0
+  var suspendContact = false
+  var contactContinuation: CheckedContinuation<Void, Never>?
+  func failContact(times: Int) { contactFailures = times }
+  func setSuspendContact(_ value: Bool) { suspendContact = value }
+  func resumeContact() {
+    contactContinuation?.resume()
+    contactContinuation = nil
+  }
+  func contact(token: String) async throws -> ContactInfo {
+    contactCalls += 1
+    if contactFailures > 0 {
+      contactFailures -= 1
+      throw RespondKitError("Contact unavailable.")
+    }
+    if suspendContact {
+      suspendContact = false
+      await withCheckedContinuation { contactContinuation = $0 }
+    }
+    return ContactInfo(email: contactEmail)
+  }
   func seed() throws {
     let page: StatusPage = try fixture("statuses")
     statusPages[""] = StatusPage(threads: page.threads, nextCursor: "page_two")
@@ -137,6 +158,37 @@ struct StoreTests {
       context: CustomerContext(userId: "another_user", email: "ann@example.com"))
     await store.refresh()
     #expect(!store.asksForEmail)
+  }
+  @Test(arguments: [nil, "ann@example.com"])
+  func failedContactLookupKeepsTheAskHiddenAndRetries(email: String?) async throws {
+    let api = FakeAPI()
+    await api.setContactEmail(email)
+    await api.failContact(times: 1)
+    let store = try make(api)
+    await store.openConversation()
+    #expect(!store.asksForEmail)
+    await store.refresh()
+    #expect(store.asksForEmail == (email == nil))
+    #expect(store.emailAddress == email)
+    await store.refresh()
+    #expect(await api.contactCalls == 2)
+    #expect(await api.sessionCalls == 1)
+  }
+
+  @Test func canceledContactLookupResumesOnTheCachedSession() async throws {
+    let api = FakeAPI()
+    await api.setSuspendContact(true)
+    let store = try make(api)
+    let open = Task { await store.openConversation() }
+    while await api.contactCalls == 0 { await Task.yield() }
+    open.cancel()
+    await api.resumeContact()
+    await open.value
+    #expect(!store.asksForEmail)
+    await store.refresh()
+    #expect(store.asksForEmail)
+    #expect(await api.contactCalls == 2)
+    #expect(await api.sessionCalls == 1)
   }
   @Test func emptyHistoryAndTranscriptStayVisibleDuringRefreshes() async throws {
     let api = FakeAPI()

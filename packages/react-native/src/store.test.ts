@@ -248,6 +248,25 @@ describe("React Native store", () => {
     await store.updateIdentity({ ...context, userId: "user_next" });
     expect(store.getSnapshot().asksForEmail).toBe(false);
   });
+  it.each([
+    ["the stored address", { email: "stored@example.com" }, false],
+    ["the ask", {}, true],
+  ] as [string, { email?: string }, boolean][])(
+    "keeps the ask hidden after a failed lookup and retries it into %s",
+    async (_, contact, asks) => {
+      const client = api();
+      client.getContact.mockRejectedValueOnce(new Error("503")).mockResolvedValue(contact);
+      const store = await make(client);
+      await store.openConversation();
+      expect(store.getSnapshot()).toMatchObject({ asksForEmail: false, email: undefined });
+      await store.refresh();
+      expect(client.getContact).toHaveBeenCalledTimes(2);
+      expect(client.createSession).toHaveBeenCalledTimes(1);
+      expect(store.getSnapshot()).toMatchObject({ asksForEmail: asks, email: contact.email });
+      await store.refresh();
+      expect(client.getContact).toHaveBeenCalledTimes(2);
+    },
+  );
   it("fails closed on corrupt storage and never sends before pending data is saved", async () => {
     await expect(
       make(api(), { load: async () => "bad json", save: async () => undefined }),
