@@ -38,7 +38,14 @@ export interface DiscordChatInputCommandDefinition {
   )[];
 }
 
-export type DiscordCommandName = "reply" | "retry" | "status" | "translate" | "activity" | "agent";
+export type DiscordCommandName =
+  | "reply"
+  | "retry"
+  | "status"
+  | "translate"
+  | "activity"
+  | "agent"
+  | "approve";
 
 export const DISCORD_REPLY_COMMAND = {
   type: DiscordApplicationCommandType.ChatInput,
@@ -57,7 +64,7 @@ export const DISCORD_REPLY_COMMAND = {
     {
       type: 3,
       name: "translate",
-      description: "off (default), customer, or a target language code such as hi",
+      description: "off (default), customer, or a language name or code (Burmese, 简体中文, hi)",
       required: false,
       min_length: 2,
       max_length: 35,
@@ -82,7 +89,7 @@ export const DISCORD_TRANSLATE_COMMAND = {
     {
       type: 3,
       name: "to",
-      description: "Target language code, for example en, hi, or my (default en)",
+      description: "Target language name or code, for example English, Burmese, or my (default en)",
       required: false,
       min_length: 2,
       max_length: 35,
@@ -205,6 +212,31 @@ export const DISCORD_AGENT_COMMAND = {
   ],
 } as const satisfies DiscordChatInputCommandDefinition;
 
+export const DISCORD_APPROVE_COMMAND = {
+  type: DiscordApplicationCommandType.ChatInput,
+  name: "approve",
+  description: "Approve an agent draft, optionally sending it in another language",
+  default_member_permissions: "0",
+  options: [
+    {
+      type: DiscordApplicationCommandOptionType.String,
+      name: "id",
+      description: "The draft's Discord message link or ID",
+      required: true,
+      min_length: 1,
+      max_length: 200,
+    },
+    {
+      type: DiscordApplicationCommandOptionType.String,
+      name: "translate",
+      description: "customer, off, or a language name or code (Burmese, 简体中文, my)",
+      required: false,
+      min_length: 2,
+      max_length: 35,
+    },
+  ],
+} as const satisfies DiscordChatInputCommandDefinition;
+
 export const DISCORD_APPROVE_DRAFT_COMMAND = {
   type: 3,
   name: "Approve draft",
@@ -218,6 +250,7 @@ export const DISCORD_REJECT_DRAFT_COMMAND = {
 
 export const DISCORD_GUILD_COMMANDS = [
   DISCORD_AGENT_COMMAND,
+  DISCORD_APPROVE_COMMAND,
   DISCORD_APPROVE_DRAFT_COMMAND,
   DISCORD_REJECT_DRAFT_COMMAND,
   DISCORD_REPLY_COMMAND,

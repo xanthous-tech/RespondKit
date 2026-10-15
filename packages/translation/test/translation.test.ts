@@ -10,6 +10,7 @@ import {
   createGeminiTranslationModel,
   createTranslator,
   maskProtectedText,
+  resolveLanguageName,
   restoreProtectedText,
 } from "../src";
 
@@ -346,5 +347,30 @@ describe("failure classification", () => {
     if (typeof model !== "string") {
       expect(model.modelId).toBe(DEFAULT_GEMINI_MODEL_ID);
     }
+  });
+});
+
+describe("resolveLanguageName", () => {
+  const answer = (code: string | null) =>
+    new MockLanguageModelV4({
+      doGenerate: async () => ({
+        content: [{ type: "text", text: JSON.stringify({ code }) }],
+        finishReason: { raw: undefined, unified: "stop" },
+        usage,
+        warnings: [],
+      }),
+    });
+
+  it("returns the model's tag for a language name, validated", async () => {
+    await expect(resolveLanguageName(answer("ht"), "Kreyòl ayisyen")).resolves.toBe("ht");
+  });
+
+  it("refuses a null answer or a tag that is not a language", async () => {
+    await expect(resolveLanguageName(answer(null), "Klingon starship")).rejects.toBeInstanceOf(
+      TranslationError,
+    );
+    await expect(resolveLanguageName(answer("xx-not"), "something")).rejects.toBeInstanceOf(
+      TranslationError,
+    );
   });
 });
