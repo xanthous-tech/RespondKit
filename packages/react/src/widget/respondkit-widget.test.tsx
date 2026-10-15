@@ -1,5 +1,8 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act } from "react";
 import { createPortal } from "react-dom";
+import { hydrateRoot } from "react-dom/client";
+import { renderToString } from "react-dom/server";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
@@ -442,6 +445,31 @@ describe("RespondKitWidget", () => {
     resolveTranscript();
     expect(await screen.findByText("どのようなご用件ですか？")).toBeVisible();
     expect(screen.getByText("何でもお気軽にどうぞ")).toBeVisible();
+    language.mockRestore();
+  });
+
+  it("hydrates server markup without a locale before switching to the browser language", async () => {
+    const { apiFetch, resolveTranscript } = createDelayedEmptyTranscriptApiFetch();
+    vi.stubGlobal("fetch", apiFetch);
+    const widget = (
+      <RespondKitWidget
+        apiBaseUrl="https://support.test"
+        context={{ inboxId: "inbox_test" }}
+        initiallyOpen
+      />
+    );
+    const container = document.createElement("div");
+    container.innerHTML = renderToString(widget);
+    document.body.append(container);
+    expect(container.textContent).toContain("Ask us anything");
+    const language = vi.spyOn(navigator, "language", "get").mockReturnValue("ja");
+    const onRecoverableError = vi.fn();
+    const root = await act(async () => hydrateRoot(container, widget, { onRecoverableError }));
+    resolveTranscript();
+    await waitFor(() => expect(container.textContent).toContain("何でもお気軽にどうぞ"));
+    expect(onRecoverableError).not.toHaveBeenCalled();
+    act(() => root.unmount());
+    container.remove();
     language.mockRestore();
   });
 

@@ -4,6 +4,7 @@ import {
   useId,
   useRef,
   useState,
+  useSyncExternalStore,
   type ComponentPropsWithRef,
   type ReactNode,
   type CSSProperties,
@@ -45,6 +46,11 @@ export interface RespondKitWidgetProps {
   readonly renderLauncher?: ((props: RespondKitLauncherProps) => ReactNode) | undefined;
   readonly initiallyOpen?: boolean | undefined;
   readonly accentColor?: RespondKitAccentColor | undefined;
+}
+
+function subscribeToLanguage(onChange: () => void) {
+  window.addEventListener("languagechange", onChange);
+  return () => window.removeEventListener("languagechange", onChange);
 }
 
 export function RespondKitWidget({
@@ -112,7 +118,12 @@ export function RespondKitWidget({
     setOpen(true);
   }
 
-  const locale = context.locale ?? globalThis.navigator?.language;
+  const browserLocale = useSyncExternalStore(
+    subscribeToLanguage,
+    () => navigator.language,
+    () => undefined,
+  );
+  const locale = context.locale ?? browserLocale;
   const hasUnreadReplies = unreadThreadIds.size > 0;
   const buttonProps: ComponentPropsWithRef<"button"> = {
     ref: launcherRef,
