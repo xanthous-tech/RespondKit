@@ -21,6 +21,7 @@ import Observation
   public private(set) var isSending = false
   public private(set) var errorMessage: String?
   public private(set) var isForeground = false
+  @ObservationIgnored public var strings = RespondKitStrings()
   public var activeThread: SupportThread? {
     statuses.first { $0.thread.id == activeThreadID }?.thread
   }
@@ -157,8 +158,7 @@ import Observation
         Task { [api] in
           // Revocation failure is observable, but never restores the old account's UI.
           do { try await api.logout(token: oldSession.token) } catch {
-            self.errorMessage =
-              "Previous support session could not be revoked. It will expire automatically."
+            self.errorMessage = self.strings.logoutFailed
           }
         }
       }
@@ -214,18 +214,18 @@ import Observation
     defer { isSending = false }
     let text =
       draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !attachments.isEmpty
-      ? "Attached files" : draft
+      ? strings.attachedFiles : draft
     let threadID = activeThreadID
     guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, text.utf16.count <= 6_000
     else {
-      errorMessage = "Enter a message of up to 6,000 characters."
+      errorMessage = strings.messageTooLong
       return
     }
     await operate { epoch in
       if let threadID,
         self.state.statuses.first(where: { $0.thread.id == threadID })?.thread.state == "closed"
       {
-        throw RespondKitError("This conversation is closed. Start a new conversation.")
+        throw RespondKitError(self.strings.conversationClosed)
       }
       let key = threadID ?? "new"
       var pending = PendingMessage(
@@ -390,7 +390,7 @@ import Observation
       let assertion = try await identityToken?()
       try check(epoch)
       if identityToken != nil && (assertion?.isEmpty ?? true) {
-        throw RespondKitError("Support identity could not be verified.")
+        throw RespondKitError(self.strings.identityUnverified)
       }
       let value = try await api.createSession(
         installationID: state.installationID, context: context, identityToken: assertion)

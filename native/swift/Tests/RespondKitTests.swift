@@ -299,6 +299,23 @@ struct StoreTests {
     #expect(restored.activeThreadID == "thread_new")
   }
 
+  @Test func storeWritesItsOwnTextFromTheHostStrings() async throws {
+    let api = FakeAPI()
+    let store = try make(api)
+    var strings = RespondKitStrings()
+    strings.attachedFiles = "添付ファイル"
+    strings.messageTooLong = "6,000文字以内でメッセージを入力してください。"
+    store.strings = strings
+    await store.openConversation()
+    await store.sendDraft()
+    #expect(store.errorMessage == "6,000文字以内でメッセージを入力してください。")
+    let file = SupportAttachment(
+      id: "att_one", name: "receipt.pdf", contentType: "application/pdf", size: 1,
+      downloadUrl: URL(string: "https://support.example.com/att_one")!)
+    await store.sendDraft(attachments: [file])
+    #expect(store.pendingMessages.map(\.text) == ["添付ファイル"])
+  }
+
   @Test func contractAndNumericCursors() throws {
     let page: MessagePage = try fixture("messages")
     #expect(page.messages[0].text == "你好！我們可以幫忙。")

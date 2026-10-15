@@ -26,11 +26,11 @@
     /// Omit accentColor to inherit the host tint (or system/app accent).
     /// Set accentForegroundColor to a dark color when using a light accent.
     public init(
-      store: RespondKitStore, title: String = "Support", accentColor: Color? = nil,
+      store: RespondKitStore, title: String? = nil, accentColor: Color? = nil,
       accentForegroundColor: Color = .white, greeting: String? = nil
     ) {
       self.store = store
-      self.title = title
+      self.title = title ?? catalog("respondkit_support")
       self.greeting = greeting
       self.accentColor = accentColor
       self.accentForegroundColor = accentForegroundColor
@@ -59,7 +59,7 @@
             Image(systemName: "xmark").font(.system(size: 16))
               .frame(width: 40, height: 40).contentShape(Rectangle())
           }
-          .buttonStyle(.plain).accessibilityLabel("Close support chat")
+          .buttonStyle(.plain).accessibilityLabel(catalog("respondkit_close_chat"))
           .accessibilityIdentifier("respondkit-close")
         }
         .padding(.horizontal, 16).padding(.vertical, 12)
@@ -69,7 +69,7 @@
             Image(systemName: "exclamationmark.circle")
             Text(error).font(.system(size: textSize))
             Spacer(minLength: 0)
-            Button("Retry") { Task { await store.refresh() } }
+            Button(catalog("respondkit_retry")) { Task { await store.refresh() } }
           }
           .padding(12).background(WidgetStyle.fill)
           .accessibilityIdentifier("respondkit-error")
@@ -79,7 +79,10 @@
       }
       .foregroundStyle(WidgetStyle.foreground)
       .background(Color.white.ignoresSafeArea())
-      .task { await store.openConversation() }
+      .task {
+        store.strings = .catalog
+        await store.openConversation()
+      }
       .onDisappear { store.setScreenVisible(false) }
     }
   }
@@ -120,7 +123,7 @@
                           )
                           .frame(maxWidth: .infinity, alignment: index == 1 ? .leading : .trailing)
                       }
-                    }.accessibilityLabel("Loading messages")
+                    }.accessibilityLabel(catalog("respondkit_loading_messages"))
                   } else {
                     VStack(spacing: 4) {
                       Text("respondkit_help", tableName: "RespondKit", bundle: .module)
@@ -185,11 +188,11 @@
                   withAnimation { reader.scrollTo("bottom-" + store.loadedCursor, anchor: .bottom) }
                   unseen = 0
                 } label: {
-                  Label("\(unseen) new", systemImage: "arrow.down")
+                  Label(catalog("respondkit_new_count", count: unseen), systemImage: "arrow.down")
                     .font(.system(size: textSize)).padding(.horizontal, 12).padding(.vertical, 8)
                     .background(.white, in: Capsule()).overlay(Capsule().stroke(WidgetStyle.border))
                 }
-                .buttonStyle(.plain).padding(12).accessibilityLabel("Latest messages")
+                .buttonStyle(.plain).padding(12).accessibilityLabel(catalog("respondkit_latest"))
               }
             }
           }
@@ -197,8 +200,8 @@
         Rectangle().fill(WidgetStyle.border).frame(height: 1)
         if store.activeThread?.state == "closed" {
           VStack(spacing: 8) {
-            Text("This conversation is closed.").foregroundStyle(WidgetStyle.muted)
-            Button("Send another message") { store.selectThread(nil) }
+            Text(catalog("respondkit_closed_help")).foregroundStyle(WidgetStyle.muted)
+            Button(catalog("respondkit_another_message")) { store.selectThread(nil) }
           }.font(.system(size: textSize)).padding(12)
         } else {
           if store.asksForEmail { EmailCapture(store: store) }
@@ -213,14 +216,14 @@
     @State private var email = ""
     var body: some View {
       VStack(alignment: .leading, spacing: 8) {
-        Text("Where can we email you a reply?").font(.subheadline).foregroundStyle(
+        Text(catalog("respondkit_email_prompt")).font(.subheadline).foregroundStyle(
           WidgetStyle.muted)
         HStack {
           TextField("you@example.com", text: $email)
             .textContentType(.emailAddress).keyboardType(.emailAddress)
             .textInputAutocapitalization(.never).autocorrectionDisabled()
-            .textFieldStyle(.roundedBorder).accessibilityLabel("Email address")
-          Button("Save email") { Task { await store.saveEmail(email) } }
+            .textFieldStyle(.roundedBorder).accessibilityLabel(catalog("respondkit_email_address"))
+          Button(catalog("respondkit_save_email")) { Task { await store.saveEmail(email) } }
             .disabled(
               email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || store.isLoading)
         }
@@ -261,9 +264,9 @@
                   }
                   if let error = file.error {
                     Text(error).lineLimit(2)
-                    Button("Retry") { upload(file) }
+                    Button(catalog("respondkit_retry")) { upload(file) }
                   }
-                  Button("Remove") {
+                  Button(catalog("respondkit_remove")) {
                     tasks[file.id]?.cancel()
                     picked.removeAll { $0.id == file.id }
                   }
@@ -300,7 +303,7 @@
           .accessibilityLabel(
             Text("respondkit_attach_files", tableName: "RespondKit", bundle: .module)).disabled(store.isSending)
           TextField(
-            "Write a message…", text: Binding(get: { store.draft }, set: { store.setDraft($0) }),
+            catalog("respondkit_write_message"), text: Binding(get: { store.draft }, set: { store.setDraft($0) }),
             axis: .vertical
           )
           .font(.system(size: inputSize)).lineLimit(1...6).focused($focused)
@@ -309,7 +312,7 @@
             RoundedRectangle(cornerRadius: 12).strokeBorder(
               focused ? AnyShapeStyle(.tint) : AnyShapeStyle(WidgetStyle.border))
           )
-          .accessibilityLabel("Message").accessibilityIdentifier("respondkit-composer")
+          .accessibilityLabel(catalog("respondkit_message")).accessibilityIdentifier("respondkit-composer")
           Button {
             let files = picked.compactMap(\.attachment)
             Task { await store.sendDraft(attachments: files) }
@@ -321,7 +324,7 @@
               .opacity(canSend ? 1 : 0.5)
           }
           .buttonStyle(.plain).disabled(!canSend)
-          .accessibilityLabel("Send message").accessibilityIdentifier("respondkit-send")
+          .accessibilityLabel(catalog("respondkit_send_message")).accessibilityIdentifier("respondkit-send")
         }
       }.padding(12)
         .photosPicker(
@@ -447,7 +450,7 @@
             Button {
               retry(id)
             } label: {
-              Label("Try again", systemImage: "exclamationmark.circle")
+              Label(catalog("respondkit_try_again"), systemImage: "exclamationmark.circle")
             }
             .buttonStyle(.plain).foregroundStyle(
               row.failed ? AnyShapeStyle(WidgetStyle.failure) : AnyShapeStyle(.tint)

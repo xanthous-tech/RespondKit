@@ -49,6 +49,26 @@
       #expect(Self.screenKeys.map { Self.localized($0, preferring: [language]) } == expected)
     }
 
+    static let composerKeys = [
+      "respondkit_email_prompt", "respondkit_email_address", "respondkit_save_email",
+      "respondkit_write_message", "respondkit_send_message", "respondkit_sent",
+      "respondkit_close_chat",
+    ]
+
+    @Test(arguments: [
+      (
+        "ja-JP",
+        ["返信をお送りするメールアドレスを教えてください", "メールアドレス", "メールアドレスを保存", "メッセージを入力…", "メッセージを送信", "送信済み", "サポートチャットを閉じる"]
+      ),
+      (
+        "zh-Hans-CN",
+        ["我们该把回复发送到哪个邮箱？", "邮箱地址", "保存邮箱", "输入消息…", "发送消息", "已发送", "关闭客服聊天"]
+      ),
+    ])
+    func emailAskComposerStatusAndCloseAreTranslated(language: String, expected: [String]) {
+      #expect(Self.composerKeys.map { Self.localized($0, preferring: [language]) } == expected)
+    }
+
     @Test(arguments: [
       ("zh-TW", "zh-Hant"), ("zh-HK", "zh-Hant"), ("zh-Hant-MO", "zh-Hant"), ("zh-CN", "zh-Hans"),
       ("zh-SG", "zh-Hans"), ("he-IL", "he"), ("iw", "he"), ("id-ID", "id"), ("in", "id"),
