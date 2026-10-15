@@ -267,6 +267,7 @@ export class RespondKitStore {
         ? this.session.token
         : await this.createSession(epoch);
     await this.resolveContact(token, epoch);
+    this.check(epoch);
     return token;
   }
   private async createSession(epoch: number): Promise<string> {

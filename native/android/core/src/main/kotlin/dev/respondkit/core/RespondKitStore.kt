@@ -418,6 +418,7 @@ class RespondKitStore(
                 created.token
             }
         resolveContact(token, generation)
+        check(generation)
         return token
     }
 

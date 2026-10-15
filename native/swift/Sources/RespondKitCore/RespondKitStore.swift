@@ -399,6 +399,7 @@ import Observation
       token = value.token
     }
     try await resolveContact(token: token, epoch)
+    try check(epoch)
     return token
   }
   /// A failed or interrupted lookup leaves the contact unknown, so the ask stays hidden and the next request retries it.
