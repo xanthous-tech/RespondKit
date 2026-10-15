@@ -1,0 +1,103 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Pagalba",
+  "respondkit_ask_anything": "Klauskite mūsų bet ko",
+  "respondkit_open_chat": "Atidaryti pagalbos pokalbį",
+  "respondkit_close_chat": "Uždaryti pagalbos pokalbį",
+  "respondkit_close": "Uždaryti",
+  "respondkit_help": "Kuo galime padėti?",
+  "respondkit_intro": "Parašykite žinutę ir neuždarykite šio puslapio – greitai atsakysime.",
+  "respondkit_intro_short": "Parašykite žinutę ir pradėkite pokalbį.",
+  "respondkit_return": "Atsakymai bus rodomi čia, kai grįšite į programėlę.",
+  "respondkit_conversations": "Pokalbiai",
+  "respondkit_conversation": "Pokalbis {date}",
+  "respondkit_new_conversation": "Naujas pokalbis",
+  "respondkit_unread": "Neperskaitytas pagalbos atsakymas",
+  "respondkit_open": "Atviras",
+  "respondkit_closed": "Uždarytas",
+  "respondkit_more": "Daugiau",
+  "respondkit_loading": "Įkeliama…",
+  "respondkit_loading_messages": "Įkeliamos žinutės",
+  "respondkit_support_messages": "Pagalbos žinutės",
+  "respondkit_latest": "Naujausios žinutės",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} nauja",
+        "category=few": "{count} naujos",
+        "category=many": "{count} naujos",
+        "category=other": "{count} naujų",
+        "category=*": "{count} naujų"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Rodyti {count} naują žinutę",
+        "category=few": "Rodyti {count} naujas žinutes",
+        "category=many": "Rodyti {count} naujos žinutės",
+        "category=other": "Rodyti {count} naujų žinučių",
+        "category=*": "Rodyti {count} naujų žinučių"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Pokalbiai · {count} neperskaitytas",
+        "category=few": "Pokalbiai · {count} neperskaityti",
+        "category=many": "Pokalbiai · {count} neperskaityto",
+        "category=other": "Pokalbiai · {count} neperskaitytų",
+        "category=*": "Pokalbiai · {count} neperskaitytų"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Šis pokalbis uždarytas.",
+  "respondkit_another_message": "Siųsti kitą žinutę",
+  "respondkit_message": "Žinutė",
+  "respondkit_write_message": "Rašykite žinutę…",
+  "respondkit_send": "Siųsti",
+  "respondkit_send_message": "Siųsti žinutę",
+  "respondkit_sending": "Siunčiama…",
+  "respondkit_sent": "Išsiųsta",
+  "respondkit_failed": "Nepavyko",
+  "respondkit_confirming": "Patvirtinama…",
+  "respondkit_unknown": "Nepatvirtinta – galite saugiai bandyti dar kartą",
+  "respondkit_retry": "Bandyti dar kartą",
+  "respondkit_retry_message": "Siųsti žinutę dar kartą",
+  "respondkit_try_again": "Bandykite dar kartą",
+  "respondkit_reconnect": "Prisijungti iš naujo",
+  "respondkit_email_prompt": "Kokiu el. pašto adresu galime jums atsakyti?",
+  "respondkit_email_address": "El. pašto adresas",
+  "respondkit_save_email": "Išsaugoti el. paštą",
+  "respondkit_saving": "Išsaugoma…",
+  "respondkit_email_failed": "Nepavyko išsaugoti jūsų el. pašto adreso. Patikrinkite jį ir bandykite dar kartą.",
+  "respondkit_attach_files": "Pridėti failus",
+  "respondkit_attached_files": "Pridėti failai",
+  "respondkit_photo_library": "Nuotraukų biblioteka",
+  "respondkit_files": "Failai",
+  "respondkit_cancel": "Atšaukti",
+  "respondkit_ready": "Paruošta",
+  "respondkit_upload_failed": "Nepavyko įkelti",
+  "respondkit_remove": "Pašalinti",
+  "respondkit_remove_file": "Pašalinti {name}",
+  "respondkit_selected_file": "Pasirinktas failas",
+  "respondkit_picker_failed": "Nepavyksta atidaryti failų parinkiklio",
+  "respondkit_file_open_failed": "Nepavyksta atidaryti pasirinkto failo.",
+  "respondkit_start_failed": "Nepavyko pradėti pagalbos pokalbio.",
+  "respondkit_request_failed": "Pagalbos užklausa nepavyko.",
+  "respondkit_history_failed": "Nepavyko įkelti pokalbio istorijos. Dar kartą spustelėkite Daugiau.",
+  "respondkit_messages_failed": "Nepavyko įkelti naujų žinučių.",
+  "respondkit_sign_in_again": "Prisijunkite iš naujo, kad atkurtumėte pagalbos istoriją.",
+  "respondkit_session_expired": "Pagalbos sesija baigėsi. Prisijunkite iš naujo, kad galėtumėte tęsti.",
+  "respondkit_identity_changed": "Pagalbos tapatybė pasikeitė kitame skirtuke. Prisijunkite iš naujo, kad iš naujo įkeltumėte savo paskyrą.",
+  "respondkit_connecting": "Pagalba vis dar jungiasi.",
+  "respondkit_reconnect_upload": "Prieš įkeldami prisijunkite iš naujo."
+}

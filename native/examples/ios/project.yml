@@ -14,6 +14,8 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
+        # Declares the SDK catalog's languages so the app (and RespondKitUI's bundle) can run in them.
+        INFOPLIST_FILE: Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: dev.respondkit.example
         # Ad-hoc simulator builds need an application identity to use Keychain.
         # Physical device builds use the host's normal provisioning profile.

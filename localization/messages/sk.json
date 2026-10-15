@@ -1,0 +1,103 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Podpora",
+  "respondkit_ask_anything": "Opýtajte sa nás na čokoľvek",
+  "respondkit_open_chat": "Otvoriť chat podpory",
+  "respondkit_close_chat": "Zavrieť chat podpory",
+  "respondkit_close": "Zavrieť",
+  "respondkit_help": "Ako vám môžeme pomôcť?",
+  "respondkit_intro": "Pošlite správu a nechajte túto stránku otvorenú, aby ste rýchlo dostali odpoveď.",
+  "respondkit_intro_short": "Pošlite správu a začnite konverzáciu.",
+  "respondkit_return": "Odpovede sa tu zobrazia, keď sa vrátite do aplikácie.",
+  "respondkit_conversations": "Konverzácie",
+  "respondkit_conversation": "Konverzácia {date}",
+  "respondkit_new_conversation": "Nová konverzácia",
+  "respondkit_unread": "Neprečítaná odpoveď podpory",
+  "respondkit_open": "Otvorená",
+  "respondkit_closed": "Uzavretá",
+  "respondkit_more": "Viac",
+  "respondkit_loading": "Načítava sa…",
+  "respondkit_loading_messages": "Načítavajú sa správy",
+  "respondkit_support_messages": "Správy podpory",
+  "respondkit_latest": "Najnovšie správy",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} nová",
+        "category=few": "{count} nové",
+        "category=many": "{count} novej",
+        "category=other": "{count} nových",
+        "category=*": "{count} nových"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Zobraziť {count} novú správu",
+        "category=few": "Zobraziť {count} nové správy",
+        "category=many": "Zobraziť {count} novej správy",
+        "category=other": "Zobraziť {count} nových správ",
+        "category=*": "Zobraziť {count} nových správ"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Konverzácie · {count} neprečítaná",
+        "category=few": "Konverzácie · {count} neprečítané",
+        "category=many": "Konverzácie · {count} neprečítanej",
+        "category=other": "Konverzácie · {count} neprečítaných",
+        "category=*": "Konverzácie · {count} neprečítaných"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Táto konverzácia je uzavretá.",
+  "respondkit_another_message": "Poslať ďalšiu správu",
+  "respondkit_message": "Správa",
+  "respondkit_write_message": "Napíšte správu…",
+  "respondkit_send": "Odoslať",
+  "respondkit_send_message": "Odoslať správu",
+  "respondkit_sending": "Odosiela sa…",
+  "respondkit_sent": "Odoslané",
+  "respondkit_failed": "Zlyhalo",
+  "respondkit_confirming": "Potvrdzuje sa…",
+  "respondkit_unknown": "Nepotvrdené — môžete bezpečne skúsiť znova",
+  "respondkit_retry": "Skúsiť znova",
+  "respondkit_retry_message": "Znova odoslať správu",
+  "respondkit_try_again": "Skúsiť znova",
+  "respondkit_reconnect": "Znova pripojiť",
+  "respondkit_email_prompt": "Na aký e-mail vám môžeme poslať odpoveď?",
+  "respondkit_email_address": "E-mailová adresa",
+  "respondkit_save_email": "Uložiť e-mail",
+  "respondkit_saving": "Ukladá sa…",
+  "respondkit_email_failed": "E-mail sa nepodarilo uložiť. Skontrolujte ho a skúste to znova.",
+  "respondkit_attach_files": "Priložiť súbory",
+  "respondkit_attached_files": "Priložené súbory",
+  "respondkit_photo_library": "Knižnica fotiek",
+  "respondkit_files": "Súbory",
+  "respondkit_cancel": "Zrušiť",
+  "respondkit_ready": "Pripravené",
+  "respondkit_upload_failed": "Nahrávanie zlyhalo",
+  "respondkit_remove": "Odstrániť",
+  "respondkit_remove_file": "Odstrániť {name}",
+  "respondkit_selected_file": "Vybraný súbor",
+  "respondkit_picker_failed": "Výber súborov sa nedá otvoriť",
+  "respondkit_file_open_failed": "Vybraný súbor sa nedá otvoriť.",
+  "respondkit_start_failed": "Chat podpory sa nepodarilo spustiť.",
+  "respondkit_request_failed": "Požiadavka na podporu zlyhala.",
+  "respondkit_history_failed": "Históriu konverzácie sa nepodarilo načítať. Skúste to znova tlačidlom Viac.",
+  "respondkit_messages_failed": "Nové správy sa nepodarilo načítať.",
+  "respondkit_sign_in_again": "Prihláste sa znova a obnovte si históriu podpory.",
+  "respondkit_session_expired": "Relácia podpory vypršala. Ak chcete pokračovať, znova sa pripojte.",
+  "respondkit_identity_changed": "Identita podpory sa zmenila na inej karte. Znova sa pripojte a načítajte svoj účet.",
+  "respondkit_connecting": "Podpora sa ešte pripája.",
+  "respondkit_reconnect_upload": "Pred nahrávaním sa znova pripojte."
+}

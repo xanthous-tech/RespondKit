@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"Wyślij kolejną wiadomość"</string>
+    <string name="respondkit_ask_anything" formatted="false">"Zapytaj nas o cokolwiek"</string>
+    <string name="respondkit_attach_files" formatted="false">"Dołącz pliki"</string>
+    <string name="respondkit_attached_files" formatted="false">"Dołączone pliki"</string>
+    <string name="respondkit_cancel" formatted="false">"Anuluj"</string>
+    <string name="respondkit_close" formatted="false">"Zamknij"</string>
+    <string name="respondkit_close_chat" formatted="false">"Zamknij czat pomocy"</string>
+    <string name="respondkit_closed" formatted="false">"Zamknięta"</string>
+    <string name="respondkit_closed_help" formatted="false">"Ta rozmowa jest zamknięta."</string>
+    <string name="respondkit_confirming" formatted="false">"Potwierdzanie…"</string>
+    <string name="respondkit_connecting" formatted="false">"Czat pomocy wciąż się łączy."</string>
+    <string name="respondkit_conversation">"Rozmowa z %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"Rozmowy"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="one">"Rozmowy · %1$d nieprzeczytana"</item>
+        <item quantity="few">"Rozmowy · %1$d nieprzeczytane"</item>
+        <item quantity="many">"Rozmowy · %1$d nieprzeczytanych"</item>
+        <item quantity="other">"Rozmowy · %1$d nieprzeczytanej"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"Adres e-mail"</string>
+    <string name="respondkit_email_failed" formatted="false">"Nie udało się zapisać adresu e-mail. Sprawdź go i spróbuj ponownie."</string>
+    <string name="respondkit_email_prompt" formatted="false">"Na jaki adres e-mail wysłać odpowiedź?"</string>
+    <string name="respondkit_failed" formatted="false">"Nie wysłano"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"Nie można otworzyć wybranego pliku."</string>
+    <string name="respondkit_files" formatted="false">"Pliki"</string>
+    <string name="respondkit_help" formatted="false">"Jak możemy pomóc?"</string>
+    <string name="respondkit_history_failed" formatted="false">"Nie udało się wczytać historii rozmowy. Spróbuj ponownie, wybierając Więcej."</string>
+    <string name="respondkit_identity_changed" formatted="false">"Tożsamość w czacie pomocy zmieniła się w innej karcie. Połącz ponownie, aby wczytać swoje konto."</string>
+    <string name="respondkit_intro" formatted="false">"Wyślij wiadomość i nie zamykaj tej strony, aby szybko otrzymać odpowiedź."</string>
+    <string name="respondkit_intro_short" formatted="false">"Wyślij wiadomość, aby rozpocząć rozmowę."</string>
+    <string name="respondkit_latest" formatted="false">"Najnowsze wiadomości"</string>
+    <string name="respondkit_loading" formatted="false">"Wczytywanie…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"Wczytywanie wiadomości"</string>
+    <string name="respondkit_message" formatted="false">"Wiadomość"</string>
+    <string name="respondkit_messages_failed" formatted="false">"Nie udało się wczytać nowych wiadomości."</string>
+    <string name="respondkit_more" formatted="false">"Więcej"</string>
+    <string name="respondkit_new_conversation" formatted="false">"Nowa rozmowa"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="one">"%1$d nowa"</item>
+        <item quantity="few">"%1$d nowe"</item>
+        <item quantity="many">"%1$d nowych"</item>
+        <item quantity="other">"%1$d nowej"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"Otwarta"</string>
+    <string name="respondkit_open_chat" formatted="false">"Otwórz czat pomocy"</string>
+    <string name="respondkit_photo_library" formatted="false">"Biblioteka zdjęć"</string>
+    <string name="respondkit_picker_failed" formatted="false">"Nie można otworzyć okna wyboru plików"</string>
+    <string name="respondkit_ready" formatted="false">"Gotowe"</string>
+    <string name="respondkit_reconnect" formatted="false">"Połącz ponownie"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"Połącz ponownie przed przesłaniem plików."</string>
+    <string name="respondkit_remove" formatted="false">"Usuń"</string>
+    <string name="respondkit_remove_file">"Usuń %1$s"</string>
+    <string name="respondkit_request_failed" formatted="false">"Zapytanie do pomocy nie powiodło się."</string>
+    <string name="respondkit_retry" formatted="false">"Ponów"</string>
+    <string name="respondkit_retry_message" formatted="false">"Wyślij wiadomość ponownie"</string>
+    <string name="respondkit_return" formatted="false">"Odpowiedzi pojawią się tutaj po powrocie do aplikacji."</string>
+    <string name="respondkit_save_email" formatted="false">"Zapisz e-mail"</string>
+    <string name="respondkit_saving" formatted="false">"Zapisywanie…"</string>
+    <string name="respondkit_selected_file" formatted="false">"Wybrany plik"</string>
+    <string name="respondkit_send" formatted="false">"Wyślij"</string>
+    <string name="respondkit_send_message" formatted="false">"Wyślij wiadomość"</string>
+    <string name="respondkit_sending" formatted="false">"Wysyłanie…"</string>
+    <string name="respondkit_sent" formatted="false">"Wysłano"</string>
+    <string name="respondkit_session_expired" formatted="false">"Sesja czatu pomocy wygasła. Połącz ponownie, aby kontynuować."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="one">"Pokaż %1$d nową wiadomość"</item>
+        <item quantity="few">"Pokaż %1$d nowe wiadomości"</item>
+        <item quantity="many">"Pokaż %1$d nowych wiadomości"</item>
+        <item quantity="other">"Pokaż %1$d nowej wiadomości"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"Zaloguj się ponownie, aby przywrócić historię rozmów z pomocą."</string>
+    <string name="respondkit_start_failed" formatted="false">"Nie udało się uruchomić czatu pomocy."</string>
+    <string name="respondkit_support" formatted="false">"Pomoc"</string>
+    <string name="respondkit_support_messages" formatted="false">"Wiadomości czatu pomocy"</string>
+    <string name="respondkit_try_again" formatted="false">"Spróbuj ponownie"</string>
+    <string name="respondkit_unknown" formatted="false">"Niepotwierdzona — możesz bezpiecznie ponowić"</string>
+    <string name="respondkit_unread" formatted="false">"Nieprzeczytana odpowiedź zespołu pomocy"</string>
+    <string name="respondkit_upload_failed" formatted="false">"Przesyłanie nie powiodło się"</string>
+    <string name="respondkit_write_message" formatted="false">"Napisz wiadomość…"</string>
+</resources>

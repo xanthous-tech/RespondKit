@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"Weitere Nachricht senden"</string>
+    <string name="respondkit_ask_anything" formatted="false">"Wir beantworten gern alle Fragen"</string>
+    <string name="respondkit_attach_files" formatted="false">"Dateien anhängen"</string>
+    <string name="respondkit_attached_files" formatted="false">"Angehängte Dateien"</string>
+    <string name="respondkit_cancel" formatted="false">"Abbrechen"</string>
+    <string name="respondkit_close" formatted="false">"Schließen"</string>
+    <string name="respondkit_close_chat" formatted="false">"Support-Chat schließen"</string>
+    <string name="respondkit_closed" formatted="false">"Geschlossen"</string>
+    <string name="respondkit_closed_help" formatted="false">"Diese Unterhaltung ist geschlossen."</string>
+    <string name="respondkit_confirming" formatted="false">"Wird bestätigt…"</string>
+    <string name="respondkit_connecting" formatted="false">"Support wird noch verbunden."</string>
+    <string name="respondkit_conversation">"Unterhaltung %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"Unterhaltungen"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="one">"Unterhaltungen · %1$d ungelesen"</item>
+        <item quantity="other">"Unterhaltungen · %1$d ungelesen"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"E-Mail-Adresse"</string>
+    <string name="respondkit_email_failed" formatted="false">"Die E-Mail-Adresse konnte nicht gespeichert werden. Bitte prüfen und erneut versuchen."</string>
+    <string name="respondkit_email_prompt" formatted="false">"An welche E-Mail-Adresse dürfen wir antworten?"</string>
+    <string name="respondkit_failed" formatted="false">"Fehlgeschlagen"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"Die ausgewählte Datei kann nicht geöffnet werden."</string>
+    <string name="respondkit_files" formatted="false">"Dateien"</string>
+    <string name="respondkit_help" formatted="false">"Wie können wir helfen?"</string>
+    <string name="respondkit_history_failed" formatted="false">"Der Verlauf konnte nicht geladen werden. Bitte erneut auf „Mehr“ tippen."</string>
+    <string name="respondkit_identity_changed" formatted="false">"Die Support-Identität wurde in einem anderen Tab geändert. Neu verbinden, um dein Konto neu zu laden."</string>
+    <string name="respondkit_intro" formatted="false">"Schreib uns eine Nachricht und lass diese Seite für eine schnelle Antwort geöffnet."</string>
+    <string name="respondkit_intro_short" formatted="false">"Schreib uns eine Nachricht, um eine Unterhaltung zu beginnen."</string>
+    <string name="respondkit_latest" formatted="false">"Neueste Nachrichten"</string>
+    <string name="respondkit_loading" formatted="false">"Wird geladen…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"Nachrichten werden geladen"</string>
+    <string name="respondkit_message" formatted="false">"Nachricht"</string>
+    <string name="respondkit_messages_failed" formatted="false">"Neue Nachrichten konnten nicht geladen werden."</string>
+    <string name="respondkit_more" formatted="false">"Mehr"</string>
+    <string name="respondkit_new_conversation" formatted="false">"Neue Unterhaltung"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="one">"%1$d neu"</item>
+        <item quantity="other">"%1$d neu"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"Offen"</string>
+    <string name="respondkit_open_chat" formatted="false">"Support-Chat öffnen"</string>
+    <string name="respondkit_photo_library" formatted="false">"Fotomediathek"</string>
+    <string name="respondkit_picker_failed" formatted="false">"Dateiauswahl kann nicht geöffnet werden"</string>
+    <string name="respondkit_ready" formatted="false">"Bereit"</string>
+    <string name="respondkit_reconnect" formatted="false">"Neu verbinden"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"Vor dem Hochladen neu verbinden."</string>
+    <string name="respondkit_remove" formatted="false">"Entfernen"</string>
+    <string name="respondkit_remove_file">"%1$s entfernen"</string>
+    <string name="respondkit_request_failed" formatted="false">"Support-Anfrage fehlgeschlagen."</string>
+    <string name="respondkit_retry" formatted="false">"Wiederholen"</string>
+    <string name="respondkit_retry_message" formatted="false">"Nachricht erneut senden"</string>
+    <string name="respondkit_return" formatted="false">"Antworten erscheinen hier, sobald du zur App zurückkehrst."</string>
+    <string name="respondkit_save_email" formatted="false">"E-Mail speichern"</string>
+    <string name="respondkit_saving" formatted="false">"Wird gespeichert…"</string>
+    <string name="respondkit_selected_file" formatted="false">"Ausgewählte Datei"</string>
+    <string name="respondkit_send" formatted="false">"Senden"</string>
+    <string name="respondkit_send_message" formatted="false">"Nachricht senden"</string>
+    <string name="respondkit_sending" formatted="false">"Wird gesendet…"</string>
+    <string name="respondkit_sent" formatted="false">"Gesendet"</string>
+    <string name="respondkit_session_expired" formatted="false">"Die Support-Sitzung ist abgelaufen. Neu verbinden, um fortzufahren."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="one">"%1$d neue Nachricht anzeigen"</item>
+        <item quantity="other">"%1$d neue Nachrichten anzeigen"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"Melde dich erneut an, um deinen Support-Verlauf wiederherzustellen."</string>
+    <string name="respondkit_start_failed" formatted="false">"Der Support-Chat konnte nicht gestartet werden."</string>
+    <string name="respondkit_support" formatted="false">"Support"</string>
+    <string name="respondkit_support_messages" formatted="false">"Support-Nachrichten"</string>
+    <string name="respondkit_try_again" formatted="false">"Erneut versuchen"</string>
+    <string name="respondkit_unknown" formatted="false">"Nicht bestätigt – erneutes Senden ist sicher"</string>
+    <string name="respondkit_unread" formatted="false">"Ungelesene Support-Antwort"</string>
+    <string name="respondkit_upload_failed" formatted="false">"Upload fehlgeschlagen"</string>
+    <string name="respondkit_write_message" formatted="false">"Nachricht schreiben…"</string>
+</resources>

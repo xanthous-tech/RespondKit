@@ -1,0 +1,94 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Support",
+  "respondkit_ask_anything": "Fråga oss vad som helst",
+  "respondkit_open_chat": "Öppna supportchatten",
+  "respondkit_close_chat": "Stäng supportchatten",
+  "respondkit_close": "Stäng",
+  "respondkit_help": "Hur kan vi hjälpa till?",
+  "respondkit_intro": "Skicka ett meddelande och håll den här sidan öppen för ett snabbt svar.",
+  "respondkit_intro_short": "Skicka ett meddelande för att starta en konversation.",
+  "respondkit_return": "Svaren visas här när du återvänder till appen.",
+  "respondkit_conversations": "Konversationer",
+  "respondkit_conversation": "Konversation {date}",
+  "respondkit_new_conversation": "Ny konversation",
+  "respondkit_unread": "Oläst svar från supporten",
+  "respondkit_open": "Öppen",
+  "respondkit_closed": "Stängd",
+  "respondkit_more": "Mer",
+  "respondkit_loading": "Läser in…",
+  "respondkit_loading_messages": "Läser in meddelanden",
+  "respondkit_support_messages": "Supportmeddelanden",
+  "respondkit_latest": "Senaste meddelandena",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} nytt",
+        "category=*": "{count} nya"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Visa {count} nytt meddelande",
+        "category=*": "Visa {count} nya meddelanden"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Konversationer · {count} oläst",
+        "category=*": "Konversationer · {count} olästa"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Den här konversationen är stängd.",
+  "respondkit_another_message": "Skicka ett nytt meddelande",
+  "respondkit_message": "Meddelande",
+  "respondkit_write_message": "Skriv ett meddelande…",
+  "respondkit_send": "Skicka",
+  "respondkit_send_message": "Skicka meddelande",
+  "respondkit_sending": "Skickar…",
+  "respondkit_sent": "Skickat",
+  "respondkit_failed": "Misslyckades",
+  "respondkit_confirming": "Bekräftar…",
+  "respondkit_unknown": "Inte bekräftat – du kan tryggt försöka igen",
+  "respondkit_retry": "Försök igen",
+  "respondkit_retry_message": "Skicka meddelandet igen",
+  "respondkit_try_again": "Försök igen",
+  "respondkit_reconnect": "Anslut igen",
+  "respondkit_email_prompt": "Vart kan vi mejla dig ett svar?",
+  "respondkit_email_address": "E-postadress",
+  "respondkit_save_email": "Spara e-postadress",
+  "respondkit_saving": "Sparar…",
+  "respondkit_email_failed": "Vi kunde inte spara din e-postadress. Kontrollera den och försök igen.",
+  "respondkit_attach_files": "Bifoga filer",
+  "respondkit_attached_files": "Bifogade filer",
+  "respondkit_photo_library": "Bildbibliotek",
+  "respondkit_files": "Filer",
+  "respondkit_cancel": "Avbryt",
+  "respondkit_ready": "Klar",
+  "respondkit_upload_failed": "Uppladdningen misslyckades",
+  "respondkit_remove": "Ta bort",
+  "respondkit_remove_file": "Ta bort {name}",
+  "respondkit_selected_file": "Vald fil",
+  "respondkit_picker_failed": "Det gick inte att öppna filväljaren",
+  "respondkit_file_open_failed": "Det gick inte att öppna den valda filen.",
+  "respondkit_start_failed": "Det gick inte att starta supportchatten.",
+  "respondkit_request_failed": "Supportförfrågan misslyckades.",
+  "respondkit_history_failed": "Det gick inte att läsa in konversationshistoriken. Försök med Mer igen.",
+  "respondkit_messages_failed": "Det gick inte att läsa in nya meddelanden.",
+  "respondkit_sign_in_again": "Logga in igen för att återställa din supporthistorik.",
+  "respondkit_session_expired": "Din supportsession har gått ut. Anslut igen för att fortsätta.",
+  "respondkit_identity_changed": "Supportkontot ändrades i en annan flik. Anslut igen för att läsa in ditt konto på nytt.",
+  "respondkit_connecting": "Supporten ansluter fortfarande.",
+  "respondkit_reconnect_upload": "Anslut igen innan du laddar upp."
+}

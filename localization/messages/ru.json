@@ -1,0 +1,103 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Поддержка",
+  "respondkit_ask_anything": "Задайте нам любой вопрос",
+  "respondkit_open_chat": "Открыть чат поддержки",
+  "respondkit_close_chat": "Закрыть чат поддержки",
+  "respondkit_close": "Закрыть",
+  "respondkit_help": "Чем можем помочь?",
+  "respondkit_intro": "Отправьте сообщение и не закрывайте эту страницу, чтобы быстро получить ответ.",
+  "respondkit_intro_short": "Отправьте сообщение, чтобы начать диалог.",
+  "respondkit_return": "Ответы появятся здесь, когда вы вернётесь в приложение.",
+  "respondkit_conversations": "Диалоги",
+  "respondkit_conversation": "Диалог от {date}",
+  "respondkit_new_conversation": "Новый диалог",
+  "respondkit_unread": "Непрочитанный ответ поддержки",
+  "respondkit_open": "Открыт",
+  "respondkit_closed": "Закрыт",
+  "respondkit_more": "Ещё",
+  "respondkit_loading": "Загрузка…",
+  "respondkit_loading_messages": "Загрузка сообщений",
+  "respondkit_support_messages": "Сообщения поддержки",
+  "respondkit_latest": "Последние сообщения",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} новое",
+        "category=few": "{count} новых",
+        "category=many": "{count} новых",
+        "category=other": "{count} новых",
+        "category=*": "{count} новых"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Показать {count} новое сообщение",
+        "category=few": "Показать {count} новых сообщения",
+        "category=many": "Показать {count} новых сообщений",
+        "category=other": "Показать {count} нового сообщения",
+        "category=*": "Показать {count} новых сообщений"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Диалоги · {count} непрочитанный",
+        "category=few": "Диалоги · {count} непрочитанных",
+        "category=many": "Диалоги · {count} непрочитанных",
+        "category=other": "Диалоги · {count} непрочитанного",
+        "category=*": "Диалоги · {count} непрочитанных"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Этот диалог закрыт.",
+  "respondkit_another_message": "Отправить ещё сообщение",
+  "respondkit_message": "Сообщение",
+  "respondkit_write_message": "Напишите сообщение…",
+  "respondkit_send": "Отправить",
+  "respondkit_send_message": "Отправить сообщение",
+  "respondkit_sending": "Отправка…",
+  "respondkit_sent": "Отправлено",
+  "respondkit_failed": "Ошибка",
+  "respondkit_confirming": "Подтверждение…",
+  "respondkit_unknown": "Не подтверждено — можно безопасно повторить",
+  "respondkit_retry": "Повторить",
+  "respondkit_retry_message": "Повторить отправку",
+  "respondkit_try_again": "Попробовать снова",
+  "respondkit_reconnect": "Переподключиться",
+  "respondkit_email_prompt": "На какой адрес эл. почты отправить ответ?",
+  "respondkit_email_address": "Адрес эл. почты",
+  "respondkit_save_email": "Сохранить адрес",
+  "respondkit_saving": "Сохранение…",
+  "respondkit_email_failed": "Не удалось сохранить адрес эл. почты. Проверьте его и попробуйте снова.",
+  "respondkit_attach_files": "Прикрепить файлы",
+  "respondkit_attached_files": "Прикреплённые файлы",
+  "respondkit_photo_library": "Галерея",
+  "respondkit_files": "Файлы",
+  "respondkit_cancel": "Отмена",
+  "respondkit_ready": "Готово",
+  "respondkit_upload_failed": "Не удалось загрузить",
+  "respondkit_remove": "Удалить",
+  "respondkit_remove_file": "Удалить {name}",
+  "respondkit_selected_file": "Выбранный файл",
+  "respondkit_picker_failed": "Не удалось открыть выбор файлов",
+  "respondkit_file_open_failed": "Не удалось открыть выбранный файл.",
+  "respondkit_start_failed": "Не удалось запустить чат поддержки.",
+  "respondkit_request_failed": "Ошибка запроса к поддержке.",
+  "respondkit_history_failed": "Не удалось загрузить историю диалога. Нажмите «Ещё» повторно.",
+  "respondkit_messages_failed": "Не удалось загрузить новые сообщения.",
+  "respondkit_sign_in_again": "Войдите снова, чтобы восстановить историю обращений.",
+  "respondkit_session_expired": "Сеанс поддержки истёк. Переподключитесь, чтобы продолжить.",
+  "respondkit_identity_changed": "Профиль поддержки изменён в другой вкладке. Переподключитесь, чтобы заново загрузить аккаунт.",
+  "respondkit_connecting": "Чат поддержки ещё подключается.",
+  "respondkit_reconnect_upload": "Переподключитесь перед загрузкой файлов."
+}

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"మరో సందేశం పంపు"</string>
+    <string name="respondkit_ask_anything" formatted="false">"మమ్మల్ని ఏదైనా అడగండి"</string>
+    <string name="respondkit_attach_files" formatted="false">"ఫైల్స్‌ను జోడించు"</string>
+    <string name="respondkit_attached_files" formatted="false">"జోడించిన ఫైల్స్"</string>
+    <string name="respondkit_cancel" formatted="false">"రద్దు చేయి"</string>
+    <string name="respondkit_close" formatted="false">"మూసివేయి"</string>
+    <string name="respondkit_close_chat" formatted="false">"మద్దతు చాట్‌ను మూసివేయి"</string>
+    <string name="respondkit_closed" formatted="false">"మూసివేయబడింది"</string>
+    <string name="respondkit_closed_help" formatted="false">"ఈ సంభాషణ మూసివేయబడింది."</string>
+    <string name="respondkit_confirming" formatted="false">"నిర్ధారిస్తోంది…"</string>
+    <string name="respondkit_connecting" formatted="false">"మద్దతు ఇంకా కనెక్ట్ అవుతోంది."</string>
+    <string name="respondkit_conversation">"సంభాషణ %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"సంభాషణలు"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="one">"సంభాషణలు · %1$d చదవనిది"</item>
+        <item quantity="other">"సంభాషణలు · %1$d చదవనివి"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"ఈమెయిల్ చిరునామా"</string>
+    <string name="respondkit_email_failed" formatted="false">"మీ ఈమెయిల్‌ను సేవ్ చేయలేకపోయాము. దాన్ని తనిఖీ చేసి, మళ్లీ ప్రయత్నించండి."</string>
+    <string name="respondkit_email_prompt" formatted="false">"మీకు సమాధానం ఏ ఈమెయిల్‌కు పంపాలి?"</string>
+    <string name="respondkit_failed" formatted="false">"విఫలమైంది"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"ఎంచుకున్న ఫైల్‌ను తెరవడం సాధ్యం కాలేదు."</string>
+    <string name="respondkit_files" formatted="false">"ఫైల్స్"</string>
+    <string name="respondkit_help" formatted="false">"మేము ఎలా సహాయపడగలం?"</string>
+    <string name="respondkit_history_failed" formatted="false">"సంభాషణ చరిత్రను లోడ్ చేయడం సాధ్యం కాలేదు. ‘మరిన్ని’ని మళ్లీ ఎంచుకోండి."</string>
+    <string name="respondkit_identity_changed" formatted="false">"మరో ట్యాబ్‌లో మద్దతు ఖాతా మారింది. మీ ఖాతాను మళ్లీ లోడ్ చేయడానికి మళ్లీ కనెక్ట్ చేయండి."</string>
+    <string name="respondkit_intro" formatted="false">"సందేశం పంపి, త్వరగా సమాధానం పొందడానికి ఈ పేజీని తెరిచే ఉంచండి."</string>
+    <string name="respondkit_intro_short" formatted="false">"సంభాషణను ప్రారంభించడానికి సందేశం పంపండి."</string>
+    <string name="respondkit_latest" formatted="false">"తాజా సందేశాలు"</string>
+    <string name="respondkit_loading" formatted="false">"లోడ్ అవుతోంది…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"సందేశాలు లోడ్ అవుతున్నాయి"</string>
+    <string name="respondkit_message" formatted="false">"సందేశం"</string>
+    <string name="respondkit_messages_failed" formatted="false">"కొత్త సందేశాలను లోడ్ చేయడం సాధ్యం కాలేదు."</string>
+    <string name="respondkit_more" formatted="false">"మరిన్ని"</string>
+    <string name="respondkit_new_conversation" formatted="false">"కొత్త సంభాషణ"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="one">"%1$d కొత్తది"</item>
+        <item quantity="other">"%1$d కొత్తవి"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"తెరిచి ఉంది"</string>
+    <string name="respondkit_open_chat" formatted="false">"మద్దతు చాట్‌ను తెరువు"</string>
+    <string name="respondkit_photo_library" formatted="false">"ఫోటో లైబ్రరీ"</string>
+    <string name="respondkit_picker_failed" formatted="false">"ఫైల్ పికర్‌ను తెరవడం సాధ్యం కాలేదు"</string>
+    <string name="respondkit_ready" formatted="false">"సిద్ధం"</string>
+    <string name="respondkit_reconnect" formatted="false">"మళ్లీ కనెక్ట్ చేయి"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"అప్‌లోడ్ చేసే ముందు మళ్లీ కనెక్ట్ చేయండి."</string>
+    <string name="respondkit_remove" formatted="false">"తీసివేయి"</string>
+    <string name="respondkit_remove_file">"తీసివేయి: %1$s"</string>
+    <string name="respondkit_request_failed" formatted="false">"మద్దతు అభ్యర్థన విఫలమైంది."</string>
+    <string name="respondkit_retry" formatted="false">"మళ్లీ ప్రయత్నించు"</string>
+    <string name="respondkit_retry_message" formatted="false">"సందేశాన్ని మళ్లీ పంపు"</string>
+    <string name="respondkit_return" formatted="false">"మీరు యాప్‌కు తిరిగి వచ్చినప్పుడు సమాధానాలు ఇక్కడ కనిపిస్తాయి."</string>
+    <string name="respondkit_save_email" formatted="false">"ఈమెయిల్‌ను సేవ్ చేయి"</string>
+    <string name="respondkit_saving" formatted="false">"సేవ్ అవుతోంది…"</string>
+    <string name="respondkit_selected_file" formatted="false">"ఎంచుకున్న ఫైల్"</string>
+    <string name="respondkit_send" formatted="false">"పంపు"</string>
+    <string name="respondkit_send_message" formatted="false">"సందేశం పంపు"</string>
+    <string name="respondkit_sending" formatted="false">"పంపుతోంది…"</string>
+    <string name="respondkit_sent" formatted="false">"పంపబడింది"</string>
+    <string name="respondkit_session_expired" formatted="false">"మీ మద్దతు సెషన్ గడువు ముగిసింది. కొనసాగించడానికి మళ్లీ కనెక్ట్ చేయండి."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="one">"%1$d కొత్త సందేశాన్ని చూపు"</item>
+        <item quantity="other">"%1$d కొత్త సందేశాలను చూపు"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"మీ మద్దతు చరిత్రను పునరుద్ధరించడానికి మళ్లీ సైన్ ఇన్ చేయండి."</string>
+    <string name="respondkit_start_failed" formatted="false">"మద్దతు చాట్‌ను ప్రారంభించడం సాధ్యం కాలేదు."</string>
+    <string name="respondkit_support" formatted="false">"మద్దతు"</string>
+    <string name="respondkit_support_messages" formatted="false">"మద్దతు సందేశాలు"</string>
+    <string name="respondkit_try_again" formatted="false">"మళ్లీ ప్రయత్నించండి"</string>
+    <string name="respondkit_unknown" formatted="false">"నిర్ధారించబడలేదు — సురక్షితంగా మళ్లీ ప్రయత్నించవచ్చు"</string>
+    <string name="respondkit_unread" formatted="false">"చదవని మద్దతు సమాధానం"</string>
+    <string name="respondkit_upload_failed" formatted="false">"అప్‌లోడ్ విఫలమైంది"</string>
+    <string name="respondkit_write_message" formatted="false">"సందేశం రాయండి…"</string>
+</resources>

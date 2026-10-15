@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"Αποστολή νέου μηνύματος"</string>
+    <string name="respondkit_ask_anything" formatted="false">"Ρωτήστε μας ό,τι θέλετε"</string>
+    <string name="respondkit_attach_files" formatted="false">"Επισύναψη αρχείων"</string>
+    <string name="respondkit_attached_files" formatted="false">"Συνημμένα αρχεία"</string>
+    <string name="respondkit_cancel" formatted="false">"Ακύρωση"</string>
+    <string name="respondkit_close" formatted="false">"Κλείσιμο"</string>
+    <string name="respondkit_close_chat" formatted="false">"Κλείσιμο συνομιλίας υποστήριξης"</string>
+    <string name="respondkit_closed" formatted="false">"Κλειστή"</string>
+    <string name="respondkit_closed_help" formatted="false">"Αυτή η συνομιλία έχει κλείσει."</string>
+    <string name="respondkit_confirming" formatted="false">"Επιβεβαίωση…"</string>
+    <string name="respondkit_connecting" formatted="false">"Η υποστήριξη συνδέεται ακόμα."</string>
+    <string name="respondkit_conversation">"Συνομιλία %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"Συνομιλίες"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="one">"Συνομιλίες · %1$d μη αναγνωσμένη"</item>
+        <item quantity="other">"Συνομιλίες · %1$d μη αναγνωσμένες"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"Διεύθυνση email"</string>
+    <string name="respondkit_email_failed" formatted="false">"Δεν ήταν δυνατή η αποθήκευση του email σας. Ελέγξτε το και δοκιμάστε ξανά."</string>
+    <string name="respondkit_email_prompt" formatted="false">"Σε ποιο email να σας στείλουμε απάντηση;"</string>
+    <string name="respondkit_failed" formatted="false">"Απέτυχε"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"Δεν είναι δυνατό το άνοιγμα του επιλεγμένου αρχείου."</string>
+    <string name="respondkit_files" formatted="false">"Αρχεία"</string>
+    <string name="respondkit_help" formatted="false">"Πώς μπορούμε να βοηθήσουμε;"</string>
+    <string name="respondkit_history_failed" formatted="false">"Δεν ήταν δυνατή η φόρτωση του ιστορικού συνομιλίας. Πατήστε ξανά «Περισσότερα»."</string>
+    <string name="respondkit_identity_changed" formatted="false">"Η ταυτότητα υποστήριξης άλλαξε σε άλλη καρτέλα. Επανασυνδεθείτε για να φορτώσετε ξανά τον λογαριασμό σας."</string>
+    <string name="respondkit_intro" formatted="false">"Στείλτε ένα μήνυμα και κρατήστε αυτή τη σελίδα ανοιχτή για γρήγορη απάντηση."</string>
+    <string name="respondkit_intro_short" formatted="false">"Στείλτε ένα μήνυμα για να ξεκινήσετε μια συνομιλία."</string>
+    <string name="respondkit_latest" formatted="false">"Πιο πρόσφατα μηνύματα"</string>
+    <string name="respondkit_loading" formatted="false">"Φόρτωση…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"Φόρτωση μηνυμάτων"</string>
+    <string name="respondkit_message" formatted="false">"Μήνυμα"</string>
+    <string name="respondkit_messages_failed" formatted="false">"Δεν ήταν δυνατή η φόρτωση των νέων μηνυμάτων."</string>
+    <string name="respondkit_more" formatted="false">"Περισσότερα"</string>
+    <string name="respondkit_new_conversation" formatted="false">"Νέα συνομιλία"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="one">"%1$d νέο"</item>
+        <item quantity="other">"%1$d νέα"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"Ανοιχτή"</string>
+    <string name="respondkit_open_chat" formatted="false">"Άνοιγμα συνομιλίας υποστήριξης"</string>
+    <string name="respondkit_photo_library" formatted="false">"Βιβλιοθήκη φωτογραφιών"</string>
+    <string name="respondkit_picker_failed" formatted="false">"Δεν είναι δυνατό το άνοιγμα της επιλογής αρχείων"</string>
+    <string name="respondkit_ready" formatted="false">"Έτοιμο"</string>
+    <string name="respondkit_reconnect" formatted="false">"Επανασύνδεση"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"Επανασυνδεθείτε πριν από τη μεταφόρτωση."</string>
+    <string name="respondkit_remove" formatted="false">"Αφαίρεση"</string>
+    <string name="respondkit_remove_file">"Αφαίρεση %1$s"</string>
+    <string name="respondkit_request_failed" formatted="false">"Το αίτημα υποστήριξης απέτυχε."</string>
+    <string name="respondkit_retry" formatted="false">"Επανάληψη"</string>
+    <string name="respondkit_retry_message" formatted="false">"Επανάληψη αποστολής μηνύματος"</string>
+    <string name="respondkit_return" formatted="false">"Οι απαντήσεις θα εμφανιστούν εδώ όταν επιστρέψετε στην εφαρμογή."</string>
+    <string name="respondkit_save_email" formatted="false">"Αποθήκευση email"</string>
+    <string name="respondkit_saving" formatted="false">"Αποθήκευση…"</string>
+    <string name="respondkit_selected_file" formatted="false">"Επιλεγμένο αρχείο"</string>
+    <string name="respondkit_send" formatted="false">"Αποστολή"</string>
+    <string name="respondkit_send_message" formatted="false">"Αποστολή μηνύματος"</string>
+    <string name="respondkit_sending" formatted="false">"Αποστολή…"</string>
+    <string name="respondkit_sent" formatted="false">"Στάλθηκε"</string>
+    <string name="respondkit_session_expired" formatted="false">"Η συνεδρία υποστήριξης έληξε. Επανασυνδεθείτε για να συνεχίσετε."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="one">"Εμφάνιση %1$d νέου μηνύματος"</item>
+        <item quantity="other">"Εμφάνιση %1$d νέων μηνυμάτων"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"Συνδεθείτε ξανά για να ανακτήσετε το ιστορικό υποστήριξης."</string>
+    <string name="respondkit_start_failed" formatted="false">"Δεν ήταν δυνατή η έναρξη της συνομιλίας υποστήριξης."</string>
+    <string name="respondkit_support" formatted="false">"Υποστήριξη"</string>
+    <string name="respondkit_support_messages" formatted="false">"Μηνύματα υποστήριξης"</string>
+    <string name="respondkit_try_again" formatted="false">"Δοκιμάστε ξανά"</string>
+    <string name="respondkit_unknown" formatted="false">"Δεν επιβεβαιώθηκε — μπορείτε να δοκιμάσετε ξανά με ασφάλεια"</string>
+    <string name="respondkit_unread" formatted="false">"Μη αναγνωσμένη απάντηση υποστήριξης"</string>
+    <string name="respondkit_upload_failed" formatted="false">"Η μεταφόρτωση απέτυχε"</string>
+    <string name="respondkit_write_message" formatted="false">"Γράψτε ένα μήνυμα…"</string>
+</resources>

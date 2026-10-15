@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"Skicka ett nytt meddelande"</string>
+    <string name="respondkit_ask_anything" formatted="false">"Fråga oss vad som helst"</string>
+    <string name="respondkit_attach_files" formatted="false">"Bifoga filer"</string>
+    <string name="respondkit_attached_files" formatted="false">"Bifogade filer"</string>
+    <string name="respondkit_cancel" formatted="false">"Avbryt"</string>
+    <string name="respondkit_close" formatted="false">"Stäng"</string>
+    <string name="respondkit_close_chat" formatted="false">"Stäng supportchatten"</string>
+    <string name="respondkit_closed" formatted="false">"Stängd"</string>
+    <string name="respondkit_closed_help" formatted="false">"Den här konversationen är stängd."</string>
+    <string name="respondkit_confirming" formatted="false">"Bekräftar…"</string>
+    <string name="respondkit_connecting" formatted="false">"Supporten ansluter fortfarande."</string>
+    <string name="respondkit_conversation">"Konversation %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"Konversationer"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="one">"Konversationer · %1$d oläst"</item>
+        <item quantity="other">"Konversationer · %1$d olästa"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"E-postadress"</string>
+    <string name="respondkit_email_failed" formatted="false">"Vi kunde inte spara din e-postadress. Kontrollera den och försök igen."</string>
+    <string name="respondkit_email_prompt" formatted="false">"Vart kan vi mejla dig ett svar?"</string>
+    <string name="respondkit_failed" formatted="false">"Misslyckades"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"Det gick inte att öppna den valda filen."</string>
+    <string name="respondkit_files" formatted="false">"Filer"</string>
+    <string name="respondkit_help" formatted="false">"Hur kan vi hjälpa till?"</string>
+    <string name="respondkit_history_failed" formatted="false">"Det gick inte att läsa in konversationshistoriken. Försök med Mer igen."</string>
+    <string name="respondkit_identity_changed" formatted="false">"Supportkontot ändrades i en annan flik. Anslut igen för att läsa in ditt konto på nytt."</string>
+    <string name="respondkit_intro" formatted="false">"Skicka ett meddelande och håll den här sidan öppen för ett snabbt svar."</string>
+    <string name="respondkit_intro_short" formatted="false">"Skicka ett meddelande för att starta en konversation."</string>
+    <string name="respondkit_latest" formatted="false">"Senaste meddelandena"</string>
+    <string name="respondkit_loading" formatted="false">"Läser in…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"Läser in meddelanden"</string>
+    <string name="respondkit_message" formatted="false">"Meddelande"</string>
+    <string name="respondkit_messages_failed" formatted="false">"Det gick inte att läsa in nya meddelanden."</string>
+    <string name="respondkit_more" formatted="false">"Mer"</string>
+    <string name="respondkit_new_conversation" formatted="false">"Ny konversation"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="one">"%1$d nytt"</item>
+        <item quantity="other">"%1$d nya"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"Öppen"</string>
+    <string name="respondkit_open_chat" formatted="false">"Öppna supportchatten"</string>
+    <string name="respondkit_photo_library" formatted="false">"Bildbibliotek"</string>
+    <string name="respondkit_picker_failed" formatted="false">"Det gick inte att öppna filväljaren"</string>
+    <string name="respondkit_ready" formatted="false">"Klar"</string>
+    <string name="respondkit_reconnect" formatted="false">"Anslut igen"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"Anslut igen innan du laddar upp."</string>
+    <string name="respondkit_remove" formatted="false">"Ta bort"</string>
+    <string name="respondkit_remove_file">"Ta bort %1$s"</string>
+    <string name="respondkit_request_failed" formatted="false">"Supportförfrågan misslyckades."</string>
+    <string name="respondkit_retry" formatted="false">"Försök igen"</string>
+    <string name="respondkit_retry_message" formatted="false">"Skicka meddelandet igen"</string>
+    <string name="respondkit_return" formatted="false">"Svaren visas här när du återvänder till appen."</string>
+    <string name="respondkit_save_email" formatted="false">"Spara e-postadress"</string>
+    <string name="respondkit_saving" formatted="false">"Sparar…"</string>
+    <string name="respondkit_selected_file" formatted="false">"Vald fil"</string>
+    <string name="respondkit_send" formatted="false">"Skicka"</string>
+    <string name="respondkit_send_message" formatted="false">"Skicka meddelande"</string>
+    <string name="respondkit_sending" formatted="false">"Skickar…"</string>
+    <string name="respondkit_sent" formatted="false">"Skickat"</string>
+    <string name="respondkit_session_expired" formatted="false">"Din supportsession har gått ut. Anslut igen för att fortsätta."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="one">"Visa %1$d nytt meddelande"</item>
+        <item quantity="other">"Visa %1$d nya meddelanden"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"Logga in igen för att återställa din supporthistorik."</string>
+    <string name="respondkit_start_failed" formatted="false">"Det gick inte att starta supportchatten."</string>
+    <string name="respondkit_support" formatted="false">"Support"</string>
+    <string name="respondkit_support_messages" formatted="false">"Supportmeddelanden"</string>
+    <string name="respondkit_try_again" formatted="false">"Försök igen"</string>
+    <string name="respondkit_unknown" formatted="false">"Inte bekräftat – du kan tryggt försöka igen"</string>
+    <string name="respondkit_unread" formatted="false">"Oläst svar från supporten"</string>
+    <string name="respondkit_upload_failed" formatted="false">"Uppladdningen misslyckades"</string>
+    <string name="respondkit_write_message" formatted="false">"Skriv ett meddelande…"</string>
+</resources>

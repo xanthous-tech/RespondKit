@@ -633,9 +633,15 @@ importers:
       '@types/react':
         specifier: 'catalog:'
         version: 19.2.18
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.5(@types/react@19.2.18)
       react:
         specifier: 'catalog:'
         version: 19.2.8
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.8(react@19.2.8)
       react-native:
         specifier: 0.87.1
         version: 0.87.1(@babel/core@7.29.7)(@react-native-community/cli@20.2.0(typescript@7.0.2))(@react-native/metro-config@0.87.1(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.8)

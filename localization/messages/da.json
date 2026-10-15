@@ -1,0 +1,94 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Support",
+  "respondkit_ask_anything": "Spørg os om hvad som helst",
+  "respondkit_open_chat": "Åbn supportchat",
+  "respondkit_close_chat": "Luk supportchat",
+  "respondkit_close": "Luk",
+  "respondkit_help": "Hvordan kan vi hjælpe?",
+  "respondkit_intro": "Send en besked, og hold siden åben for at få et hurtigt svar.",
+  "respondkit_intro_short": "Send en besked for at starte en samtale.",
+  "respondkit_return": "Svar vises her, når du vender tilbage til appen.",
+  "respondkit_conversations": "Samtaler",
+  "respondkit_conversation": "Samtale {date}",
+  "respondkit_new_conversation": "Ny samtale",
+  "respondkit_unread": "Ulæst svar fra support",
+  "respondkit_open": "Åben",
+  "respondkit_closed": "Lukket",
+  "respondkit_more": "Flere",
+  "respondkit_loading": "Indlæser…",
+  "respondkit_loading_messages": "Indlæser beskeder",
+  "respondkit_support_messages": "Supportbeskeder",
+  "respondkit_latest": "Seneste beskeder",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} ny",
+        "category=*": "{count} nye"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Vis {count} ny besked",
+        "category=*": "Vis {count} nye beskeder"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Samtaler · {count} ulæst",
+        "category=*": "Samtaler · {count} ulæste"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Denne samtale er lukket.",
+  "respondkit_another_message": "Send en ny besked",
+  "respondkit_message": "Besked",
+  "respondkit_write_message": "Skriv en besked…",
+  "respondkit_send": "Send",
+  "respondkit_send_message": "Send besked",
+  "respondkit_sending": "Sender…",
+  "respondkit_sent": "Sendt",
+  "respondkit_failed": "Mislykkedes",
+  "respondkit_confirming": "Bekræfter…",
+  "respondkit_unknown": "Ikke bekræftet – du kan trygt prøve igen",
+  "respondkit_retry": "Prøv igen",
+  "respondkit_retry_message": "Send besked igen",
+  "respondkit_try_again": "Prøv igen",
+  "respondkit_reconnect": "Opret forbindelse igen",
+  "respondkit_email_prompt": "Hvilken e-mail kan vi sende svaret til?",
+  "respondkit_email_address": "E-mailadresse",
+  "respondkit_save_email": "Gem e-mail",
+  "respondkit_saving": "Gemmer…",
+  "respondkit_email_failed": "Vi kunne ikke gemme din e-mail. Tjek den, og prøv igen.",
+  "respondkit_attach_files": "Vedhæft filer",
+  "respondkit_attached_files": "Vedhæftede filer",
+  "respondkit_photo_library": "Fotobibliotek",
+  "respondkit_files": "Filer",
+  "respondkit_cancel": "Annuller",
+  "respondkit_ready": "Klar",
+  "respondkit_upload_failed": "Upload mislykkedes",
+  "respondkit_remove": "Fjern",
+  "respondkit_remove_file": "Fjern {name}",
+  "respondkit_selected_file": "Valgt fil",
+  "respondkit_picker_failed": "Filvælgeren kan ikke åbnes",
+  "respondkit_file_open_failed": "Den valgte fil kan ikke åbnes.",
+  "respondkit_start_failed": "Supportchatten kunne ikke startes.",
+  "respondkit_request_failed": "Supportanmodningen mislykkedes.",
+  "respondkit_history_failed": "Samtalehistorikken kunne ikke indlæses. Prøv »Flere« igen.",
+  "respondkit_messages_failed": "Nye beskeder kunne ikke indlæses.",
+  "respondkit_sign_in_again": "Log ind igen for at gendanne din supporthistorik.",
+  "respondkit_session_expired": "Din supportsession er udløbet. Opret forbindelse igen for at fortsætte.",
+  "respondkit_identity_changed": "Supportidentiteten blev ændret i en anden fane. Opret forbindelse igen for at genindlæse din konto.",
+  "respondkit_connecting": "Support er stadig ved at oprette forbindelse.",
+  "respondkit_reconnect_upload": "Opret forbindelse igen før upload."
+}

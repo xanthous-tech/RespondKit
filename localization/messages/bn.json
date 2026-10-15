@@ -1,0 +1,94 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "সহায়তা",
+  "respondkit_ask_anything": "আমাদের যেকোনো কিছু জিজ্ঞাসা করুন",
+  "respondkit_open_chat": "সহায়তা চ্যাট খুলুন",
+  "respondkit_close_chat": "সহায়তা চ্যাট বন্ধ করুন",
+  "respondkit_close": "বন্ধ করুন",
+  "respondkit_help": "আমরা কীভাবে সাহায্য করতে পারি?",
+  "respondkit_intro": "একটি বার্তা পাঠান এবং দ্রুত উত্তর পেতে এই পেজটি খোলা রাখুন।",
+  "respondkit_intro_short": "কথোপকথন শুরু করতে একটি বার্তা পাঠান।",
+  "respondkit_return": "অ্যাপে ফিরে এলে উত্তরগুলো এখানে দেখা যাবে।",
+  "respondkit_conversations": "কথোপকথন",
+  "respondkit_conversation": "কথোপকথন {date}",
+  "respondkit_new_conversation": "নতুন কথোপকথন",
+  "respondkit_unread": "সহায়তার অপঠিত উত্তর",
+  "respondkit_open": "খোলা",
+  "respondkit_closed": "বন্ধ",
+  "respondkit_more": "আরও",
+  "respondkit_loading": "লোড হচ্ছে…",
+  "respondkit_loading_messages": "বার্তা লোড হচ্ছে",
+  "respondkit_support_messages": "সহায়তা বার্তা",
+  "respondkit_latest": "সর্বশেষ বার্তা",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count}টি নতুন",
+        "category=*": "{count}টি নতুন"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count}টি নতুন বার্তা দেখান",
+        "category=*": "{count}টি নতুন বার্তা দেখান"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "কথোপকথন · {count}টি অপঠিত",
+        "category=*": "কথোপকথন · {count}টি অপঠিত"
+      }
+    }
+  ],
+  "respondkit_closed_help": "এই কথোপকথনটি বন্ধ হয়ে গেছে।",
+  "respondkit_another_message": "আরেকটি বার্তা পাঠান",
+  "respondkit_message": "বার্তা",
+  "respondkit_write_message": "একটি বার্তা লিখুন…",
+  "respondkit_send": "পাঠান",
+  "respondkit_send_message": "বার্তা পাঠান",
+  "respondkit_sending": "পাঠানো হচ্ছে…",
+  "respondkit_sent": "পাঠানো হয়েছে",
+  "respondkit_failed": "ব্যর্থ হয়েছে",
+  "respondkit_confirming": "নিশ্চিত করা হচ্ছে…",
+  "respondkit_unknown": "নিশ্চিত হয়নি — নিরাপদে আবার চেষ্টা করতে পারেন",
+  "respondkit_retry": "আবার চেষ্টা করুন",
+  "respondkit_retry_message": "বার্তাটি আবার পাঠান",
+  "respondkit_try_again": "আবার চেষ্টা করুন",
+  "respondkit_reconnect": "আবার সংযোগ করুন",
+  "respondkit_email_prompt": "কোন ইমেলে আমরা আপনাকে উত্তর পাঠাব?",
+  "respondkit_email_address": "ইমেল ঠিকানা",
+  "respondkit_save_email": "ইমেল সংরক্ষণ করুন",
+  "respondkit_saving": "সংরক্ষণ করা হচ্ছে…",
+  "respondkit_email_failed": "আপনার ইমেল সংরক্ষণ করা যায়নি। অনুগ্রহ করে এটি যাচাই করে আবার চেষ্টা করুন।",
+  "respondkit_attach_files": "ফাইল সংযুক্ত করুন",
+  "respondkit_attached_files": "সংযুক্ত ফাইল",
+  "respondkit_photo_library": "ফটো লাইব্রেরি",
+  "respondkit_files": "ফাইল",
+  "respondkit_cancel": "বাতিল",
+  "respondkit_ready": "প্রস্তুত",
+  "respondkit_upload_failed": "আপলোড ব্যর্থ হয়েছে",
+  "respondkit_remove": "সরান",
+  "respondkit_remove_file": "{name} সরান",
+  "respondkit_selected_file": "নির্বাচিত ফাইল",
+  "respondkit_picker_failed": "ফাইল পিকার খোলা যাচ্ছে না",
+  "respondkit_file_open_failed": "নির্বাচিত ফাইলটি খোলা যাচ্ছে না।",
+  "respondkit_start_failed": "সহায়তা চ্যাট শুরু করা যায়নি।",
+  "respondkit_request_failed": "সহায়তার অনুরোধ ব্যর্থ হয়েছে।",
+  "respondkit_history_failed": "কথোপকথনের ইতিহাস লোড করা যায়নি। আবার ‘আরও’ ট্যাপ করুন।",
+  "respondkit_messages_failed": "নতুন বার্তা লোড করা যায়নি।",
+  "respondkit_sign_in_again": "আপনার সহায়তার ইতিহাস ফিরে পেতে আবার সাইন ইন করুন।",
+  "respondkit_session_expired": "আপনার সহায়তা সেশনের মেয়াদ শেষ হয়ে গেছে। চালিয়ে যেতে আবার সংযোগ করুন।",
+  "respondkit_identity_changed": "অন্য একটি ট্যাবে সহায়তার পরিচয় পরিবর্তিত হয়েছে। আপনার অ্যাকাউন্ট আবার লোড করতে পুনরায় সংযোগ করুন।",
+  "respondkit_connecting": "সহায়তা এখনও সংযুক্ত হচ্ছে।",
+  "respondkit_reconnect_upload": "আপলোড করার আগে আবার সংযোগ করুন।"
+}

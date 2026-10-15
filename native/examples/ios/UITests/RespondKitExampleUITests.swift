@@ -55,6 +55,39 @@ final class RespondKitExampleUITests: XCTestCase {
     XCTFail("Visible reply did not acknowledge read cursor \(expected)")
   }
 
+  func testScreenAndAttachMenuFollowTheAppLanguage() {
+    let cases = [
+      (
+        "ja", "ja_JP",
+        [
+          "何でもお気軽にどうぞ", "どのようなご用件ですか？",
+          "メッセージを送信して、このページを開いたままお待ちください。すぐにお返事します。",
+        ],
+        "ファイルを添付", ["フォトライブラリ", "ファイル"]
+      ),
+      (
+        "zh-Hans", "zh_CN",
+        ["有问题尽管问", "有什么可以帮您？", "发送消息后请保持此页面打开，以便及时收到回复。"],
+        "添加附件", ["照片图库", "文件"]
+      ),
+    ]
+    for (language, locale, texts, attach, menu) in cases {
+      let app = XCUIApplication()
+      app.launchArguments = [
+        "--uitesting", "--open-support", "-AppleLanguages", "(\(language))", "-AppleLocale", locale,
+      ]
+      app.launch()
+      for text in texts {
+        XCTAssertTrue(app.staticTexts[text].waitForExistence(timeout: 10), "\(language): \(text)")
+      }
+      app.buttons[attach].tap()
+      for item in menu {
+        XCTAssertTrue(app.buttons[item].waitForExistence(timeout: 5), "\(language): \(item)")
+      }
+      app.terminate()
+    }
+  }
+
   func testOperatorLinkOpensThroughHostHandler() async throws {
     let app = XCUIApplication()
     app.launchArguments = ["--uitesting", "--uitesting-links"]

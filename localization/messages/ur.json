@@ -1,0 +1,93 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "سپورٹ",
+  "respondkit_ask_anything": "ہم سے کچھ بھی پوچھیں",
+  "respondkit_open_chat": "سپورٹ چیٹ کھولیں",
+  "respondkit_close_chat": "سپورٹ چیٹ بند کریں",
+  "respondkit_close": "بند کریں",
+  "respondkit_help": "ہم آپ کی کیا مدد کر سکتے ہیں؟",
+  "respondkit_intro": "پیغام بھیجیں اور فوری جواب کے لیے یہ صفحہ کھلا رکھیں۔",
+  "respondkit_intro_short": "گفتگو شروع کرنے کے لیے پیغام بھیجیں۔",
+  "respondkit_return": "ایپ پر واپس آنے پر جوابات یہاں دکھائی دیں گے۔",
+  "respondkit_conversations": "گفتگوئیں",
+  "respondkit_conversation": "گفتگو {date}",
+  "respondkit_new_conversation": "نئی گفتگو",
+  "respondkit_unread": "سپورٹ کا ان پڑھا جواب",
+  "respondkit_open": "کھلی",
+  "respondkit_closed": "بند",
+  "respondkit_more": "مزید",
+  "respondkit_loading": "لوڈ ہو رہا ہے…",
+  "respondkit_loading_messages": "پیغامات لوڈ ہو رہے ہیں",
+  "respondkit_support_messages": "سپورٹ پیغامات",
+  "respondkit_latest": "تازہ ترین پیغامات",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} نیا",
+        "category=*": "{count} نئے"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} نیا پیغام دکھائیں",
+        "category=*": "{count} نئے پیغامات دکھائیں"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=*": "گفتگوئیں · {count} ان پڑھی"
+      }
+    }
+  ],
+  "respondkit_closed_help": "یہ گفتگو بند ہو چکی ہے۔",
+  "respondkit_another_message": "ایک اور پیغام بھیجیں",
+  "respondkit_message": "پیغام",
+  "respondkit_write_message": "پیغام لکھیں…",
+  "respondkit_send": "بھیجیں",
+  "respondkit_send_message": "پیغام بھیجیں",
+  "respondkit_sending": "بھیجا جا رہا ہے…",
+  "respondkit_sent": "بھیج دیا گیا",
+  "respondkit_failed": "ناکام",
+  "respondkit_confirming": "تصدیق ہو رہی ہے…",
+  "respondkit_unknown": "تصدیق نہیں ہوئی — بلا جھجک دوبارہ کوشش کریں",
+  "respondkit_retry": "دوبارہ کوشش کریں",
+  "respondkit_retry_message": "پیغام دوبارہ بھیجیں",
+  "respondkit_try_again": "پھر سے کوشش کریں",
+  "respondkit_reconnect": "دوبارہ منسلک ہوں",
+  "respondkit_email_prompt": "ہم آپ کو جواب کس ای میل پر بھیجیں؟",
+  "respondkit_email_address": "ای میل پتہ",
+  "respondkit_save_email": "ای میل محفوظ کریں",
+  "respondkit_saving": "محفوظ ہو رہا ہے…",
+  "respondkit_email_failed": "ہم آپ کا ای میل محفوظ نہیں کر سکے۔ براہ کرم اسے چیک کر کے دوبارہ کوشش کریں۔",
+  "respondkit_attach_files": "فائلیں منسلک کریں",
+  "respondkit_attached_files": "منسلک فائلیں",
+  "respondkit_photo_library": "فوٹو لائبریری",
+  "respondkit_files": "فائلیں",
+  "respondkit_cancel": "منسوخ کریں",
+  "respondkit_ready": "تیار",
+  "respondkit_upload_failed": "اپ لوڈ ناکام ہو گیا",
+  "respondkit_remove": "ہٹائیں",
+  "respondkit_remove_file": "{name} ہٹائیں",
+  "respondkit_selected_file": "منتخب کردہ فائل",
+  "respondkit_picker_failed": "فائل پکر نہیں کھل سکا",
+  "respondkit_file_open_failed": "منتخب کردہ فائل نہیں کھل سکی۔",
+  "respondkit_start_failed": "سپورٹ چیٹ شروع نہیں ہو سکی۔",
+  "respondkit_request_failed": "سپورٹ کی درخواست ناکام ہو گئی۔",
+  "respondkit_history_failed": "گفتگو کی سرگزشت لوڈ نہیں ہو سکی۔ ‘مزید’ پر دوبارہ کوشش کریں۔",
+  "respondkit_messages_failed": "نئے پیغامات لوڈ نہیں ہو سکے۔",
+  "respondkit_sign_in_again": "اپنی سپورٹ کی سرگزشت بحال کرنے کے لیے دوبارہ سائن ان کریں۔",
+  "respondkit_session_expired": "آپ کے سپورٹ سیشن کی میعاد ختم ہو گئی۔ جاری رکھنے کے لیے دوبارہ منسلک ہوں۔",
+  "respondkit_identity_changed": "کسی دوسرے ٹیب میں سپورٹ اکاؤنٹ تبدیل ہو گیا۔ اپنا اکاؤنٹ دوبارہ لوڈ کرنے کے لیے دوبارہ منسلک ہوں۔",
+  "respondkit_connecting": "سپورٹ ابھی منسلک ہو رہی ہے۔",
+  "respondkit_reconnect_upload": "اپ لوڈ کرنے سے پہلے دوبارہ منسلک ہوں۔"
+}

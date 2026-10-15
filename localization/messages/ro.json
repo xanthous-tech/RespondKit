@@ -1,0 +1,96 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Asistență",
+  "respondkit_ask_anything": "Întrebați-ne orice",
+  "respondkit_open_chat": "Deschideți chatul de asistență",
+  "respondkit_close_chat": "Închideți chatul de asistență",
+  "respondkit_close": "Închideți",
+  "respondkit_help": "Cu ce vă putem ajuta?",
+  "respondkit_intro": "Trimiteți un mesaj și păstrați această pagină deschisă pentru un răspuns rapid.",
+  "respondkit_intro_short": "Trimiteți un mesaj pentru a începe o conversație.",
+  "respondkit_return": "Răspunsurile vor apărea aici când reveniți în aplicație.",
+  "respondkit_conversations": "Conversații",
+  "respondkit_conversation": "Conversație din {date}",
+  "respondkit_new_conversation": "Conversație nouă",
+  "respondkit_unread": "Răspuns necitit de la asistență",
+  "respondkit_open": "Deschisă",
+  "respondkit_closed": "Închisă",
+  "respondkit_more": "Mai multe",
+  "respondkit_loading": "Se încarcă…",
+  "respondkit_loading_messages": "Se încarcă mesajele",
+  "respondkit_support_messages": "Mesaje de asistență",
+  "respondkit_latest": "Cele mai recente mesaje",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} nou",
+        "category=*": "{count} noi"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Afișați {count} mesaj nou",
+        "category=few": "Afișați {count} mesaje noi",
+        "category=other": "Afișați {count} de mesaje noi",
+        "category=*": "Afișați {count} de mesaje noi"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Conversații · {count} necitită",
+        "category=*": "Conversații · {count} necitite"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Această conversație este închisă.",
+  "respondkit_another_message": "Trimiteți alt mesaj",
+  "respondkit_message": "Mesaj",
+  "respondkit_write_message": "Scrieți un mesaj…",
+  "respondkit_send": "Trimiteți",
+  "respondkit_send_message": "Trimiteți mesajul",
+  "respondkit_sending": "Se trimite…",
+  "respondkit_sent": "Trimis",
+  "respondkit_failed": "Eșuat",
+  "respondkit_confirming": "Se confirmă…",
+  "respondkit_unknown": "Neconfirmat — puteți reîncerca în siguranță",
+  "respondkit_retry": "Reîncercați",
+  "respondkit_retry_message": "Retrimiteți mesajul",
+  "respondkit_try_again": "Încercați din nou",
+  "respondkit_reconnect": "Reconectați-vă",
+  "respondkit_email_prompt": "La ce adresă de e-mail vă putem răspunde?",
+  "respondkit_email_address": "Adresă de e-mail",
+  "respondkit_save_email": "Salvați adresa de e-mail",
+  "respondkit_saving": "Se salvează…",
+  "respondkit_email_failed": "Nu am putut salva adresa de e-mail. Verificați-o și încercați din nou.",
+  "respondkit_attach_files": "Atașați fișiere",
+  "respondkit_attached_files": "Fișiere atașate",
+  "respondkit_photo_library": "Galerie foto",
+  "respondkit_files": "Fișiere",
+  "respondkit_cancel": "Anulați",
+  "respondkit_ready": "Gata",
+  "respondkit_upload_failed": "Încărcarea a eșuat",
+  "respondkit_remove": "Eliminați",
+  "respondkit_remove_file": "Eliminați {name}",
+  "respondkit_selected_file": "Fișier selectat",
+  "respondkit_picker_failed": "Nu se poate deschide selectorul de fișiere",
+  "respondkit_file_open_failed": "Nu se poate deschide fișierul selectat.",
+  "respondkit_start_failed": "Chatul de asistență nu a putut fi pornit.",
+  "respondkit_request_failed": "Solicitarea către asistență a eșuat.",
+  "respondkit_history_failed": "Istoricul conversației nu a putut fi încărcat. Încercați din nou cu Mai multe.",
+  "respondkit_messages_failed": "Mesajele noi nu au putut fi încărcate.",
+  "respondkit_sign_in_again": "Conectați-vă din nou pentru a vă recupera istoricul de asistență.",
+  "respondkit_session_expired": "Sesiunea de asistență a expirat. Reconectați-vă pentru a continua.",
+  "respondkit_identity_changed": "Identitatea de asistență s-a schimbat în altă filă. Reconectați-vă pentru a reîncărca contul.",
+  "respondkit_connecting": "Asistența încă se conectează.",
+  "respondkit_reconnect_upload": "Reconectați-vă înainte de a încărca fișiere."
+}

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"आणखी एक संदेश पाठवा"</string>
+    <string name="respondkit_ask_anything" formatted="false">"आम्हाला काहीही विचारा"</string>
+    <string name="respondkit_attach_files" formatted="false">"फाइल जोडा"</string>
+    <string name="respondkit_attached_files" formatted="false">"जोडलेल्या फाइल"</string>
+    <string name="respondkit_cancel" formatted="false">"रद्द करा"</string>
+    <string name="respondkit_close" formatted="false">"बंद करा"</string>
+    <string name="respondkit_close_chat" formatted="false">"सहाय्य चॅट बंद करा"</string>
+    <string name="respondkit_closed" formatted="false">"बंद"</string>
+    <string name="respondkit_closed_help" formatted="false">"हे संभाषण बंद झाले आहे."</string>
+    <string name="respondkit_confirming" formatted="false">"पुष्टी करत आहे…"</string>
+    <string name="respondkit_connecting" formatted="false">"सहाय्य अजून कनेक्ट होत आहे."</string>
+    <string name="respondkit_conversation">"संभाषण %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"संभाषणे"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="one">"संभाषणे · %1$d न वाचलेले"</item>
+        <item quantity="other">"संभाषणे · %1$d न वाचलेले"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"ईमेल पत्ता"</string>
+    <string name="respondkit_email_failed" formatted="false">"आम्ही तुमचा ईमेल सेव्ह करू शकलो नाही. कृपया तो तपासा आणि पुन्हा प्रयत्न करा."</string>
+    <string name="respondkit_email_prompt" formatted="false">"आम्ही तुम्हाला कोणत्या ईमेलवर उत्तर पाठवू?"</string>
+    <string name="respondkit_failed" formatted="false">"अयशस्वी"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"निवडलेली फाइल उघडता येत नाही."</string>
+    <string name="respondkit_files" formatted="false">"फाइल"</string>
+    <string name="respondkit_help" formatted="false">"आम्ही कशी मदत करू शकतो?"</string>
+    <string name="respondkit_history_failed" formatted="false">"संभाषणाचा इतिहास लोड करता आला नाही. आणखी बटण पुन्हा वापरून पहा."</string>
+    <string name="respondkit_identity_changed" formatted="false">"दुसऱ्या टॅबमध्ये सहाय्य खाते बदलले. तुमचे खाते रीलोड करण्यासाठी पुन्हा कनेक्ट करा."</string>
+    <string name="respondkit_intro" formatted="false">"संदेश पाठवा आणि लवकर उत्तर मिळण्यासाठी हे पेज उघडे ठेवा."</string>
+    <string name="respondkit_intro_short" formatted="false">"संभाषण सुरू करण्यासाठी संदेश पाठवा."</string>
+    <string name="respondkit_latest" formatted="false">"नवीनतम संदेश"</string>
+    <string name="respondkit_loading" formatted="false">"लोड होत आहे…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"संदेश लोड होत आहेत"</string>
+    <string name="respondkit_message" formatted="false">"संदेश"</string>
+    <string name="respondkit_messages_failed" formatted="false">"नवीन संदेश लोड करता आले नाहीत."</string>
+    <string name="respondkit_more" formatted="false">"आणखी"</string>
+    <string name="respondkit_new_conversation" formatted="false">"नवीन संभाषण"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="one">"%1$d नवीन"</item>
+        <item quantity="other">"%1$d नवीन"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"सुरू"</string>
+    <string name="respondkit_open_chat" formatted="false">"सहाय्य चॅट उघडा"</string>
+    <string name="respondkit_photo_library" formatted="false">"फोटो लायब्ररी"</string>
+    <string name="respondkit_picker_failed" formatted="false">"फाइल पिकर उघडता येत नाही"</string>
+    <string name="respondkit_ready" formatted="false">"तयार"</string>
+    <string name="respondkit_reconnect" formatted="false">"पुन्हा कनेक्ट करा"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"अपलोड करण्यापूर्वी पुन्हा कनेक्ट करा."</string>
+    <string name="respondkit_remove" formatted="false">"काढा"</string>
+    <string name="respondkit_remove_file">"%1$s काढा"</string>
+    <string name="respondkit_request_failed" formatted="false">"सहाय्य विनंती अयशस्वी झाली."</string>
+    <string name="respondkit_retry" formatted="false">"पुन्हा प्रयत्न करा"</string>
+    <string name="respondkit_retry_message" formatted="false">"संदेश पुन्हा पाठवा"</string>
+    <string name="respondkit_return" formatted="false">"तुम्ही ॲपवर परत आल्यावर उत्तरे येथे दिसतील."</string>
+    <string name="respondkit_save_email" formatted="false">"ईमेल सेव्ह करा"</string>
+    <string name="respondkit_saving" formatted="false">"सेव्ह करत आहे…"</string>
+    <string name="respondkit_selected_file" formatted="false">"निवडलेली फाइल"</string>
+    <string name="respondkit_send" formatted="false">"पाठवा"</string>
+    <string name="respondkit_send_message" formatted="false">"संदेश पाठवा"</string>
+    <string name="respondkit_sending" formatted="false">"पाठवत आहे…"</string>
+    <string name="respondkit_sent" formatted="false">"पाठवला"</string>
+    <string name="respondkit_session_expired" formatted="false">"तुमचे सहाय्य सत्र कालबाह्य झाले. सुरू ठेवण्यासाठी पुन्हा कनेक्ट करा."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="one">"%1$d नवीन संदेश दाखवा"</item>
+        <item quantity="other">"%1$d नवीन संदेश दाखवा"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"तुमचा सहाय्य इतिहास परत मिळवण्यासाठी पुन्हा साइन इन करा."</string>
+    <string name="respondkit_start_failed" formatted="false">"सहाय्य चॅट सुरू करता आले नाही."</string>
+    <string name="respondkit_support" formatted="false">"सहाय्य"</string>
+    <string name="respondkit_support_messages" formatted="false">"सहाय्य संदेश"</string>
+    <string name="respondkit_try_again" formatted="false">"पुन्हा प्रयत्न करा"</string>
+    <string name="respondkit_unknown" formatted="false">"पुष्टी झाली नाही — पुन्हा पाठवणे सुरक्षित आहे"</string>
+    <string name="respondkit_unread" formatted="false">"न वाचलेले सहाय्य उत्तर"</string>
+    <string name="respondkit_upload_failed" formatted="false">"अपलोड अयशस्वी"</string>
+    <string name="respondkit_write_message" formatted="false">"संदेश लिहा…"</string>
+</resources>

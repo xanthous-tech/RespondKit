@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"Отправить ещё сообщение"</string>
+    <string name="respondkit_ask_anything" formatted="false">"Задайте нам любой вопрос"</string>
+    <string name="respondkit_attach_files" formatted="false">"Прикрепить файлы"</string>
+    <string name="respondkit_attached_files" formatted="false">"Прикреплённые файлы"</string>
+    <string name="respondkit_cancel" formatted="false">"Отмена"</string>
+    <string name="respondkit_close" formatted="false">"Закрыть"</string>
+    <string name="respondkit_close_chat" formatted="false">"Закрыть чат поддержки"</string>
+    <string name="respondkit_closed" formatted="false">"Закрыт"</string>
+    <string name="respondkit_closed_help" formatted="false">"Этот диалог закрыт."</string>
+    <string name="respondkit_confirming" formatted="false">"Подтверждение…"</string>
+    <string name="respondkit_connecting" formatted="false">"Чат поддержки ещё подключается."</string>
+    <string name="respondkit_conversation">"Диалог от %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"Диалоги"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="one">"Диалоги · %1$d непрочитанный"</item>
+        <item quantity="few">"Диалоги · %1$d непрочитанных"</item>
+        <item quantity="many">"Диалоги · %1$d непрочитанных"</item>
+        <item quantity="other">"Диалоги · %1$d непрочитанного"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"Адрес эл. почты"</string>
+    <string name="respondkit_email_failed" formatted="false">"Не удалось сохранить адрес эл. почты. Проверьте его и попробуйте снова."</string>
+    <string name="respondkit_email_prompt" formatted="false">"На какой адрес эл. почты отправить ответ?"</string>
+    <string name="respondkit_failed" formatted="false">"Ошибка"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"Не удалось открыть выбранный файл."</string>
+    <string name="respondkit_files" formatted="false">"Файлы"</string>
+    <string name="respondkit_help" formatted="false">"Чем можем помочь?"</string>
+    <string name="respondkit_history_failed" formatted="false">"Не удалось загрузить историю диалога. Нажмите «Ещё» повторно."</string>
+    <string name="respondkit_identity_changed" formatted="false">"Профиль поддержки изменён в другой вкладке. Переподключитесь, чтобы заново загрузить аккаунт."</string>
+    <string name="respondkit_intro" formatted="false">"Отправьте сообщение и не закрывайте эту страницу, чтобы быстро получить ответ."</string>
+    <string name="respondkit_intro_short" formatted="false">"Отправьте сообщение, чтобы начать диалог."</string>
+    <string name="respondkit_latest" formatted="false">"Последние сообщения"</string>
+    <string name="respondkit_loading" formatted="false">"Загрузка…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"Загрузка сообщений"</string>
+    <string name="respondkit_message" formatted="false">"Сообщение"</string>
+    <string name="respondkit_messages_failed" formatted="false">"Не удалось загрузить новые сообщения."</string>
+    <string name="respondkit_more" formatted="false">"Ещё"</string>
+    <string name="respondkit_new_conversation" formatted="false">"Новый диалог"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="one">"%1$d новое"</item>
+        <item quantity="few">"%1$d новых"</item>
+        <item quantity="many">"%1$d новых"</item>
+        <item quantity="other">"%1$d новых"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"Открыт"</string>
+    <string name="respondkit_open_chat" formatted="false">"Открыть чат поддержки"</string>
+    <string name="respondkit_photo_library" formatted="false">"Галерея"</string>
+    <string name="respondkit_picker_failed" formatted="false">"Не удалось открыть выбор файлов"</string>
+    <string name="respondkit_ready" formatted="false">"Готово"</string>
+    <string name="respondkit_reconnect" formatted="false">"Переподключиться"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"Переподключитесь перед загрузкой файлов."</string>
+    <string name="respondkit_remove" formatted="false">"Удалить"</string>
+    <string name="respondkit_remove_file">"Удалить %1$s"</string>
+    <string name="respondkit_request_failed" formatted="false">"Ошибка запроса к поддержке."</string>
+    <string name="respondkit_retry" formatted="false">"Повторить"</string>
+    <string name="respondkit_retry_message" formatted="false">"Повторить отправку"</string>
+    <string name="respondkit_return" formatted="false">"Ответы появятся здесь, когда вы вернётесь в приложение."</string>
+    <string name="respondkit_save_email" formatted="false">"Сохранить адрес"</string>
+    <string name="respondkit_saving" formatted="false">"Сохранение…"</string>
+    <string name="respondkit_selected_file" formatted="false">"Выбранный файл"</string>
+    <string name="respondkit_send" formatted="false">"Отправить"</string>
+    <string name="respondkit_send_message" formatted="false">"Отправить сообщение"</string>
+    <string name="respondkit_sending" formatted="false">"Отправка…"</string>
+    <string name="respondkit_sent" formatted="false">"Отправлено"</string>
+    <string name="respondkit_session_expired" formatted="false">"Сеанс поддержки истёк. Переподключитесь, чтобы продолжить."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="one">"Показать %1$d новое сообщение"</item>
+        <item quantity="few">"Показать %1$d новых сообщения"</item>
+        <item quantity="many">"Показать %1$d новых сообщений"</item>
+        <item quantity="other">"Показать %1$d нового сообщения"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"Войдите снова, чтобы восстановить историю обращений."</string>
+    <string name="respondkit_start_failed" formatted="false">"Не удалось запустить чат поддержки."</string>
+    <string name="respondkit_support" formatted="false">"Поддержка"</string>
+    <string name="respondkit_support_messages" formatted="false">"Сообщения поддержки"</string>
+    <string name="respondkit_try_again" formatted="false">"Попробовать снова"</string>
+    <string name="respondkit_unknown" formatted="false">"Не подтверждено — можно безопасно повторить"</string>
+    <string name="respondkit_unread" formatted="false">"Непрочитанный ответ поддержки"</string>
+    <string name="respondkit_upload_failed" formatted="false">"Не удалось загрузить"</string>
+    <string name="respondkit_write_message" formatted="false">"Напишите сообщение…"</string>
+</resources>

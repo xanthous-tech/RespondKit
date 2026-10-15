@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"Sūtīt vēl vienu ziņu"</string>
+    <string name="respondkit_ask_anything" formatted="false">"Jautājiet mums jebko"</string>
+    <string name="respondkit_attach_files" formatted="false">"Pievienot failus"</string>
+    <string name="respondkit_attached_files" formatted="false">"Pievienotie faili"</string>
+    <string name="respondkit_cancel" formatted="false">"Atcelt"</string>
+    <string name="respondkit_close" formatted="false">"Aizvērt"</string>
+    <string name="respondkit_close_chat" formatted="false">"Aizvērt atbalsta tērzēšanu"</string>
+    <string name="respondkit_closed" formatted="false">"Slēgta"</string>
+    <string name="respondkit_closed_help" formatted="false">"Šī saruna ir slēgta."</string>
+    <string name="respondkit_confirming" formatted="false">"Apstiprina…"</string>
+    <string name="respondkit_connecting" formatted="false">"Atbalsts joprojām tiek savienots."</string>
+    <string name="respondkit_conversation">"Saruna %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"Sarunas"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="zero">"Sarunas · %1$d nelasītas"</item>
+        <item quantity="one">"Sarunas · %1$d nelasīta"</item>
+        <item quantity="other">"Sarunas · %1$d nelasītas"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"E-pasta adrese"</string>
+    <string name="respondkit_email_failed" formatted="false">"Neizdevās saglabāt jūsu e-pasta adresi. Lūdzu, pārbaudiet to un mēģiniet vēlreiz."</string>
+    <string name="respondkit_email_prompt" formatted="false">"Uz kādu e-pasta adresi varam nosūtīt atbildi?"</string>
+    <string name="respondkit_failed" formatted="false">"Neizdevās"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"Nevar atvērt atlasīto failu."</string>
+    <string name="respondkit_files" formatted="false">"Faili"</string>
+    <string name="respondkit_help" formatted="false">"Kā varam palīdzēt?"</string>
+    <string name="respondkit_history_failed" formatted="false">"Neizdevās ielādēt sarunas vēsturi. Vēlreiz noklikšķiniet uz Vairāk."</string>
+    <string name="respondkit_identity_changed" formatted="false">"Atbalsta identitāte tika mainīta citā cilnē. Lai atkārtoti ielādētu savu kontu, savienojiet vēlreiz."</string>
+    <string name="respondkit_intro" formatted="false">"Nosūtiet ziņu un neaizveriet šo lapu – drīz atbildēsim."</string>
+    <string name="respondkit_intro_short" formatted="false">"Nosūtiet ziņu, lai sāktu sarunu."</string>
+    <string name="respondkit_latest" formatted="false">"Jaunākās ziņas"</string>
+    <string name="respondkit_loading" formatted="false">"Ielādē…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"Ielādē ziņas"</string>
+    <string name="respondkit_message" formatted="false">"Ziņa"</string>
+    <string name="respondkit_messages_failed" formatted="false">"Neizdevās ielādēt jaunās ziņas."</string>
+    <string name="respondkit_more" formatted="false">"Vairāk"</string>
+    <string name="respondkit_new_conversation" formatted="false">"Jauna saruna"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="zero">"%1$d jaunas"</item>
+        <item quantity="one">"%1$d jauna"</item>
+        <item quantity="other">"%1$d jaunas"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"Atvērta"</string>
+    <string name="respondkit_open_chat" formatted="false">"Atvērt atbalsta tērzēšanu"</string>
+    <string name="respondkit_photo_library" formatted="false">"Fotoattēlu bibliotēka"</string>
+    <string name="respondkit_picker_failed" formatted="false">"Nevar atvērt failu atlasītāju"</string>
+    <string name="respondkit_ready" formatted="false">"Gatavs"</string>
+    <string name="respondkit_reconnect" formatted="false">"Savienot vēlreiz"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"Pirms augšupielādes savienojiet vēlreiz."</string>
+    <string name="respondkit_remove" formatted="false">"Noņemt"</string>
+    <string name="respondkit_remove_file">"Noņemt %1$s"</string>
+    <string name="respondkit_request_failed" formatted="false">"Atbalsta pieprasījums neizdevās."</string>
+    <string name="respondkit_retry" formatted="false">"Mēģināt vēlreiz"</string>
+    <string name="respondkit_retry_message" formatted="false">"Sūtīt ziņu vēlreiz"</string>
+    <string name="respondkit_return" formatted="false">"Atbildes būs redzamas šeit, kad atgriezīsieties lietotnē."</string>
+    <string name="respondkit_save_email" formatted="false">"Saglabāt e-pastu"</string>
+    <string name="respondkit_saving" formatted="false">"Saglabā…"</string>
+    <string name="respondkit_selected_file" formatted="false">"Atlasītais fails"</string>
+    <string name="respondkit_send" formatted="false">"Sūtīt"</string>
+    <string name="respondkit_send_message" formatted="false">"Sūtīt ziņu"</string>
+    <string name="respondkit_sending" formatted="false">"Sūta…"</string>
+    <string name="respondkit_sent" formatted="false">"Nosūtīta"</string>
+    <string name="respondkit_session_expired" formatted="false">"Jūsu atbalsta sesija ir beigusies. Lai turpinātu, savienojiet vēlreiz."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="zero">"Rādīt %1$d jaunas ziņas"</item>
+        <item quantity="one">"Rādīt %1$d jaunu ziņu"</item>
+        <item quantity="other">"Rādīt %1$d jaunas ziņas"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"Pierakstieties vēlreiz, lai atjaunotu atbalsta vēsturi."</string>
+    <string name="respondkit_start_failed" formatted="false">"Neizdevās sākt atbalsta tērzēšanu."</string>
+    <string name="respondkit_support" formatted="false">"Atbalsts"</string>
+    <string name="respondkit_support_messages" formatted="false">"Atbalsta ziņas"</string>
+    <string name="respondkit_try_again" formatted="false">"Mēģiniet vēlreiz"</string>
+    <string name="respondkit_unknown" formatted="false">"Nav apstiprināta – droši mēģiniet vēlreiz"</string>
+    <string name="respondkit_unread" formatted="false">"Nelasīta atbalsta atbilde"</string>
+    <string name="respondkit_upload_failed" formatted="false">"Augšupielāde neizdevās"</string>
+    <string name="respondkit_write_message" formatted="false">"Rakstiet ziņu…"</string>
+</resources>

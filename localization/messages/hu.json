@@ -1,0 +1,94 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Ügyfélszolgálat",
+  "respondkit_ask_anything": "Kérdezzen tőlünk bátran",
+  "respondkit_open_chat": "Ügyfélszolgálati chat megnyitása",
+  "respondkit_close_chat": "Ügyfélszolgálati chat bezárása",
+  "respondkit_close": "Bezárás",
+  "respondkit_help": "Miben segíthetünk?",
+  "respondkit_intro": "Küldjön üzenetet, és tartsa nyitva ezt az oldalt a gyors válaszért.",
+  "respondkit_intro_short": "Küldjön üzenetet a beszélgetés indításához.",
+  "respondkit_return": "A válaszok itt jelennek meg, amikor visszatér az alkalmazásba.",
+  "respondkit_conversations": "Beszélgetések",
+  "respondkit_conversation": "Beszélgetés – {date}",
+  "respondkit_new_conversation": "Új beszélgetés",
+  "respondkit_unread": "Olvasatlan ügyfélszolgálati válasz",
+  "respondkit_open": "Nyitott",
+  "respondkit_closed": "Lezárt",
+  "respondkit_more": "Továbbiak",
+  "respondkit_loading": "Betöltés…",
+  "respondkit_loading_messages": "Üzenetek betöltése",
+  "respondkit_support_messages": "Ügyfélszolgálati üzenetek",
+  "respondkit_latest": "Legújabb üzenetek",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} új",
+        "category=*": "{count} új"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} új üzenet megjelenítése",
+        "category=*": "{count} új üzenet megjelenítése"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Beszélgetések · {count} olvasatlan",
+        "category=*": "Beszélgetések · {count} olvasatlan"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Ez a beszélgetés lezárult.",
+  "respondkit_another_message": "Újabb üzenet küldése",
+  "respondkit_message": "Üzenet",
+  "respondkit_write_message": "Írjon üzenetet…",
+  "respondkit_send": "Küldés",
+  "respondkit_send_message": "Üzenet küldése",
+  "respondkit_sending": "Küldés…",
+  "respondkit_sent": "Elküldve",
+  "respondkit_failed": "Sikertelen",
+  "respondkit_confirming": "Megerősítés…",
+  "respondkit_unknown": "Nincs megerősítve – nyugodtan próbálja újra",
+  "respondkit_retry": "Újra",
+  "respondkit_retry_message": "Üzenet újraküldése",
+  "respondkit_try_again": "Újrapróbálás",
+  "respondkit_reconnect": "Újracsatlakozás",
+  "respondkit_email_prompt": "Milyen e-mail-címre küldhetjük a választ?",
+  "respondkit_email_address": "E-mail-cím",
+  "respondkit_save_email": "E-mail-cím mentése",
+  "respondkit_saving": "Mentés…",
+  "respondkit_email_failed": "Nem sikerült menteni az e-mail-címét. Ellenőrizze, és próbálja újra.",
+  "respondkit_attach_files": "Fájlok csatolása",
+  "respondkit_attached_files": "Csatolt fájlok",
+  "respondkit_photo_library": "Fotókönyvtár",
+  "respondkit_files": "Fájlok",
+  "respondkit_cancel": "Mégse",
+  "respondkit_ready": "Kész",
+  "respondkit_upload_failed": "Sikertelen feltöltés",
+  "respondkit_remove": "Eltávolítás",
+  "respondkit_remove_file": "{name} eltávolítása",
+  "respondkit_selected_file": "Kiválasztott fájl",
+  "respondkit_picker_failed": "Nem sikerült megnyitni a fájlválasztót",
+  "respondkit_file_open_failed": "Nem sikerült megnyitni a kiválasztott fájlt.",
+  "respondkit_start_failed": "Nem sikerült elindítani az ügyfélszolgálati chatet.",
+  "respondkit_request_failed": "Az ügyfélszolgálati kérés sikertelen volt.",
+  "respondkit_history_failed": "Nem sikerült betölteni a beszélgetés előzményeit. Próbálja újra a „Továbbiak” gombbal.",
+  "respondkit_messages_failed": "Nem sikerült betölteni az új üzeneteket.",
+  "respondkit_sign_in_again": "Jelentkezzen be újra az ügyfélszolgálati előzmények visszaállításához.",
+  "respondkit_session_expired": "Az ügyfélszolgálati munkamenet lejárt. A folytatáshoz csatlakozzon újra.",
+  "respondkit_identity_changed": "Egy másik lapon megváltozott az ügyfélszolgálati azonosító. Csatlakozzon újra a fiókja újbóli betöltéséhez.",
+  "respondkit_connecting": "A kapcsolódás az ügyfélszolgálathoz még folyamatban van.",
+  "respondkit_reconnect_upload": "Feltöltés előtt csatlakozzon újra."
+}

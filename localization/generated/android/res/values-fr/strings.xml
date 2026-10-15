@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"Envoyer un autre message"</string>
+    <string name="respondkit_ask_anything" formatted="false">"Posez-nous toutes vos questions"</string>
+    <string name="respondkit_attach_files" formatted="false">"Joindre des fichiers"</string>
+    <string name="respondkit_attached_files" formatted="false">"Fichiers joints"</string>
+    <string name="respondkit_cancel" formatted="false">"Annuler"</string>
+    <string name="respondkit_close" formatted="false">"Fermer"</string>
+    <string name="respondkit_close_chat" formatted="false">"Fermer le chat d’assistance"</string>
+    <string name="respondkit_closed" formatted="false">"Fermée"</string>
+    <string name="respondkit_closed_help" formatted="false">"Cette conversation est fermée."</string>
+    <string name="respondkit_confirming" formatted="false">"Confirmation en cours…"</string>
+    <string name="respondkit_connecting" formatted="false">"Connexion à l’assistance en cours."</string>
+    <string name="respondkit_conversation">"Conversation du %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"Conversations"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="one">"Conversations · %1$d non lue"</item>
+        <item quantity="many">"Conversations · %1$d non lues"</item>
+        <item quantity="other">"Conversations · %1$d non lues"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"Adresse e-mail"</string>
+    <string name="respondkit_email_failed" formatted="false">"Impossible d’enregistrer votre adresse e-mail. Vérifiez-la et réessayez."</string>
+    <string name="respondkit_email_prompt" formatted="false">"À quelle adresse e-mail pouvons-nous vous répondre ?"</string>
+    <string name="respondkit_failed" formatted="false">"Échec"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"Impossible d’ouvrir le fichier sélectionné."</string>
+    <string name="respondkit_files" formatted="false">"Fichiers"</string>
+    <string name="respondkit_help" formatted="false">"Comment pouvons-nous vous aider ?"</string>
+    <string name="respondkit_history_failed" formatted="false">"Impossible de charger l’historique de la conversation. Réessayez avec « Afficher plus »."</string>
+    <string name="respondkit_identity_changed" formatted="false">"Le compte d’assistance a changé dans un autre onglet. Reconnectez-vous pour recharger votre compte."</string>
+    <string name="respondkit_intro" formatted="false">"Envoyez-nous un message et gardez cette page ouverte pour obtenir une réponse rapide."</string>
+    <string name="respondkit_intro_short" formatted="false">"Envoyez un message pour démarrer une conversation."</string>
+    <string name="respondkit_latest" formatted="false">"Derniers messages"</string>
+    <string name="respondkit_loading" formatted="false">"Chargement…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"Chargement des messages"</string>
+    <string name="respondkit_message" formatted="false">"Message"</string>
+    <string name="respondkit_messages_failed" formatted="false">"Impossible de charger les nouveaux messages."</string>
+    <string name="respondkit_more" formatted="false">"Afficher plus"</string>
+    <string name="respondkit_new_conversation" formatted="false">"Nouvelle conversation"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="one">"%1$d nouveau"</item>
+        <item quantity="many">"%1$d nouveaux"</item>
+        <item quantity="other">"%1$d nouveaux"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"Ouverte"</string>
+    <string name="respondkit_open_chat" formatted="false">"Ouvrir le chat d’assistance"</string>
+    <string name="respondkit_photo_library" formatted="false">"Photothèque"</string>
+    <string name="respondkit_picker_failed" formatted="false">"Impossible d’ouvrir le sélecteur de fichiers"</string>
+    <string name="respondkit_ready" formatted="false">"Prêt"</string>
+    <string name="respondkit_reconnect" formatted="false">"Se reconnecter"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"Reconnectez-vous avant d’envoyer des fichiers."</string>
+    <string name="respondkit_remove" formatted="false">"Retirer"</string>
+    <string name="respondkit_remove_file">"Retirer %1$s"</string>
+    <string name="respondkit_request_failed" formatted="false">"La demande d’assistance a échoué."</string>
+    <string name="respondkit_retry" formatted="false">"Réessayer"</string>
+    <string name="respondkit_retry_message" formatted="false">"Renvoyer le message"</string>
+    <string name="respondkit_return" formatted="false">"Les réponses s’afficheront ici à votre retour dans l’application."</string>
+    <string name="respondkit_save_email" formatted="false">"Enregistrer l’adresse"</string>
+    <string name="respondkit_saving" formatted="false">"Enregistrement…"</string>
+    <string name="respondkit_selected_file" formatted="false">"Fichier sélectionné"</string>
+    <string name="respondkit_send" formatted="false">"Envoyer"</string>
+    <string name="respondkit_send_message" formatted="false">"Envoyer le message"</string>
+    <string name="respondkit_sending" formatted="false">"Envoi en cours…"</string>
+    <string name="respondkit_sent" formatted="false">"Envoyé"</string>
+    <string name="respondkit_session_expired" formatted="false">"Votre session d’assistance a expiré. Reconnectez-vous pour continuer."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="one">"Afficher %1$d nouveau message"</item>
+        <item quantity="many">"Afficher %1$d nouveaux messages"</item>
+        <item quantity="other">"Afficher %1$d nouveaux messages"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"Connectez-vous à nouveau pour retrouver votre historique d’assistance."</string>
+    <string name="respondkit_start_failed" formatted="false">"Impossible de démarrer le chat d’assistance."</string>
+    <string name="respondkit_support" formatted="false">"Assistance"</string>
+    <string name="respondkit_support_messages" formatted="false">"Messages de l’assistance"</string>
+    <string name="respondkit_try_again" formatted="false">"Réessayer"</string>
+    <string name="respondkit_unknown" formatted="false">"Non confirmé — vous pouvez réessayer sans risque"</string>
+    <string name="respondkit_unread" formatted="false">"Réponse non lue de l’assistance"</string>
+    <string name="respondkit_upload_failed" formatted="false">"Échec de l’envoi"</string>
+    <string name="respondkit_write_message" formatted="false">"Écrivez un message…"</string>
+</resources>

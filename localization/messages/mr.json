@@ -1,0 +1,97 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "सहाय्य",
+  "respondkit_ask_anything": "आम्हाला काहीही विचारा",
+  "respondkit_open_chat": "सहाय्य चॅट उघडा",
+  "respondkit_close_chat": "सहाय्य चॅट बंद करा",
+  "respondkit_close": "बंद करा",
+  "respondkit_help": "आम्ही कशी मदत करू शकतो?",
+  "respondkit_intro": "संदेश पाठवा आणि लवकर उत्तर मिळण्यासाठी हे पेज उघडे ठेवा.",
+  "respondkit_intro_short": "संभाषण सुरू करण्यासाठी संदेश पाठवा.",
+  "respondkit_return": "तुम्ही ॲपवर परत आल्यावर उत्तरे येथे दिसतील.",
+  "respondkit_conversations": "संभाषणे",
+  "respondkit_conversation": "संभाषण {date}",
+  "respondkit_new_conversation": "नवीन संभाषण",
+  "respondkit_unread": "न वाचलेले सहाय्य उत्तर",
+  "respondkit_open": "सुरू",
+  "respondkit_closed": "बंद",
+  "respondkit_more": "आणखी",
+  "respondkit_loading": "लोड होत आहे…",
+  "respondkit_loading_messages": "संदेश लोड होत आहेत",
+  "respondkit_support_messages": "सहाय्य संदेश",
+  "respondkit_latest": "नवीनतम संदेश",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} नवीन",
+        "category=other": "{count} नवीन",
+        "category=*": "{count} नवीन"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} नवीन संदेश दाखवा",
+        "category=other": "{count} नवीन संदेश दाखवा",
+        "category=*": "{count} नवीन संदेश दाखवा"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "संभाषणे · {count} न वाचलेले",
+        "category=other": "संभाषणे · {count} न वाचलेले",
+        "category=*": "संभाषणे · {count} न वाचलेले"
+      }
+    }
+  ],
+  "respondkit_closed_help": "हे संभाषण बंद झाले आहे.",
+  "respondkit_another_message": "आणखी एक संदेश पाठवा",
+  "respondkit_message": "संदेश",
+  "respondkit_write_message": "संदेश लिहा…",
+  "respondkit_send": "पाठवा",
+  "respondkit_send_message": "संदेश पाठवा",
+  "respondkit_sending": "पाठवत आहे…",
+  "respondkit_sent": "पाठवला",
+  "respondkit_failed": "अयशस्वी",
+  "respondkit_confirming": "पुष्टी करत आहे…",
+  "respondkit_unknown": "पुष्टी झाली नाही — पुन्हा पाठवणे सुरक्षित आहे",
+  "respondkit_retry": "पुन्हा प्रयत्न करा",
+  "respondkit_retry_message": "संदेश पुन्हा पाठवा",
+  "respondkit_try_again": "पुन्हा प्रयत्न करा",
+  "respondkit_reconnect": "पुन्हा कनेक्ट करा",
+  "respondkit_email_prompt": "आम्ही तुम्हाला कोणत्या ईमेलवर उत्तर पाठवू?",
+  "respondkit_email_address": "ईमेल पत्ता",
+  "respondkit_save_email": "ईमेल सेव्ह करा",
+  "respondkit_saving": "सेव्ह करत आहे…",
+  "respondkit_email_failed": "आम्ही तुमचा ईमेल सेव्ह करू शकलो नाही. कृपया तो तपासा आणि पुन्हा प्रयत्न करा.",
+  "respondkit_attach_files": "फाइल जोडा",
+  "respondkit_attached_files": "जोडलेल्या फाइल",
+  "respondkit_photo_library": "फोटो लायब्ररी",
+  "respondkit_files": "फाइल",
+  "respondkit_cancel": "रद्द करा",
+  "respondkit_ready": "तयार",
+  "respondkit_upload_failed": "अपलोड अयशस्वी",
+  "respondkit_remove": "काढा",
+  "respondkit_remove_file": "{name} काढा",
+  "respondkit_selected_file": "निवडलेली फाइल",
+  "respondkit_picker_failed": "फाइल पिकर उघडता येत नाही",
+  "respondkit_file_open_failed": "निवडलेली फाइल उघडता येत नाही.",
+  "respondkit_start_failed": "सहाय्य चॅट सुरू करता आले नाही.",
+  "respondkit_request_failed": "सहाय्य विनंती अयशस्वी झाली.",
+  "respondkit_history_failed": "संभाषणाचा इतिहास लोड करता आला नाही. आणखी बटण पुन्हा वापरून पहा.",
+  "respondkit_messages_failed": "नवीन संदेश लोड करता आले नाहीत.",
+  "respondkit_sign_in_again": "तुमचा सहाय्य इतिहास परत मिळवण्यासाठी पुन्हा साइन इन करा.",
+  "respondkit_session_expired": "तुमचे सहाय्य सत्र कालबाह्य झाले. सुरू ठेवण्यासाठी पुन्हा कनेक्ट करा.",
+  "respondkit_identity_changed": "दुसऱ्या टॅबमध्ये सहाय्य खाते बदलले. तुमचे खाते रीलोड करण्यासाठी पुन्हा कनेक्ट करा.",
+  "respondkit_connecting": "सहाय्य अजून कनेक्ट होत आहे.",
+  "respondkit_reconnect_upload": "अपलोड करण्यापूर्वी पुन्हा कनेक्ट करा."
+}

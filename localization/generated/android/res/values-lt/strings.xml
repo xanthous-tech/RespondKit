@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"Siųsti kitą žinutę"</string>
+    <string name="respondkit_ask_anything" formatted="false">"Klauskite mūsų bet ko"</string>
+    <string name="respondkit_attach_files" formatted="false">"Pridėti failus"</string>
+    <string name="respondkit_attached_files" formatted="false">"Pridėti failai"</string>
+    <string name="respondkit_cancel" formatted="false">"Atšaukti"</string>
+    <string name="respondkit_close" formatted="false">"Uždaryti"</string>
+    <string name="respondkit_close_chat" formatted="false">"Uždaryti pagalbos pokalbį"</string>
+    <string name="respondkit_closed" formatted="false">"Uždarytas"</string>
+    <string name="respondkit_closed_help" formatted="false">"Šis pokalbis uždarytas."</string>
+    <string name="respondkit_confirming" formatted="false">"Patvirtinama…"</string>
+    <string name="respondkit_connecting" formatted="false">"Pagalba vis dar jungiasi."</string>
+    <string name="respondkit_conversation">"Pokalbis %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"Pokalbiai"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="one">"Pokalbiai · %1$d neperskaitytas"</item>
+        <item quantity="few">"Pokalbiai · %1$d neperskaityti"</item>
+        <item quantity="many">"Pokalbiai · %1$d neperskaityto"</item>
+        <item quantity="other">"Pokalbiai · %1$d neperskaitytų"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"El. pašto adresas"</string>
+    <string name="respondkit_email_failed" formatted="false">"Nepavyko išsaugoti jūsų el. pašto adreso. Patikrinkite jį ir bandykite dar kartą."</string>
+    <string name="respondkit_email_prompt" formatted="false">"Kokiu el. pašto adresu galime jums atsakyti?"</string>
+    <string name="respondkit_failed" formatted="false">"Nepavyko"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"Nepavyksta atidaryti pasirinkto failo."</string>
+    <string name="respondkit_files" formatted="false">"Failai"</string>
+    <string name="respondkit_help" formatted="false">"Kuo galime padėti?"</string>
+    <string name="respondkit_history_failed" formatted="false">"Nepavyko įkelti pokalbio istorijos. Dar kartą spustelėkite Daugiau."</string>
+    <string name="respondkit_identity_changed" formatted="false">"Pagalbos tapatybė pasikeitė kitame skirtuke. Prisijunkite iš naujo, kad iš naujo įkeltumėte savo paskyrą."</string>
+    <string name="respondkit_intro" formatted="false">"Parašykite žinutę ir neuždarykite šio puslapio – greitai atsakysime."</string>
+    <string name="respondkit_intro_short" formatted="false">"Parašykite žinutę ir pradėkite pokalbį."</string>
+    <string name="respondkit_latest" formatted="false">"Naujausios žinutės"</string>
+    <string name="respondkit_loading" formatted="false">"Įkeliama…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"Įkeliamos žinutės"</string>
+    <string name="respondkit_message" formatted="false">"Žinutė"</string>
+    <string name="respondkit_messages_failed" formatted="false">"Nepavyko įkelti naujų žinučių."</string>
+    <string name="respondkit_more" formatted="false">"Daugiau"</string>
+    <string name="respondkit_new_conversation" formatted="false">"Naujas pokalbis"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="one">"%1$d nauja"</item>
+        <item quantity="few">"%1$d naujos"</item>
+        <item quantity="many">"%1$d naujos"</item>
+        <item quantity="other">"%1$d naujų"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"Atviras"</string>
+    <string name="respondkit_open_chat" formatted="false">"Atidaryti pagalbos pokalbį"</string>
+    <string name="respondkit_photo_library" formatted="false">"Nuotraukų biblioteka"</string>
+    <string name="respondkit_picker_failed" formatted="false">"Nepavyksta atidaryti failų parinkiklio"</string>
+    <string name="respondkit_ready" formatted="false">"Paruošta"</string>
+    <string name="respondkit_reconnect" formatted="false">"Prisijungti iš naujo"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"Prieš įkeldami prisijunkite iš naujo."</string>
+    <string name="respondkit_remove" formatted="false">"Pašalinti"</string>
+    <string name="respondkit_remove_file">"Pašalinti %1$s"</string>
+    <string name="respondkit_request_failed" formatted="false">"Pagalbos užklausa nepavyko."</string>
+    <string name="respondkit_retry" formatted="false">"Bandyti dar kartą"</string>
+    <string name="respondkit_retry_message" formatted="false">"Siųsti žinutę dar kartą"</string>
+    <string name="respondkit_return" formatted="false">"Atsakymai bus rodomi čia, kai grįšite į programėlę."</string>
+    <string name="respondkit_save_email" formatted="false">"Išsaugoti el. paštą"</string>
+    <string name="respondkit_saving" formatted="false">"Išsaugoma…"</string>
+    <string name="respondkit_selected_file" formatted="false">"Pasirinktas failas"</string>
+    <string name="respondkit_send" formatted="false">"Siųsti"</string>
+    <string name="respondkit_send_message" formatted="false">"Siųsti žinutę"</string>
+    <string name="respondkit_sending" formatted="false">"Siunčiama…"</string>
+    <string name="respondkit_sent" formatted="false">"Išsiųsta"</string>
+    <string name="respondkit_session_expired" formatted="false">"Pagalbos sesija baigėsi. Prisijunkite iš naujo, kad galėtumėte tęsti."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="one">"Rodyti %1$d naują žinutę"</item>
+        <item quantity="few">"Rodyti %1$d naujas žinutes"</item>
+        <item quantity="many">"Rodyti %1$d naujos žinutės"</item>
+        <item quantity="other">"Rodyti %1$d naujų žinučių"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"Prisijunkite iš naujo, kad atkurtumėte pagalbos istoriją."</string>
+    <string name="respondkit_start_failed" formatted="false">"Nepavyko pradėti pagalbos pokalbio."</string>
+    <string name="respondkit_support" formatted="false">"Pagalba"</string>
+    <string name="respondkit_support_messages" formatted="false">"Pagalbos žinutės"</string>
+    <string name="respondkit_try_again" formatted="false">"Bandykite dar kartą"</string>
+    <string name="respondkit_unknown" formatted="false">"Nepatvirtinta – galite saugiai bandyti dar kartą"</string>
+    <string name="respondkit_unread" formatted="false">"Neperskaitytas pagalbos atsakymas"</string>
+    <string name="respondkit_upload_failed" formatted="false">"Nepavyko įkelti"</string>
+    <string name="respondkit_write_message" formatted="false">"Rašykite žinutę…"</string>
+</resources>

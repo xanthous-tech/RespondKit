@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"Pošalji novu poruku"</string>
+    <string name="respondkit_ask_anything" formatted="false">"Pitajte nas bilo što"</string>
+    <string name="respondkit_attach_files" formatted="false">"Priloži datoteke"</string>
+    <string name="respondkit_attached_files" formatted="false">"Priložene datoteke"</string>
+    <string name="respondkit_cancel" formatted="false">"Odustani"</string>
+    <string name="respondkit_close" formatted="false">"Zatvori"</string>
+    <string name="respondkit_close_chat" formatted="false">"Zatvori chat podrške"</string>
+    <string name="respondkit_closed" formatted="false">"Zatvoren"</string>
+    <string name="respondkit_closed_help" formatted="false">"Ovaj je razgovor zatvoren."</string>
+    <string name="respondkit_confirming" formatted="false">"Potvrđivanje…"</string>
+    <string name="respondkit_connecting" formatted="false">"Povezivanje s podrškom još je u tijeku."</string>
+    <string name="respondkit_conversation">"Razgovor %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"Razgovori"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="one">"Razgovori · %1$d nepročitan"</item>
+        <item quantity="few">"Razgovori · %1$d nepročitana"</item>
+        <item quantity="other">"Razgovori · %1$d nepročitanih"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"Adresa e-pošte"</string>
+    <string name="respondkit_email_failed" formatted="false">"Nismo uspjeli spremiti vašu adresu e-pošte. Provjerite je i pokušajte ponovno."</string>
+    <string name="respondkit_email_prompt" formatted="false">"Na koju vam adresu e-pošte možemo poslati odgovor?"</string>
+    <string name="respondkit_failed" formatted="false">"Nije uspjelo"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"Nije moguće otvoriti odabranu datoteku."</string>
+    <string name="respondkit_files" formatted="false">"Datoteke"</string>
+    <string name="respondkit_help" formatted="false">"Kako vam možemo pomoći?"</string>
+    <string name="respondkit_history_failed" formatted="false">"Povijest razgovora nije moguće učitati. Pokušajte ponovno s „Prikaži više”."</string>
+    <string name="respondkit_identity_changed" formatted="false">"Identitet za podršku promijenjen je u drugoj kartici. Ponovno se povežite kako biste ponovno učitali račun."</string>
+    <string name="respondkit_intro" formatted="false">"Pošaljite poruku i ostavite ovu stranicu otvorenom za brz odgovor."</string>
+    <string name="respondkit_intro_short" formatted="false">"Pošaljite poruku da biste započeli razgovor."</string>
+    <string name="respondkit_latest" formatted="false">"Najnovije poruke"</string>
+    <string name="respondkit_loading" formatted="false">"Učitavanje…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"Učitavanje poruka"</string>
+    <string name="respondkit_message" formatted="false">"Poruka"</string>
+    <string name="respondkit_messages_failed" formatted="false">"Nove poruke nije moguće učitati."</string>
+    <string name="respondkit_more" formatted="false">"Prikaži više"</string>
+    <string name="respondkit_new_conversation" formatted="false">"Novi razgovor"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="one">"%1$d nova"</item>
+        <item quantity="few">"%1$d nove"</item>
+        <item quantity="other">"%1$d novih"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"Otvoren"</string>
+    <string name="respondkit_open_chat" formatted="false">"Otvori chat podrške"</string>
+    <string name="respondkit_photo_library" formatted="false">"Galerija fotografija"</string>
+    <string name="respondkit_picker_failed" formatted="false">"Nije moguće otvoriti odabir datoteka"</string>
+    <string name="respondkit_ready" formatted="false">"Spremno"</string>
+    <string name="respondkit_reconnect" formatted="false">"Ponovno se poveži"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"Ponovno se povežite prije prijenosa."</string>
+    <string name="respondkit_remove" formatted="false">"Ukloni"</string>
+    <string name="respondkit_remove_file">"Ukloni %1$s"</string>
+    <string name="respondkit_request_failed" formatted="false">"Zahtjev za podršku nije uspio."</string>
+    <string name="respondkit_retry" formatted="false">"Pokušaj ponovno"</string>
+    <string name="respondkit_retry_message" formatted="false">"Ponovno pošalji poruku"</string>
+    <string name="respondkit_return" formatted="false">"Odgovori će se prikazati ovdje kad se vratite u aplikaciju."</string>
+    <string name="respondkit_save_email" formatted="false">"Spremi adresu"</string>
+    <string name="respondkit_saving" formatted="false">"Spremanje…"</string>
+    <string name="respondkit_selected_file" formatted="false">"Odabrana datoteka"</string>
+    <string name="respondkit_send" formatted="false">"Pošalji"</string>
+    <string name="respondkit_send_message" formatted="false">"Pošalji poruku"</string>
+    <string name="respondkit_sending" formatted="false">"Slanje…"</string>
+    <string name="respondkit_sent" formatted="false">"Poslano"</string>
+    <string name="respondkit_session_expired" formatted="false">"Vaša je sesija podrške istekla. Ponovno se povežite za nastavak."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="one">"Prikaži %1$d novu poruku"</item>
+        <item quantity="few">"Prikaži %1$d nove poruke"</item>
+        <item quantity="other">"Prikaži %1$d novih poruka"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"Ponovno se prijavite da biste vratili povijest podrške."</string>
+    <string name="respondkit_start_failed" formatted="false">"Chat podrške nije moguće pokrenuti."</string>
+    <string name="respondkit_support" formatted="false">"Podrška"</string>
+    <string name="respondkit_support_messages" formatted="false">"Poruke podrške"</string>
+    <string name="respondkit_try_again" formatted="false">"Pokušaj ponovno"</string>
+    <string name="respondkit_unknown" formatted="false">"Nije potvrđeno — ponovni pokušaj je siguran"</string>
+    <string name="respondkit_unread" formatted="false">"Nepročitan odgovor podrške"</string>
+    <string name="respondkit_upload_failed" formatted="false">"Prijenos nije uspio"</string>
+    <string name="respondkit_write_message" formatted="false">"Napišite poruku…"</string>
+</resources>

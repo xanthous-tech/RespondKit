@@ -11,7 +11,13 @@ pnpm localization:check
 
 The generator writes `native/swift/Sources/RespondKitUI/Resources/RespondKit.xcstrings` (the SwiftPM resource of `RespondKitUI`) `generated/android/res/values*/strings.xml` (a resource directory of the Compose module), and one TypeScript module copied to `packages/react/src/widget/messages.ts` and `packages/react-native/src/messages.ts`. Commit the outputs with the JSON changes. `pnpm ready` fails if an output is missing, modified, or left behind after removing a locale. Generated files belong to this pipeline; edits in Xcode or Android Studio must be made in JSON instead. No translation services run during compilation.
 
-Every client reads the empty state, the "Ask us anything" subtitle and the attach menu from the generated output, and Compose also reads its closed-conversation strings from it. Other views still use English literals. The web widget picks its catalog from the host's `context.locale`, React Native from the device locale; both fall back to the closest shipped locale, then English. The catalog is English only, so adding a language means adding it to `settings.json` with a complete `messages/{locale}.json`.
+Every client reads the empty state, the "Ask us anything" subtitle and the attach menu from the generated output, and Compose also reads its closed-conversation strings from it. Other views still use English literals. The catalog ships ReceiptGenie's 51 app locales plus English. Adding a language means adding it to `settings.json` with a complete `messages/{locale}.json`.
+
+Locale selection per client:
+
+- iOS uses the app's language through the SwiftPM bundle, so the host app must list the language among its own localizations. Foundation matches regional and legacy tags (`zh-TW` to `zh-Hant`, `iw` to `he`, `no` to `nb`, `pt-AO` to `pt-PT`).
+- Android uses the activity's resource configuration. Android still reports Hebrew and Indonesian as `iw` and `in`, so those catalogs are generated as `values-iw` and `values-in`. Bokmål is also written to `values-no`.
+- The web widget uses the host's `context.locale`, else the browser language. React Native uses the device locale. Both use the generated `messages(locale)`, which maps legacy codes (`iw`, `in`, `tl`, `no`), infers the Chinese script from the region (`TW`, `HK` and `MO` read Traditional), sends Portuguese outside Brazil to `pt-PT`, strips regions down to the base language, and falls back to English.
 
 ## Portable message contract
 

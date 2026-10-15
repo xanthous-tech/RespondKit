@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"Send en ny melding"</string>
+    <string name="respondkit_ask_anything" formatted="false">"Spør oss om hva som helst"</string>
+    <string name="respondkit_attach_files" formatted="false">"Legg ved filer"</string>
+    <string name="respondkit_attached_files" formatted="false">"Vedlagte filer"</string>
+    <string name="respondkit_cancel" formatted="false">"Avbryt"</string>
+    <string name="respondkit_close" formatted="false">"Lukk"</string>
+    <string name="respondkit_close_chat" formatted="false">"Lukk kundestøttechatten"</string>
+    <string name="respondkit_closed" formatted="false">"Lukket"</string>
+    <string name="respondkit_closed_help" formatted="false">"Denne samtalen er lukket."</string>
+    <string name="respondkit_confirming" formatted="false">"Bekrefter…"</string>
+    <string name="respondkit_connecting" formatted="false">"Kundestøtte kobler fortsatt til."</string>
+    <string name="respondkit_conversation">"Samtale %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"Samtaler"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="one">"Samtaler · %1$d ulest"</item>
+        <item quantity="other">"Samtaler · %1$d uleste"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"E-postadresse"</string>
+    <string name="respondkit_email_failed" formatted="false">"Vi kunne ikke lagre e-postadressen din. Sjekk den og prøv igjen."</string>
+    <string name="respondkit_email_prompt" formatted="false">"Hvilken e-postadresse kan vi sende svaret til?"</string>
+    <string name="respondkit_failed" formatted="false">"Mislyktes"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"Kan ikke åpne den valgte filen."</string>
+    <string name="respondkit_files" formatted="false">"Filer"</string>
+    <string name="respondkit_help" formatted="false">"Hva kan vi hjelpe deg med?"</string>
+    <string name="respondkit_history_failed" formatted="false">"Kunne ikke laste inn samtalehistorikken. Prøv Mer igjen."</string>
+    <string name="respondkit_identity_changed" formatted="false">"Kundestøtteidentiteten ble endret i en annen fane. Koble til på nytt for å laste inn kontoen din igjen."</string>
+    <string name="respondkit_intro" formatted="false">"Send en melding og la denne siden være åpen, så får du raskt svar."</string>
+    <string name="respondkit_intro_short" formatted="false">"Send en melding for å starte en samtale."</string>
+    <string name="respondkit_latest" formatted="false">"Nyeste meldinger"</string>
+    <string name="respondkit_loading" formatted="false">"Laster inn…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"Laster inn meldinger"</string>
+    <string name="respondkit_message" formatted="false">"Melding"</string>
+    <string name="respondkit_messages_failed" formatted="false">"Kunne ikke laste inn nye meldinger."</string>
+    <string name="respondkit_more" formatted="false">"Mer"</string>
+    <string name="respondkit_new_conversation" formatted="false">"Ny samtale"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="one">"%1$d ny"</item>
+        <item quantity="other">"%1$d nye"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"Åpen"</string>
+    <string name="respondkit_open_chat" formatted="false">"Åpne kundestøttechatten"</string>
+    <string name="respondkit_photo_library" formatted="false">"Bildebibliotek"</string>
+    <string name="respondkit_picker_failed" formatted="false">"Kan ikke åpne filvelgeren"</string>
+    <string name="respondkit_ready" formatted="false">"Klar"</string>
+    <string name="respondkit_reconnect" formatted="false">"Koble til på nytt"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"Koble til på nytt før du laster opp."</string>
+    <string name="respondkit_remove" formatted="false">"Fjern"</string>
+    <string name="respondkit_remove_file">"Fjern %1$s"</string>
+    <string name="respondkit_request_failed" formatted="false">"Forespørselen til kundestøtte mislyktes."</string>
+    <string name="respondkit_retry" formatted="false">"Prøv igjen"</string>
+    <string name="respondkit_retry_message" formatted="false">"Send meldingen på nytt"</string>
+    <string name="respondkit_return" formatted="false">"Svarene vises her når du kommer tilbake til appen."</string>
+    <string name="respondkit_save_email" formatted="false">"Lagre e-post"</string>
+    <string name="respondkit_saving" formatted="false">"Lagrer…"</string>
+    <string name="respondkit_selected_file" formatted="false">"Valgt fil"</string>
+    <string name="respondkit_send" formatted="false">"Send"</string>
+    <string name="respondkit_send_message" formatted="false">"Send melding"</string>
+    <string name="respondkit_sending" formatted="false">"Sender…"</string>
+    <string name="respondkit_sent" formatted="false">"Sendt"</string>
+    <string name="respondkit_session_expired" formatted="false">"Kundestøtteøkten har utløpt. Koble til på nytt for å fortsette."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="one">"Vis %1$d ny melding"</item>
+        <item quantity="other">"Vis %1$d nye meldinger"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"Logg inn på nytt for å gjenopprette kundestøttehistorikken."</string>
+    <string name="respondkit_start_failed" formatted="false">"Kunne ikke starte kundestøttechatten."</string>
+    <string name="respondkit_support" formatted="false">"Kundestøtte"</string>
+    <string name="respondkit_support_messages" formatted="false">"Meldinger fra kundestøtte"</string>
+    <string name="respondkit_try_again" formatted="false">"Prøv igjen"</string>
+    <string name="respondkit_unknown" formatted="false">"Ikke bekreftet – trygt å prøve igjen"</string>
+    <string name="respondkit_unread" formatted="false">"Ulest svar fra kundestøtte"</string>
+    <string name="respondkit_upload_failed" formatted="false">"Opplastingen mislyktes"</string>
+    <string name="respondkit_write_message" formatted="false">"Skriv en melding…"</string>
+</resources>

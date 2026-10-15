@@ -1,0 +1,97 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Assistance",
+  "respondkit_ask_anything": "Posez-nous toutes vos questions",
+  "respondkit_open_chat": "Ouvrir le chat d’assistance",
+  "respondkit_close_chat": "Fermer le chat d’assistance",
+  "respondkit_close": "Fermer",
+  "respondkit_help": "Comment pouvons-nous vous aider ?",
+  "respondkit_intro": "Envoyez-nous un message et gardez cette page ouverte pour obtenir une réponse rapide.",
+  "respondkit_intro_short": "Envoyez un message pour démarrer une conversation.",
+  "respondkit_return": "Les réponses s’afficheront ici à votre retour dans l’application.",
+  "respondkit_conversations": "Conversations",
+  "respondkit_conversation": "Conversation du {date}",
+  "respondkit_new_conversation": "Nouvelle conversation",
+  "respondkit_unread": "Réponse non lue de l’assistance",
+  "respondkit_open": "Ouverte",
+  "respondkit_closed": "Fermée",
+  "respondkit_more": "Afficher plus",
+  "respondkit_loading": "Chargement…",
+  "respondkit_loading_messages": "Chargement des messages",
+  "respondkit_support_messages": "Messages de l’assistance",
+  "respondkit_latest": "Derniers messages",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} nouveau",
+        "category=many": "{count} nouveaux",
+        "category=*": "{count} nouveaux"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Afficher {count} nouveau message",
+        "category=many": "Afficher {count} nouveaux messages",
+        "category=*": "Afficher {count} nouveaux messages"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Conversations · {count} non lue",
+        "category=many": "Conversations · {count} non lues",
+        "category=*": "Conversations · {count} non lues"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Cette conversation est fermée.",
+  "respondkit_another_message": "Envoyer un autre message",
+  "respondkit_message": "Message",
+  "respondkit_write_message": "Écrivez un message…",
+  "respondkit_send": "Envoyer",
+  "respondkit_send_message": "Envoyer le message",
+  "respondkit_sending": "Envoi en cours…",
+  "respondkit_sent": "Envoyé",
+  "respondkit_failed": "Échec",
+  "respondkit_confirming": "Confirmation en cours…",
+  "respondkit_unknown": "Non confirmé — vous pouvez réessayer sans risque",
+  "respondkit_retry": "Réessayer",
+  "respondkit_retry_message": "Renvoyer le message",
+  "respondkit_try_again": "Réessayer",
+  "respondkit_reconnect": "Se reconnecter",
+  "respondkit_email_prompt": "À quelle adresse e-mail pouvons-nous vous répondre ?",
+  "respondkit_email_address": "Adresse e-mail",
+  "respondkit_save_email": "Enregistrer l’adresse",
+  "respondkit_saving": "Enregistrement…",
+  "respondkit_email_failed": "Impossible d’enregistrer votre adresse e-mail. Vérifiez-la et réessayez.",
+  "respondkit_attach_files": "Joindre des fichiers",
+  "respondkit_attached_files": "Fichiers joints",
+  "respondkit_photo_library": "Photothèque",
+  "respondkit_files": "Fichiers",
+  "respondkit_cancel": "Annuler",
+  "respondkit_ready": "Prêt",
+  "respondkit_upload_failed": "Échec de l’envoi",
+  "respondkit_remove": "Retirer",
+  "respondkit_remove_file": "Retirer {name}",
+  "respondkit_selected_file": "Fichier sélectionné",
+  "respondkit_picker_failed": "Impossible d’ouvrir le sélecteur de fichiers",
+  "respondkit_file_open_failed": "Impossible d’ouvrir le fichier sélectionné.",
+  "respondkit_start_failed": "Impossible de démarrer le chat d’assistance.",
+  "respondkit_request_failed": "La demande d’assistance a échoué.",
+  "respondkit_history_failed": "Impossible de charger l’historique de la conversation. Réessayez avec « Afficher plus ».",
+  "respondkit_messages_failed": "Impossible de charger les nouveaux messages.",
+  "respondkit_sign_in_again": "Connectez-vous à nouveau pour retrouver votre historique d’assistance.",
+  "respondkit_session_expired": "Votre session d’assistance a expiré. Reconnectez-vous pour continuer.",
+  "respondkit_identity_changed": "Le compte d’assistance a changé dans un autre onglet. Reconnectez-vous pour recharger votre compte.",
+  "respondkit_connecting": "Connexion à l’assistance en cours.",
+  "respondkit_reconnect_upload": "Reconnectez-vous avant d’envoyer des fichiers."
+}

@@ -24,7 +24,7 @@ import org.junit.Test
 class RespondKitScreenTest {
     @get:Rule val compose = createComposeRule()
 
-    private class Api(val replyText: String = "We can help") : RespondKitApi {
+    internal class Api(val replyText: String = "We can help") : RespondKitApi {
         var thread: SupportThread? = null
         val messages = mutableListOf<SupportMessage>()
         var readCount = 0
@@ -223,6 +223,29 @@ class RespondKitScreenTest {
         compose.onNodeWithContentDescription("Attach files").performClick()
         compose.onNodeWithText("Photo library").assertExists()
         compose.onNodeWithText("Files").assertExists()
+    }
+
+    private fun localized(languageTags: String): android.content.Context {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val configuration = android.content.res.Configuration(context.resources.configuration)
+        configuration.setLocales(android.os.LocaleList.forLanguageTags(languageTags))
+        return context.createConfigurationContext(configuration)
+    }
+
+    @Test
+    fun deviceLocalesFallBackToTheClosestCatalog() {
+        val cases = listOf(
+            "zh-TW" to "zh-Hant", "zh-HK" to "zh-Hant", "zh-MO" to "zh-Hant", "zh-CN" to "zh-Hans", "zh-SG" to "zh-Hans",
+            "he-IL" to "he", "iw" to "he", "id-ID" to "id", "in" to "id", "nb-NO" to "nb", "no" to "nb",
+            "fil-PH" to "fil", "tl" to "fil", "pt" to "pt-BR", "pt-BR" to "pt-BR", "pt-PT" to "pt-PT", "pt-AO" to "pt-PT",
+            "fr-CA" to "fr-CA", "fr-BE" to "fr", "de-AT" to "de", "es-MX" to "es", "en-GB" to "en", "xx" to "en",
+        )
+        val english = localized("en").getString(R.string.respondkit_ask_anything)
+        for ((device, catalog) in cases) {
+            val expected = localized(catalog).getString(R.string.respondkit_ask_anything)
+            org.junit.Assert.assertEquals(device, expected, localized(device).getString(R.string.respondkit_ask_anything))
+            if (catalog != "en") org.junit.Assert.assertNotEquals(catalog, english, expected)
+        }
     }
 
     @Test

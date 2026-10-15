@@ -1,5 +1,8 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act } from "react";
 import { createPortal } from "react-dom";
+import { hydrateRoot } from "react-dom/client";
+import { renderToString } from "react-dom/server";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
@@ -393,6 +396,81 @@ describe("RespondKitWidget", () => {
 
     expect(await screen.findByText("How can we help?")).toBeVisible();
     expect(screen.queryByLabelText("Loading messages")).not.toBeInTheDocument();
+  });
+
+  it.each([
+    [
+      "ja-JP",
+      "何でもお気軽にどうぞ",
+      "どのようなご用件ですか？",
+      "メッセージを送信して、このページを開いたままお待ちください。すぐにお返事します。",
+      "ファイルを添付",
+    ],
+    [
+      "zh-Hans-CN",
+      "有问题尽管问",
+      "有什么可以帮您？",
+      "发送消息后请保持此页面打开，以便及时收到回复。",
+      "添加附件",
+    ],
+  ])("renders the %s empty state, subtitle and attach control", async (locale, ...expected) => {
+    const [subtitle, help, intro, attach] = expected;
+    const { apiFetch, resolveTranscript } = createDelayedEmptyTranscriptApiFetch();
+    vi.stubGlobal("fetch", apiFetch);
+    render(
+      <RespondKitWidget
+        apiBaseUrl="https://support.test"
+        context={{ inboxId: "inbox_test", locale }}
+        initiallyOpen
+      />,
+    );
+    resolveTranscript();
+    expect(await screen.findByText(help!)).toBeVisible();
+    expect(screen.getByText(subtitle!)).toBeVisible();
+    expect(screen.getByText(intro!)).toBeVisible();
+    expect(screen.getByRole("button", { name: attach })).toBeInTheDocument();
+  });
+
+  it("falls back to the browser language when the host sends no locale", async () => {
+    const language = vi.spyOn(navigator, "language", "get").mockReturnValue("ja");
+    const { apiFetch, resolveTranscript } = createDelayedEmptyTranscriptApiFetch();
+    vi.stubGlobal("fetch", apiFetch);
+    render(
+      <RespondKitWidget
+        apiBaseUrl="https://support.test"
+        context={{ inboxId: "inbox_test" }}
+        initiallyOpen
+      />,
+    );
+    resolveTranscript();
+    expect(await screen.findByText("どのようなご用件ですか？")).toBeVisible();
+    expect(screen.getByText("何でもお気軽にどうぞ")).toBeVisible();
+    language.mockRestore();
+  });
+
+  it("hydrates server markup without a locale before switching to the browser language", async () => {
+    const { apiFetch, resolveTranscript } = createDelayedEmptyTranscriptApiFetch();
+    vi.stubGlobal("fetch", apiFetch);
+    const widget = (
+      <RespondKitWidget
+        apiBaseUrl="https://support.test"
+        context={{ inboxId: "inbox_test" }}
+        initiallyOpen
+      />
+    );
+    const container = document.createElement("div");
+    container.innerHTML = renderToString(widget);
+    document.body.append(container);
+    expect(container.textContent).toContain("Ask us anything");
+    const language = vi.spyOn(navigator, "language", "get").mockReturnValue("ja");
+    const onRecoverableError = vi.fn();
+    const root = await act(async () => hydrateRoot(container, widget, { onRecoverableError }));
+    resolveTranscript();
+    await waitFor(() => expect(container.textContent).toContain("何でもお気軽にどうぞ"));
+    expect(onRecoverableError).not.toHaveBeenCalled();
+    act(() => root.unmount());
+    container.remove();
+    language.mockRestore();
   });
 
   it.each(["interval", "reopen", "visibility"])(

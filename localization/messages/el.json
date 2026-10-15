@@ -1,0 +1,94 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Υποστήριξη",
+  "respondkit_ask_anything": "Ρωτήστε μας ό,τι θέλετε",
+  "respondkit_open_chat": "Άνοιγμα συνομιλίας υποστήριξης",
+  "respondkit_close_chat": "Κλείσιμο συνομιλίας υποστήριξης",
+  "respondkit_close": "Κλείσιμο",
+  "respondkit_help": "Πώς μπορούμε να βοηθήσουμε;",
+  "respondkit_intro": "Στείλτε ένα μήνυμα και κρατήστε αυτή τη σελίδα ανοιχτή για γρήγορη απάντηση.",
+  "respondkit_intro_short": "Στείλτε ένα μήνυμα για να ξεκινήσετε μια συνομιλία.",
+  "respondkit_return": "Οι απαντήσεις θα εμφανιστούν εδώ όταν επιστρέψετε στην εφαρμογή.",
+  "respondkit_conversations": "Συνομιλίες",
+  "respondkit_conversation": "Συνομιλία {date}",
+  "respondkit_new_conversation": "Νέα συνομιλία",
+  "respondkit_unread": "Μη αναγνωσμένη απάντηση υποστήριξης",
+  "respondkit_open": "Ανοιχτή",
+  "respondkit_closed": "Κλειστή",
+  "respondkit_more": "Περισσότερα",
+  "respondkit_loading": "Φόρτωση…",
+  "respondkit_loading_messages": "Φόρτωση μηνυμάτων",
+  "respondkit_support_messages": "Μηνύματα υποστήριξης",
+  "respondkit_latest": "Πιο πρόσφατα μηνύματα",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} νέο",
+        "category=*": "{count} νέα"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Εμφάνιση {count} νέου μηνύματος",
+        "category=*": "Εμφάνιση {count} νέων μηνυμάτων"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Συνομιλίες · {count} μη αναγνωσμένη",
+        "category=*": "Συνομιλίες · {count} μη αναγνωσμένες"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Αυτή η συνομιλία έχει κλείσει.",
+  "respondkit_another_message": "Αποστολή νέου μηνύματος",
+  "respondkit_message": "Μήνυμα",
+  "respondkit_write_message": "Γράψτε ένα μήνυμα…",
+  "respondkit_send": "Αποστολή",
+  "respondkit_send_message": "Αποστολή μηνύματος",
+  "respondkit_sending": "Αποστολή…",
+  "respondkit_sent": "Στάλθηκε",
+  "respondkit_failed": "Απέτυχε",
+  "respondkit_confirming": "Επιβεβαίωση…",
+  "respondkit_unknown": "Δεν επιβεβαιώθηκε — μπορείτε να δοκιμάσετε ξανά με ασφάλεια",
+  "respondkit_retry": "Επανάληψη",
+  "respondkit_retry_message": "Επανάληψη αποστολής μηνύματος",
+  "respondkit_try_again": "Δοκιμάστε ξανά",
+  "respondkit_reconnect": "Επανασύνδεση",
+  "respondkit_email_prompt": "Σε ποιο email να σας στείλουμε απάντηση;",
+  "respondkit_email_address": "Διεύθυνση email",
+  "respondkit_save_email": "Αποθήκευση email",
+  "respondkit_saving": "Αποθήκευση…",
+  "respondkit_email_failed": "Δεν ήταν δυνατή η αποθήκευση του email σας. Ελέγξτε το και δοκιμάστε ξανά.",
+  "respondkit_attach_files": "Επισύναψη αρχείων",
+  "respondkit_attached_files": "Συνημμένα αρχεία",
+  "respondkit_photo_library": "Βιβλιοθήκη φωτογραφιών",
+  "respondkit_files": "Αρχεία",
+  "respondkit_cancel": "Ακύρωση",
+  "respondkit_ready": "Έτοιμο",
+  "respondkit_upload_failed": "Η μεταφόρτωση απέτυχε",
+  "respondkit_remove": "Αφαίρεση",
+  "respondkit_remove_file": "Αφαίρεση {name}",
+  "respondkit_selected_file": "Επιλεγμένο αρχείο",
+  "respondkit_picker_failed": "Δεν είναι δυνατό το άνοιγμα της επιλογής αρχείων",
+  "respondkit_file_open_failed": "Δεν είναι δυνατό το άνοιγμα του επιλεγμένου αρχείου.",
+  "respondkit_start_failed": "Δεν ήταν δυνατή η έναρξη της συνομιλίας υποστήριξης.",
+  "respondkit_request_failed": "Το αίτημα υποστήριξης απέτυχε.",
+  "respondkit_history_failed": "Δεν ήταν δυνατή η φόρτωση του ιστορικού συνομιλίας. Πατήστε ξανά «Περισσότερα».",
+  "respondkit_messages_failed": "Δεν ήταν δυνατή η φόρτωση των νέων μηνυμάτων.",
+  "respondkit_sign_in_again": "Συνδεθείτε ξανά για να ανακτήσετε το ιστορικό υποστήριξης.",
+  "respondkit_session_expired": "Η συνεδρία υποστήριξης έληξε. Επανασυνδεθείτε για να συνεχίσετε.",
+  "respondkit_identity_changed": "Η ταυτότητα υποστήριξης άλλαξε σε άλλη καρτέλα. Επανασυνδεθείτε για να φορτώσετε ξανά τον λογαριασμό σας.",
+  "respondkit_connecting": "Η υποστήριξη συνδέεται ακόμα.",
+  "respondkit_reconnect_upload": "Επανασυνδεθείτε πριν από τη μεταφόρτωση."
+}

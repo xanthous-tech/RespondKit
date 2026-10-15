@@ -1,0 +1,91 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "客服",
+  "respondkit_ask_anything": "有问题尽管问",
+  "respondkit_open_chat": "打开客服聊天",
+  "respondkit_close_chat": "关闭客服聊天",
+  "respondkit_close": "关闭",
+  "respondkit_help": "有什么可以帮您？",
+  "respondkit_intro": "发送消息后请保持此页面打开，以便及时收到回复。",
+  "respondkit_intro_short": "发送消息即可开始对话。",
+  "respondkit_return": "回到应用后，回复会显示在这里。",
+  "respondkit_conversations": "对话",
+  "respondkit_conversation": "对话 {date}",
+  "respondkit_new_conversation": "新对话",
+  "respondkit_unread": "未读客服回复",
+  "respondkit_open": "进行中",
+  "respondkit_closed": "已关闭",
+  "respondkit_more": "更多",
+  "respondkit_loading": "正在加载…",
+  "respondkit_loading_messages": "正在加载消息",
+  "respondkit_support_messages": "客服消息",
+  "respondkit_latest": "最新消息",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=*": "{count} 条新消息"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=*": "显示 {count} 条新消息"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=*": "对话 · {count} 条未读"
+      }
+    }
+  ],
+  "respondkit_closed_help": "此对话已关闭。",
+  "respondkit_another_message": "再发一条消息",
+  "respondkit_message": "消息",
+  "respondkit_write_message": "输入消息…",
+  "respondkit_send": "发送",
+  "respondkit_send_message": "发送消息",
+  "respondkit_sending": "正在发送…",
+  "respondkit_sent": "已发送",
+  "respondkit_failed": "失败",
+  "respondkit_confirming": "正在确认…",
+  "respondkit_unknown": "未确认 — 可放心重试",
+  "respondkit_retry": "重试",
+  "respondkit_retry_message": "重新发送消息",
+  "respondkit_try_again": "再试一次",
+  "respondkit_reconnect": "重新连接",
+  "respondkit_email_prompt": "我们该把回复发送到哪个邮箱？",
+  "respondkit_email_address": "邮箱地址",
+  "respondkit_save_email": "保存邮箱",
+  "respondkit_saving": "正在保存…",
+  "respondkit_email_failed": "无法保存您的邮箱，请检查后重试。",
+  "respondkit_attach_files": "添加附件",
+  "respondkit_attached_files": "已添加的附件",
+  "respondkit_photo_library": "照片图库",
+  "respondkit_files": "文件",
+  "respondkit_cancel": "取消",
+  "respondkit_ready": "已就绪",
+  "respondkit_upload_failed": "上传失败",
+  "respondkit_remove": "移除",
+  "respondkit_remove_file": "移除 {name}",
+  "respondkit_selected_file": "已选文件",
+  "respondkit_picker_failed": "无法打开文件选择器",
+  "respondkit_file_open_failed": "无法打开所选文件。",
+  "respondkit_start_failed": "无法启动客服聊天。",
+  "respondkit_request_failed": "客服请求失败。",
+  "respondkit_history_failed": "无法加载对话记录。请再次选择“更多”。",
+  "respondkit_messages_failed": "无法加载新消息。",
+  "respondkit_sign_in_again": "请重新登录以恢复您的客服记录。",
+  "respondkit_session_expired": "客服会话已过期。请重新连接以继续。",
+  "respondkit_identity_changed": "客服身份已在其他标签页中更改。请重新连接以重新加载您的账户。",
+  "respondkit_connecting": "客服仍在连接中。",
+  "respondkit_reconnect_upload": "请先重新连接再上传。"
+}

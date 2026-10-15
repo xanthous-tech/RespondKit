@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"ایک اور پیغام بھیجیں"</string>
+    <string name="respondkit_ask_anything" formatted="false">"ہم سے کچھ بھی پوچھیں"</string>
+    <string name="respondkit_attach_files" formatted="false">"فائلیں منسلک کریں"</string>
+    <string name="respondkit_attached_files" formatted="false">"منسلک فائلیں"</string>
+    <string name="respondkit_cancel" formatted="false">"منسوخ کریں"</string>
+    <string name="respondkit_close" formatted="false">"بند کریں"</string>
+    <string name="respondkit_close_chat" formatted="false">"سپورٹ چیٹ بند کریں"</string>
+    <string name="respondkit_closed" formatted="false">"بند"</string>
+    <string name="respondkit_closed_help" formatted="false">"یہ گفتگو بند ہو چکی ہے۔"</string>
+    <string name="respondkit_confirming" formatted="false">"تصدیق ہو رہی ہے…"</string>
+    <string name="respondkit_connecting" formatted="false">"سپورٹ ابھی منسلک ہو رہی ہے۔"</string>
+    <string name="respondkit_conversation">"گفتگو %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"گفتگوئیں"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="one">"گفتگوئیں · %1$d ان پڑھی"</item>
+        <item quantity="other">"گفتگوئیں · %1$d ان پڑھی"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"ای میل پتہ"</string>
+    <string name="respondkit_email_failed" formatted="false">"ہم آپ کا ای میل محفوظ نہیں کر سکے۔ براہ کرم اسے چیک کر کے دوبارہ کوشش کریں۔"</string>
+    <string name="respondkit_email_prompt" formatted="false">"ہم آپ کو جواب کس ای میل پر بھیجیں؟"</string>
+    <string name="respondkit_failed" formatted="false">"ناکام"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"منتخب کردہ فائل نہیں کھل سکی۔"</string>
+    <string name="respondkit_files" formatted="false">"فائلیں"</string>
+    <string name="respondkit_help" formatted="false">"ہم آپ کی کیا مدد کر سکتے ہیں؟"</string>
+    <string name="respondkit_history_failed" formatted="false">"گفتگو کی سرگزشت لوڈ نہیں ہو سکی۔ ‘مزید’ پر دوبارہ کوشش کریں۔"</string>
+    <string name="respondkit_identity_changed" formatted="false">"کسی دوسرے ٹیب میں سپورٹ اکاؤنٹ تبدیل ہو گیا۔ اپنا اکاؤنٹ دوبارہ لوڈ کرنے کے لیے دوبارہ منسلک ہوں۔"</string>
+    <string name="respondkit_intro" formatted="false">"پیغام بھیجیں اور فوری جواب کے لیے یہ صفحہ کھلا رکھیں۔"</string>
+    <string name="respondkit_intro_short" formatted="false">"گفتگو شروع کرنے کے لیے پیغام بھیجیں۔"</string>
+    <string name="respondkit_latest" formatted="false">"تازہ ترین پیغامات"</string>
+    <string name="respondkit_loading" formatted="false">"لوڈ ہو رہا ہے…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"پیغامات لوڈ ہو رہے ہیں"</string>
+    <string name="respondkit_message" formatted="false">"پیغام"</string>
+    <string name="respondkit_messages_failed" formatted="false">"نئے پیغامات لوڈ نہیں ہو سکے۔"</string>
+    <string name="respondkit_more" formatted="false">"مزید"</string>
+    <string name="respondkit_new_conversation" formatted="false">"نئی گفتگو"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="one">"%1$d نیا"</item>
+        <item quantity="other">"%1$d نئے"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"کھلی"</string>
+    <string name="respondkit_open_chat" formatted="false">"سپورٹ چیٹ کھولیں"</string>
+    <string name="respondkit_photo_library" formatted="false">"فوٹو لائبریری"</string>
+    <string name="respondkit_picker_failed" formatted="false">"فائل پکر نہیں کھل سکا"</string>
+    <string name="respondkit_ready" formatted="false">"تیار"</string>
+    <string name="respondkit_reconnect" formatted="false">"دوبارہ منسلک ہوں"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"اپ لوڈ کرنے سے پہلے دوبارہ منسلک ہوں۔"</string>
+    <string name="respondkit_remove" formatted="false">"ہٹائیں"</string>
+    <string name="respondkit_remove_file">"%1$s ہٹائیں"</string>
+    <string name="respondkit_request_failed" formatted="false">"سپورٹ کی درخواست ناکام ہو گئی۔"</string>
+    <string name="respondkit_retry" formatted="false">"دوبارہ کوشش کریں"</string>
+    <string name="respondkit_retry_message" formatted="false">"پیغام دوبارہ بھیجیں"</string>
+    <string name="respondkit_return" formatted="false">"ایپ پر واپس آنے پر جوابات یہاں دکھائی دیں گے۔"</string>
+    <string name="respondkit_save_email" formatted="false">"ای میل محفوظ کریں"</string>
+    <string name="respondkit_saving" formatted="false">"محفوظ ہو رہا ہے…"</string>
+    <string name="respondkit_selected_file" formatted="false">"منتخب کردہ فائل"</string>
+    <string name="respondkit_send" formatted="false">"بھیجیں"</string>
+    <string name="respondkit_send_message" formatted="false">"پیغام بھیجیں"</string>
+    <string name="respondkit_sending" formatted="false">"بھیجا جا رہا ہے…"</string>
+    <string name="respondkit_sent" formatted="false">"بھیج دیا گیا"</string>
+    <string name="respondkit_session_expired" formatted="false">"آپ کے سپورٹ سیشن کی میعاد ختم ہو گئی۔ جاری رکھنے کے لیے دوبارہ منسلک ہوں۔"</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="one">"%1$d نیا پیغام دکھائیں"</item>
+        <item quantity="other">"%1$d نئے پیغامات دکھائیں"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"اپنی سپورٹ کی سرگزشت بحال کرنے کے لیے دوبارہ سائن ان کریں۔"</string>
+    <string name="respondkit_start_failed" formatted="false">"سپورٹ چیٹ شروع نہیں ہو سکی۔"</string>
+    <string name="respondkit_support" formatted="false">"سپورٹ"</string>
+    <string name="respondkit_support_messages" formatted="false">"سپورٹ پیغامات"</string>
+    <string name="respondkit_try_again" formatted="false">"پھر سے کوشش کریں"</string>
+    <string name="respondkit_unknown" formatted="false">"تصدیق نہیں ہوئی — بلا جھجک دوبارہ کوشش کریں"</string>
+    <string name="respondkit_unread" formatted="false">"سپورٹ کا ان پڑھا جواب"</string>
+    <string name="respondkit_upload_failed" formatted="false">"اپ لوڈ ناکام ہو گیا"</string>
+    <string name="respondkit_write_message" formatted="false">"پیغام لکھیں…"</string>
+</resources>

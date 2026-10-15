@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"Újabb üzenet küldése"</string>
+    <string name="respondkit_ask_anything" formatted="false">"Kérdezzen tőlünk bátran"</string>
+    <string name="respondkit_attach_files" formatted="false">"Fájlok csatolása"</string>
+    <string name="respondkit_attached_files" formatted="false">"Csatolt fájlok"</string>
+    <string name="respondkit_cancel" formatted="false">"Mégse"</string>
+    <string name="respondkit_close" formatted="false">"Bezárás"</string>
+    <string name="respondkit_close_chat" formatted="false">"Ügyfélszolgálati chat bezárása"</string>
+    <string name="respondkit_closed" formatted="false">"Lezárt"</string>
+    <string name="respondkit_closed_help" formatted="false">"Ez a beszélgetés lezárult."</string>
+    <string name="respondkit_confirming" formatted="false">"Megerősítés…"</string>
+    <string name="respondkit_connecting" formatted="false">"A kapcsolódás az ügyfélszolgálathoz még folyamatban van."</string>
+    <string name="respondkit_conversation">"Beszélgetés – %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"Beszélgetések"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="one">"Beszélgetések · %1$d olvasatlan"</item>
+        <item quantity="other">"Beszélgetések · %1$d olvasatlan"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"E-mail-cím"</string>
+    <string name="respondkit_email_failed" formatted="false">"Nem sikerült menteni az e-mail-címét. Ellenőrizze, és próbálja újra."</string>
+    <string name="respondkit_email_prompt" formatted="false">"Milyen e-mail-címre küldhetjük a választ?"</string>
+    <string name="respondkit_failed" formatted="false">"Sikertelen"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"Nem sikerült megnyitni a kiválasztott fájlt."</string>
+    <string name="respondkit_files" formatted="false">"Fájlok"</string>
+    <string name="respondkit_help" formatted="false">"Miben segíthetünk?"</string>
+    <string name="respondkit_history_failed" formatted="false">"Nem sikerült betölteni a beszélgetés előzményeit. Próbálja újra a „Továbbiak” gombbal."</string>
+    <string name="respondkit_identity_changed" formatted="false">"Egy másik lapon megváltozott az ügyfélszolgálati azonosító. Csatlakozzon újra a fiókja újbóli betöltéséhez."</string>
+    <string name="respondkit_intro" formatted="false">"Küldjön üzenetet, és tartsa nyitva ezt az oldalt a gyors válaszért."</string>
+    <string name="respondkit_intro_short" formatted="false">"Küldjön üzenetet a beszélgetés indításához."</string>
+    <string name="respondkit_latest" formatted="false">"Legújabb üzenetek"</string>
+    <string name="respondkit_loading" formatted="false">"Betöltés…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"Üzenetek betöltése"</string>
+    <string name="respondkit_message" formatted="false">"Üzenet"</string>
+    <string name="respondkit_messages_failed" formatted="false">"Nem sikerült betölteni az új üzeneteket."</string>
+    <string name="respondkit_more" formatted="false">"Továbbiak"</string>
+    <string name="respondkit_new_conversation" formatted="false">"Új beszélgetés"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="one">"%1$d új"</item>
+        <item quantity="other">"%1$d új"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"Nyitott"</string>
+    <string name="respondkit_open_chat" formatted="false">"Ügyfélszolgálati chat megnyitása"</string>
+    <string name="respondkit_photo_library" formatted="false">"Fotókönyvtár"</string>
+    <string name="respondkit_picker_failed" formatted="false">"Nem sikerült megnyitni a fájlválasztót"</string>
+    <string name="respondkit_ready" formatted="false">"Kész"</string>
+    <string name="respondkit_reconnect" formatted="false">"Újracsatlakozás"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"Feltöltés előtt csatlakozzon újra."</string>
+    <string name="respondkit_remove" formatted="false">"Eltávolítás"</string>
+    <string name="respondkit_remove_file">"%1$s eltávolítása"</string>
+    <string name="respondkit_request_failed" formatted="false">"Az ügyfélszolgálati kérés sikertelen volt."</string>
+    <string name="respondkit_retry" formatted="false">"Újra"</string>
+    <string name="respondkit_retry_message" formatted="false">"Üzenet újraküldése"</string>
+    <string name="respondkit_return" formatted="false">"A válaszok itt jelennek meg, amikor visszatér az alkalmazásba."</string>
+    <string name="respondkit_save_email" formatted="false">"E-mail-cím mentése"</string>
+    <string name="respondkit_saving" formatted="false">"Mentés…"</string>
+    <string name="respondkit_selected_file" formatted="false">"Kiválasztott fájl"</string>
+    <string name="respondkit_send" formatted="false">"Küldés"</string>
+    <string name="respondkit_send_message" formatted="false">"Üzenet küldése"</string>
+    <string name="respondkit_sending" formatted="false">"Küldés…"</string>
+    <string name="respondkit_sent" formatted="false">"Elküldve"</string>
+    <string name="respondkit_session_expired" formatted="false">"Az ügyfélszolgálati munkamenet lejárt. A folytatáshoz csatlakozzon újra."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="one">"%1$d új üzenet megjelenítése"</item>
+        <item quantity="other">"%1$d új üzenet megjelenítése"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"Jelentkezzen be újra az ügyfélszolgálati előzmények visszaállításához."</string>
+    <string name="respondkit_start_failed" formatted="false">"Nem sikerült elindítani az ügyfélszolgálati chatet."</string>
+    <string name="respondkit_support" formatted="false">"Ügyfélszolgálat"</string>
+    <string name="respondkit_support_messages" formatted="false">"Ügyfélszolgálati üzenetek"</string>
+    <string name="respondkit_try_again" formatted="false">"Újrapróbálás"</string>
+    <string name="respondkit_unknown" formatted="false">"Nincs megerősítve – nyugodtan próbálja újra"</string>
+    <string name="respondkit_unread" formatted="false">"Olvasatlan ügyfélszolgálati válasz"</string>
+    <string name="respondkit_upload_failed" formatted="false">"Sikertelen feltöltés"</string>
+    <string name="respondkit_write_message" formatted="false">"Írjon üzenetet…"</string>
+</resources>

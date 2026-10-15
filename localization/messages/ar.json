@@ -1,0 +1,106 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "الدعم",
+  "respondkit_ask_anything": "اسألنا عن أي شيء",
+  "respondkit_open_chat": "فتح دردشة الدعم",
+  "respondkit_close_chat": "إغلاق دردشة الدعم",
+  "respondkit_close": "إغلاق",
+  "respondkit_help": "كيف يمكننا مساعدتك؟",
+  "respondkit_intro": "أرسل رسالة وأبقِ هذه الصفحة مفتوحة لتلقي رد سريع.",
+  "respondkit_intro_short": "أرسل رسالة لبدء محادثة.",
+  "respondkit_return": "ستظهر الردود هنا عند عودتك إلى التطبيق.",
+  "respondkit_conversations": "المحادثات",
+  "respondkit_conversation": "محادثة {date}",
+  "respondkit_new_conversation": "محادثة جديدة",
+  "respondkit_unread": "رد غير مقروء من الدعم",
+  "respondkit_open": "مفتوحة",
+  "respondkit_closed": "مغلقة",
+  "respondkit_more": "المزيد",
+  "respondkit_loading": "جارٍ التحميل…",
+  "respondkit_loading_messages": "جارٍ تحميل الرسائل",
+  "respondkit_support_messages": "رسائل الدعم",
+  "respondkit_latest": "أحدث الرسائل",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=zero": "{count} جديدة",
+        "category=one": "{count} جديدة",
+        "category=two": "{count} جديدتان",
+        "category=few": "{count} جديدة",
+        "category=many": "{count} جديدة",
+        "category=*": "{count} جديدة"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=zero": "عرض {count} رسالة جديدة",
+        "category=one": "عرض {count} رسالة جديدة",
+        "category=two": "عرض {count} رسالتين جديدتين",
+        "category=few": "عرض {count} رسائل جديدة",
+        "category=many": "عرض {count} رسالة جديدة",
+        "category=*": "عرض {count} رسالة جديدة"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=zero": "المحادثات · {count} غير مقروءة",
+        "category=one": "المحادثات · {count} غير مقروءة",
+        "category=two": "المحادثات · {count} غير مقروءتين",
+        "category=few": "المحادثات · {count} غير مقروءة",
+        "category=many": "المحادثات · {count} غير مقروءة",
+        "category=*": "المحادثات · {count} غير مقروءة"
+      }
+    }
+  ],
+  "respondkit_closed_help": "تم إغلاق هذه المحادثة.",
+  "respondkit_another_message": "إرسال رسالة أخرى",
+  "respondkit_message": "الرسالة",
+  "respondkit_write_message": "اكتب رسالة…",
+  "respondkit_send": "إرسال",
+  "respondkit_send_message": "إرسال الرسالة",
+  "respondkit_sending": "جارٍ الإرسال…",
+  "respondkit_sent": "تم الإرسال",
+  "respondkit_failed": "فشل",
+  "respondkit_confirming": "جارٍ التأكيد…",
+  "respondkit_unknown": "لم يتم التأكيد — يمكنك إعادة المحاولة بأمان",
+  "respondkit_retry": "إعادة المحاولة",
+  "respondkit_retry_message": "إعادة إرسال الرسالة",
+  "respondkit_try_again": "حاول مرة أخرى",
+  "respondkit_reconnect": "إعادة الاتصال",
+  "respondkit_email_prompt": "على أي بريد إلكتروني نرسل إليك الرد؟",
+  "respondkit_email_address": "عنوان البريد الإلكتروني",
+  "respondkit_save_email": "حفظ البريد الإلكتروني",
+  "respondkit_saving": "جارٍ الحفظ…",
+  "respondkit_email_failed": "تعذّر حفظ بريدك الإلكتروني. يُرجى التحقق منه والمحاولة مرة أخرى.",
+  "respondkit_attach_files": "إرفاق ملفات",
+  "respondkit_attached_files": "الملفات المرفقة",
+  "respondkit_photo_library": "مكتبة الصور",
+  "respondkit_files": "الملفات",
+  "respondkit_cancel": "إلغاء",
+  "respondkit_ready": "جاهز",
+  "respondkit_upload_failed": "فشل الرفع",
+  "respondkit_remove": "إزالة",
+  "respondkit_remove_file": "إزالة {name}",
+  "respondkit_selected_file": "الملف المحدد",
+  "respondkit_picker_failed": "تعذّر فتح منتقي الملفات",
+  "respondkit_file_open_failed": "تعذّر فتح الملف المحدد.",
+  "respondkit_start_failed": "تعذّر بدء دردشة الدعم.",
+  "respondkit_request_failed": "فشل طلب الدعم.",
+  "respondkit_history_failed": "تعذّر تحميل سجل المحادثة. اضغط على «المزيد» للمحاولة مرة أخرى.",
+  "respondkit_messages_failed": "تعذّر تحميل الرسائل الجديدة.",
+  "respondkit_sign_in_again": "سجّل الدخول مرة أخرى لاستعادة سجل الدعم.",
+  "respondkit_session_expired": "انتهت جلسة الدعم. أعد الاتصال للمتابعة.",
+  "respondkit_identity_changed": "تغيّرت هوية الدعم في علامة تبويب أخرى. أعد الاتصال لإعادة تحميل حسابك.",
+  "respondkit_connecting": "لا يزال الدعم قيد الاتصال.",
+  "respondkit_reconnect_upload": "أعد الاتصال قبل الرفع."
+}

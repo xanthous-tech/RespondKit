@@ -1,0 +1,94 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "सहायता",
+  "respondkit_ask_anything": "हमसे कुछ भी पूछें",
+  "respondkit_open_chat": "सहायता चैट खोलें",
+  "respondkit_close_chat": "सहायता चैट बंद करें",
+  "respondkit_close": "बंद करें",
+  "respondkit_help": "हम आपकी क्या मदद कर सकते हैं?",
+  "respondkit_intro": "मैसेज भेजें और जल्दी जवाब पाने के लिए यह पेज खुला रखें।",
+  "respondkit_intro_short": "बातचीत शुरू करने के लिए मैसेज भेजें।",
+  "respondkit_return": "ऐप पर लौटने पर जवाब यहां दिखेंगे।",
+  "respondkit_conversations": "बातचीत",
+  "respondkit_conversation": "बातचीत {date}",
+  "respondkit_new_conversation": "नई बातचीत",
+  "respondkit_unread": "सहायता टीम का बिना पढ़ा जवाब",
+  "respondkit_open": "खुली",
+  "respondkit_closed": "बंद",
+  "respondkit_more": "और देखें",
+  "respondkit_loading": "लोड हो रहा है…",
+  "respondkit_loading_messages": "मैसेज लोड हो रहे हैं",
+  "respondkit_support_messages": "सहायता मैसेज",
+  "respondkit_latest": "सबसे नए मैसेज",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} नया",
+        "category=*": "{count} नए"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} नया मैसेज दिखाएं",
+        "category=*": "{count} नए मैसेज दिखाएं"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "बातचीत · {count} बिना पढ़ी",
+        "category=*": "बातचीत · {count} बिना पढ़ी"
+      }
+    }
+  ],
+  "respondkit_closed_help": "यह बातचीत बंद हो चुकी है।",
+  "respondkit_another_message": "एक और मैसेज भेजें",
+  "respondkit_message": "मैसेज",
+  "respondkit_write_message": "मैसेज लिखें…",
+  "respondkit_send": "भेजें",
+  "respondkit_send_message": "मैसेज भेजें",
+  "respondkit_sending": "भेजा जा रहा है…",
+  "respondkit_sent": "भेजा गया",
+  "respondkit_failed": "विफल",
+  "respondkit_confirming": "पुष्टि हो रही है…",
+  "respondkit_unknown": "पुष्टि नहीं हुई — फिर से कोशिश करना सुरक्षित है",
+  "respondkit_retry": "फिर से कोशिश करें",
+  "respondkit_retry_message": "मैसेज फिर से भेजें",
+  "respondkit_try_again": "फिर से कोशिश करें",
+  "respondkit_reconnect": "फिर से कनेक्ट करें",
+  "respondkit_email_prompt": "हम आपको किस ईमेल पर जवाब भेजें?",
+  "respondkit_email_address": "ईमेल पता",
+  "respondkit_save_email": "ईमेल सेव करें",
+  "respondkit_saving": "सेव हो रहा है…",
+  "respondkit_email_failed": "हम आपका ईमेल सेव नहीं कर सके। कृपया इसे जांचें और फिर से कोशिश करें।",
+  "respondkit_attach_files": "फ़ाइलें अटैच करें",
+  "respondkit_attached_files": "अटैच की गई फ़ाइलें",
+  "respondkit_photo_library": "फ़ोटो लाइब्रेरी",
+  "respondkit_files": "फ़ाइलें",
+  "respondkit_cancel": "रद्द करें",
+  "respondkit_ready": "तैयार",
+  "respondkit_upload_failed": "अपलोड नहीं हो सका",
+  "respondkit_remove": "हटाएं",
+  "respondkit_remove_file": "{name} हटाएं",
+  "respondkit_selected_file": "चुनी गई फ़ाइल",
+  "respondkit_picker_failed": "फ़ाइल पिकर नहीं खुल सका",
+  "respondkit_file_open_failed": "चुनी गई फ़ाइल नहीं खुल सकी।",
+  "respondkit_start_failed": "सहायता चैट शुरू नहीं हो सकी।",
+  "respondkit_request_failed": "सहायता अनुरोध पूरा नहीं हो सका।",
+  "respondkit_history_failed": "बातचीत का इतिहास लोड नहीं हो सका। “और देखें” को फिर से आज़माएं।",
+  "respondkit_messages_failed": "नए मैसेज लोड नहीं हो सके।",
+  "respondkit_sign_in_again": "अपना सहायता इतिहास वापस पाने के लिए फिर से साइन इन करें।",
+  "respondkit_session_expired": "आपका सहायता सेशन खत्म हो गया है। जारी रखने के लिए फिर से कनेक्ट करें।",
+  "respondkit_identity_changed": "किसी दूसरे टैब में सहायता पहचान बदल गई है। अपना खाता फिर से लोड करने के लिए फिर से कनेक्ट करें।",
+  "respondkit_connecting": "सहायता से अभी कनेक्ट हो रहा है।",
+  "respondkit_reconnect_upload": "अपलोड करने से पहले फिर से कनेक्ट करें।"
+}

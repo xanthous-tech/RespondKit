@@ -1,0 +1,97 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Suporte",
+  "respondkit_ask_anything": "Pergunte o que quiser",
+  "respondkit_open_chat": "Abrir chat de suporte",
+  "respondkit_close_chat": "Fechar chat de suporte",
+  "respondkit_close": "Fechar",
+  "respondkit_help": "Como podemos ajudar?",
+  "respondkit_intro": "Envie uma mensagem e mantenha esta página aberta para receber uma resposta rápida.",
+  "respondkit_intro_short": "Envie uma mensagem para iniciar uma conversa.",
+  "respondkit_return": "As respostas vão aparecer aqui quando você voltar ao app.",
+  "respondkit_conversations": "Conversas",
+  "respondkit_conversation": "Conversa de {date}",
+  "respondkit_new_conversation": "Nova conversa",
+  "respondkit_unread": "Resposta do suporte não lida",
+  "respondkit_open": "Aberta",
+  "respondkit_closed": "Encerrada",
+  "respondkit_more": "Mais",
+  "respondkit_loading": "Carregando…",
+  "respondkit_loading_messages": "Carregando mensagens",
+  "respondkit_support_messages": "Mensagens do suporte",
+  "respondkit_latest": "Mensagens mais recentes",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} nova",
+        "category=many": "{count} novas",
+        "category=*": "{count} novas"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Mostrar {count} nova mensagem",
+        "category=many": "Mostrar {count} novas mensagens",
+        "category=*": "Mostrar {count} novas mensagens"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Conversas · {count} não lida",
+        "category=many": "Conversas · {count} não lidas",
+        "category=*": "Conversas · {count} não lidas"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Esta conversa foi encerrada.",
+  "respondkit_another_message": "Enviar outra mensagem",
+  "respondkit_message": "Mensagem",
+  "respondkit_write_message": "Escreva uma mensagem…",
+  "respondkit_send": "Enviar",
+  "respondkit_send_message": "Enviar mensagem",
+  "respondkit_sending": "Enviando…",
+  "respondkit_sent": "Enviada",
+  "respondkit_failed": "Falhou",
+  "respondkit_confirming": "Confirmando…",
+  "respondkit_unknown": "Não confirmada — pode tentar de novo com segurança",
+  "respondkit_retry": "Tentar de novo",
+  "respondkit_retry_message": "Reenviar mensagem",
+  "respondkit_try_again": "Tentar novamente",
+  "respondkit_reconnect": "Reconectar",
+  "respondkit_email_prompt": "Em qual e-mail podemos te responder?",
+  "respondkit_email_address": "Endereço de e-mail",
+  "respondkit_save_email": "Salvar e-mail",
+  "respondkit_saving": "Salvando…",
+  "respondkit_email_failed": "Não foi possível salvar seu e-mail. Verifique e tente novamente.",
+  "respondkit_attach_files": "Anexar arquivos",
+  "respondkit_attached_files": "Arquivos anexados",
+  "respondkit_photo_library": "Biblioteca de fotos",
+  "respondkit_files": "Arquivos",
+  "respondkit_cancel": "Cancelar",
+  "respondkit_ready": "Pronto",
+  "respondkit_upload_failed": "Falha no envio",
+  "respondkit_remove": "Remover",
+  "respondkit_remove_file": "Remover {name}",
+  "respondkit_selected_file": "Arquivo selecionado",
+  "respondkit_picker_failed": "Não foi possível abrir o seletor de arquivos",
+  "respondkit_file_open_failed": "Não foi possível abrir o arquivo selecionado.",
+  "respondkit_start_failed": "Não foi possível iniciar o chat de suporte.",
+  "respondkit_request_failed": "Falha na solicitação ao suporte.",
+  "respondkit_history_failed": "Não foi possível carregar o histórico da conversa. Use o botão Mais para tentar novamente.",
+  "respondkit_messages_failed": "Não foi possível carregar as novas mensagens.",
+  "respondkit_sign_in_again": "Entre novamente para recuperar seu histórico de suporte.",
+  "respondkit_session_expired": "Sua sessão de suporte expirou. Reconecte para continuar.",
+  "respondkit_identity_changed": "A identidade de suporte mudou em outra aba. Reconecte para recarregar sua conta.",
+  "respondkit_connecting": "O suporte ainda está se conectando.",
+  "respondkit_reconnect_upload": "Reconecte antes de enviar arquivos."
+}

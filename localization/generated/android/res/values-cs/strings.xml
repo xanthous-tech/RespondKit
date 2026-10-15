@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"Poslat další zprávu"</string>
+    <string name="respondkit_ask_anything" formatted="false">"Zeptejte se nás na cokoli"</string>
+    <string name="respondkit_attach_files" formatted="false">"Přiložit soubory"</string>
+    <string name="respondkit_attached_files" formatted="false">"Přiložené soubory"</string>
+    <string name="respondkit_cancel" formatted="false">"Zrušit"</string>
+    <string name="respondkit_close" formatted="false">"Zavřít"</string>
+    <string name="respondkit_close_chat" formatted="false">"Zavřít chat podpory"</string>
+    <string name="respondkit_closed" formatted="false">"Uzavřená"</string>
+    <string name="respondkit_closed_help" formatted="false">"Tato konverzace je uzavřená."</string>
+    <string name="respondkit_confirming" formatted="false">"Potvrzování…"</string>
+    <string name="respondkit_connecting" formatted="false">"Podpora se stále připojuje."</string>
+    <string name="respondkit_conversation">"Konverzace %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"Konverzace"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="one">"Konverzace · %1$d nepřečtená"</item>
+        <item quantity="few">"Konverzace · %1$d nepřečtené"</item>
+        <item quantity="many">"Konverzace · %1$d nepřečtené"</item>
+        <item quantity="other">"Konverzace · %1$d nepřečtených"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"E-mailová adresa"</string>
+    <string name="respondkit_email_failed" formatted="false">"E-mail se nepodařilo uložit. Zkontrolujte ho a zkuste to znovu."</string>
+    <string name="respondkit_email_prompt" formatted="false">"Na jaký e-mail vám můžeme odpovědět?"</string>
+    <string name="respondkit_failed" formatted="false">"Nezdařilo se"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"Vybraný soubor nelze otevřít."</string>
+    <string name="respondkit_files" formatted="false">"Soubory"</string>
+    <string name="respondkit_help" formatted="false">"Jak vám můžeme pomoci?"</string>
+    <string name="respondkit_history_failed" formatted="false">"Historii konverzace se nepodařilo načíst. Zkuste znovu „Další“."</string>
+    <string name="respondkit_identity_changed" formatted="false">"Identita podpory se změnila na jiné kartě. Znovu se připojte a načtěte svůj účet."</string>
+    <string name="respondkit_intro" formatted="false">"Pošlete zprávu a nechte tuto stránku otevřenou, ať vám můžeme rychle odpovědět."</string>
+    <string name="respondkit_intro_short" formatted="false">"Pošlete zprávu a zahajte konverzaci."</string>
+    <string name="respondkit_latest" formatted="false">"Nejnovější zprávy"</string>
+    <string name="respondkit_loading" formatted="false">"Načítání…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"Načítání zpráv"</string>
+    <string name="respondkit_message" formatted="false">"Zpráva"</string>
+    <string name="respondkit_messages_failed" formatted="false">"Nové zprávy se nepodařilo načíst."</string>
+    <string name="respondkit_more" formatted="false">"Další"</string>
+    <string name="respondkit_new_conversation" formatted="false">"Nová konverzace"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="one">"%1$d nová"</item>
+        <item quantity="few">"%1$d nové"</item>
+        <item quantity="many">"%1$d nové"</item>
+        <item quantity="other">"%1$d nových"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"Otevřená"</string>
+    <string name="respondkit_open_chat" formatted="false">"Otevřít chat podpory"</string>
+    <string name="respondkit_photo_library" formatted="false">"Knihovna fotek"</string>
+    <string name="respondkit_picker_failed" formatted="false">"Výběr souborů nelze otevřít"</string>
+    <string name="respondkit_ready" formatted="false">"Připraveno"</string>
+    <string name="respondkit_reconnect" formatted="false">"Znovu připojit"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"Před nahráním se znovu připojte."</string>
+    <string name="respondkit_remove" formatted="false">"Odebrat"</string>
+    <string name="respondkit_remove_file">"Odebrat %1$s"</string>
+    <string name="respondkit_request_failed" formatted="false">"Požadavek na podporu se nezdařil."</string>
+    <string name="respondkit_retry" formatted="false">"Zkusit znovu"</string>
+    <string name="respondkit_retry_message" formatted="false">"Znovu odeslat zprávu"</string>
+    <string name="respondkit_return" formatted="false">"Odpovědi se zde zobrazí, až se vrátíte do aplikace."</string>
+    <string name="respondkit_save_email" formatted="false">"Uložit e-mail"</string>
+    <string name="respondkit_saving" formatted="false">"Ukládání…"</string>
+    <string name="respondkit_selected_file" formatted="false">"Vybraný soubor"</string>
+    <string name="respondkit_send" formatted="false">"Odeslat"</string>
+    <string name="respondkit_send_message" formatted="false">"Odeslat zprávu"</string>
+    <string name="respondkit_sending" formatted="false">"Odesílání…"</string>
+    <string name="respondkit_sent" formatted="false">"Odesláno"</string>
+    <string name="respondkit_session_expired" formatted="false">"Relace podpory vypršela. Pro pokračování se znovu připojte."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="one">"Zobrazit %1$d novou zprávu"</item>
+        <item quantity="few">"Zobrazit %1$d nové zprávy"</item>
+        <item quantity="many">"Zobrazit %1$d nové zprávy"</item>
+        <item quantity="other">"Zobrazit %1$d nových zpráv"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"Přihlaste se znovu a obnovte historii komunikace s podporou."</string>
+    <string name="respondkit_start_failed" formatted="false">"Chat podpory se nepodařilo spustit."</string>
+    <string name="respondkit_support" formatted="false">"Podpora"</string>
+    <string name="respondkit_support_messages" formatted="false">"Zprávy podpory"</string>
+    <string name="respondkit_try_again" formatted="false">"Zkusit znovu"</string>
+    <string name="respondkit_unknown" formatted="false">"Nepotvrzeno – můžete bezpečně zkusit znovu"</string>
+    <string name="respondkit_unread" formatted="false">"Nepřečtená odpověď podpory"</string>
+    <string name="respondkit_upload_failed" formatted="false">"Nahrání se nezdařilo"</string>
+    <string name="respondkit_write_message" formatted="false">"Napište zprávu…"</string>
+</resources>

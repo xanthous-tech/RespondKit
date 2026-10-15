@@ -1,0 +1,100 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "Assistenza",
+  "respondkit_ask_anything": "Chiedici qualsiasi cosa",
+  "respondkit_open_chat": "Apri la chat di assistenza",
+  "respondkit_close_chat": "Chiudi la chat di assistenza",
+  "respondkit_close": "Chiudi",
+  "respondkit_help": "Come possiamo aiutarti?",
+  "respondkit_intro": "Invia un messaggio e tieni aperta questa pagina per ricevere una risposta rapida.",
+  "respondkit_intro_short": "Invia un messaggio per iniziare una conversazione.",
+  "respondkit_return": "Le risposte compariranno qui quando tornerai nell'app.",
+  "respondkit_conversations": "Conversazioni",
+  "respondkit_conversation": "Conversazione del {date}",
+  "respondkit_new_conversation": "Nuova conversazione",
+  "respondkit_unread": "Risposta dell'assistenza non letta",
+  "respondkit_open": "Aperta",
+  "respondkit_closed": "Chiusa",
+  "respondkit_more": "Altro",
+  "respondkit_loading": "Caricamento…",
+  "respondkit_loading_messages": "Caricamento dei messaggi",
+  "respondkit_support_messages": "Messaggi dell'assistenza",
+  "respondkit_latest": "Ultimi messaggi",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} nuovo",
+        "category=many": "{count} nuovi",
+        "category=other": "{count} nuovi",
+        "category=*": "{count} nuovi"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Mostra {count} nuovo messaggio",
+        "category=many": "Mostra {count} nuovi messaggi",
+        "category=other": "Mostra {count} nuovi messaggi",
+        "category=*": "Mostra {count} nuovi messaggi"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "Conversazioni · {count} da leggere",
+        "category=many": "Conversazioni · {count} da leggere",
+        "category=other": "Conversazioni · {count} da leggere",
+        "category=*": "Conversazioni · {count} da leggere"
+      }
+    }
+  ],
+  "respondkit_closed_help": "Questa conversazione è chiusa.",
+  "respondkit_another_message": "Invia un altro messaggio",
+  "respondkit_message": "Messaggio",
+  "respondkit_write_message": "Scrivi un messaggio…",
+  "respondkit_send": "Invia",
+  "respondkit_send_message": "Invia messaggio",
+  "respondkit_sending": "Invio…",
+  "respondkit_sent": "Inviato",
+  "respondkit_failed": "Non riuscito",
+  "respondkit_confirming": "Conferma in corso…",
+  "respondkit_unknown": "Non confermato: puoi riprovare senza rischi",
+  "respondkit_retry": "Riprova",
+  "respondkit_retry_message": "Invia di nuovo il messaggio",
+  "respondkit_try_again": "Prova di nuovo",
+  "respondkit_reconnect": "Riconnetti",
+  "respondkit_email_prompt": "A quale indirizzo email possiamo risponderti?",
+  "respondkit_email_address": "Indirizzo email",
+  "respondkit_save_email": "Salva email",
+  "respondkit_saving": "Salvataggio…",
+  "respondkit_email_failed": "Non siamo riusciti a salvare la tua email. Controllala e riprova.",
+  "respondkit_attach_files": "Allega file",
+  "respondkit_attached_files": "File allegati",
+  "respondkit_photo_library": "Libreria foto",
+  "respondkit_files": "File",
+  "respondkit_cancel": "Annulla",
+  "respondkit_ready": "Pronto",
+  "respondkit_upload_failed": "Caricamento non riuscito",
+  "respondkit_remove": "Rimuovi",
+  "respondkit_remove_file": "Rimuovi {name}",
+  "respondkit_selected_file": "File selezionato",
+  "respondkit_picker_failed": "Impossibile aprire il selettore di file",
+  "respondkit_file_open_failed": "Impossibile aprire il file selezionato.",
+  "respondkit_start_failed": "Impossibile avviare la chat di assistenza.",
+  "respondkit_request_failed": "Richiesta di assistenza non riuscita.",
+  "respondkit_history_failed": "Impossibile caricare la cronologia della conversazione. Riprova con Altro.",
+  "respondkit_messages_failed": "Impossibile caricare i nuovi messaggi.",
+  "respondkit_sign_in_again": "Accedi di nuovo per ripristinare la cronologia dell'assistenza.",
+  "respondkit_session_expired": "La sessione di assistenza è scaduta. Riconnettiti per continuare.",
+  "respondkit_identity_changed": "L'account di assistenza è cambiato in un'altra scheda. Riconnettiti per ricaricare il tuo account.",
+  "respondkit_connecting": "L'assistenza è ancora in fase di connessione.",
+  "respondkit_reconnect_upload": "Riconnettiti prima di caricare file."
+}

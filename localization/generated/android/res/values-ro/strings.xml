@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Paraglide JSON. Edit the source catalogs. -->
+<resources>
+    <string name="respondkit_another_message" formatted="false">"Trimiteți alt mesaj"</string>
+    <string name="respondkit_ask_anything" formatted="false">"Întrebați-ne orice"</string>
+    <string name="respondkit_attach_files" formatted="false">"Atașați fișiere"</string>
+    <string name="respondkit_attached_files" formatted="false">"Fișiere atașate"</string>
+    <string name="respondkit_cancel" formatted="false">"Anulați"</string>
+    <string name="respondkit_close" formatted="false">"Închideți"</string>
+    <string name="respondkit_close_chat" formatted="false">"Închideți chatul de asistență"</string>
+    <string name="respondkit_closed" formatted="false">"Închisă"</string>
+    <string name="respondkit_closed_help" formatted="false">"Această conversație este închisă."</string>
+    <string name="respondkit_confirming" formatted="false">"Se confirmă…"</string>
+    <string name="respondkit_connecting" formatted="false">"Asistența încă se conectează."</string>
+    <string name="respondkit_conversation">"Conversație din %1$s"</string>
+    <string name="respondkit_conversations" formatted="false">"Conversații"</string>
+    <plurals name="respondkit_conversations_unread">
+        <item quantity="one">"Conversații · %1$d necitită"</item>
+        <item quantity="few">"Conversații · %1$d necitite"</item>
+        <item quantity="other">"Conversații · %1$d necitite"</item>
+    </plurals>
+    <string name="respondkit_email_address" formatted="false">"Adresă de e-mail"</string>
+    <string name="respondkit_email_failed" formatted="false">"Nu am putut salva adresa de e-mail. Verificați-o și încercați din nou."</string>
+    <string name="respondkit_email_prompt" formatted="false">"La ce adresă de e-mail vă putem răspunde?"</string>
+    <string name="respondkit_failed" formatted="false">"Eșuat"</string>
+    <string name="respondkit_file_open_failed" formatted="false">"Nu se poate deschide fișierul selectat."</string>
+    <string name="respondkit_files" formatted="false">"Fișiere"</string>
+    <string name="respondkit_help" formatted="false">"Cu ce vă putem ajuta?"</string>
+    <string name="respondkit_history_failed" formatted="false">"Istoricul conversației nu a putut fi încărcat. Încercați din nou cu Mai multe."</string>
+    <string name="respondkit_identity_changed" formatted="false">"Identitatea de asistență s-a schimbat în altă filă. Reconectați-vă pentru a reîncărca contul."</string>
+    <string name="respondkit_intro" formatted="false">"Trimiteți un mesaj și păstrați această pagină deschisă pentru un răspuns rapid."</string>
+    <string name="respondkit_intro_short" formatted="false">"Trimiteți un mesaj pentru a începe o conversație."</string>
+    <string name="respondkit_latest" formatted="false">"Cele mai recente mesaje"</string>
+    <string name="respondkit_loading" formatted="false">"Se încarcă…"</string>
+    <string name="respondkit_loading_messages" formatted="false">"Se încarcă mesajele"</string>
+    <string name="respondkit_message" formatted="false">"Mesaj"</string>
+    <string name="respondkit_messages_failed" formatted="false">"Mesajele noi nu au putut fi încărcate."</string>
+    <string name="respondkit_more" formatted="false">"Mai multe"</string>
+    <string name="respondkit_new_conversation" formatted="false">"Conversație nouă"</string>
+    <plurals name="respondkit_new_count">
+        <item quantity="one">"%1$d nou"</item>
+        <item quantity="few">"%1$d noi"</item>
+        <item quantity="other">"%1$d noi"</item>
+    </plurals>
+    <string name="respondkit_open" formatted="false">"Deschisă"</string>
+    <string name="respondkit_open_chat" formatted="false">"Deschideți chatul de asistență"</string>
+    <string name="respondkit_photo_library" formatted="false">"Galerie foto"</string>
+    <string name="respondkit_picker_failed" formatted="false">"Nu se poate deschide selectorul de fișiere"</string>
+    <string name="respondkit_ready" formatted="false">"Gata"</string>
+    <string name="respondkit_reconnect" formatted="false">"Reconectați-vă"</string>
+    <string name="respondkit_reconnect_upload" formatted="false">"Reconectați-vă înainte de a încărca fișiere."</string>
+    <string name="respondkit_remove" formatted="false">"Eliminați"</string>
+    <string name="respondkit_remove_file">"Eliminați %1$s"</string>
+    <string name="respondkit_request_failed" formatted="false">"Solicitarea către asistență a eșuat."</string>
+    <string name="respondkit_retry" formatted="false">"Reîncercați"</string>
+    <string name="respondkit_retry_message" formatted="false">"Retrimiteți mesajul"</string>
+    <string name="respondkit_return" formatted="false">"Răspunsurile vor apărea aici când reveniți în aplicație."</string>
+    <string name="respondkit_save_email" formatted="false">"Salvați adresa de e-mail"</string>
+    <string name="respondkit_saving" formatted="false">"Se salvează…"</string>
+    <string name="respondkit_selected_file" formatted="false">"Fișier selectat"</string>
+    <string name="respondkit_send" formatted="false">"Trimiteți"</string>
+    <string name="respondkit_send_message" formatted="false">"Trimiteți mesajul"</string>
+    <string name="respondkit_sending" formatted="false">"Se trimite…"</string>
+    <string name="respondkit_sent" formatted="false">"Trimis"</string>
+    <string name="respondkit_session_expired" formatted="false">"Sesiunea de asistență a expirat. Reconectați-vă pentru a continua."</string>
+    <plurals name="respondkit_show_new">
+        <item quantity="one">"Afișați %1$d mesaj nou"</item>
+        <item quantity="few">"Afișați %1$d mesaje noi"</item>
+        <item quantity="other">"Afișați %1$d de mesaje noi"</item>
+    </plurals>
+    <string name="respondkit_sign_in_again" formatted="false">"Conectați-vă din nou pentru a vă recupera istoricul de asistență."</string>
+    <string name="respondkit_start_failed" formatted="false">"Chatul de asistență nu a putut fi pornit."</string>
+    <string name="respondkit_support" formatted="false">"Asistență"</string>
+    <string name="respondkit_support_messages" formatted="false">"Mesaje de asistență"</string>
+    <string name="respondkit_try_again" formatted="false">"Încercați din nou"</string>
+    <string name="respondkit_unknown" formatted="false">"Neconfirmat — puteți reîncerca în siguranță"</string>
+    <string name="respondkit_unread" formatted="false">"Răspuns necitit de la asistență"</string>
+    <string name="respondkit_upload_failed" formatted="false">"Încărcarea a eșuat"</string>
+    <string name="respondkit_write_message" formatted="false">"Scrieți un mesaj…"</string>
+</resources>

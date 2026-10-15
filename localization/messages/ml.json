@@ -1,0 +1,97 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "respondkit_support": "പിന്തുണ",
+  "respondkit_ask_anything": "എന്തും ഞങ്ങളോട് ചോദിക്കൂ",
+  "respondkit_open_chat": "പിന്തുണ ചാറ്റ് തുറക്കുക",
+  "respondkit_close_chat": "പിന്തുണ ചാറ്റ് അടയ്ക്കുക",
+  "respondkit_close": "അടയ്ക്കുക",
+  "respondkit_help": "ഞങ്ങൾ എങ്ങനെ സഹായിക്കണം?",
+  "respondkit_intro": "ഒരു സന്ദേശം അയച്ച് വേഗത്തിൽ മറുപടി ലഭിക്കാൻ ഈ പേജ് തുറന്നുവയ്ക്കുക.",
+  "respondkit_intro_short": "സംഭാഷണം ആരംഭിക്കാൻ ഒരു സന്ദേശം അയയ്ക്കുക.",
+  "respondkit_return": "ആപ്പിലേക്ക് തിരിച്ചെത്തുമ്പോൾ മറുപടികൾ ഇവിടെ ദൃശ്യമാകും.",
+  "respondkit_conversations": "സംഭാഷണങ്ങൾ",
+  "respondkit_conversation": "സംഭാഷണം {date}",
+  "respondkit_new_conversation": "പുതിയ സംഭാഷണം",
+  "respondkit_unread": "വായിക്കാത്ത പിന്തുണ മറുപടി",
+  "respondkit_open": "തുറന്നത്",
+  "respondkit_closed": "അടച്ചത്",
+  "respondkit_more": "കൂടുതൽ",
+  "respondkit_loading": "ലോഡ് ചെയ്യുന്നു…",
+  "respondkit_loading_messages": "സന്ദേശങ്ങൾ ലോഡ് ചെയ്യുന്നു",
+  "respondkit_support_messages": "പിന്തുണ സന്ദേശങ്ങൾ",
+  "respondkit_latest": "ഏറ്റവും പുതിയ സന്ദേശങ്ങൾ",
+  "respondkit_new_count": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} പുതിയത്",
+        "category=other": "{count} പുതിയവ",
+        "category=*": "{count} പുതിയവ"
+      }
+    }
+  ],
+  "respondkit_show_new": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "{count} പുതിയ സന്ദേശം കാണിക്കുക",
+        "category=other": "{count} പുതിയ സന്ദേശങ്ങൾ കാണിക്കുക",
+        "category=*": "{count} പുതിയ സന്ദേശങ്ങൾ കാണിക്കുക"
+      }
+    }
+  ],
+  "respondkit_conversations_unread": [
+    {
+      "declarations": ["input count", "local category = count: plural"],
+      "selectors": ["category"],
+      "match": {
+        "category=one": "സംഭാഷണങ്ങൾ · {count} വായിക്കാത്തത്",
+        "category=other": "സംഭാഷണങ്ങൾ · {count} വായിക്കാത്തവ",
+        "category=*": "സംഭാഷണങ്ങൾ · {count} വായിക്കാത്തവ"
+      }
+    }
+  ],
+  "respondkit_closed_help": "ഈ സംഭാഷണം അവസാനിപ്പിച്ചു.",
+  "respondkit_another_message": "മറ്റൊരു സന്ദേശം അയയ്ക്കുക",
+  "respondkit_message": "സന്ദേശം",
+  "respondkit_write_message": "ഒരു സന്ദേശം എഴുതുക…",
+  "respondkit_send": "അയയ്ക്കുക",
+  "respondkit_send_message": "സന്ദേശം അയയ്ക്കുക",
+  "respondkit_sending": "അയയ്ക്കുന്നു…",
+  "respondkit_sent": "അയച്ചു",
+  "respondkit_failed": "പരാജയപ്പെട്ടു",
+  "respondkit_confirming": "സ്ഥിരീകരിക്കുന്നു…",
+  "respondkit_unknown": "സ്ഥിരീകരിച്ചിട്ടില്ല — സുരക്ഷിതമായി വീണ്ടും ശ്രമിക്കാം",
+  "respondkit_retry": "വീണ്ടും ശ്രമിക്കുക",
+  "respondkit_retry_message": "സന്ദേശം വീണ്ടും അയയ്ക്കുക",
+  "respondkit_try_again": "വീണ്ടും ശ്രമിക്കുക",
+  "respondkit_reconnect": "വീണ്ടും കണക്റ്റ് ചെയ്യുക",
+  "respondkit_email_prompt": "മറുപടി ഏത് ഇമെയിലിലേക്ക് അയയ്ക്കണം?",
+  "respondkit_email_address": "ഇമെയിൽ വിലാസം",
+  "respondkit_save_email": "ഇമെയിൽ സംരക്ഷിക്കുക",
+  "respondkit_saving": "സംരക്ഷിക്കുന്നു…",
+  "respondkit_email_failed": "നിങ്ങളുടെ ഇമെയിൽ സംരക്ഷിക്കാനായില്ല. അത് പരിശോധിച്ച് വീണ്ടും ശ്രമിക്കുക.",
+  "respondkit_attach_files": "ഫയലുകൾ അറ്റാച്ച് ചെയ്യുക",
+  "respondkit_attached_files": "അറ്റാച്ച് ചെയ്ത ഫയലുകൾ",
+  "respondkit_photo_library": "ഫോട്ടോ ലൈബ്രറി",
+  "respondkit_files": "ഫയലുകൾ",
+  "respondkit_cancel": "റദ്ദാക്കുക",
+  "respondkit_ready": "തയ്യാർ",
+  "respondkit_upload_failed": "അപ്‌ലോഡ് പരാജയപ്പെട്ടു",
+  "respondkit_remove": "നീക്കം ചെയ്യുക",
+  "respondkit_remove_file": "{name} നീക്കം ചെയ്യുക",
+  "respondkit_selected_file": "തിരഞ്ഞെടുത്ത ഫയൽ",
+  "respondkit_picker_failed": "ഫയൽ പിക്കർ തുറക്കാനാകുന്നില്ല",
+  "respondkit_file_open_failed": "തിരഞ്ഞെടുത്ത ഫയൽ തുറക്കാനാകുന്നില്ല.",
+  "respondkit_start_failed": "പിന്തുണ ചാറ്റ് ആരംഭിക്കാനായില്ല.",
+  "respondkit_request_failed": "പിന്തുണ അഭ്യർത്ഥന പരാജയപ്പെട്ടു.",
+  "respondkit_history_failed": "സംഭാഷണ ചരിത്രം ലോഡ് ചെയ്യാനായില്ല. കൂടുതൽ എന്നതിൽ വീണ്ടും ശ്രമിക്കുക.",
+  "respondkit_messages_failed": "പുതിയ സന്ദേശങ്ങൾ ലോഡ് ചെയ്യാനായില്ല.",
+  "respondkit_sign_in_again": "പിന്തുണ ചരിത്രം പുനഃസ്ഥാപിക്കാൻ വീണ്ടും സൈൻ ഇൻ ചെയ്യുക.",
+  "respondkit_session_expired": "നിങ്ങളുടെ പിന്തുണ സെഷൻ കാലഹരണപ്പെട്ടു. തുടരാൻ വീണ്ടും കണക്റ്റ് ചെയ്യുക.",
+  "respondkit_identity_changed": "മറ്റൊരു ടാബിൽ പിന്തുണ അക്കൗണ്ട് മാറി. നിങ്ങളുടെ അക്കൗണ്ട് റീലോഡ് ചെയ്യാൻ വീണ്ടും കണക്റ്റ് ചെയ്യുക.",
+  "respondkit_connecting": "പിന്തുണ ഇപ്പോഴും കണക്റ്റ് ചെയ്യുന്നു.",
+  "respondkit_reconnect_upload": "അപ്‌ലോഡ് ചെയ്യുന്നതിന് മുമ്പ് വീണ്ടും കണക്റ്റ് ചെയ്യുക."
+}
