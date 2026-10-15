@@ -12,16 +12,20 @@ Added `localization/messages/{locale}.json` for ReceiptGenie's 51 shipped locale
 
 ## Tests
 
-- Swift `LocalizationTests`: renders ja and zh-Hans for the empty state, subtitle and attach menu, plus 23 device-language fallbacks. `swift build` copies `.xcstrings` uncompiled, so the test compiles it with `xcstringstool`.
-- Compose `RespondKitScreenTest`: the screen in ja and zh-Hans, plus the fallback table on an API 36 emulator. Popups re-provide the activity's `LocalContext`, so the attach menu items are checked at resource level.
-- Web: widget renders in ja and zh-Hans, the browser-language fallback, and a 28-case resolver table.
+- iOS: the example app's XCUITest runs the app in ja and zh-Hans. It checks the subtitle and empty state, then opens the attach Menu. The example declares the catalog's languages in `Info.plist`.
+- Swift `LocalizationTests` (macOS only, because `Process` is unavailable on iOS): 23 device-language fallbacks through `Bundle.preferredLocalizations`. `swift build` copies `.xcstrings` uncompiled, so the test compiles it with `xcstringstool`.
+- Compose `LocalizedScreenTest`: a test activity applies the locale to its base context, the same way per-app locales do. It renders the screen in ja and zh-Hans and opens the real attach dropdown. `RespondKitScreenTest` keeps the fallback table.
+- Web: widget renders in ja and zh-Hans, plus the browser-language fallback and a 28-case resolver table. A `renderToString` + `hydrateRoot` test guards against a hydration mismatch. The browser language is read through `useSyncExternalStore` with no server snapshot.
 - React Native: `RespondKitScreen` rendered with `react-dom/server` and shimmed primitives in ja and zh-Hans. The test also opens the attach `Alert`.
 
 ## Verification
 
 - `pnpm ready`: passed (vp check, release tests, localization:check, 445 package tests, builds).
-- `swift test`: 26 tests passed.
+- `swift test`: 26 tests passed. `xcodebuild -scheme RespondKit-Package` on the iOS simulator: test build succeeded, 24 tests passed.
+- `xcodebuild test` of the example app's XCUITest on an iPhone 17 simulator, with `native/examples/demo_server.py` running: passed.
 - `native/android/gradlew -p native/android :core:test :compose:assembleDebug :compose:lintRelease :example:assembleDebug`: passed, lint 0 errors.
 - `:compose:connectedDebugAndroidTest` on emulator-5554 (API 36): 9/9 passed.
+
+Review RK-4 (changes requested at b352504) is addressed in the follow-up commits: web hydration, the iOS test build, and native screen and menu coverage.
 
 Translations were drafted by parallel agents from a shared key-context guide. Each file was validated for keys, placeholders and plural categories. No native-speaker review has been done yet.

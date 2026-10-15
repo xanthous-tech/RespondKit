@@ -1,6 +1,5 @@
 package dev.respondkit.compose
 
-import androidx.activity.compose.LocalActivityResultRegistryOwner
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -8,8 +7,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.semantics.SemanticsActions
@@ -27,7 +24,7 @@ import org.junit.Test
 class RespondKitScreenTest {
     @get:Rule val compose = createComposeRule()
 
-    private class Api(val replyText: String = "We can help") : RespondKitApi {
+    internal class Api(val replyText: String = "We can help") : RespondKitApi {
         var thread: SupportThread? = null
         val messages = mutableListOf<SupportMessage>()
         var readCount = 0
@@ -234,41 +231,6 @@ class RespondKitScreenTest {
         configuration.setLocales(android.os.LocaleList.forLanguageTags(languageTags))
         return context.createConfigurationContext(configuration)
     }
-
-    private fun assertScreenTranslated(languageTags: String, help: String, intro: String, subtitle: String, attach: String, photos: String, files: String) {
-        val context = localized(languageTags)
-        compose.setContent {
-            val scope = rememberCoroutineScope()
-            val store = remember {
-                RespondKitStore(
-                    RespondKitConfiguration("https://support.example.com", "inbox_test", "https://example.com"),
-                    persistence = MemoryPersistence(), api = Api(), scope = scope,
-                )
-            }
-            val owner = LocalActivityResultRegistryOwner.current!!
-            CompositionLocalProvider(
-                LocalContext provides context,
-                LocalConfiguration provides context.resources.configuration,
-                LocalActivityResultRegistryOwner provides owner,
-            ) {
-                RespondKitScreen(store, onClose = {})
-            }
-        }
-        compose.onNodeWithText(subtitle).assertIsDisplayed()
-        compose.onNodeWithText(help).assertIsDisplayed()
-        compose.onNodeWithText(intro).assertIsDisplayed()
-        compose.onNodeWithContentDescription(attach).assertHasClickAction()
-        org.junit.Assert.assertEquals(photos, context.getString(R.string.respondkit_photo_library))
-        org.junit.Assert.assertEquals(files, context.getString(R.string.respondkit_files))
-    }
-
-    @Test
-    fun japaneseScreenIsTranslated() =
-        assertScreenTranslated("ja-JP", "どのようなご用件ですか？", "メッセージを送信して、このページを開いたままお待ちください。すぐにお返事します。", "何でもお気軽にどうぞ", "ファイルを添付", "フォトライブラリ", "ファイル")
-
-    @Test
-    fun simplifiedChineseScreenIsTranslated() =
-        assertScreenTranslated("zh-Hans-CN", "有什么可以帮您？", "发送消息后请保持此页面打开，以便及时收到回复。", "有问题尽管问", "添加附件", "照片图库", "文件")
 
     @Test
     fun deviceLocalesFallBackToTheClosestCatalog() {
