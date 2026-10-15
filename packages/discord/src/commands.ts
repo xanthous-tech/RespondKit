@@ -45,7 +45,7 @@ export type DiscordCommandName =
   | "translate"
   | "activity"
   | "agent"
-  | "retranslate";
+  | "approve";
 
 export const DISCORD_REPLY_COMMAND = {
   type: DiscordApplicationCommandType.ChatInput,
@@ -212,15 +212,15 @@ export const DISCORD_AGENT_COMMAND = {
   ],
 } as const satisfies DiscordChatInputCommandDefinition;
 
-export const DISCORD_RETRANSLATE_COMMAND = {
+export const DISCORD_APPROVE_COMMAND = {
   type: DiscordApplicationCommandType.ChatInput,
-  name: "retranslate",
-  description: "Translate an agent draft into another language, as a new draft to approve",
+  name: "approve",
+  description: "Approve an agent draft, optionally sending it in another language",
   default_member_permissions: "0",
   options: [
     {
       type: DiscordApplicationCommandOptionType.String,
-      name: "message",
+      name: "id",
       description: "The draft's Discord message link or ID",
       required: true,
       min_length: 1,
@@ -229,8 +229,8 @@ export const DISCORD_RETRANSLATE_COMMAND = {
     {
       type: DiscordApplicationCommandOptionType.String,
       name: "translate",
-      description: "Language name or code, for example Burmese, 简体中文, or my",
-      required: true,
+      description: "customer, off, or a language name or code (Burmese, 简体中文, my)",
+      required: false,
       min_length: 2,
       max_length: 35,
     },
@@ -250,7 +250,7 @@ export const DISCORD_REJECT_DRAFT_COMMAND = {
 
 export const DISCORD_GUILD_COMMANDS = [
   DISCORD_AGENT_COMMAND,
-  DISCORD_RETRANSLATE_COMMAND,
+  DISCORD_APPROVE_COMMAND,
   DISCORD_APPROVE_DRAFT_COMMAND,
   DISCORD_REJECT_DRAFT_COMMAND,
   DISCORD_REPLY_COMMAND,

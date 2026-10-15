@@ -1688,22 +1688,170 @@ it("lists a message's attachments with the agent's download path, and serves the
   ).toBe(401);
 });
 
-async function retranslate(draft: string, language: string, extra: Record<string, unknown> = {}) {
+async function approveCommand(
+  draft: string,
+  language?: string,
+  extra: Record<string, unknown> = {},
+) {
   return signedDecision("unused", "approve", undefined, {
     type: 2,
     data: {
       type: 1,
-      name: "retranslate",
+      name: "approve",
       options: [
-        { type: 3, name: "message", value: draft },
-        { type: 3, name: "translate", value: language },
+        { type: 3, name: "id", value: draft },
+        ...(language === undefined ? [] : [{ type: 3, name: "translate", value: language }]),
       ],
     },
     ...extra,
   });
 }
 
-it("retranslates a pending draft by name into a superseding draft, once, and records the thread language", async () => {
+function translationResult(targetLanguage: string, needsReview: boolean) {
+  return {
+    sourceLanguage: "en",
+    targetLanguage,
+    translatedText: "Su respuesta",
+    needsReview,
+    mixedLanguage: false,
+    ambiguityNotes: needsReview ? ["Tone"] : [],
+    passThrough: false,
+    promptVersion: "test",
+    provider: "test",
+    modelId: "test",
+  };
+}
+
+async function postedDraft(threadId: string, body: Record<string, unknown>) {
+  const { messageId } = await (
+    await request(`/threads/${threadId}/replies`, {
+      text: "English answer",
+      mode: "draft",
+      ...body,
+    })
+  ).json<{ messageId: string }>();
+  await vi.waitFor(async () =>
+    expect(
+      await env.DB.prepare("SELECT count(*) n FROM agent_draft_chunk WHERE message_id=?")
+        .bind(messageId)
+        .first("n"),
+    ).toBeGreaterThan(0),
+  );
+  const chunk = await env.DB.prepare(
+    "SELECT discord_message_id FROM agent_draft_chunk WHERE message_id=? AND chunk_index=0",
+  )
+    .bind(messageId)
+    .first<{ discord_message_id: string }>();
+  return {
+    messageId,
+    discordMessageId: chunk!.discord_message_id,
+    link: `https://discord.com/channels/${TEST_TOPOLOGY.guildId}/${TEST_TOPOLOGY.discordThreadId}/${chunk!.discord_message_id}`,
+  };
+}
+
+it("/approve in another language supersedes the draft, records the language and delivers once", async () => {
+  const { threadId } = await createCustomerFixture();
+  await seedReadyDiscordThread(threadId);
+  mockDiscord();
+  const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+  try {
+    await workflows.modifyAll(async (modifier) => {
+      await modifier.disableRetryDelays();
+      await modifier.mockStepResult({ name: "translate-message" }, translationResult("es", false));
+    });
+    const draft = await postedDraft(threadId, { translate: "fr", idempotencyKey: "approve-es" });
+
+    expect(await (await approveCommand(draft.link, "Spanish")).text()).toContain(
+      "approved in Spanish (es)",
+    );
+    const rows = (
+      await env.DB.prepare(
+        "SELECT message_id, status, mode, decided_by, json_extract(envelope,'$.replyTranslation') tr, json_extract(envelope,'$.originalText') text FROM agent_reply WHERE thread_id=? ORDER BY created_at",
+      )
+        .bind(threadId)
+        .all<{
+          message_id: string;
+          status: string;
+          mode: string;
+          decided_by: string;
+          tr: string;
+          text: string;
+        }>()
+    ).results;
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ message_id: draft.messageId, status: "stale", tr: "fr" });
+    expect(rows[1]).toMatchObject({
+      status: "approved",
+      mode: "send",
+      decided_by: TEST_TOPOLOGY.operatorId,
+      tr: "es",
+      text: "English answer",
+    });
+    expect(
+      await env.DB.prepare("SELECT customer_language FROM thread WHERE id=?")
+        .bind(threadId)
+        .first("customer_language"),
+    ).toBe("es");
+    await vi.waitFor(
+      async () =>
+        expect(
+          await env.DB.prepare("SELECT customer_availability FROM message WHERE id=?")
+            .bind(rows[1]!.message_id)
+            .first("customer_availability"),
+        ).toBe("available"),
+      { timeout: 5000 },
+    );
+    // Idempotent: again, or as "customer" (now es), answers without a third reply.
+    expect(await (await approveCommand(draft.discordMessageId, "es")).text()).toContain(
+      "already available",
+    );
+    expect(await (await approveCommand(draft.discordMessageId, "customer")).text()).toContain(
+      "already available",
+    );
+    expect(await (await approveCommand(draft.discordMessageId, "German")).text()).toContain(
+      "stale",
+    );
+    expect(await (await approveCommand(draft.discordMessageId)).text()).toContain("stale");
+    expect(
+      await env.DB.prepare("SELECT count(*) n FROM agent_reply WHERE thread_id=?")
+        .bind(threadId)
+        .first("n"),
+    ).toBe(2);
+    // Not a draft, wrong forum, unknown language.
+    expect(await (await approveCommand("999999999999999999", "es")).text()).toContain(
+      "not an agent draft",
+    );
+    expect(await (await approveCommand(draft.link, "es", { channel_id: "999" })).text()).toContain(
+      "not authorized",
+    );
+    expect(await (await approveCommand(draft.link, "en; DROP")).text()).toContain("language");
+  } finally {
+    await workflows.dispose();
+  }
+});
+
+it("/approve without a language approves like Approve draft; customer needs a known language", async () => {
+  const { threadId } = await createCustomerFixture();
+  await seedReadyDiscordThread(threadId);
+  mockDiscord();
+  const draft = await postedDraft(threadId, { idempotencyKey: "approve-plain" });
+  expect(await (await approveCommand(draft.link, "customer")).text()).toContain(
+    "customer language is unknown",
+  );
+  expect(await (await approveCommand(draft.link)).text()).toContain("Draft approved for delivery");
+  expect(
+    await env.DB.prepare("SELECT status FROM agent_reply WHERE message_id=?")
+      .bind(draft.messageId)
+      .first("status"),
+  ).toBe("approved");
+  expect(
+    await env.DB.prepare("SELECT count(*) n FROM agent_reply WHERE thread_id=?")
+      .bind(threadId)
+      .first("n"),
+  ).toBe(1);
+});
+
+it("/approve in a new language keeps the review gate when the translation needs review", async () => {
   const { threadId } = await createCustomerFixture();
   await seedReadyDiscordThread(threadId);
   const posts = mockDiscord();
@@ -1711,81 +1859,31 @@ it("retranslates a pending draft by name into a superseding draft, once, and rec
   try {
     await workflows.modifyAll(async (modifier) => {
       await modifier.disableRetryDelays();
-      await modifier.mockStepResult(
-        { name: "translate-message" },
-        {
-          sourceLanguage: "en",
-          targetLanguage: "fr",
-          translatedText: "Votre réponse",
-          needsReview: false,
-          mixedLanguage: false,
-          ambiguityNotes: [],
-          passThrough: false,
-          promptVersion: "test",
-          provider: "test",
-          modelId: "test",
-        },
-      );
+      await modifier.mockStepResult({ name: "translate-message" }, translationResult("es", true));
     });
-    const { messageId } = await (
-      await request(`/threads/${threadId}/replies`, {
-        text: "English answer",
-        translate: "fr",
-        mode: "draft",
-        idempotencyKey: "retranslate-me",
-      })
-    ).json<{ messageId: string }>();
-    await vi.waitFor(async () =>
-      expect(
-        await env.DB.prepare("SELECT count(*) n FROM agent_draft_chunk WHERE message_id=?")
-          .bind(messageId)
-          .first("n"),
-      ).toBeGreaterThan(0),
+    const draft = await postedDraft(threadId, { idempotencyKey: "approve-review" });
+    expect(await (await approveCommand(draft.link, "Spanish")).text()).toContain(
+      "Approve translation",
     );
-    const chunk = await env.DB.prepare(
-      "SELECT discord_message_id FROM agent_draft_chunk WHERE message_id=? AND chunk_index=0",
+    const next = await env.DB.prepare(
+      "SELECT message_id FROM agent_reply WHERE thread_id=? AND status='approved'",
     )
-      .bind(messageId)
-      .first<{ discord_message_id: string }>();
-    const link = `https://discord.com/channels/${TEST_TOPOLOGY.guildId}/${TEST_TOPOLOGY.discordThreadId}/${chunk!.discord_message_id}`;
-
-    expect(await (await retranslate(link, "Spanish", {})).text()).toContain("Spanish (es)");
-    const rows = (
-      await env.DB.prepare(
-        "SELECT message_id, status, json_extract(envelope,'$.replyTranslation') tr, json_extract(envelope,'$.originalText') text FROM agent_reply WHERE thread_id=? ORDER BY created_at",
-      )
-        .bind(threadId)
-        .all<{ message_id: string; status: string; tr: string; text: string }>()
-    ).results;
-    expect(rows).toHaveLength(2);
-    expect(rows[0]).toMatchObject({ message_id: messageId, status: "stale", tr: "fr" });
-    expect(rows[1]).toMatchObject({ status: "pending", tr: "es", text: "English answer" });
-    expect(
-      await env.DB.prepare("SELECT customer_language FROM thread WHERE id=?")
-        .bind(threadId)
-        .first("customer_language"),
-    ).toBe("es");
-    // Idempotent: the same request answers again without a third draft; the stale one cannot be retranslated anew.
-    expect(await (await retranslate(chunk!.discord_message_id, "es")).text()).toContain(
-      "Spanish (es)",
-    );
-    expect(await (await retranslate(chunk!.discord_message_id, "German")).text()).toContain(
-      "stale",
+      .bind(threadId)
+      .first<{ message_id: string }>();
+    await vi.waitFor(
+      async () => expect(JSON.stringify(posts)).toContain(`agent:translate:${next!.message_id}:1`),
+      { timeout: 5000 },
     );
     expect(
-      await env.DB.prepare("SELECT count(*) n FROM agent_reply WHERE thread_id=?")
-        .bind(threadId)
-        .first("n"),
-    ).toBe(2);
-    // Not a draft, wrong forum, unknown language.
-    expect(await (await retranslate("999999999999999999", "es")).text()).toContain(
-      "not an agent draft",
-    );
-    expect(await (await retranslate(link, "es", { channel_id: "999" })).text()).toContain(
-      "not authorized",
-    );
-    expect(await (await retranslate(link, "en; DROP")).text()).toContain("language");
-    expect(posts.length).toBeGreaterThan(0);
+      await env.DB.prepare("SELECT confirmed_by FROM reply_review WHERE message_id=?")
+        .bind(next!.message_id)
+        .first("confirmed_by"),
+    ).toBeNull();
+    expect(
+      await env.DB.prepare("SELECT customer_availability FROM message WHERE id=?")
+        .bind(next!.message_id)
+        .first("customer_availability"),
+    ).not.toBe("available");
   } finally {
     await workflows.dispose();
   }

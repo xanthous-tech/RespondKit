@@ -1,6 +1,6 @@
 import { steerAgent } from "./agent-notes";
 import { createAgentApp } from "./agent-api";
-import { decideAgentDraft, retranslateAgentDraft } from "./agent-replies";
+import { approveAgentDraftCommand, decideAgentDraft } from "./agent-replies";
 import { LanguageNotRecognized, resolveTranslationLanguage } from "./language";
 import { registerEmailFileRoutes } from "./email-content";
 import {
@@ -982,15 +982,15 @@ export function createHttpApp() {
       interaction.command === "agent_decision" ||
       interaction.command === "agent_context" ||
       interaction.command === "agent" ||
-      interaction.command === "retranslate"
+      interaction.command === "approve"
     ) {
       const current = interaction;
       // An error answers the operator with its reason; Discord would only say "This interaction failed".
       const operation = (
         current.command === "agent"
           ? steerAgent(context.env, current)
-          : current.command === "retranslate"
-            ? retranslateAgentDraft(context.env, { ...current, translate: current.translate! })
+          : current.command === "approve"
+            ? approveAgentDraftCommand(context.env, current)
             : decideAgentDraft(context.env, current)
       ).catch((error: unknown) => {
         console.error(`discord ${current.command} failed`, error);

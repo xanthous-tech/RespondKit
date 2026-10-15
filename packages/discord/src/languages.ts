@@ -1,5 +1,5 @@
 /**
- * Language input for /reply, /translate, /retranslate and the agent API's
+ * Language input for /reply, /translate, /approve and the agent API's
  * `translate` field: a BCP 47 code as before, or a language name in English
  * or in the language itself ("Burmese", "Myanmar", "简体中文"), so operators
  * need not know the codes. Names this table cannot place are resolved by the

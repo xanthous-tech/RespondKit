@@ -230,29 +230,33 @@ describe("Discord interaction parsing and authorization", () => {
     expect(languageLabel("my")).toBe("Burmese (my)");
   });
 
-  it("parses /retranslate with the draft and a language", () => {
-    const parsed = parseDiscordInteraction(
-      JSON.stringify({
-        ...replyPayload(),
-        data: {
-          type: 1,
-          name: "retranslate",
-          options: [
-            {
-              type: 3,
-              name: "message",
-              value: "https://discord.com/channels/1/2/1560165589727846485",
-            },
-            { type: 3, name: "translate", value: "Burmese" },
-          ],
-        },
-      }),
-    );
-    expect(parsed).toMatchObject({
-      command: "retranslate",
+  it("parses /approve with the draft and an optional language", () => {
+    const approve = (options: unknown[]) =>
+      parseDiscordInteraction(
+        JSON.stringify({ ...replyPayload(), data: { type: 1, name: "approve", options } }),
+      );
+    const link = {
+      type: 3,
+      name: "id",
+      value: "https://discord.com/channels/1/2/1560165589727846485",
+    };
+    expect(approve([link, { type: 3, name: "translate", value: "Burmese" }])).toMatchObject({
+      command: "approve",
       draft: "https://discord.com/channels/1/2/1560165589727846485",
       translate: "my",
     });
+    const plain = approve([link]);
+    expect(plain).toMatchObject({ command: "approve" });
+    expect("translate" in plain).toBe(false);
+    expect(approve([link, { type: 3, name: "translate", value: "Customer" }])).toMatchObject({
+      translate: "customer",
+    });
+    expect(approve([link, { type: 3, name: "translate", value: "Klingonese" }])).toMatchObject({
+      languageQuery: "Klingonese",
+    });
+    expect(() => approve([{ type: 3, name: "translate", value: "my" }])).toThrow(
+      DiscordInteractionParseError,
+    );
   });
 
   it("denies commands from the wrong forum even when the operator is allowed", () => {

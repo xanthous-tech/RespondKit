@@ -171,9 +171,12 @@ export interface ParsedDiscordAgentNoteInteraction extends ParsedDiscordCommandB
   readonly operatorName: string;
 }
 
-/** /retranslate: a pending agent draft translated again into a language the operator names. */
-export interface ParsedDiscordRetranslateInteraction extends ParsedDiscordCommandBase {
-  readonly command: "retranslate";
+/**
+ * /approve: approve an agent draft by its message, optionally in another language
+ * ("customer", "off" or a language code; a name not yet resolved is in languageQuery).
+ */
+export interface ParsedDiscordApproveInteraction extends ParsedDiscordCommandBase {
+  readonly command: "approve";
   /** The draft's Discord message link or ID, or its RespondKit message ID (msg_agent_...). */
   readonly draft: string;
   readonly translate?: string;
@@ -194,7 +197,7 @@ export interface ParsedDiscordAgentDecisionInteraction extends ParsedDiscordComm
 }
 
 export type ParsedDiscordCommandInteraction =
-  | ParsedDiscordRetranslateInteraction
+  | ParsedDiscordApproveInteraction
   | ParsedDiscordAgentNoteInteraction
   | ParsedDiscordAgentContextInteraction
   | ParsedDiscordAgentDecisionInteraction
@@ -381,7 +384,7 @@ function parseCommandInteraction(
       "agent_decision",
       "agent_context",
       "agent",
-      "retranslate",
+      "approve",
     ].includes(command)
   ) {
     throw new DiscordInteractionParseError("unsupported_command", "Unsupported Discord command");
@@ -431,13 +434,20 @@ function parseCommandInteraction(
         name.replaceAll(/[^\p{L}\p{N} ._-]/gu, "").slice(0, 80) || commandBase.operatorUserId,
     };
   }
-  if (command === "retranslate") {
-    requireAllowedOptions(options, ["message", "translate"], []);
+  if (command === "approve") {
+    requireAllowedOptions(options, ["id"], ["translate"]);
+    const translate = options.has("translate")
+      ? optionValue(options, "translate", 35).trim()
+      : undefined;
     return {
       ...commandBase,
       command,
-      draft: optionValue(options, "message", 200),
-      ...languageOption(optionValue(options, "translate", 35), "translate"),
+      draft: optionValue(options, "id", 200),
+      ...(translate === undefined
+        ? {}
+        : translate.toLowerCase() === "off" || translate.toLowerCase() === "customer"
+          ? { translate: translate.toLowerCase() }
+          : languageOption(translate, "translate")),
     };
   }
   if (command === "agent_context") {
@@ -709,10 +719,10 @@ export type NormalizedDiscordCommand =
 export function normalizeDiscordCommand(
   interaction: ParsedDiscordCommandInteraction,
 ): NormalizedDiscordCommand {
-  if (interaction.command === "retranslate") {
+  if (interaction.command === "approve") {
     throw new DiscordInteractionParseError(
       "invalid_payload",
-      "retranslate is handled with agent drafts",
+      "approve is handled with agent drafts",
     );
   }
   // A language name must be resolved to a code first: never default an unresolved name to "off".
