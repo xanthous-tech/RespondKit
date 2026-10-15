@@ -853,3 +853,61 @@ it("skips the email prompt when the host supplied an address", async () => {
   await screen.findByText("How can I help?");
   expect(screen.queryByLabelText("Where can we email you a reply?")).not.toBeInTheDocument();
 });
+
+function recordEmailPrompts() {
+  const mounted: string[] = [];
+  const observer = new MutationObserver((records) => {
+    for (const node of records.flatMap((record) => [...record.addedNodes]))
+      if (node instanceof HTMLElement && node.querySelector('input[type="email"]'))
+        mounted.push(node.outerHTML);
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+  return () => {
+    observer.disconnect();
+    return mounted;
+  };
+}
+
+it("never mounts the email prompt while a host-supplied context changes", async () => {
+  const stop = recordEmailPrompts();
+  const props = {
+    apiBaseUrl: "https://api.example.test",
+    fetch: createApiFetch(),
+    initiallyOpen: true,
+  };
+  const { rerender } = render(
+    <RespondKitWidget
+      {...props}
+      context={{ inboxId: "inbox_known", email: "known@example.com" }}
+    />,
+  );
+  await screen.findByText("How can I help?");
+  rerender(
+    <RespondKitWidget
+      {...props}
+      context={{ inboxId: "inbox_known", email: "known@example.com", locale: "fr" }}
+    />,
+  );
+  await screen.findByText("How can I help?");
+  expect(stop()).toEqual([]);
+});
+
+it("never mounts the email prompt when the server already stores an address", async () => {
+  const stop = recordEmailPrompts();
+  const base = createApiFetch();
+  const api = vi.fn<typeof fetch>(async (input, init) =>
+    requestUrl(input).endsWith("/client/contact")
+      ? json({ email: "stored@example.com" })
+      : base(input, init),
+  );
+  render(
+    <RespondKitWidget
+      apiBaseUrl="https://api.example.test"
+      context={{ inboxId: "inbox_stored_contact" }}
+      fetch={api}
+      initiallyOpen
+    />,
+  );
+  await screen.findByText("How can I help?");
+  expect(stop()).toEqual([]);
+});
