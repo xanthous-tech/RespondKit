@@ -1,6 +1,7 @@
 import { readFile, readdir, mkdir, writeFile, rm } from "node:fs/promises";
 import { resolve, dirname, relative } from "node:path";
 import { compileXCStrings } from "@respondkit/paraglide-ios";
+import { compileJavaScriptMessages } from "@respondkit/paraglide-resources";
 import { compileAndroidResources } from "@respondkit/paraglide-android";
 
 const repo = resolve(import.meta.dirname, "..");
@@ -27,8 +28,11 @@ const input = {
   ),
 };
 // Complete validation/compilation before changing any output files.
+const javascript = compileJavaScriptMessages(input);
 const files: Record<string, string> = {
   "native/swift/Sources/RespondKitUI/Resources/RespondKit.xcstrings": compileXCStrings(input),
+  "packages/react/src/widget/messages.ts": javascript,
+  "packages/react-native/src/messages.ts": javascript,
 };
 for (const [path, content] of Object.entries(compileAndroidResources(input)))
   files[`localization/generated/android/res/${path}`] = content;
@@ -60,7 +64,7 @@ if (process.argv.includes("--check")) {
     throw new Error(
       `Stale localization resources: ${stale.join(", ")}. Run pnpm localization:generate.`,
     );
-  console.log("Native localization resources match the shared JSON catalogs.");
+  console.log("Localization resources match the shared JSON catalogs.");
 } else {
   for (const path of existing.filter((path) => !(path in files))) await rm(resolve(repo, path));
   for (const [path, content] of Object.entries(files)) {

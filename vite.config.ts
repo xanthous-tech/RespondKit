@@ -5,7 +5,11 @@ export default defineConfig({
     "*": "vp check --fix",
   },
   fmt: {
-    ignorePatterns: ["docs/**"],
+    ignorePatterns: [
+      "docs/**",
+      "packages/react/src/widget/messages.ts",
+      "packages/react-native/src/messages.ts",
+    ],
   },
   lint: {
     jsPlugins: [

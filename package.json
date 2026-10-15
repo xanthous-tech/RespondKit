@@ -33,6 +33,7 @@
     "@arethetypeswrong/core": "catalog:",
     "@respondkit/paraglide-android": "workspace:*",
     "@respondkit/paraglide-ios": "workspace:*",
+    "@respondkit/paraglide-resources": "workspace:*",
     "publint": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
