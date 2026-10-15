@@ -107,6 +107,9 @@ class RespondKitException(
     val status: Int? = null,
 ) : Exception(message)
 
+/** An error whose message is already presentation text in the user's language. */
+class PresentedException(message: String) : Exception(message)
+
 fun replyCursor(value: String): Long {
     val number = value.toLongOrNull()
     if (

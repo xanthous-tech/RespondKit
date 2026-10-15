@@ -17,8 +17,11 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ActivityScenario
 import dev.respondkit.core.MemoryPersistence
+import dev.respondkit.core.RespondKitApi
 import dev.respondkit.core.RespondKitConfiguration
+import dev.respondkit.core.RespondKitException
 import dev.respondkit.core.RespondKitStore
+import dev.respondkit.core.StatusPage
 import org.junit.Rule
 import org.junit.Test
 
@@ -48,20 +51,7 @@ class LocalizedScreenTest {
         composer: Composer,
         emailAsk: List<String>,
     ) {
-        LocalizedActivity.languageTags = languageTags
-        ActivityScenario.launch(LocalizedActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                activity.setContent {
-                    val scope = rememberCoroutineScope()
-                    val store = remember {
-                        RespondKitStore(
-                            RespondKitConfiguration("https://support.example.com", "inbox_test", "https://example.com"),
-                            persistence = MemoryPersistence(), api = RespondKitScreenTest.Api(), scope = scope,
-                        )
-                    }
-                    RespondKitScreen(store, onClose = {})
-                }
-            }
+        launch(languageTags, RespondKitScreenTest.Api()) {
             for (text in visible) compose.onNodeWithText(text).assertIsDisplayed()
             compose.onNodeWithText(composer.placeholder).assertIsDisplayed()
             compose.onNodeWithContentDescription(composer.send).assertIsDisplayed()
@@ -76,6 +66,43 @@ class LocalizedScreenTest {
             for (item in menu) compose.onNodeWithText(item).assertIsDisplayed()
         }
     }
+
+    private fun launch(languageTags: String, api: RespondKitApi, assertions: () -> Unit) {
+        LocalizedActivity.languageTags = languageTags
+        ActivityScenario.launch(LocalizedActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                activity.setContent {
+                    val scope = rememberCoroutineScope()
+                    val store = remember {
+                        RespondKitStore(
+                            RespondKitConfiguration("https://support.example.com", "inbox_test", "https://example.com"),
+                            persistence = MemoryPersistence(), api = api, scope = scope,
+                        )
+                    }
+                    RespondKitScreen(store, onClose = {})
+                }
+            }
+            assertions()
+        }
+    }
+
+    private fun assertFailedRequestTranslated(languageTags: String, expected: String) {
+        val failing = object : RespondKitApi by RespondKitScreenTest.Api() {
+            override suspend fun statuses(token: String, after: String?): StatusPage =
+                throw RespondKitException("Support request failed (HTTP 500).", status = 500)
+        }
+        launch(languageTags, failing) {
+            compose.waitUntil(5_000) { compose.onAllNodesWithText(expected).fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithText(expected).assertIsDisplayed()
+            compose.onNodeWithText("Support request failed (HTTP 500).").assertDoesNotExist()
+        }
+    }
+
+    @Test
+    fun japaneseFailedRequest() = assertFailedRequestTranslated("ja-JP", "サポートへのリクエストに失敗しました。")
+
+    @Test
+    fun simplifiedChineseFailedRequest() = assertFailedRequestTranslated("zh-Hans-CN", "客服请求失败。")
 
     @Test
     fun japaneseScreenAndAttachMenu() =

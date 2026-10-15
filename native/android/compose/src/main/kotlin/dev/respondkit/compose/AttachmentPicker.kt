@@ -59,7 +59,7 @@ internal fun AttachmentPicker(
                         val directory = File(context.cacheDir, "respondkit-${item.id}").apply { mkdirs() }
                         val destination = File(directory, File(name).name.ifBlank { "file" })
                         resolver.openInputStream(item.uri)?.use { input -> destination.outputStream().use { input.copyTo(it) } }
-                            ?: throw RespondKitException(fileOpenFailed)
+                            ?: throw PresentedException(fileOpenFailed)
                         item.copy(file = destination, name = destination.name, type = resolver.getType(item.uri) ?: "application/octet-stream")
                     }
                 }
@@ -68,7 +68,7 @@ internal fun AttachmentPicker(
                 update(item.id) { it.copy(attachment = attachment) }
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
-                update(item.id) { it.copy(error = error.message ?: uploadFailed) }
+                update(item.id) { it.copy(error = (error as? PresentedException)?.message ?: uploadFailed) }
             } finally { jobs.remove(item.id) }
         }
     }

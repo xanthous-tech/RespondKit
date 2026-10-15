@@ -52,7 +52,9 @@ data class SupportState(
     /** Initial loads and explicit operations only; background refreshes remain silent. */
     val isLoading: Boolean = false,
     val isSending: Boolean = false,
+    /** Presentation text from [RespondKitStrings]; [errorDetail] keeps the underlying diagnostic. */
     val errorMessage: String? = null,
+    val errorDetail: String? = null,
     val isForeground: Boolean = false,
 ) {
     val hasUnreadReplies: Boolean

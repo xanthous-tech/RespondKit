@@ -50,13 +50,29 @@ private val WidgetBorder = Color(0xFFE5E5E5)
 private val WidgetFill = Color(0xFFF5F5F5)
 private val WidgetError = Color(0xFFDC2626)
 
+@Composable
+private fun respondKitStrings() = RespondKitStrings(
+    attachedFiles = stringResource(R.string.respondkit_attached_files),
+    messageTooLong = stringResource(R.string.respondkit_message_too_long),
+    conversationClosed = stringResource(R.string.respondkit_closed_start_new),
+    logoutFailed = stringResource(R.string.respondkit_logout_failed),
+    requestFailed = stringResource(R.string.respondkit_request_failed),
+    historySaveFailed = stringResource(R.string.respondkit_history_save_failed),
+    identityUnverified = stringResource(R.string.respondkit_identity_unverified),
+)
+
 /** Mount once at the app root, not inside the conditionally presented support destination. */
 @Composable
 fun RespondKitLifecycle(store: RespondKitStore) {
     val context = LocalContext.current
-    SideEffect { store.setDeviceContext(androidDeviceContext(context)) }
+    val strings = respondKitStrings()
+    SideEffect {
+        store.strings = strings
+        store.setDeviceContext(androidDeviceContext(context))
+    }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     DisposableEffect(store, lifecycle) {
+        store.strings = strings
         val observer = LifecycleEventObserver { _, _ ->
             store.setForeground(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED))
         }
@@ -117,17 +133,10 @@ private fun RespondKitContent(
         onDispose { store.setScreenVisible(false) }
     }
     val context = LocalContext.current
-    val strings = RespondKitStrings(
-        attachedFiles = stringResource(R.string.respondkit_attached_files),
-        messageTooLong = stringResource(R.string.respondkit_message_too_long),
-        conversationClosed = stringResource(R.string.respondkit_closed_start_new),
-        logoutFailed = stringResource(R.string.respondkit_logout_failed),
-        requestFailed = stringResource(R.string.respondkit_request_failed),
-        historySaveFailed = stringResource(R.string.respondkit_history_save_failed),
-        identityUnverified = stringResource(R.string.respondkit_identity_unverified),
-    )
+    val strings = respondKitStrings()
     SideEffect { store.strings = strings }
     LaunchedEffect(store) {
+        store.strings = strings
         store.setDeviceContext(androidDeviceContext(context))
         store.openConversation()
     }

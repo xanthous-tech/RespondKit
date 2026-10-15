@@ -356,6 +356,16 @@ class RespondKitStoreTest {
     }
 
     @Test
+    fun failedRequestShowsHostTextAndKeepsTheDiagnostic() = runTest {
+        val api = FakeApi().apply { failStatuses = true }
+        val store = store(api)
+        store.strings = RespondKitStrings(requestFailed = "サポートへのリクエストに失敗しました。")
+        store.refresh()
+        assertEquals("サポートへのリクエストに失敗しました。", store.state.value.errorMessage)
+        assertEquals("Offline", store.state.value.errorDetail)
+    }
+
+    @Test
     fun uncertainSendRetriesImmutablePayloadAfterRestart() = runTest {
         val api = FakeApi().apply { failSend = true }
         val storage = MemoryPersistence()

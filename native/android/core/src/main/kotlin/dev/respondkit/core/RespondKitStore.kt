@@ -124,7 +124,7 @@ class RespondKitStore(
     }
 
     fun clearError() {
-        mutableState.update { it.copy(errorMessage = null) }
+        mutableState.update { it.copy(errorMessage = null, errorDetail = null) }
     }
 
     /**
@@ -216,7 +216,7 @@ class RespondKitStore(
                         stored.statuses.firstOrNull { it.thread.id == id }?.thread?.state ==
                             "closed"
                 )
-                    throw RespondKitException(strings.conversationClosed)
+                    throw PresentedException(strings.conversationClosed)
                 val key = id ?: "new"
                 val pending = PendingMessage(newId("cmsg"), text, now(), "sending", attachments)
                 stored =
@@ -405,7 +405,7 @@ class RespondKitStore(
                 val assertion = identityToken?.invoke()
                 check(generation)
                 if (identityToken != null && assertion.isNullOrBlank())
-                    throw RespondKitException(strings.identityUnverified)
+                    throw PresentedException(strings.identityUnverified)
                 val created = api.createSession(stored.installationId, context, assertion)
                 check(generation)
                 session = created
@@ -461,10 +461,7 @@ class RespondKitStore(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
-                if (generation == epoch)
-                    mutableState.update {
-                        it.copy(errorMessage = error.message ?: strings.requestFailed)
-                    }
+                if (generation == epoch) report(error, strings.requestFailed)
             } finally {
                 mutableState.update { it.copy(isLoading = false) }
             }
@@ -491,9 +488,16 @@ class RespondKitStore(
         try {
             persist()
         } catch (error: Exception) {
-            mutableState.update {
-                it.copy(errorMessage = error.message ?: strings.historySaveFailed)
-            }
+            report(error, strings.historySaveFailed)
+        }
+    }
+
+    private fun report(error: Exception, fallback: String) {
+        mutableState.update {
+            it.copy(
+                errorMessage = (error as? PresentedException)?.message ?: fallback,
+                errorDetail = error.message,
+            )
         }
     }
 
