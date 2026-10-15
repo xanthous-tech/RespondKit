@@ -6,6 +6,7 @@ import { Button } from "#components/ui/button";
 import { Textarea } from "#components/ui/textarea";
 
 import { messages } from "./messages";
+import { presentedMessage } from "./presented-error";
 
 interface MessageComposerProps {
   readonly disabled: boolean;
@@ -59,7 +60,7 @@ export function MessageComposer({
     } catch (error) {
       if (!controller.signal.aborted)
         update(item.id, {
-          error: error instanceof Error ? error.message : t.respondkit_upload_failed(),
+          error: presentedMessage(error, t.respondkit_upload_failed()),
         });
     } finally {
       controllers.current.delete(item.id);

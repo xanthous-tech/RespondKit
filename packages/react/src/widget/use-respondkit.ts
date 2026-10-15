@@ -23,6 +23,7 @@ import {
 } from "./browser-identity";
 
 import { messages as catalog } from "./messages";
+import { PresentedError, presentedMessage } from "./presented-error";
 import { useReplyStatus } from "./use-reply-status";
 
 import type {
@@ -293,7 +294,7 @@ export function useRespondKit({
           currentContext.userId === undefined ? null : await identityTokenRef.current?.();
         if (!active) return;
         if (identityTokenRef.current && currentContext.userId !== undefined && !identityToken) {
-          throw new Error(tRef.current.respondkit_sign_in_again());
+          throw new PresentedError(tRef.current.respondkit_sign_in_again());
         }
         if (identityToken && currentContext.userId !== undefined) {
           const legacy = await legacyAccountIdentity(currentContext.inboxId, currentContext.userId);
@@ -405,9 +406,7 @@ export function useRespondKit({
         setBootstrapState("ready");
       } catch (error) {
         if (abortController.signal.aborted || !active) return;
-        setBootstrapError(
-          error instanceof Error ? error.message : tRef.current.respondkit_start_failed(),
-        );
+        setBootstrapError(presentedMessage(error, tRef.current.respondkit_start_failed()));
         setBootstrapState("recoverable_error");
       }
     }
@@ -436,7 +435,7 @@ export function useRespondKit({
           current.userId === undefined ? null : await identityTokenRef.current?.();
         if (!active || epoch !== identityEpochRef.current) return;
         if (identityTokenRef.current && current.userId !== undefined && !identityToken)
-          throw new Error(tRef.current.respondkit_sign_in_again());
+          throw new PresentedError(tRef.current.respondkit_sign_in_again());
         const browser = readBrowserIdentity(storageKey, current.inboxId);
         const response = await client.createSession(
           {
@@ -562,9 +561,7 @@ export function useRespondKit({
         setTranscriptState("ready");
       } catch (error) {
         if (abortController.signal.aborted || !active) return;
-        setPollError(
-          error instanceof Error ? error.message : tRef.current.respondkit_messages_failed(),
-        );
+        setPollError(presentedMessage(error, tRef.current.respondkit_messages_failed()));
         setTranscriptState("stale");
       } finally {
         inFlight = false;
@@ -701,7 +698,7 @@ export function useRespondKit({
   );
 
   async function saveEmail(email: string) {
-    if (!session || !contextMatches) throw new Error(tRef.current.respondkit_connecting());
+    if (!session || !contextMatches) throw new PresentedError(tRef.current.respondkit_connecting());
     const epoch = identityEpochRef.current;
     const contact = await client.saveContact(session.token, {
       email,
@@ -718,7 +715,8 @@ export function useRespondKit({
       onProgress: (sent: number, total: number) => void,
     ) => {
       const epoch = identityEpochRef.current;
-      if (!session || !contextMatches) throw new Error(tRef.current.respondkit_reconnect_upload());
+      if (!session || !contextMatches)
+        throw new PresentedError(tRef.current.respondkit_reconnect_upload());
       const attachment = await uploadAttachment(
         { baseUrl: apiBaseUrl, fetch },
         fileUploadSource(file),

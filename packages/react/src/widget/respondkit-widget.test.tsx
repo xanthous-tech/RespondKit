@@ -481,6 +481,22 @@ describe("RespondKitWidget", () => {
     },
   );
 
+  it.each([
+    ["ja-JP", "サポートチャットを開始できませんでした。"],
+    ["zh-Hans-CN", "无法启动客服聊天。"],
+  ])("shows an unreachable server in %s", async (locale, expected) => {
+    vi.stubGlobal("fetch", () => Promise.reject(new TypeError("Failed to fetch")));
+    render(
+      <RespondKitWidget
+        apiBaseUrl="https://support.test"
+        context={{ inboxId: "inbox_test", locale }}
+        initiallyOpen
+      />,
+    );
+    expect(await screen.findByText(expected)).toBeVisible();
+    expect(screen.queryByText("Unable to reach RespondKit")).not.toBeInTheDocument();
+  });
+
   it("falls back to the browser language when the host sends no locale", async () => {
     const language = vi.spyOn(navigator, "language", "get").mockReturnValue("ja");
     const { apiFetch, resolveTranscript } = createDelayedEmptyTranscriptApiFetch();
