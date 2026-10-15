@@ -1,6 +1,6 @@
 {
   "name": "@respondkit/react-native",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "description": "Native React Native support conversations for RespondKit",
   "homepage": "https://respondkit.dev",
   "license": "MIT",
