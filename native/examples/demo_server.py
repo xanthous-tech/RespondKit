@@ -64,6 +64,8 @@ class Handler(BaseHTTPRequestHandler):
                 visitor = SESSIONS.get(token)
                 if visitor is None:
                     return self.respond({"error": {"code": "unauthorized", "message": "Session required", "retryable": False}}, 401)
+                if path == "/v1/client/contact" and self.command == "GET":
+                    return self.respond({"email": None})
                 if path == "/v1/client/logout":
                     SESSIONS.pop(token, None)
                     return self.respond({"ok": True})

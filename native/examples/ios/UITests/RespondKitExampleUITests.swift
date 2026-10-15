@@ -55,6 +55,10 @@ final class RespondKitExampleUITests: XCTestCase {
     XCTFail("Visible reply did not acknowledge read cursor \(expected)")
   }
 
+  private struct Composer {
+    let emailPrompt, emailAddress, saveEmail, placeholder, send, sent, close: String
+  }
+
   func testScreenAndAttachMenuFollowTheAppLanguage() {
     let cases = [
       (
@@ -63,15 +67,22 @@ final class RespondKitExampleUITests: XCTestCase {
           "何でもお気軽にどうぞ", "どのようなご用件ですか？",
           "メッセージを送信して、このページを開いたままお待ちください。すぐにお返事します。",
         ],
-        "ファイルを添付", ["フォトライブラリ", "ファイル"]
+        "ファイルを添付", ["フォトライブラリ", "ファイル"],
+        Composer(
+          emailPrompt: "返信をお送りするメールアドレスを教えてください", emailAddress: "メールアドレス",
+          saveEmail: "メールアドレスを保存", placeholder: "メッセージを入力…", send: "メッセージを送信",
+          sent: "送信済み", close: "サポートチャットを閉じる")
       ),
       (
         "zh-Hans", "zh_CN",
         ["有问题尽管问", "有什么可以帮您？", "发送消息后请保持此页面打开，以便及时收到回复。"],
-        "添加附件", ["照片图库", "文件"]
+        "添加附件", ["照片图库", "文件"],
+        Composer(
+          emailPrompt: "我们该把回复发送到哪个邮箱？", emailAddress: "邮箱地址", saveEmail: "保存邮箱",
+          placeholder: "输入消息…", send: "发送消息", sent: "已发送", close: "关闭客服聊天")
       ),
     ]
-    for (language, locale, texts, attach, menu) in cases {
+    for (language, locale, texts, attach, menu, composer) in cases {
       let app = XCUIApplication()
       app.launchArguments = [
         "--uitesting", "--open-support", "-AppleLanguages", "(\(language))", "-AppleLocale", locale,
@@ -84,6 +95,18 @@ final class RespondKitExampleUITests: XCTestCase {
       for item in menu {
         XCTAssertTrue(app.buttons[item].waitForExistence(timeout: 5), "\(language): \(item)")
       }
+      app.staticTexts[texts[0]].tap()
+      XCTAssertTrue(
+        app.staticTexts[composer.emailPrompt].waitForExistence(timeout: 10), "\(language): email")
+      XCTAssertTrue(app.textFields[composer.emailAddress].exists, "\(language): email field")
+      XCTAssertTrue(app.buttons[composer.saveEmail].exists, "\(language): save email")
+      XCTAssertTrue(app.buttons[composer.close].exists, "\(language): close")
+      let field = app.descendants(matching: .any)["respondkit-composer"]
+      XCTAssertEqual(field.placeholderValue, composer.placeholder, language)
+      field.tap()
+      field.typeText("Hello")
+      app.buttons[composer.send].tap()
+      XCTAssertTrue(app.staticTexts[composer.sent].waitForExistence(timeout: 10), "\(language): sent")
       app.terminate()
     }
   }
