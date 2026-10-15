@@ -1,7 +1,16 @@
 import { useId, useState } from "react";
 import { Button } from "#components/ui/button";
 
-export function EmailPrompt({ onSave }: { readonly onSave: (email: string) => Promise<void> }) {
+import { messages } from "./messages";
+
+export function EmailPrompt({
+  locale,
+  onSave,
+}: {
+  readonly locale?: string | undefined;
+  readonly onSave: (email: string) => Promise<void>;
+}) {
+  const t = messages(locale);
   const id = useId();
   const [email, setEmail] = useState("");
   const [saving, setSaving] = useState(false);
@@ -15,12 +24,12 @@ export function EmailPrompt({ onSave }: { readonly onSave: (email: string) => Pr
         setSaving(true);
         setError(undefined);
         void onSave(email.trim())
-          .catch(() => setError("We couldn't save your email. Please check it and try again."))
+          .catch(() => setError(t.respondkit_email_failed()))
           .finally(() => setSaving(false));
       }}
     >
       <label htmlFor={id} className="ac:block ac:text-sm ac:text-muted-foreground">
-        Where can we email you a reply?
+        {t.respondkit_email_prompt()}
       </label>
       <div className="ac:mt-2 ac:flex ac:gap-2">
         <input
@@ -36,7 +45,7 @@ export function EmailPrompt({ onSave }: { readonly onSave: (email: string) => Pr
           placeholder="you@example.com"
         />
         <Button type="submit" disabled={saving}>
-          {saving ? "Saving…" : "Save email"}
+          {saving ? t.respondkit_saving() : t.respondkit_save_email()}
         </Button>
       </div>
       {error ? (

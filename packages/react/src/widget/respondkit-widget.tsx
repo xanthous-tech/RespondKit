@@ -59,7 +59,7 @@ export function RespondKitWidget({
   fetch,
   getIdentityToken,
   identityPending,
-  title = "Support",
+  title,
   greeting,
   initiallyOpen = false,
   renderLauncher,
@@ -69,6 +69,13 @@ export function RespondKitWidget({
   const titleId = useId();
   const launcherRef = useRef<HTMLButtonElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const browserLocale = useSyncExternalStore(
+    subscribeToLanguage,
+    () => navigator.language,
+    () => undefined,
+  );
+  const locale = context.locale ?? browserLocale;
+  const t = catalog(locale);
   const {
     isFreshConversation,
     emailAddress,
@@ -88,7 +95,15 @@ export function RespondKitWidget({
     hasMoreThreads,
     reconnect,
     unreadThreadIds,
-  } = useRespondKit({ apiBaseUrl, context, fetch, open, getIdentityToken, identityPending });
+  } = useRespondKit({
+    apiBaseUrl,
+    context,
+    fetch,
+    open,
+    getIdentityToken,
+    identityPending,
+    locale,
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -118,12 +133,6 @@ export function RespondKitWidget({
     setOpen(true);
   }
 
-  const browserLocale = useSyncExternalStore(
-    subscribeToLanguage,
-    () => navigator.language,
-    () => undefined,
-  );
-  const locale = context.locale ?? browserLocale;
   const hasUnreadReplies = unreadThreadIds.size > 0;
   const buttonProps: ComponentPropsWithRef<"button"> = {
     ref: launcherRef,
@@ -132,7 +141,7 @@ export function RespondKitWidget({
     "aria-controls": open ? `${titleId}-dialog` : undefined,
     "aria-describedby": hasUnreadReplies ? `${titleId}-unread` : undefined,
     "aria-expanded": open,
-    "aria-label": open ? "Close support chat" : "Open support chat",
+    "aria-label": open ? t.respondkit_close_chat() : t.respondkit_open_chat(),
   };
 
   const accentValue = respondKitAccentPalette[accentColor];
@@ -163,10 +172,10 @@ export function RespondKitWidget({
                   tabIndex={-1}
                   className="ac:m-0 ac:truncate ac:text-base ac:font-semibold ac:focus:outline-none"
                 >
-                  {title}
+                  {title ?? t.respondkit_support()}
                 </h2>
                 <p className="ac:m-0 ac:text-sm ac:text-muted-foreground">
-                  {catalog(locale).respondkit_ask_anything()}
+                  {t.respondkit_ask_anything()}
                 </p>
               </div>
               <Tooltip>
@@ -176,13 +185,13 @@ export function RespondKitWidget({
                       variant="ghost"
                       size="icon-lg"
                       onClick={close}
-                      aria-label="Close support chat"
+                      aria-label={t.respondkit_close_chat()}
                     />
                   }
                 >
                   <XIcon />
                 </TooltipTrigger>
-                <TooltipContent>Close</TooltipContent>
+                <TooltipContent>{t.respondkit_close()}</TooltipContent>
               </Tooltip>
             </header>
 
@@ -191,11 +200,11 @@ export function RespondKitWidget({
                 <Alert variant="destructive">
                   <AlertCircleIcon />
                   <AlertDescription>
-                    {bootstrapError ?? "Support chat could not be started."}
+                    {bootstrapError ?? t.respondkit_start_failed()}
                   </AlertDescription>
                 </Alert>
                 <Button className="ac:mt-3" onClick={reconnect}>
-                  Reconnect
+                  {t.respondkit_reconnect()}
                 </Button>
               </div>
             ) : (
@@ -203,15 +212,13 @@ export function RespondKitWidget({
                 {pollError === undefined ? null : (
                   <Alert className="ac:rounded-none ac:border-x-0 ac:border-t-0">
                     <AlertCircleIcon />
-                    <AlertDescription>
-                      Reconnecting. Your existing messages are still available.
-                    </AlertDescription>
+                    <AlertDescription>{t.respondkit_reconnecting()}</AlertDescription>
                   </Alert>
                 )}
                 {threads.length > 1 || hasMoreThreads ? (
                   <div className="ac:flex ac:items-center ac:gap-2 ac:border-b ac:p-3">
                     <label className="ac:text-sm" htmlFor={`${titleId}-history`}>
-                      Conversation
+                      {t.respondkit_conversation_label()}
                     </label>
                     <select
                       id={`${titleId}-history`}
@@ -223,13 +230,13 @@ export function RespondKitWidget({
                         <option key={item.id} value={item.id}>
                           {new Date(item.createdAt).toLocaleDateString(context.locale)} ·{" "}
                           {index + 1}
-                          {unreadThreadIds.has(item.id) ? " · Unread reply" : ""}
+                          {unreadThreadIds.has(item.id) ? ` · ${t.respondkit_unread_reply()}` : ""}
                         </option>
                       ))}
                     </select>
                     {hasMoreThreads ? (
                       <Button variant="ghost" onClick={() => void loadMoreThreads()}>
-                        More
+                        {t.respondkit_more()}
                       </Button>
                     ) : null}
                   </div>
@@ -244,6 +251,7 @@ export function RespondKitWidget({
                 {bootstrapState === "ready" && !emailAddress ? (
                   <EmailPrompt
                     key={`${context.inboxId}:${context.userId ?? "anonymous"}`}
+                    locale={locale}
                     onSave={saveEmail}
                   />
                 ) : null}
@@ -260,7 +268,7 @@ export function RespondKitWidget({
         ) : null}
 
         <span id={`${titleId}-unread`} className="ac:sr-only" role="status">
-          {unreadThreadIds.size > 0 ? "Unread support reply" : ""}
+          {unreadThreadIds.size > 0 ? t.respondkit_unread() : ""}
         </span>
         {renderLauncher ? (
           renderLauncher({ buttonProps, open, hasUnreadReplies })
@@ -285,7 +293,7 @@ export function RespondKitWidget({
               ) : null}
             </TooltipTrigger>
             <TooltipContent side="left">
-              {open ? "Close support chat" : "Open support chat"}
+              {open ? t.respondkit_close_chat() : t.respondkit_open_chat()}
             </TooltipContent>
           </Tooltip>
         )}

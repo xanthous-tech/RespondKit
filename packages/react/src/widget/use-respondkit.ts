@@ -22,6 +22,7 @@ import {
   saveBrowserIdentity,
 } from "./browser-identity";
 
+import { messages as catalog } from "./messages";
 import { useReplyStatus } from "./use-reply-status";
 
 import type {
@@ -50,6 +51,8 @@ interface UseRespondKitInput {
   readonly open: boolean;
   readonly getIdentityToken?: (() => Promise<string | null>) | undefined;
   readonly identityPending?: boolean | undefined;
+  /** Selects the catalog for user-visible error fallbacks and the attachment-only body. */
+  readonly locale?: string | undefined;
 }
 
 function contextPayload(context: RespondKitContext) {
@@ -139,6 +142,7 @@ export function useRespondKit({
   open,
   getIdentityToken,
   identityPending = false,
+  locale,
 }: UseRespondKitInput) {
   const client = useMemo(
     () => createRespondKitClient({ baseUrl: apiBaseUrl, fetch }),
@@ -147,6 +151,9 @@ export function useRespondKit({
   const storageKey = browserIdentityKey(apiBaseUrl, context.inboxId);
   const identityTokenRef = useRef(getIdentityToken);
   identityTokenRef.current = getIdentityToken;
+  // Effects read the current catalog without restarting when the language changes.
+  const tRef = useRef(catalog(locale));
+  tRef.current = catalog(locale);
   const [refresh, setRefresh] = useState(0);
   const [storageBlocked, setStorageBlocked] = useState(false);
   const [threads, setThreads] = useState<ThreadV1[]>([]);
@@ -286,7 +293,7 @@ export function useRespondKit({
           currentContext.userId === undefined ? null : await identityTokenRef.current?.();
         if (!active) return;
         if (identityTokenRef.current && currentContext.userId !== undefined && !identityToken) {
-          throw new Error("Sign in again to restore your support history.");
+          throw new Error(tRef.current.respondkit_sign_in_again());
         }
         if (identityToken && currentContext.userId !== undefined) {
           const legacy = await legacyAccountIdentity(currentContext.inboxId, currentContext.userId);
@@ -399,7 +406,7 @@ export function useRespondKit({
       } catch (error) {
         if (abortController.signal.aborted || !active) return;
         setBootstrapError(
-          error instanceof Error ? error.message : "Support chat could not be started.",
+          error instanceof Error ? error.message : tRef.current.respondkit_start_failed(),
         );
         setBootstrapState("recoverable_error");
       }
@@ -429,7 +436,7 @@ export function useRespondKit({
           current.userId === undefined ? null : await identityTokenRef.current?.();
         if (!active || epoch !== identityEpochRef.current) return;
         if (identityTokenRef.current && current.userId !== undefined && !identityToken)
-          throw new Error("Sign in again to restore your support history.");
+          throw new Error(tRef.current.respondkit_sign_in_again());
         const browser = readBrowserIdentity(storageKey, current.inboxId);
         const response = await client.createSession(
           {
@@ -449,7 +456,7 @@ export function useRespondKit({
         setSession(undefined);
         setServerMessages([]);
         setBootstrapState("recoverable_error");
-        setBootstrapError("Your support session expired. Reconnect to continue.");
+        setBootstrapError(tRef.current.respondkit_session_expired());
       }
     }, delay);
     return () => {
@@ -487,7 +494,7 @@ export function useRespondKit({
       setHistoryCursor(page.nextCursor);
     } catch {
       if (epoch === identityEpochRef.current)
-        setPollError("Conversation history could not be loaded. Try More again.");
+        setPollError(tRef.current.respondkit_history_failed());
     }
   }
 
@@ -555,7 +562,9 @@ export function useRespondKit({
         setTranscriptState("ready");
       } catch (error) {
         if (abortController.signal.aborted || !active) return;
-        setPollError(error instanceof Error ? error.message : "New messages could not be loaded.");
+        setPollError(
+          error instanceof Error ? error.message : tRef.current.respondkit_messages_failed(),
+        );
         setTranscriptState("stale");
       } finally {
         inFlight = false;
@@ -650,7 +659,8 @@ export function useRespondKit({
 
   const sendMessage = useCallback(
     (text: string, attachments: AttachmentV1[] = []) => {
-      const normalizedText = text.trim() || (attachments.length ? "Attached files" : "");
+      const normalizedText =
+        text.trim() || (attachments.length ? tRef.current.respondkit_attached_files() : "");
       if (normalizedText.length === 0 || bootstrapState !== "ready") return;
 
       void submitPending({
@@ -691,7 +701,7 @@ export function useRespondKit({
   );
 
   async function saveEmail(email: string) {
-    if (!session || !contextMatches) throw new Error("Support is still connecting.");
+    if (!session || !contextMatches) throw new Error(tRef.current.respondkit_connecting());
     const epoch = identityEpochRef.current;
     const contact = await client.saveContact(session.token, {
       email,
@@ -708,7 +718,7 @@ export function useRespondKit({
       onProgress: (sent: number, total: number) => void,
     ) => {
       const epoch = identityEpochRef.current;
-      if (!session || !contextMatches) throw new Error("Reconnect before uploading.");
+      if (!session || !contextMatches) throw new Error(tRef.current.respondkit_reconnect_upload());
       const attachment = await uploadAttachment(
         { baseUrl: apiBaseUrl, fetch },
         fileUploadSource(file),
@@ -736,7 +746,7 @@ export function useRespondKit({
     loadMoreThreads,
     hasMoreThreads: contextMatches && historyCursor !== undefined,
     bootstrapError: storageBlocked
-      ? "Support identity changed in another tab. Reconnect to reload your account."
+      ? tRef.current.respondkit_identity_changed()
       : contextMatches
         ? bootstrapError
         : undefined,
