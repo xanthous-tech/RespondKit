@@ -83,6 +83,8 @@ export interface SupportSnapshot {
   readonly sending: boolean;
   readonly error: string | undefined;
   readonly email: string | undefined;
+  /** True only once this identity's contact lookup has finished without finding an email. */
+  readonly asksForEmail: boolean;
   readonly fresh: boolean;
 }
 export interface StoreOptions {
@@ -134,6 +136,7 @@ export class RespondKitStore {
   private pollEpoch = 0;
   private visible = false;
   private loadedHistory = false;
+  private contactResolved = false;
   private freshThreads = new Set<string>();
   private loading = false;
   private sending = false;
@@ -217,6 +220,7 @@ export class RespondKitStore {
       sending: this.sending,
       error: this.error,
       email: this.context.email,
+      asksForEmail: this.contactResolved && !this.context.email,
       fresh:
         this.loadedHistory && (!this.data.selected || this.freshThreads.has(this.data.selected)),
     };
@@ -279,6 +283,7 @@ export class RespondKitStore {
       this.check(epoch);
       if (contact.email) this.context = { ...this.context, email: contact.email };
     }
+    this.contactResolved = true;
     return result.session.token;
   }
   private async authorized<T>(epoch: number, action: (token: string) => Promise<T>): Promise<T> {
@@ -355,6 +360,7 @@ export class RespondKitStore {
     };
     this.getIdentityToken = getIdentityToken;
     this.session = undefined;
+    this.contactResolved = false;
     this.loading = false;
     this.sending = false;
     this.error = undefined;

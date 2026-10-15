@@ -418,7 +418,7 @@ export function RespondKitScreen({
           </View>
         ) : (
           <>
-            {!state.email ? (
+            {state.asksForEmail ? (
               <View style={styles.email}>
                 <Text style={styles.muted}>Where can we email you a reply?</Text>
                 <View style={styles.emailRow}>
