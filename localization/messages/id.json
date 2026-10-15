@@ -81,5 +81,15 @@
   "respondkit_session_expired": "Sesi dukungan Anda telah berakhir. Hubungkan ulang untuk melanjutkan.",
   "respondkit_identity_changed": "Identitas dukungan berubah di tab lain. Hubungkan ulang untuk memuat ulang akun Anda.",
   "respondkit_connecting": "Masih menghubungkan ke dukungan.",
-  "respondkit_reconnect_upload": "Hubungkan ulang sebelum mengunggah."
+  "respondkit_reconnect_upload": "Hubungkan ulang sebelum mengunggah.",
+  "respondkit_message_too_long": "Masukkan pesan hingga 6.000 karakter.",
+  "respondkit_message_limit": "Pesan dapat berisi hingga 6.000 karakter.",
+  "respondkit_closed_start_new": "Percakapan ini sudah ditutup. Mulai percakapan baru.",
+  "respondkit_logout_failed": "Sesi dukungan sebelumnya tidak dapat dicabut. Sesi akan berakhir secara otomatis.",
+  "respondkit_history_save_failed": "Riwayat dukungan tidak dapat disimpan.",
+  "respondkit_done": "Selesai",
+  "respondkit_unread_reply": "Balasan belum dibaca",
+  "respondkit_reconnecting": "Menghubungkan ulang. Pesan Anda yang ada masih tersedia.",
+  "respondkit_conversation_label": "Percakapan",
+  "respondkit_identity_unverified": "Identitas dukungan tidak dapat diverifikasi."
 }

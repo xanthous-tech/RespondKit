@@ -10,13 +10,16 @@
     <string name="respondkit_close_chat" formatted="false">"Đóng trò chuyện hỗ trợ"</string>
     <string name="respondkit_closed" formatted="false">"Đã đóng"</string>
     <string name="respondkit_closed_help" formatted="false">"Cuộc trò chuyện này đã đóng."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"Cuộc trò chuyện này đã đóng. Hãy bắt đầu cuộc trò chuyện mới."</string>
     <string name="respondkit_confirming" formatted="false">"Đang xác nhận…"</string>
     <string name="respondkit_connecting" formatted="false">"Đang kết nối với bộ phận hỗ trợ."</string>
     <string name="respondkit_conversation">"Cuộc trò chuyện %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Cuộc trò chuyện"</string>
     <string name="respondkit_conversations" formatted="false">"Cuộc trò chuyện"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="other">"Cuộc trò chuyện · %1$d chưa đọc"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Xong"</string>
     <string name="respondkit_email_address" formatted="false">"Địa chỉ email"</string>
     <string name="respondkit_email_failed" formatted="false">"Không thể lưu email của bạn. Vui lòng kiểm tra và thử lại."</string>
     <string name="respondkit_email_prompt" formatted="false">"Chúng tôi nên gửi phản hồi đến email nào?"</string>
@@ -25,13 +28,18 @@
     <string name="respondkit_files" formatted="false">"Tệp"</string>
     <string name="respondkit_help" formatted="false">"Chúng tôi có thể giúp gì cho bạn?"</string>
     <string name="respondkit_history_failed" formatted="false">"Không thể tải lịch sử trò chuyện. Hãy chọn “Xem thêm” lần nữa."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"Không thể lưu lịch sử hỗ trợ."</string>
     <string name="respondkit_identity_changed" formatted="false">"Tài khoản hỗ trợ đã thay đổi ở một thẻ khác. Hãy kết nối lại để tải lại tài khoản của bạn."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"Không thể xác minh danh tính hỗ trợ."</string>
     <string name="respondkit_intro" formatted="false">"Gửi tin nhắn và giữ trang này mở để nhận phản hồi nhanh."</string>
     <string name="respondkit_intro_short" formatted="false">"Gửi tin nhắn để bắt đầu cuộc trò chuyện."</string>
     <string name="respondkit_latest" formatted="false">"Tin nhắn mới nhất"</string>
     <string name="respondkit_loading" formatted="false">"Đang tải…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Đang tải tin nhắn"</string>
+    <string name="respondkit_logout_failed" formatted="false">"Không thể thu hồi phiên hỗ trợ trước đó. Phiên sẽ tự động hết hạn."</string>
     <string name="respondkit_message" formatted="false">"Tin nhắn"</string>
+    <string name="respondkit_message_limit" formatted="false">"Tin nhắn có thể chứa tối đa 6.000 ký tự."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Nhập tin nhắn dài tối đa 6.000 ký tự."</string>
     <string name="respondkit_messages_failed" formatted="false">"Không thể tải tin nhắn mới."</string>
     <string name="respondkit_more" formatted="false">"Xem thêm"</string>
     <string name="respondkit_new_conversation" formatted="false">"Cuộc trò chuyện mới"</string>
@@ -45,6 +53,7 @@
     <string name="respondkit_ready" formatted="false">"Sẵn sàng"</string>
     <string name="respondkit_reconnect" formatted="false">"Kết nối lại"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Hãy kết nối lại trước khi tải lên."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Đang kết nối lại. Các tin nhắn hiện có của bạn vẫn còn đó."</string>
     <string name="respondkit_remove" formatted="false">"Xóa"</string>
     <string name="respondkit_remove_file">"Xóa %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"Yêu cầu hỗ trợ không thành công."</string>
@@ -69,6 +78,7 @@
     <string name="respondkit_try_again" formatted="false">"Thử lại"</string>
     <string name="respondkit_unknown" formatted="false">"Chưa xác nhận — có thể thử lại an toàn"</string>
     <string name="respondkit_unread" formatted="false">"Phản hồi hỗ trợ chưa đọc"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Câu trả lời chưa đọc"</string>
     <string name="respondkit_upload_failed" formatted="false">"Tải lên không thành công"</string>
     <string name="respondkit_write_message" formatted="false">"Viết tin nhắn…"</string>
 </resources>

@@ -20,7 +20,7 @@ it("accepts arbitrary files, retries uploads with the same ID, and sends only re
   fireEvent.change(input, {
     target: { files: [new File(["test"], "script.html", { type: "text/html" })] },
   });
-  await screen.findByText(/Offline/);
+  await screen.findByText(/Upload failed/);
   expect(screen.getByRole("button", { name: "Send message" })).toBeDisabled();
   fireEvent.click(screen.getByRole("button", { name: "Retry" }));
   await waitFor(() => expect(screen.getByRole("button", { name: "Send message" })).toBeEnabled());
@@ -41,4 +41,23 @@ it("aborts unfinished uploads when their draft scope changes", async () => {
   );
   expect(upload.mock.calls[0]?.[2].aborted).toBe(true);
   expect(screen.queryByText(/a.zip/)).toBeNull();
+});
+it.each([
+  ["ja-JP", "アップロードに失敗しました"],
+  ["zh-Hans-CN", "上传失败"],
+])("shows an SDK upload failure in the host language (%s)", async (locale, expected) => {
+  const failure = new Error("RespondKit request failed with HTTP 500");
+  const view = render(
+    <MessageComposer
+      locale={locale}
+      disabled={false}
+      onSend={vi.fn()}
+      onUpload={vi.fn().mockRejectedValue(failure)}
+    />,
+  );
+  fireEvent.change(view.container.querySelector('input[type="file"]')!, {
+    target: { files: [new File(["a"], "a.zip")] },
+  });
+  expect(await screen.findByText(new RegExp(expected))).toBeVisible();
+  expect(screen.queryByText(/HTTP 500/)).not.toBeInTheDocument();
 });

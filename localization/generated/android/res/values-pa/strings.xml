@@ -10,14 +10,17 @@
     <string name="respondkit_close_chat" formatted="false">"ਸਹਾਇਤਾ ਚੈਟ ਬੰਦ ਕਰੋ"</string>
     <string name="respondkit_closed" formatted="false">"ਬੰਦ"</string>
     <string name="respondkit_closed_help" formatted="false">"ਇਹ ਗੱਲਬਾਤ ਬੰਦ ਹੋ ਚੁੱਕੀ ਹੈ।"</string>
+    <string name="respondkit_closed_start_new" formatted="false">"ਇਹ ਗੱਲਬਾਤ ਬੰਦ ਹੈ। ਨਵੀਂ ਗੱਲਬਾਤ ਸ਼ੁਰੂ ਕਰੋ।"</string>
     <string name="respondkit_confirming" formatted="false">"ਪੁਸ਼ਟੀ ਹੋ ਰਹੀ ਹੈ…"</string>
     <string name="respondkit_connecting" formatted="false">"ਸਹਾਇਤਾ ਅਜੇ ਵੀ ਕਨੈਕਟ ਹੋ ਰਹੀ ਹੈ।"</string>
     <string name="respondkit_conversation">"ਗੱਲਬਾਤ %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"ਗੱਲਬਾਤ"</string>
     <string name="respondkit_conversations" formatted="false">"ਗੱਲਬਾਤਾਂ"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"ਗੱਲਬਾਤਾਂ · %1$d ਨਾ-ਪੜ੍ਹੀਆਂ"</item>
         <item quantity="other">"ਗੱਲਬਾਤਾਂ · %1$d ਨਾ-ਪੜ੍ਹੀਆਂ"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"ਹੋ ਗਿਆ"</string>
     <string name="respondkit_email_address" formatted="false">"ਈਮੇਲ ਪਤਾ"</string>
     <string name="respondkit_email_failed" formatted="false">"ਅਸੀਂ ਤੁਹਾਡੀ ਈਮੇਲ ਸੰਭਾਲ ਨਹੀਂ ਸਕੇ। ਕਿਰਪਾ ਕਰਕੇ ਇਸਦੀ ਜਾਂਚ ਕਰੋ ਅਤੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।"</string>
     <string name="respondkit_email_prompt" formatted="false">"ਅਸੀਂ ਤੁਹਾਨੂੰ ਕਿਸ ਈਮੇਲ \'ਤੇ ਜਵਾਬ ਭੇਜੀਏ?"</string>
@@ -26,13 +29,18 @@
     <string name="respondkit_files" formatted="false">"ਫ਼ਾਈਲਾਂ"</string>
     <string name="respondkit_help" formatted="false">"ਅਸੀਂ ਤੁਹਾਡੀ ਕਿਵੇਂ ਮਦਦ ਕਰ ਸਕਦੇ ਹਾਂ?"</string>
     <string name="respondkit_history_failed" formatted="false">"ਗੱਲਬਾਤ ਦਾ ਇਤਿਹਾਸ ਲੋਡ ਨਹੀਂ ਹੋ ਸਕਿਆ। ਹੋਰ ਬਟਨ ਨਾਲ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।"</string>
+    <string name="respondkit_history_save_failed" formatted="false">"ਸਹਾਇਤਾ ਇਤਿਹਾਸ ਸੁਰੱਖਿਅਤ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ।"</string>
     <string name="respondkit_identity_changed" formatted="false">"ਕਿਸੇ ਹੋਰ ਟੈਬ ਵਿੱਚ ਸਹਾਇਤਾ ਪਛਾਣ ਬਦਲ ਗਈ ਹੈ। ਆਪਣਾ ਖਾਤਾ ਮੁੜ ਲੋਡ ਕਰਨ ਲਈ ਦੁਬਾਰਾ ਕਨੈਕਟ ਕਰੋ।"</string>
+    <string name="respondkit_identity_unverified" formatted="false">"ਸਹਾਇਤਾ ਪਛਾਣ ਦੀ ਪੁਸ਼ਟੀ ਨਹੀਂ ਹੋ ਸਕੀ।"</string>
     <string name="respondkit_intro" formatted="false">"ਸੁਨੇਹਾ ਭੇਜੋ ਅਤੇ ਜਲਦੀ ਜਵਾਬ ਲਈ ਇਹ ਪੰਨਾ ਖੁੱਲ੍ਹਾ ਰੱਖੋ।"</string>
     <string name="respondkit_intro_short" formatted="false">"ਗੱਲਬਾਤ ਸ਼ੁਰੂ ਕਰਨ ਲਈ ਸੁਨੇਹਾ ਭੇਜੋ।"</string>
     <string name="respondkit_latest" formatted="false">"ਨਵੀਨਤਮ ਸੁਨੇਹੇ"</string>
     <string name="respondkit_loading" formatted="false">"ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ…"</string>
     <string name="respondkit_loading_messages" formatted="false">"ਸੁਨੇਹੇ ਲੋਡ ਹੋ ਰਹੇ ਹਨ"</string>
+    <string name="respondkit_logout_failed" formatted="false">"ਪਿਛਲਾ ਸਹਾਇਤਾ ਸੈਸ਼ਨ ਰੱਦ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ। ਇਹ ਆਪਣੇ ਆਪ ਖਤਮ ਹੋ ਜਾਵੇਗਾ।"</string>
     <string name="respondkit_message" formatted="false">"ਸੁਨੇਹਾ"</string>
+    <string name="respondkit_message_limit" formatted="false">"ਸੁਨੇਹਿਆਂ ਵਿੱਚ ਵੱਧ ਤੋਂ ਵੱਧ 6,000 ਅੱਖਰ ਹੋ ਸਕਦੇ ਹਨ।"</string>
+    <string name="respondkit_message_too_long" formatted="false">"6,000 ਅੱਖਰਾਂ ਤੱਕ ਦਾ ਸੁਨੇਹਾ ਲਿਖੋ।"</string>
     <string name="respondkit_messages_failed" formatted="false">"ਨਵੇਂ ਸੁਨੇਹੇ ਲੋਡ ਨਹੀਂ ਹੋ ਸਕੇ।"</string>
     <string name="respondkit_more" formatted="false">"ਹੋਰ"</string>
     <string name="respondkit_new_conversation" formatted="false">"ਨਵੀਂ ਗੱਲਬਾਤ"</string>
@@ -47,6 +55,7 @@
     <string name="respondkit_ready" formatted="false">"ਤਿਆਰ"</string>
     <string name="respondkit_reconnect" formatted="false">"ਦੁਬਾਰਾ ਕਨੈਕਟ ਕਰੋ"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"ਅੱਪਲੋਡ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਦੁਬਾਰਾ ਕਨੈਕਟ ਕਰੋ।"</string>
+    <string name="respondkit_reconnecting" formatted="false">"ਮੁੜ ਕਨੈਕਟ ਹੋ ਰਿਹਾ ਹੈ। ਤੁਹਾਡੇ ਮੌਜੂਦਾ ਸੁਨੇਹੇ ਹਾਲੇ ਵੀ ਉਪਲਬਧ ਹਨ।"</string>
     <string name="respondkit_remove" formatted="false">"ਹਟਾਓ"</string>
     <string name="respondkit_remove_file">"%1$s ਹਟਾਓ"</string>
     <string name="respondkit_request_failed" formatted="false">"ਸਹਾਇਤਾ ਬੇਨਤੀ ਅਸਫਲ ਰਹੀ।"</string>
@@ -72,6 +81,7 @@
     <string name="respondkit_try_again" formatted="false">"ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ"</string>
     <string name="respondkit_unknown" formatted="false">"ਪੁਸ਼ਟੀ ਨਹੀਂ ਹੋਈ — ਬੇਫ਼ਿਕਰ ਹੋ ਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ"</string>
     <string name="respondkit_unread" formatted="false">"ਨਾ-ਪੜ੍ਹਿਆ ਸਹਾਇਤਾ ਜਵਾਬ"</string>
+    <string name="respondkit_unread_reply" formatted="false">"ਨਾ ਪੜ੍ਹਿਆ ਜਵਾਬ"</string>
     <string name="respondkit_upload_failed" formatted="false">"ਅੱਪਲੋਡ ਅਸਫਲ ਰਿਹਾ"</string>
     <string name="respondkit_write_message" formatted="false">"ਸੁਨੇਹਾ ਲਿਖੋ…"</string>
 </resources>

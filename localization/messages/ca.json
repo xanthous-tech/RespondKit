@@ -93,5 +93,15 @@
   "respondkit_session_expired": "La sessió d'assistència ha caducat. Torna a connectar per continuar.",
   "respondkit_identity_changed": "La identitat d'assistència ha canviat en una altra pestanya. Torna a connectar per recarregar el teu compte.",
   "respondkit_connecting": "L'assistència encara s'està connectant.",
-  "respondkit_reconnect_upload": "Torna a connectar abans de pujar fitxers."
+  "respondkit_reconnect_upload": "Torna a connectar abans de pujar fitxers.",
+  "respondkit_message_too_long": "Escriu un missatge de fins a 6.000 caràcters.",
+  "respondkit_message_limit": "Els missatges poden tenir fins a 6.000 caràcters.",
+  "respondkit_closed_start_new": "Aquesta conversa està tancada. Comença una conversa nova.",
+  "respondkit_logout_failed": "No s'ha pogut revocar la sessió d'assistència anterior. Caducarà automàticament.",
+  "respondkit_history_save_failed": "No s'ha pogut desar l'historial d'assistència.",
+  "respondkit_done": "Fet",
+  "respondkit_unread_reply": "Resposta no llegida",
+  "respondkit_reconnecting": "S'està tornant a connectar. Els teus missatges continuen disponibles.",
+  "respondkit_conversation_label": "Conversa",
+  "respondkit_identity_unverified": "No s'ha pogut verificar la identitat d'assistència."
 }

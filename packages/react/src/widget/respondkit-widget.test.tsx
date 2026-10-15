@@ -431,6 +431,72 @@ describe("RespondKitWidget", () => {
     expect(screen.getByRole("button", { name: attach })).toBeInTheDocument();
   });
 
+  it.each([
+    [
+      "ja-JP",
+      "返信をお送りするメールアドレスを教えてください",
+      "メールアドレスを保存",
+      "メッセージ",
+      "メッセージを入力…",
+      "メッセージを送信",
+      "送信済み",
+      "サポートチャットを閉じる",
+    ],
+    [
+      "zh-Hans-CN",
+      "我们该把回复发送到哪个邮箱？",
+      "保存邮箱",
+      "消息",
+      "输入消息…",
+      "发送消息",
+      "已发送",
+      "关闭客服聊天",
+    ],
+  ])(
+    "renders the %s email ask, composer, delivery status and close control",
+    async (locale, ...expected) => {
+      const [prompt, save, message, placeholder, send, sent, close] = expected;
+      const base = createApiFetch();
+      const api = vi.fn<typeof fetch>(async (input, init) =>
+        requestUrl(input).endsWith("/client/contact") ? json({}) : base(input, init),
+      );
+      const user = userEvent.setup();
+      render(
+        <RespondKitWidget
+          apiBaseUrl="https://support.test"
+          context={{ inboxId: "inbox_test", locale }}
+          fetch={api}
+          initiallyOpen
+        />,
+      );
+      expect(await screen.findByRole("textbox", { name: prompt })).toBeVisible();
+      expect(screen.getByRole("button", { name: save })).toBeVisible();
+      const composer = screen.getByRole("textbox", { name: message });
+      expect(composer).toHaveAttribute("placeholder", placeholder);
+      await waitFor(() => expect(composer).toBeEnabled());
+      await user.type(composer, "Hello");
+      await user.click(screen.getByRole("button", { name: send }));
+      expect(await screen.findByText(sent!)).toBeVisible();
+      expect(screen.getAllByRole("button", { name: close })).toHaveLength(2);
+    },
+  );
+
+  it.each([
+    ["ja-JP", "サポートチャットを開始できませんでした。"],
+    ["zh-Hans-CN", "无法启动客服聊天。"],
+  ])("shows an unreachable server in %s", async (locale, expected) => {
+    vi.stubGlobal("fetch", () => Promise.reject(new TypeError("Failed to fetch")));
+    render(
+      <RespondKitWidget
+        apiBaseUrl="https://support.test"
+        context={{ inboxId: "inbox_test", locale }}
+        initiallyOpen
+      />,
+    );
+    expect(await screen.findByText(expected)).toBeVisible();
+    expect(screen.queryByText("Unable to reach RespondKit")).not.toBeInTheDocument();
+  });
+
   it("falls back to the browser language when the host sends no locale", async () => {
     const language = vi.spyOn(navigator, "language", "get").mockReturnValue("ja");
     const { apiFetch, resolveTranscript } = createDelayedEmptyTranscriptApiFetch();

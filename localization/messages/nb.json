@@ -93,5 +93,15 @@
   "respondkit_session_expired": "Kundestøtteøkten har utløpt. Koble til på nytt for å fortsette.",
   "respondkit_identity_changed": "Kundestøtteidentiteten ble endret i en annen fane. Koble til på nytt for å laste inn kontoen din igjen.",
   "respondkit_connecting": "Kundestøtte kobler fortsatt til.",
-  "respondkit_reconnect_upload": "Koble til på nytt før du laster opp."
+  "respondkit_reconnect_upload": "Koble til på nytt før du laster opp.",
+  "respondkit_message_too_long": "Skriv en melding på opptil 6000 tegn.",
+  "respondkit_message_limit": "Meldinger kan inneholde opptil 6000 tegn.",
+  "respondkit_closed_start_new": "Denne samtalen er lukket. Start en ny samtale.",
+  "respondkit_logout_failed": "Den forrige støtteøkten kunne ikke tilbakekalles. Den utløper automatisk.",
+  "respondkit_history_save_failed": "Kunne ikke lagre støttehistorikken.",
+  "respondkit_done": "Ferdig",
+  "respondkit_unread_reply": "Ulest svar",
+  "respondkit_reconnecting": "Kobler til på nytt. De eksisterende meldingene dine er fortsatt tilgjengelige.",
+  "respondkit_conversation_label": "Samtale",
+  "respondkit_identity_unverified": "Støtteidentiteten kunne ikke bekreftes."
 }

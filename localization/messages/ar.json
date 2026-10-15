@@ -102,5 +102,15 @@
   "respondkit_session_expired": "انتهت جلسة الدعم. أعد الاتصال للمتابعة.",
   "respondkit_identity_changed": "تغيّرت هوية الدعم في علامة تبويب أخرى. أعد الاتصال لإعادة تحميل حسابك.",
   "respondkit_connecting": "لا يزال الدعم قيد الاتصال.",
-  "respondkit_reconnect_upload": "أعد الاتصال قبل الرفع."
+  "respondkit_reconnect_upload": "أعد الاتصال قبل الرفع.",
+  "respondkit_message_too_long": "أدخل رسالة لا تتجاوز 6000 حرف.",
+  "respondkit_message_limit": "يمكن أن تحتوي الرسائل على 6000 حرف كحد أقصى.",
+  "respondkit_closed_start_new": "هذه المحادثة مغلقة. ابدأ محادثة جديدة.",
+  "respondkit_logout_failed": "تعذّر إلغاء جلسة الدعم السابقة. ستنتهي صلاحيتها تلقائيًا.",
+  "respondkit_history_save_failed": "تعذّر حفظ سجل الدعم.",
+  "respondkit_done": "تم",
+  "respondkit_unread_reply": "رد غير مقروء",
+  "respondkit_reconnecting": "جارٍ إعادة الاتصال. لا تزال رسائلك الحالية متاحة.",
+  "respondkit_conversation_label": "المحادثة",
+  "respondkit_identity_unverified": "تعذّر التحقق من هوية الدعم."
 }

@@ -10,13 +10,16 @@
     <string name="respondkit_close_chat" formatted="false">"Tutup sembang sokongan"</string>
     <string name="respondkit_closed" formatted="false">"Ditutup"</string>
     <string name="respondkit_closed_help" formatted="false">"Perbualan ini telah ditutup."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"Perbualan ini telah ditutup. Mulakan perbualan baharu."</string>
     <string name="respondkit_confirming" formatted="false">"Mengesahkan…"</string>
     <string name="respondkit_connecting" formatted="false">"Sokongan masih menyambung."</string>
     <string name="respondkit_conversation">"Perbualan %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Perbualan"</string>
     <string name="respondkit_conversations" formatted="false">"Perbualan"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="other">"Perbualan · %1$d belum dibaca"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Selesai"</string>
     <string name="respondkit_email_address" formatted="false">"Alamat e-mel"</string>
     <string name="respondkit_email_failed" formatted="false">"Kami tidak dapat menyimpan e-mel anda. Sila semak dan cuba lagi."</string>
     <string name="respondkit_email_prompt" formatted="false">"Ke alamat e-mel manakah kami boleh hantar balasan?"</string>
@@ -25,13 +28,18 @@
     <string name="respondkit_files" formatted="false">"Fail"</string>
     <string name="respondkit_help" formatted="false">"Apa yang boleh kami bantu?"</string>
     <string name="respondkit_history_failed" formatted="false">"Sejarah perbualan tidak dapat dimuatkan. Sila tekan Lagi sekali lagi."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"Sejarah sokongan tidak dapat disimpan."</string>
     <string name="respondkit_identity_changed" formatted="false">"Identiti sokongan telah bertukar dalam tab lain. Sambung semula untuk memuatkan semula akaun anda."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"Identiti sokongan tidak dapat disahkan."</string>
     <string name="respondkit_intro" formatted="false">"Hantar mesej dan biarkan halaman ini terbuka untuk balasan pantas."</string>
     <string name="respondkit_intro_short" formatted="false">"Hantar mesej untuk memulakan perbualan."</string>
     <string name="respondkit_latest" formatted="false">"Mesej terkini"</string>
     <string name="respondkit_loading" formatted="false">"Memuatkan…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Memuatkan mesej"</string>
+    <string name="respondkit_logout_failed" formatted="false">"Sesi sokongan sebelumnya tidak dapat dibatalkan. Sesi itu akan tamat tempoh secara automatik."</string>
     <string name="respondkit_message" formatted="false">"Mesej"</string>
+    <string name="respondkit_message_limit" formatted="false">"Mesej boleh mengandungi sehingga 6,000 aksara."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Masukkan mesej sehingga 6,000 aksara."</string>
     <string name="respondkit_messages_failed" formatted="false">"Mesej baharu tidak dapat dimuatkan."</string>
     <string name="respondkit_more" formatted="false">"Lagi"</string>
     <string name="respondkit_new_conversation" formatted="false">"Perbualan baharu"</string>
@@ -45,6 +53,7 @@
     <string name="respondkit_ready" formatted="false">"Sedia"</string>
     <string name="respondkit_reconnect" formatted="false">"Sambung semula"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Sambung semula sebelum memuat naik."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Menyambung semula. Mesej sedia ada anda masih tersedia."</string>
     <string name="respondkit_remove" formatted="false">"Alih keluar"</string>
     <string name="respondkit_remove_file">"Alih keluar %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"Permintaan sokongan gagal."</string>
@@ -69,6 +78,7 @@
     <string name="respondkit_try_again" formatted="false">"Cuba lagi"</string>
     <string name="respondkit_unknown" formatted="false">"Belum disahkan — selamat untuk cuba semula"</string>
     <string name="respondkit_unread" formatted="false">"Balasan sokongan belum dibaca"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Balasan belum dibaca"</string>
     <string name="respondkit_upload_failed" formatted="false">"Muat naik gagal"</string>
     <string name="respondkit_write_message" formatted="false">"Tulis mesej…"</string>
 </resources>

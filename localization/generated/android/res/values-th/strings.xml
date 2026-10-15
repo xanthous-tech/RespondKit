@@ -10,13 +10,16 @@
     <string name="respondkit_close_chat" formatted="false">"ปิดแชทฝ่ายสนับสนุน"</string>
     <string name="respondkit_closed" formatted="false">"ปิดแล้ว"</string>
     <string name="respondkit_closed_help" formatted="false">"การสนทนานี้ปิดแล้ว"</string>
+    <string name="respondkit_closed_start_new" formatted="false">"การสนทนานี้ปิดแล้ว เริ่มการสนทนาใหม่"</string>
     <string name="respondkit_confirming" formatted="false">"กำลังยืนยัน…"</string>
     <string name="respondkit_connecting" formatted="false">"กำลังเชื่อมต่อกับฝ่ายสนับสนุน"</string>
     <string name="respondkit_conversation">"การสนทนา %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"การสนทนา"</string>
     <string name="respondkit_conversations" formatted="false">"การสนทนา"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="other">"การสนทนา · ยังไม่อ่าน %1$d รายการ"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"เสร็จสิ้น"</string>
     <string name="respondkit_email_address" formatted="false">"ที่อยู่อีเมล"</string>
     <string name="respondkit_email_failed" formatted="false">"เราบันทึกอีเมลของคุณไม่ได้ โปรดตรวจสอบแล้วลองอีกครั้ง"</string>
     <string name="respondkit_email_prompt" formatted="false">"ให้เราส่งคำตอบไปที่อีเมลใด"</string>
@@ -25,13 +28,18 @@
     <string name="respondkit_files" formatted="false">"ไฟล์"</string>
     <string name="respondkit_help" formatted="false">"มีอะไรให้เราช่วยไหม"</string>
     <string name="respondkit_history_failed" formatted="false">"โหลดประวัติการสนทนาไม่ได้ ลองเลือก “เพิ่มเติม” อีกครั้ง"</string>
+    <string name="respondkit_history_save_failed" formatted="false">"ไม่สามารถบันทึกประวัติการสนับสนุนได้"</string>
     <string name="respondkit_identity_changed" formatted="false">"บัญชีฝ่ายสนับสนุนมีการเปลี่ยนแปลงในแท็บอื่น เชื่อมต่ออีกครั้งเพื่อโหลดบัญชีของคุณใหม่"</string>
+    <string name="respondkit_identity_unverified" formatted="false">"ไม่สามารถยืนยันตัวตนสำหรับการสนับสนุนได้"</string>
     <string name="respondkit_intro" formatted="false">"ส่งข้อความแล้วเปิดหน้านี้ค้างไว้เพื่อรับคำตอบอย่างรวดเร็ว"</string>
     <string name="respondkit_intro_short" formatted="false">"ส่งข้อความเพื่อเริ่มการสนทนา"</string>
     <string name="respondkit_latest" formatted="false">"ข้อความล่าสุด"</string>
     <string name="respondkit_loading" formatted="false">"กำลังโหลด…"</string>
     <string name="respondkit_loading_messages" formatted="false">"กำลังโหลดข้อความ"</string>
+    <string name="respondkit_logout_failed" formatted="false">"ไม่สามารถเพิกถอนเซสชันการสนับสนุนก่อนหน้าได้ เซสชันจะหมดอายุโดยอัตโนมัติ"</string>
     <string name="respondkit_message" formatted="false">"ข้อความ"</string>
+    <string name="respondkit_message_limit" formatted="false">"ข้อความมีได้สูงสุด 6,000 อักขระ"</string>
+    <string name="respondkit_message_too_long" formatted="false">"ป้อนข้อความได้ไม่เกิน 6,000 อักขระ"</string>
     <string name="respondkit_messages_failed" formatted="false">"โหลดข้อความใหม่ไม่ได้"</string>
     <string name="respondkit_more" formatted="false">"เพิ่มเติม"</string>
     <string name="respondkit_new_conversation" formatted="false">"การสนทนาใหม่"</string>
@@ -45,6 +53,7 @@
     <string name="respondkit_ready" formatted="false">"พร้อมแล้ว"</string>
     <string name="respondkit_reconnect" formatted="false">"เชื่อมต่ออีกครั้ง"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"เชื่อมต่ออีกครั้งก่อนอัปโหลด"</string>
+    <string name="respondkit_reconnecting" formatted="false">"กำลังเชื่อมต่อใหม่ ข้อความที่มีอยู่ของคุณยังคงใช้งานได้"</string>
     <string name="respondkit_remove" formatted="false">"นำออก"</string>
     <string name="respondkit_remove_file">"นำ %1$s ออก"</string>
     <string name="respondkit_request_failed" formatted="false">"คำขอไปยังฝ่ายสนับสนุนไม่สำเร็จ"</string>
@@ -69,6 +78,7 @@
     <string name="respondkit_try_again" formatted="false">"ลองอีกครั้ง"</string>
     <string name="respondkit_unknown" formatted="false">"ยังไม่ได้รับการยืนยัน — ลองอีกครั้งได้อย่างปลอดภัย"</string>
     <string name="respondkit_unread" formatted="false">"คำตอบจากฝ่ายสนับสนุนที่ยังไม่ได้อ่าน"</string>
+    <string name="respondkit_unread_reply" formatted="false">"คำตอบที่ยังไม่ได้อ่าน"</string>
     <string name="respondkit_upload_failed" formatted="false">"อัปโหลดไม่สำเร็จ"</string>
     <string name="respondkit_write_message" formatted="false">"เขียนข้อความ…"</string>
 </resources>

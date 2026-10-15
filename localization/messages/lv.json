@@ -96,5 +96,15 @@
   "respondkit_session_expired": "Jūsu atbalsta sesija ir beigusies. Lai turpinātu, savienojiet vēlreiz.",
   "respondkit_identity_changed": "Atbalsta identitāte tika mainīta citā cilnē. Lai atkārtoti ielādētu savu kontu, savienojiet vēlreiz.",
   "respondkit_connecting": "Atbalsts joprojām tiek savienots.",
-  "respondkit_reconnect_upload": "Pirms augšupielādes savienojiet vēlreiz."
+  "respondkit_reconnect_upload": "Pirms augšupielādes savienojiet vēlreiz.",
+  "respondkit_message_too_long": "Ievadiet ziņojumu līdz 6000 rakstzīmēm.",
+  "respondkit_message_limit": "Ziņojumos var būt līdz 6000 rakstzīmēm.",
+  "respondkit_closed_start_new": "Šī saruna ir slēgta. Sāciet jaunu sarunu.",
+  "respondkit_logout_failed": "Iepriekšējo atbalsta sesiju neizdevās atsaukt. Tās derīgums beigsies automātiski.",
+  "respondkit_history_save_failed": "Atbalsta vēsturi neizdevās saglabāt.",
+  "respondkit_done": "Gatavs",
+  "respondkit_unread_reply": "Nelasīta atbilde",
+  "respondkit_reconnecting": "Notiek atkārtota savienošana. Jūsu esošie ziņojumi joprojām ir pieejami.",
+  "respondkit_conversation_label": "Saruna",
+  "respondkit_identity_unverified": "Atbalsta identitāti neizdevās pārbaudīt."
 }

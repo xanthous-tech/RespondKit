@@ -87,5 +87,15 @@
   "respondkit_session_expired": "Phiên hỗ trợ của bạn đã hết hạn. Hãy kết nối lại để tiếp tục.",
   "respondkit_identity_changed": "Tài khoản hỗ trợ đã thay đổi ở một thẻ khác. Hãy kết nối lại để tải lại tài khoản của bạn.",
   "respondkit_connecting": "Đang kết nối với bộ phận hỗ trợ.",
-  "respondkit_reconnect_upload": "Hãy kết nối lại trước khi tải lên."
+  "respondkit_reconnect_upload": "Hãy kết nối lại trước khi tải lên.",
+  "respondkit_message_too_long": "Nhập tin nhắn dài tối đa 6.000 ký tự.",
+  "respondkit_message_limit": "Tin nhắn có thể chứa tối đa 6.000 ký tự.",
+  "respondkit_closed_start_new": "Cuộc trò chuyện này đã đóng. Hãy bắt đầu cuộc trò chuyện mới.",
+  "respondkit_logout_failed": "Không thể thu hồi phiên hỗ trợ trước đó. Phiên sẽ tự động hết hạn.",
+  "respondkit_history_save_failed": "Không thể lưu lịch sử hỗ trợ.",
+  "respondkit_done": "Xong",
+  "respondkit_unread_reply": "Câu trả lời chưa đọc",
+  "respondkit_reconnecting": "Đang kết nối lại. Các tin nhắn hiện có của bạn vẫn còn đó.",
+  "respondkit_conversation_label": "Cuộc trò chuyện",
+  "respondkit_identity_unverified": "Không thể xác minh danh tính hỗ trợ."
 }

@@ -81,5 +81,15 @@
   "respondkit_session_expired": "고객 지원 세션이 만료되었습니다. 계속하려면 다시 연결하세요.",
   "respondkit_identity_changed": "다른 탭에서 고객 지원 계정이 변경되었습니다. 계정을 다시 불러오려면 다시 연결하세요.",
   "respondkit_connecting": "고객 지원에 아직 연결 중입니다.",
-  "respondkit_reconnect_upload": "업로드하기 전에 다시 연결하세요."
+  "respondkit_reconnect_upload": "업로드하기 전에 다시 연결하세요.",
+  "respondkit_message_too_long": "최대 6,000자까지 메시지를 입력하세요.",
+  "respondkit_message_limit": "메시지는 최대 6,000자까지 입력할 수 있습니다.",
+  "respondkit_closed_start_new": "이 대화는 종료되었습니다. 새 대화를 시작하세요.",
+  "respondkit_logout_failed": "이전 지원 세션을 취소하지 못했습니다. 자동으로 만료됩니다.",
+  "respondkit_history_save_failed": "지원 기록을 저장하지 못했습니다.",
+  "respondkit_done": "완료",
+  "respondkit_unread_reply": "읽지 않은 답장",
+  "respondkit_reconnecting": "다시 연결하는 중입니다. 기존 메시지는 계속 볼 수 있습니다.",
+  "respondkit_conversation_label": "대화",
+  "respondkit_identity_unverified": "지원 ID를 확인하지 못했습니다."
 }

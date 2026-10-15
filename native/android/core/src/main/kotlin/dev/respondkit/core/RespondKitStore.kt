@@ -25,6 +25,7 @@ class RespondKitStore(
             ?: StoredState(userId = context.userId)
     private val mutableState = MutableStateFlow(SupportState())
     val state: StateFlow<SupportState> = mutableState.asStateFlow()
+    var strings = RespondKitStrings()
     private var session: ClientSession? = null
     private var epoch = 0L
     private var pollJob: Job? = null
@@ -123,7 +124,7 @@ class RespondKitStore(
     }
 
     fun clearError() {
-        mutableState.update { it.copy(errorMessage = null) }
+        mutableState.update { it.copy(errorMessage = null, errorDetail = null) }
     }
 
     /**
@@ -152,12 +153,7 @@ class RespondKitStore(
                     } catch (error: CancellationException) {
                         throw error
                     } catch (error: Exception) {
-                        mutableState.update {
-                            it.copy(
-                                errorMessage =
-                                    "Previous support session could not be revoked. It will expire automatically."
-                            )
-                        }
+                        mutableState.update { it.copy(errorMessage = strings.logoutFailed) }
                     }
                 }
         }
@@ -206,11 +202,11 @@ class RespondKitStore(
         if (state.value.isSending) return
         mutableState.update { it.copy(isSending = true) }
         try {
-            val text = state.value.draft.ifBlank { if (attachments.isNotEmpty()) "Attached files" else "" }
+            val text = state.value.draft.ifBlank { if (attachments.isNotEmpty()) strings.attachedFiles else "" }
             val id = state.value.activeThreadId
             if (text.isBlank() || text.length > 6_000) {
                 mutableState.update {
-                    it.copy(errorMessage = "Enter a message of up to 6,000 characters.")
+                    it.copy(errorMessage = strings.messageTooLong)
                 }
                 return
             }
@@ -220,9 +216,7 @@ class RespondKitStore(
                         stored.statuses.firstOrNull { it.thread.id == id }?.thread?.state ==
                             "closed"
                 )
-                    throw RespondKitException(
-                        "This conversation is closed. Start a new conversation."
-                    )
+                    throw PresentedException(strings.conversationClosed)
                 val key = id ?: "new"
                 val pending = PendingMessage(newId("cmsg"), text, now(), "sending", attachments)
                 stored =
@@ -411,7 +405,7 @@ class RespondKitStore(
                 val assertion = identityToken?.invoke()
                 check(generation)
                 if (identityToken != null && assertion.isNullOrBlank())
-                    throw RespondKitException("Support identity could not be verified.")
+                    throw PresentedException(strings.identityUnverified)
                 val created = api.createSession(stored.installationId, context, assertion)
                 check(generation)
                 session = created
@@ -467,10 +461,7 @@ class RespondKitStore(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
-                if (generation == epoch)
-                    mutableState.update {
-                        it.copy(errorMessage = error.message ?: "Support request failed.")
-                    }
+                if (generation == epoch) report(error, strings.requestFailed)
             } finally {
                 mutableState.update { it.copy(isLoading = false) }
             }
@@ -497,9 +488,16 @@ class RespondKitStore(
         try {
             persist()
         } catch (error: Exception) {
-            mutableState.update {
-                it.copy(errorMessage = error.message ?: "Could not save support history.")
-            }
+            report(error, strings.historySaveFailed)
+        }
+    }
+
+    private fun report(error: Exception, fallback: String) {
+        mutableState.update {
+            it.copy(
+                errorMessage = (error as? PresentedException)?.message ?: fallback,
+                errorDetail = error.message,
+            )
         }
     }
 

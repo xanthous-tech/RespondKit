@@ -99,5 +99,15 @@
   "respondkit_session_expired": "Sesja czatu pomocy wygasła. Połącz ponownie, aby kontynuować.",
   "respondkit_identity_changed": "Tożsamość w czacie pomocy zmieniła się w innej karcie. Połącz ponownie, aby wczytać swoje konto.",
   "respondkit_connecting": "Czat pomocy wciąż się łączy.",
-  "respondkit_reconnect_upload": "Połącz ponownie przed przesłaniem plików."
+  "respondkit_reconnect_upload": "Połącz ponownie przed przesłaniem plików.",
+  "respondkit_message_too_long": "Wpisz wiadomość o długości do 6000 znaków.",
+  "respondkit_message_limit": "Wiadomości mogą zawierać do 6000 znaków.",
+  "respondkit_closed_start_new": "Ta rozmowa jest zamknięta. Rozpocznij nową rozmowę.",
+  "respondkit_logout_failed": "Nie udało się unieważnić poprzedniej sesji pomocy. Wygaśnie ona automatycznie.",
+  "respondkit_history_save_failed": "Nie udało się zapisać historii pomocy.",
+  "respondkit_done": "Gotowe",
+  "respondkit_unread_reply": "Nieprzeczytana odpowiedź",
+  "respondkit_reconnecting": "Ponowne łączenie. Twoje dotychczasowe wiadomości są nadal dostępne.",
+  "respondkit_conversation_label": "Rozmowa",
+  "respondkit_identity_unverified": "Nie udało się zweryfikować tożsamości pomocy."
 }

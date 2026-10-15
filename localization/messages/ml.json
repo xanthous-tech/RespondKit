@@ -93,5 +93,15 @@
   "respondkit_session_expired": "നിങ്ങളുടെ പിന്തുണ സെഷൻ കാലഹരണപ്പെട്ടു. തുടരാൻ വീണ്ടും കണക്റ്റ് ചെയ്യുക.",
   "respondkit_identity_changed": "മറ്റൊരു ടാബിൽ പിന്തുണ അക്കൗണ്ട് മാറി. നിങ്ങളുടെ അക്കൗണ്ട് റീലോഡ് ചെയ്യാൻ വീണ്ടും കണക്റ്റ് ചെയ്യുക.",
   "respondkit_connecting": "പിന്തുണ ഇപ്പോഴും കണക്റ്റ് ചെയ്യുന്നു.",
-  "respondkit_reconnect_upload": "അപ്‌ലോഡ് ചെയ്യുന്നതിന് മുമ്പ് വീണ്ടും കണക്റ്റ് ചെയ്യുക."
+  "respondkit_reconnect_upload": "അപ്‌ലോഡ് ചെയ്യുന്നതിന് മുമ്പ് വീണ്ടും കണക്റ്റ് ചെയ്യുക.",
+  "respondkit_message_too_long": "6,000 പ്രതീകങ്ങൾ വരെയുള്ള ഒരു സന്ദേശം നൽകുക.",
+  "respondkit_message_limit": "സന്ദേശങ്ങളിൽ പരമാവധി 6,000 പ്രതീകങ്ങൾ ഉണ്ടാകാം.",
+  "respondkit_closed_start_new": "ഈ സംഭാഷണം അവസാനിച്ചു. പുതിയൊരു സംഭാഷണം ആരംഭിക്കുക.",
+  "respondkit_logout_failed": "മുമ്പത്തെ സപ്പോർട്ട് സെഷൻ റദ്ദാക്കാനായില്ല. അത് സ്വയമേവ കാലഹരണപ്പെടും.",
+  "respondkit_history_save_failed": "സപ്പോർട്ട് ചരിത്രം സംരക്ഷിക്കാനായില്ല.",
+  "respondkit_done": "പൂർത്തിയായി",
+  "respondkit_unread_reply": "വായിക്കാത്ത മറുപടി",
+  "respondkit_reconnecting": "വീണ്ടും കണക്റ്റ് ചെയ്യുന്നു. നിങ്ങളുടെ നിലവിലുള്ള സന്ദേശങ്ങൾ ഇപ്പോഴും ലഭ്യമാണ്.",
+  "respondkit_conversation_label": "സംഭാഷണം",
+  "respondkit_identity_unverified": "സപ്പോർട്ട് ഐഡന്റിറ്റി സ്ഥിരീകരിക്കാനായില്ല."
 }

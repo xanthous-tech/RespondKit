@@ -99,5 +99,15 @@
   "respondkit_session_expired": "Relácia podpory vypršala. Ak chcete pokračovať, znova sa pripojte.",
   "respondkit_identity_changed": "Identita podpory sa zmenila na inej karte. Znova sa pripojte a načítajte svoj účet.",
   "respondkit_connecting": "Podpora sa ešte pripája.",
-  "respondkit_reconnect_upload": "Pred nahrávaním sa znova pripojte."
+  "respondkit_reconnect_upload": "Pred nahrávaním sa znova pripojte.",
+  "respondkit_message_too_long": "Zadajte správu s dĺžkou najviac 6 000 znakov.",
+  "respondkit_message_limit": "Správy môžu mať najviac 6 000 znakov.",
+  "respondkit_closed_start_new": "Táto konverzácia je uzavretá. Začnite novú konverzáciu.",
+  "respondkit_logout_failed": "Predchádzajúcu reláciu podpory sa nepodarilo zrušiť. Jej platnosť automaticky vyprší.",
+  "respondkit_history_save_failed": "Históriu podpory sa nepodarilo uložiť.",
+  "respondkit_done": "Hotovo",
+  "respondkit_unread_reply": "Neprečítaná odpoveď",
+  "respondkit_reconnecting": "Prebieha opätovné pripojenie. Vaše doterajšie správy sú stále k dispozícii.",
+  "respondkit_conversation_label": "Konverzácia",
+  "respondkit_identity_unverified": "Identitu pre podporu sa nepodarilo overiť."
 }

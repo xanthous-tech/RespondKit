@@ -10,14 +10,17 @@
     <string name="respondkit_close_chat" formatted="false">"Lukk kundestøttechatten"</string>
     <string name="respondkit_closed" formatted="false">"Lukket"</string>
     <string name="respondkit_closed_help" formatted="false">"Denne samtalen er lukket."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"Denne samtalen er lukket. Start en ny samtale."</string>
     <string name="respondkit_confirming" formatted="false">"Bekrefter…"</string>
     <string name="respondkit_connecting" formatted="false">"Kundestøtte kobler fortsatt til."</string>
     <string name="respondkit_conversation">"Samtale %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Samtale"</string>
     <string name="respondkit_conversations" formatted="false">"Samtaler"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Samtaler · %1$d ulest"</item>
         <item quantity="other">"Samtaler · %1$d uleste"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Ferdig"</string>
     <string name="respondkit_email_address" formatted="false">"E-postadresse"</string>
     <string name="respondkit_email_failed" formatted="false">"Vi kunne ikke lagre e-postadressen din. Sjekk den og prøv igjen."</string>
     <string name="respondkit_email_prompt" formatted="false">"Hvilken e-postadresse kan vi sende svaret til?"</string>
@@ -26,13 +29,18 @@
     <string name="respondkit_files" formatted="false">"Filer"</string>
     <string name="respondkit_help" formatted="false">"Hva kan vi hjelpe deg med?"</string>
     <string name="respondkit_history_failed" formatted="false">"Kunne ikke laste inn samtalehistorikken. Prøv Mer igjen."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"Kunne ikke lagre støttehistorikken."</string>
     <string name="respondkit_identity_changed" formatted="false">"Kundestøtteidentiteten ble endret i en annen fane. Koble til på nytt for å laste inn kontoen din igjen."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"Støtteidentiteten kunne ikke bekreftes."</string>
     <string name="respondkit_intro" formatted="false">"Send en melding og la denne siden være åpen, så får du raskt svar."</string>
     <string name="respondkit_intro_short" formatted="false">"Send en melding for å starte en samtale."</string>
     <string name="respondkit_latest" formatted="false">"Nyeste meldinger"</string>
     <string name="respondkit_loading" formatted="false">"Laster inn…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Laster inn meldinger"</string>
+    <string name="respondkit_logout_failed" formatted="false">"Den forrige støtteøkten kunne ikke tilbakekalles. Den utløper automatisk."</string>
     <string name="respondkit_message" formatted="false">"Melding"</string>
+    <string name="respondkit_message_limit" formatted="false">"Meldinger kan inneholde opptil 6000 tegn."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Skriv en melding på opptil 6000 tegn."</string>
     <string name="respondkit_messages_failed" formatted="false">"Kunne ikke laste inn nye meldinger."</string>
     <string name="respondkit_more" formatted="false">"Mer"</string>
     <string name="respondkit_new_conversation" formatted="false">"Ny samtale"</string>
@@ -47,6 +55,7 @@
     <string name="respondkit_ready" formatted="false">"Klar"</string>
     <string name="respondkit_reconnect" formatted="false">"Koble til på nytt"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Koble til på nytt før du laster opp."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Kobler til på nytt. De eksisterende meldingene dine er fortsatt tilgjengelige."</string>
     <string name="respondkit_remove" formatted="false">"Fjern"</string>
     <string name="respondkit_remove_file">"Fjern %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"Forespørselen til kundestøtte mislyktes."</string>
@@ -72,6 +81,7 @@
     <string name="respondkit_try_again" formatted="false">"Prøv igjen"</string>
     <string name="respondkit_unknown" formatted="false">"Ikke bekreftet – trygt å prøve igjen"</string>
     <string name="respondkit_unread" formatted="false">"Ulest svar fra kundestøtte"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Ulest svar"</string>
     <string name="respondkit_upload_failed" formatted="false">"Opplastingen mislyktes"</string>
     <string name="respondkit_write_message" formatted="false">"Skriv en melding…"</string>
 </resources>

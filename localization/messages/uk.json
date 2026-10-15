@@ -96,5 +96,15 @@
   "respondkit_session_expired": "Сеанс підтримки завершився. Перепідключіться, щоб продовжити.",
   "respondkit_identity_changed": "Обліковий запис підтримки змінено в іншій вкладці. Перепідключіться, щоб перезавантажити свій обліковий запис.",
   "respondkit_connecting": "Підтримка ще підключається.",
-  "respondkit_reconnect_upload": "Перепідключіться перед завантаженням."
+  "respondkit_reconnect_upload": "Перепідключіться перед завантаженням.",
+  "respondkit_message_too_long": "Введіть повідомлення довжиною до 6000 символів.",
+  "respondkit_message_limit": "Повідомлення можуть містити до 6000 символів.",
+  "respondkit_closed_start_new": "Цю розмову закрито. Почніть нову розмову.",
+  "respondkit_logout_failed": "Не вдалося відкликати попередній сеанс підтримки. Він завершиться автоматично.",
+  "respondkit_history_save_failed": "Не вдалося зберегти історію звернень до підтримки.",
+  "respondkit_done": "Готово",
+  "respondkit_unread_reply": "Непрочитана відповідь",
+  "respondkit_reconnecting": "Повторне підключення. Ваші наявні повідомлення досі доступні.",
+  "respondkit_conversation_label": "Розмова",
+  "respondkit_identity_unverified": "Не вдалося підтвердити особу для підтримки."
 }

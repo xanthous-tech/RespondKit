@@ -10,14 +10,17 @@
     <string name="respondkit_close_chat" formatted="false">"ஆதரவு அரட்டையை மூடு"</string>
     <string name="respondkit_closed" formatted="false">"மூடப்பட்டது"</string>
     <string name="respondkit_closed_help" formatted="false">"இந்த உரையாடல் மூடப்பட்டுள்ளது."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"இந்த உரையாடல் மூடப்பட்டது. புதிய உரையாடலைத் தொடங்கவும்."</string>
     <string name="respondkit_confirming" formatted="false">"உறுதிப்படுத்துகிறது…"</string>
     <string name="respondkit_connecting" formatted="false">"ஆதரவு இன்னும் இணைக்கப்படுகிறது."</string>
     <string name="respondkit_conversation">"உரையாடல் %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"உரையாடல்"</string>
     <string name="respondkit_conversations" formatted="false">"உரையாடல்கள்"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"உரையாடல்கள் · %1$d படிக்காதது"</item>
         <item quantity="other">"உரையாடல்கள் · %1$d படிக்காதவை"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"முடிந்தது"</string>
     <string name="respondkit_email_address" formatted="false">"மின்னஞ்சல் முகவரி"</string>
     <string name="respondkit_email_failed" formatted="false">"உங்கள் மின்னஞ்சலைச் சேமிக்க முடியவில்லை. சரிபார்த்து மீண்டும் முயலவும்."</string>
     <string name="respondkit_email_prompt" formatted="false">"பதிலை எந்த மின்னஞ்சலுக்கு அனுப்ப வேண்டும்?"</string>
@@ -26,13 +29,18 @@
     <string name="respondkit_files" formatted="false">"கோப்புகள்"</string>
     <string name="respondkit_help" formatted="false">"நாங்கள் எப்படி உதவலாம்?"</string>
     <string name="respondkit_history_failed" formatted="false">"உரையாடல் வரலாற்றை ஏற்ற முடியவில்லை. ‘மேலும்’ என்பதை மீண்டும் தேர்ந்தெடுக்கவும்."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"ஆதரவு வரலாற்றைச் சேமிக்க முடியவில்லை."</string>
     <string name="respondkit_identity_changed" formatted="false">"வேறொரு தாவலில் ஆதரவுக் கணக்கு மாற்றப்பட்டது. உங்கள் கணக்கை மீண்டும் ஏற்ற மீண்டும் இணையவும்."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"ஆதரவு அடையாளத்தைச் சரிபார்க்க முடியவில்லை."</string>
     <string name="respondkit_intro" formatted="false">"செய்தியை அனுப்பிவிட்டு, விரைவான பதிலுக்கு இந்தப் பக்கத்தைத் திறந்தே வைத்திருங்கள்."</string>
     <string name="respondkit_intro_short" formatted="false">"உரையாடலைத் தொடங்க ஒரு செய்தியை அனுப்புங்கள்."</string>
     <string name="respondkit_latest" formatted="false">"சமீபத்திய செய்திகள்"</string>
     <string name="respondkit_loading" formatted="false">"ஏற்றுகிறது…"</string>
     <string name="respondkit_loading_messages" formatted="false">"செய்திகளை ஏற்றுகிறது"</string>
+    <string name="respondkit_logout_failed" formatted="false">"முந்தைய ஆதரவு அமர்வைத் திரும்பப்பெற முடியவில்லை. அது தானாகவே காலாவதியாகும்."</string>
     <string name="respondkit_message" formatted="false">"செய்தி"</string>
+    <string name="respondkit_message_limit" formatted="false">"செய்திகளில் அதிகபட்சம் 6,000 எழுத்துகள் இருக்கலாம்."</string>
+    <string name="respondkit_message_too_long" formatted="false">"6,000 எழுத்துகள் வரையிலான செய்தியை உள்ளிடவும்."</string>
     <string name="respondkit_messages_failed" formatted="false">"புதிய செய்திகளை ஏற்ற முடியவில்லை."</string>
     <string name="respondkit_more" formatted="false">"மேலும்"</string>
     <string name="respondkit_new_conversation" formatted="false">"புதிய உரையாடல்"</string>
@@ -47,6 +55,7 @@
     <string name="respondkit_ready" formatted="false">"தயார்"</string>
     <string name="respondkit_reconnect" formatted="false">"மீண்டும் இணை"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"பதிவேற்றும் முன் மீண்டும் இணையவும்."</string>
+    <string name="respondkit_reconnecting" formatted="false">"மீண்டும் இணைக்கிறது. உங்கள் தற்போதைய செய்திகள் இன்னும் கிடைக்கின்றன."</string>
     <string name="respondkit_remove" formatted="false">"அகற்று"</string>
     <string name="respondkit_remove_file">"அகற்று: %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"ஆதரவுக் கோரிக்கை தோல்வியடைந்தது."</string>
@@ -72,6 +81,7 @@
     <string name="respondkit_try_again" formatted="false">"மீண்டும் முயலவும்"</string>
     <string name="respondkit_unknown" formatted="false">"உறுதிப்படுத்தப்படவில்லை — பாதுகாப்பாக மீண்டும் முயலலாம்"</string>
     <string name="respondkit_unread" formatted="false">"படிக்காத ஆதரவுப் பதில்"</string>
+    <string name="respondkit_unread_reply" formatted="false">"படிக்காத பதில்"</string>
     <string name="respondkit_upload_failed" formatted="false">"பதிவேற்றம் தோல்வியடைந்தது"</string>
     <string name="respondkit_write_message" formatted="false">"செய்தியை எழுதுங்கள்…"</string>
 </resources>

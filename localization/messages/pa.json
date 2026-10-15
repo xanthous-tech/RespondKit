@@ -89,5 +89,15 @@
   "respondkit_session_expired": "ਤੁਹਾਡੇ ਸਹਾਇਤਾ ਸੈਸ਼ਨ ਦੀ ਮਿਆਦ ਪੁੱਗ ਗਈ ਹੈ। ਜਾਰੀ ਰੱਖਣ ਲਈ ਦੁਬਾਰਾ ਕਨੈਕਟ ਕਰੋ।",
   "respondkit_identity_changed": "ਕਿਸੇ ਹੋਰ ਟੈਬ ਵਿੱਚ ਸਹਾਇਤਾ ਪਛਾਣ ਬਦਲ ਗਈ ਹੈ। ਆਪਣਾ ਖਾਤਾ ਮੁੜ ਲੋਡ ਕਰਨ ਲਈ ਦੁਬਾਰਾ ਕਨੈਕਟ ਕਰੋ।",
   "respondkit_connecting": "ਸਹਾਇਤਾ ਅਜੇ ਵੀ ਕਨੈਕਟ ਹੋ ਰਹੀ ਹੈ।",
-  "respondkit_reconnect_upload": "ਅੱਪਲੋਡ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਦੁਬਾਰਾ ਕਨੈਕਟ ਕਰੋ।"
+  "respondkit_reconnect_upload": "ਅੱਪਲੋਡ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਦੁਬਾਰਾ ਕਨੈਕਟ ਕਰੋ।",
+  "respondkit_message_too_long": "6,000 ਅੱਖਰਾਂ ਤੱਕ ਦਾ ਸੁਨੇਹਾ ਲਿਖੋ।",
+  "respondkit_message_limit": "ਸੁਨੇਹਿਆਂ ਵਿੱਚ ਵੱਧ ਤੋਂ ਵੱਧ 6,000 ਅੱਖਰ ਹੋ ਸਕਦੇ ਹਨ।",
+  "respondkit_closed_start_new": "ਇਹ ਗੱਲਬਾਤ ਬੰਦ ਹੈ। ਨਵੀਂ ਗੱਲਬਾਤ ਸ਼ੁਰੂ ਕਰੋ।",
+  "respondkit_logout_failed": "ਪਿਛਲਾ ਸਹਾਇਤਾ ਸੈਸ਼ਨ ਰੱਦ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ। ਇਹ ਆਪਣੇ ਆਪ ਖਤਮ ਹੋ ਜਾਵੇਗਾ।",
+  "respondkit_history_save_failed": "ਸਹਾਇਤਾ ਇਤਿਹਾਸ ਸੁਰੱਖਿਅਤ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ।",
+  "respondkit_done": "ਹੋ ਗਿਆ",
+  "respondkit_unread_reply": "ਨਾ ਪੜ੍ਹਿਆ ਜਵਾਬ",
+  "respondkit_reconnecting": "ਮੁੜ ਕਨੈਕਟ ਹੋ ਰਿਹਾ ਹੈ। ਤੁਹਾਡੇ ਮੌਜੂਦਾ ਸੁਨੇਹੇ ਹਾਲੇ ਵੀ ਉਪਲਬਧ ਹਨ।",
+  "respondkit_conversation_label": "ਗੱਲਬਾਤ",
+  "respondkit_identity_unverified": "ਸਹਾਇਤਾ ਪਛਾਣ ਦੀ ਪੁਸ਼ਟੀ ਨਹੀਂ ਹੋ ਸਕੀ।"
 }

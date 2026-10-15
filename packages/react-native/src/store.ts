@@ -17,6 +17,13 @@ import {
   ThreadV1Schema,
 } from "@respondkit/protocol";
 import { z } from "zod";
+import { messages } from "./messages";
+import { PresentedError, presentedMessage } from "./presented-error";
+
+/** The catalog for the device locale, the same source the screen reads. */
+function deviceMessages() {
+  return messages(Intl.DateTimeFormat().resolvedOptions().locale);
+}
 
 export interface RespondKitPersistence {
   load(): Promise<string | null>;
@@ -81,7 +88,9 @@ export interface SupportSnapshot {
   readonly cursor: string;
   readonly loading: boolean;
   readonly sending: boolean;
+  /** Presentation text in the device language; `errorDetail` keeps the underlying diagnostic. */
   readonly error: string | undefined;
+  readonly errorDetail: string | undefined;
   readonly email: string | undefined;
   /** True only once this identity's contact lookup has finished without finding an email. */
   readonly asksForEmail: boolean;
@@ -141,6 +150,7 @@ export class RespondKitStore {
   private loading = false;
   private sending = false;
   private error: string | undefined;
+  private errorDetail: string | undefined;
   private refreshTask: Promise<void> | undefined;
 
   private constructor(
@@ -219,6 +229,7 @@ export class RespondKitStore {
       loading: this.loading,
       sending: this.sending,
       error: this.error,
+      errorDetail: this.errorDetail,
       email: this.context.email,
       asksForEmail: this.contactResolved && !this.context.email,
       fresh:
@@ -247,9 +258,10 @@ export class RespondKitStore {
           await operation(epoch);
           this.check(epoch);
           this.error = undefined;
+          this.errorDetail = undefined;
         } catch (error) {
           if (epoch === this.epoch)
-            this.error = error instanceof Error ? error.message : "Support request failed.";
+            this.report(error, deviceMessages().respondkit_request_failed());
         } finally {
           if (epoch === this.epoch) {
             this.loading = false;
@@ -274,7 +286,7 @@ export class RespondKitStore {
     const identityToken = await this.getIdentityToken?.();
     this.check(epoch);
     if (this.getIdentityToken && !identityToken)
-      throw new Error("Support identity could not be verified.");
+      throw new PresentedError(deviceMessages().respondkit_identity_unverified());
     const result = await this.client.createSession({
       inboxId: this.options.inboxId,
       installationId: this.data.installationId,
@@ -355,9 +367,13 @@ export class RespondKitStore {
     this.data.drafts[this.data.selected ?? "new"] = text;
     this.publish();
     return this.persist().catch((error) => {
-      this.error = String(error);
+      this.report(error, deviceMessages().respondkit_history_save_failed());
       this.publish();
     });
+  }
+  private report(error: unknown, fallback: string) {
+    this.error = presentedMessage(error, fallback);
+    this.errorDetail = error instanceof Error ? error.message : String(error);
   }
   updateIdentity(
     context: CustomerContextV1,
@@ -378,6 +394,7 @@ export class RespondKitStore {
     this.loading = false;
     this.sending = false;
     this.error = undefined;
+    this.errorDetail = undefined;
     if (changed) {
       this.data = freshState(this.options, context.userId);
       this.freshThreads.clear();
@@ -486,7 +503,9 @@ export class RespondKitStore {
     return file;
   }
   sendDraft(attachments: AttachmentV1[] = []): Promise<void> {
-    const text = this.snapshot.draft.trim() || (attachments.length ? "Attached files" : "");
+    const text =
+      this.snapshot.draft.trim() ||
+      (attachments.length ? deviceMessages().respondkit_attached_files() : "");
     if (
       !text ||
       text.length > 6_000 ||

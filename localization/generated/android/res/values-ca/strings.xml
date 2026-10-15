@@ -10,15 +10,18 @@
     <string name="respondkit_close_chat" formatted="false">"Tanca el xat d\'assistència"</string>
     <string name="respondkit_closed" formatted="false">"Tancada"</string>
     <string name="respondkit_closed_help" formatted="false">"Aquesta conversa està tancada."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"Aquesta conversa està tancada. Comença una conversa nova."</string>
     <string name="respondkit_confirming" formatted="false">"S\'està confirmant…"</string>
     <string name="respondkit_connecting" formatted="false">"L\'assistència encara s\'està connectant."</string>
     <string name="respondkit_conversation">"Conversa %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Conversa"</string>
     <string name="respondkit_conversations" formatted="false">"Converses"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Converses · %1$d sense llegir"</item>
         <item quantity="many">"Converses · %1$d sense llegir"</item>
         <item quantity="other">"Converses · %1$d sense llegir"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Fet"</string>
     <string name="respondkit_email_address" formatted="false">"Adreça electrònica"</string>
     <string name="respondkit_email_failed" formatted="false">"No hem pogut desar el teu correu. Comprova\'l i torna-ho a provar."</string>
     <string name="respondkit_email_prompt" formatted="false">"A quin correu et podem enviar la resposta?"</string>
@@ -27,13 +30,18 @@
     <string name="respondkit_files" formatted="false">"Fitxers"</string>
     <string name="respondkit_help" formatted="false">"Com et podem ajudar?"</string>
     <string name="respondkit_history_failed" formatted="false">"No s\'ha pogut carregar l\'historial de la conversa. Torna a tocar «Més»."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"No s\'ha pogut desar l\'historial d\'assistència."</string>
     <string name="respondkit_identity_changed" formatted="false">"La identitat d\'assistència ha canviat en una altra pestanya. Torna a connectar per recarregar el teu compte."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"No s\'ha pogut verificar la identitat d\'assistència."</string>
     <string name="respondkit_intro" formatted="false">"Envia un missatge i mantén aquesta pàgina oberta per rebre una resposta ràpida."</string>
     <string name="respondkit_intro_short" formatted="false">"Envia un missatge per començar una conversa."</string>
     <string name="respondkit_latest" formatted="false">"Missatges més recents"</string>
     <string name="respondkit_loading" formatted="false">"S\'està carregant…"</string>
     <string name="respondkit_loading_messages" formatted="false">"S\'estan carregant els missatges"</string>
+    <string name="respondkit_logout_failed" formatted="false">"No s\'ha pogut revocar la sessió d\'assistència anterior. Caducarà automàticament."</string>
     <string name="respondkit_message" formatted="false">"Missatge"</string>
+    <string name="respondkit_message_limit" formatted="false">"Els missatges poden tenir fins a 6.000 caràcters."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Escriu un missatge de fins a 6.000 caràcters."</string>
     <string name="respondkit_messages_failed" formatted="false">"No s\'han pogut carregar els missatges nous."</string>
     <string name="respondkit_more" formatted="false">"Més"</string>
     <string name="respondkit_new_conversation" formatted="false">"Conversa nova"</string>
@@ -49,6 +57,7 @@
     <string name="respondkit_ready" formatted="false">"A punt"</string>
     <string name="respondkit_reconnect" formatted="false">"Torna a connectar"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Torna a connectar abans de pujar fitxers."</string>
+    <string name="respondkit_reconnecting" formatted="false">"S\'està tornant a connectar. Els teus missatges continuen disponibles."</string>
     <string name="respondkit_remove" formatted="false">"Elimina"</string>
     <string name="respondkit_remove_file">"Elimina %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"La sol·licitud d\'assistència ha fallat."</string>
@@ -75,6 +84,7 @@
     <string name="respondkit_try_again" formatted="false">"Torna-ho a provar"</string>
     <string name="respondkit_unknown" formatted="false">"No confirmat: pots tornar-ho a provar sense risc"</string>
     <string name="respondkit_unread" formatted="false">"Resposta d\'assistència no llegida"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Resposta no llegida"</string>
     <string name="respondkit_upload_failed" formatted="false">"No s\'ha pogut pujar"</string>
     <string name="respondkit_write_message" formatted="false">"Escriu un missatge…"</string>
 </resources>

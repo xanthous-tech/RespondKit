@@ -10,14 +10,17 @@
     <string name="respondkit_close_chat" formatted="false">"പിന്തുണ ചാറ്റ് അടയ്ക്കുക"</string>
     <string name="respondkit_closed" formatted="false">"അടച്ചത്"</string>
     <string name="respondkit_closed_help" formatted="false">"ഈ സംഭാഷണം അവസാനിപ്പിച്ചു."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"ഈ സംഭാഷണം അവസാനിച്ചു. പുതിയൊരു സംഭാഷണം ആരംഭിക്കുക."</string>
     <string name="respondkit_confirming" formatted="false">"സ്ഥിരീകരിക്കുന്നു…"</string>
     <string name="respondkit_connecting" formatted="false">"പിന്തുണ ഇപ്പോഴും കണക്റ്റ് ചെയ്യുന്നു."</string>
     <string name="respondkit_conversation">"സംഭാഷണം %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"സംഭാഷണം"</string>
     <string name="respondkit_conversations" formatted="false">"സംഭാഷണങ്ങൾ"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"സംഭാഷണങ്ങൾ · %1$d വായിക്കാത്തത്"</item>
         <item quantity="other">"സംഭാഷണങ്ങൾ · %1$d വായിക്കാത്തവ"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"പൂർത്തിയായി"</string>
     <string name="respondkit_email_address" formatted="false">"ഇമെയിൽ വിലാസം"</string>
     <string name="respondkit_email_failed" formatted="false">"നിങ്ങളുടെ ഇമെയിൽ സംരക്ഷിക്കാനായില്ല. അത് പരിശോധിച്ച് വീണ്ടും ശ്രമിക്കുക."</string>
     <string name="respondkit_email_prompt" formatted="false">"മറുപടി ഏത് ഇമെയിലിലേക്ക് അയയ്ക്കണം?"</string>
@@ -26,13 +29,18 @@
     <string name="respondkit_files" formatted="false">"ഫയലുകൾ"</string>
     <string name="respondkit_help" formatted="false">"ഞങ്ങൾ എങ്ങനെ സഹായിക്കണം?"</string>
     <string name="respondkit_history_failed" formatted="false">"സംഭാഷണ ചരിത്രം ലോഡ് ചെയ്യാനായില്ല. കൂടുതൽ എന്നതിൽ വീണ്ടും ശ്രമിക്കുക."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"സപ്പോർട്ട് ചരിത്രം സംരക്ഷിക്കാനായില്ല."</string>
     <string name="respondkit_identity_changed" formatted="false">"മറ്റൊരു ടാബിൽ പിന്തുണ അക്കൗണ്ട് മാറി. നിങ്ങളുടെ അക്കൗണ്ട് റീലോഡ് ചെയ്യാൻ വീണ്ടും കണക്റ്റ് ചെയ്യുക."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"സപ്പോർട്ട് ഐഡന്റിറ്റി സ്ഥിരീകരിക്കാനായില്ല."</string>
     <string name="respondkit_intro" formatted="false">"ഒരു സന്ദേശം അയച്ച് വേഗത്തിൽ മറുപടി ലഭിക്കാൻ ഈ പേജ് തുറന്നുവയ്ക്കുക."</string>
     <string name="respondkit_intro_short" formatted="false">"സംഭാഷണം ആരംഭിക്കാൻ ഒരു സന്ദേശം അയയ്ക്കുക."</string>
     <string name="respondkit_latest" formatted="false">"ഏറ്റവും പുതിയ സന്ദേശങ്ങൾ"</string>
     <string name="respondkit_loading" formatted="false">"ലോഡ് ചെയ്യുന്നു…"</string>
     <string name="respondkit_loading_messages" formatted="false">"സന്ദേശങ്ങൾ ലോഡ് ചെയ്യുന്നു"</string>
+    <string name="respondkit_logout_failed" formatted="false">"മുമ്പത്തെ സപ്പോർട്ട് സെഷൻ റദ്ദാക്കാനായില്ല. അത് സ്വയമേവ കാലഹരണപ്പെടും."</string>
     <string name="respondkit_message" formatted="false">"സന്ദേശം"</string>
+    <string name="respondkit_message_limit" formatted="false">"സന്ദേശങ്ങളിൽ പരമാവധി 6,000 പ്രതീകങ്ങൾ ഉണ്ടാകാം."</string>
+    <string name="respondkit_message_too_long" formatted="false">"6,000 പ്രതീകങ്ങൾ വരെയുള്ള ഒരു സന്ദേശം നൽകുക."</string>
     <string name="respondkit_messages_failed" formatted="false">"പുതിയ സന്ദേശങ്ങൾ ലോഡ് ചെയ്യാനായില്ല."</string>
     <string name="respondkit_more" formatted="false">"കൂടുതൽ"</string>
     <string name="respondkit_new_conversation" formatted="false">"പുതിയ സംഭാഷണം"</string>
@@ -47,6 +55,7 @@
     <string name="respondkit_ready" formatted="false">"തയ്യാർ"</string>
     <string name="respondkit_reconnect" formatted="false">"വീണ്ടും കണക്റ്റ് ചെയ്യുക"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"അപ്‌ലോഡ് ചെയ്യുന്നതിന് മുമ്പ് വീണ്ടും കണക്റ്റ് ചെയ്യുക."</string>
+    <string name="respondkit_reconnecting" formatted="false">"വീണ്ടും കണക്റ്റ് ചെയ്യുന്നു. നിങ്ങളുടെ നിലവിലുള്ള സന്ദേശങ്ങൾ ഇപ്പോഴും ലഭ്യമാണ്."</string>
     <string name="respondkit_remove" formatted="false">"നീക്കം ചെയ്യുക"</string>
     <string name="respondkit_remove_file">"%1$s നീക്കം ചെയ്യുക"</string>
     <string name="respondkit_request_failed" formatted="false">"പിന്തുണ അഭ്യർത്ഥന പരാജയപ്പെട്ടു."</string>
@@ -72,6 +81,7 @@
     <string name="respondkit_try_again" formatted="false">"വീണ്ടും ശ്രമിക്കുക"</string>
     <string name="respondkit_unknown" formatted="false">"സ്ഥിരീകരിച്ചിട്ടില്ല — സുരക്ഷിതമായി വീണ്ടും ശ്രമിക്കാം"</string>
     <string name="respondkit_unread" formatted="false">"വായിക്കാത്ത പിന്തുണ മറുപടി"</string>
+    <string name="respondkit_unread_reply" formatted="false">"വായിക്കാത്ത മറുപടി"</string>
     <string name="respondkit_upload_failed" formatted="false">"അപ്‌ലോഡ് പരാജയപ്പെട്ടു"</string>
     <string name="respondkit_write_message" formatted="false">"ഒരു സന്ദേശം എഴുതുക…"</string>
 </resources>

@@ -10,9 +10,11 @@
     <string name="respondkit_close_chat" formatted="false">"Zavřít chat podpory"</string>
     <string name="respondkit_closed" formatted="false">"Uzavřená"</string>
     <string name="respondkit_closed_help" formatted="false">"Tato konverzace je uzavřená."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"Tato konverzace je uzavřená. Zahajte novou konverzaci."</string>
     <string name="respondkit_confirming" formatted="false">"Potvrzování…"</string>
     <string name="respondkit_connecting" formatted="false">"Podpora se stále připojuje."</string>
     <string name="respondkit_conversation">"Konverzace %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Konverzace"</string>
     <string name="respondkit_conversations" formatted="false">"Konverzace"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Konverzace · %1$d nepřečtená"</item>
@@ -20,6 +22,7 @@
         <item quantity="many">"Konverzace · %1$d nepřečtené"</item>
         <item quantity="other">"Konverzace · %1$d nepřečtených"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Hotovo"</string>
     <string name="respondkit_email_address" formatted="false">"E-mailová adresa"</string>
     <string name="respondkit_email_failed" formatted="false">"E-mail se nepodařilo uložit. Zkontrolujte ho a zkuste to znovu."</string>
     <string name="respondkit_email_prompt" formatted="false">"Na jaký e-mail vám můžeme odpovědět?"</string>
@@ -28,13 +31,18 @@
     <string name="respondkit_files" formatted="false">"Soubory"</string>
     <string name="respondkit_help" formatted="false">"Jak vám můžeme pomoci?"</string>
     <string name="respondkit_history_failed" formatted="false">"Historii konverzace se nepodařilo načíst. Zkuste znovu „Další“."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"Historii podpory se nepodařilo uložit."</string>
     <string name="respondkit_identity_changed" formatted="false">"Identita podpory se změnila na jiné kartě. Znovu se připojte a načtěte svůj účet."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"Identitu pro podporu se nepodařilo ověřit."</string>
     <string name="respondkit_intro" formatted="false">"Pošlete zprávu a nechte tuto stránku otevřenou, ať vám můžeme rychle odpovědět."</string>
     <string name="respondkit_intro_short" formatted="false">"Pošlete zprávu a zahajte konverzaci."</string>
     <string name="respondkit_latest" formatted="false">"Nejnovější zprávy"</string>
     <string name="respondkit_loading" formatted="false">"Načítání…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Načítání zpráv"</string>
+    <string name="respondkit_logout_failed" formatted="false">"Předchozí relaci podpory se nepodařilo zrušit. Platnost vyprší automaticky."</string>
     <string name="respondkit_message" formatted="false">"Zpráva"</string>
+    <string name="respondkit_message_limit" formatted="false">"Zprávy mohou mít nejvýše 6 000 znaků."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Zadejte zprávu o délce nejvýše 6 000 znaků."</string>
     <string name="respondkit_messages_failed" formatted="false">"Nové zprávy se nepodařilo načíst."</string>
     <string name="respondkit_more" formatted="false">"Další"</string>
     <string name="respondkit_new_conversation" formatted="false">"Nová konverzace"</string>
@@ -51,6 +59,7 @@
     <string name="respondkit_ready" formatted="false">"Připraveno"</string>
     <string name="respondkit_reconnect" formatted="false">"Znovu připojit"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Před nahráním se znovu připojte."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Probíhá opětovné připojení. Vaše dosavadní zprávy jsou stále k dispozici."</string>
     <string name="respondkit_remove" formatted="false">"Odebrat"</string>
     <string name="respondkit_remove_file">"Odebrat %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"Požadavek na podporu se nezdařil."</string>
@@ -78,6 +87,7 @@
     <string name="respondkit_try_again" formatted="false">"Zkusit znovu"</string>
     <string name="respondkit_unknown" formatted="false">"Nepotvrzeno – můžete bezpečně zkusit znovu"</string>
     <string name="respondkit_unread" formatted="false">"Nepřečtená odpověď podpory"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Nepřečtená odpověď"</string>
     <string name="respondkit_upload_failed" formatted="false">"Nahrání se nezdařilo"</string>
     <string name="respondkit_write_message" formatted="false">"Napište zprávu…"</string>
 </resources>

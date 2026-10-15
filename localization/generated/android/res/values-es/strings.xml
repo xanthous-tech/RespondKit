@@ -10,15 +10,18 @@
     <string name="respondkit_close_chat" formatted="false">"Cerrar chat de soporte"</string>
     <string name="respondkit_closed" formatted="false">"Cerrada"</string>
     <string name="respondkit_closed_help" formatted="false">"Esta conversación está cerrada."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"Esta conversación está cerrada. Inicia una conversación nueva."</string>
     <string name="respondkit_confirming" formatted="false">"Confirmando…"</string>
     <string name="respondkit_connecting" formatted="false">"El soporte aún se está conectando."</string>
     <string name="respondkit_conversation">"Conversación %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Conversación"</string>
     <string name="respondkit_conversations" formatted="false">"Conversaciones"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Conversaciones · %1$d sin leer"</item>
         <item quantity="many">"Conversaciones · %1$d sin leer"</item>
         <item quantity="other">"Conversaciones · %1$d sin leer"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Listo"</string>
     <string name="respondkit_email_address" formatted="false">"Correo electrónico"</string>
     <string name="respondkit_email_failed" formatted="false">"No pudimos guardar tu correo. Revísalo y vuelve a intentarlo."</string>
     <string name="respondkit_email_prompt" formatted="false">"¿A qué correo podemos enviarte la respuesta?"</string>
@@ -27,13 +30,18 @@
     <string name="respondkit_files" formatted="false">"Archivos"</string>
     <string name="respondkit_help" formatted="false">"¿Cómo podemos ayudarte?"</string>
     <string name="respondkit_history_failed" formatted="false">"No se pudo cargar el historial de la conversación. Vuelve a tocar «Más»."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"No se pudo guardar el historial de soporte."</string>
     <string name="respondkit_identity_changed" formatted="false">"La identidad de soporte cambió en otra pestaña. Reconecta para volver a cargar tu cuenta."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"No se pudo verificar la identidad de soporte."</string>
     <string name="respondkit_intro" formatted="false">"Envía un mensaje y mantén esta página abierta para recibir una respuesta rápida."</string>
     <string name="respondkit_intro_short" formatted="false">"Envía un mensaje para iniciar una conversación."</string>
     <string name="respondkit_latest" formatted="false">"Mensajes más recientes"</string>
     <string name="respondkit_loading" formatted="false">"Cargando…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Cargando mensajes"</string>
+    <string name="respondkit_logout_failed" formatted="false">"No se pudo revocar la sesión de soporte anterior. Caducará automáticamente."</string>
     <string name="respondkit_message" formatted="false">"Mensaje"</string>
+    <string name="respondkit_message_limit" formatted="false">"Los mensajes pueden tener hasta 6000 caracteres."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Escribe un mensaje de hasta 6000 caracteres."</string>
     <string name="respondkit_messages_failed" formatted="false">"No se pudieron cargar los mensajes nuevos."</string>
     <string name="respondkit_more" formatted="false">"Más"</string>
     <string name="respondkit_new_conversation" formatted="false">"Nueva conversación"</string>
@@ -49,6 +57,7 @@
     <string name="respondkit_ready" formatted="false">"Listo"</string>
     <string name="respondkit_reconnect" formatted="false">"Reconectar"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Reconecta antes de subir archivos."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Reconectando. Tus mensajes siguen disponibles."</string>
     <string name="respondkit_remove" formatted="false">"Quitar"</string>
     <string name="respondkit_remove_file">"Quitar %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"Error en la solicitud de soporte."</string>
@@ -75,6 +84,7 @@
     <string name="respondkit_try_again" formatted="false">"Volver a intentarlo"</string>
     <string name="respondkit_unknown" formatted="false">"Sin confirmar: puedes reintentar sin riesgo"</string>
     <string name="respondkit_unread" formatted="false">"Respuesta de soporte sin leer"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Respuesta no leída"</string>
     <string name="respondkit_upload_failed" formatted="false">"Error al subir"</string>
     <string name="respondkit_write_message" formatted="false">"Escribe un mensaje…"</string>
 </resources>

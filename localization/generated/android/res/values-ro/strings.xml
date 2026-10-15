@@ -10,15 +10,18 @@
     <string name="respondkit_close_chat" formatted="false">"Închideți chatul de asistență"</string>
     <string name="respondkit_closed" formatted="false">"Închisă"</string>
     <string name="respondkit_closed_help" formatted="false">"Această conversație este închisă."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"Această conversație este închisă. Începeți o conversație nouă."</string>
     <string name="respondkit_confirming" formatted="false">"Se confirmă…"</string>
     <string name="respondkit_connecting" formatted="false">"Asistența încă se conectează."</string>
     <string name="respondkit_conversation">"Conversație din %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Conversație"</string>
     <string name="respondkit_conversations" formatted="false">"Conversații"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Conversații · %1$d necitită"</item>
         <item quantity="few">"Conversații · %1$d necitite"</item>
         <item quantity="other">"Conversații · %1$d necitite"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Gata"</string>
     <string name="respondkit_email_address" formatted="false">"Adresă de e-mail"</string>
     <string name="respondkit_email_failed" formatted="false">"Nu am putut salva adresa de e-mail. Verificați-o și încercați din nou."</string>
     <string name="respondkit_email_prompt" formatted="false">"La ce adresă de e-mail vă putem răspunde?"</string>
@@ -27,13 +30,18 @@
     <string name="respondkit_files" formatted="false">"Fișiere"</string>
     <string name="respondkit_help" formatted="false">"Cu ce vă putem ajuta?"</string>
     <string name="respondkit_history_failed" formatted="false">"Istoricul conversației nu a putut fi încărcat. Încercați din nou cu Mai multe."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"Istoricul asistenței nu a putut fi salvat."</string>
     <string name="respondkit_identity_changed" formatted="false">"Identitatea de asistență s-a schimbat în altă filă. Reconectați-vă pentru a reîncărca contul."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"Identitatea de asistență nu a putut fi verificată."</string>
     <string name="respondkit_intro" formatted="false">"Trimiteți un mesaj și păstrați această pagină deschisă pentru un răspuns rapid."</string>
     <string name="respondkit_intro_short" formatted="false">"Trimiteți un mesaj pentru a începe o conversație."</string>
     <string name="respondkit_latest" formatted="false">"Cele mai recente mesaje"</string>
     <string name="respondkit_loading" formatted="false">"Se încarcă…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Se încarcă mesajele"</string>
+    <string name="respondkit_logout_failed" formatted="false">"Sesiunea de asistență anterioară nu a putut fi revocată. Va expira automat."</string>
     <string name="respondkit_message" formatted="false">"Mesaj"</string>
+    <string name="respondkit_message_limit" formatted="false">"Mesajele pot conține cel mult 6.000 de caractere."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Introduceți un mesaj de cel mult 6.000 de caractere."</string>
     <string name="respondkit_messages_failed" formatted="false">"Mesajele noi nu au putut fi încărcate."</string>
     <string name="respondkit_more" formatted="false">"Mai multe"</string>
     <string name="respondkit_new_conversation" formatted="false">"Conversație nouă"</string>
@@ -49,6 +57,7 @@
     <string name="respondkit_ready" formatted="false">"Gata"</string>
     <string name="respondkit_reconnect" formatted="false">"Reconectați-vă"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Reconectați-vă înainte de a încărca fișiere."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Se reconectează. Mesajele existente sunt în continuare disponibile."</string>
     <string name="respondkit_remove" formatted="false">"Eliminați"</string>
     <string name="respondkit_remove_file">"Eliminați %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"Solicitarea către asistență a eșuat."</string>
@@ -75,6 +84,7 @@
     <string name="respondkit_try_again" formatted="false">"Încercați din nou"</string>
     <string name="respondkit_unknown" formatted="false">"Neconfirmat — puteți reîncerca în siguranță"</string>
     <string name="respondkit_unread" formatted="false">"Răspuns necitit de la asistență"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Răspuns necitit"</string>
     <string name="respondkit_upload_failed" formatted="false">"Încărcarea a eșuat"</string>
     <string name="respondkit_write_message" formatted="false">"Scrieți un mesaj…"</string>
 </resources>

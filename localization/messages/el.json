@@ -90,5 +90,15 @@
   "respondkit_session_expired": "Η συνεδρία υποστήριξης έληξε. Επανασυνδεθείτε για να συνεχίσετε.",
   "respondkit_identity_changed": "Η ταυτότητα υποστήριξης άλλαξε σε άλλη καρτέλα. Επανασυνδεθείτε για να φορτώσετε ξανά τον λογαριασμό σας.",
   "respondkit_connecting": "Η υποστήριξη συνδέεται ακόμα.",
-  "respondkit_reconnect_upload": "Επανασυνδεθείτε πριν από τη μεταφόρτωση."
+  "respondkit_reconnect_upload": "Επανασυνδεθείτε πριν από τη μεταφόρτωση.",
+  "respondkit_message_too_long": "Εισαγάγετε ένα μήνυμα έως 6.000 χαρακτήρες.",
+  "respondkit_message_limit": "Τα μηνύματα μπορούν να περιέχουν έως 6.000 χαρακτήρες.",
+  "respondkit_closed_start_new": "Αυτή η συνομιλία έχει κλείσει. Ξεκινήστε νέα συνομιλία.",
+  "respondkit_logout_failed": "Δεν ήταν δυνατή η ανάκληση της προηγούμενης συνεδρίας υποστήριξης. Θα λήξει αυτόματα.",
+  "respondkit_history_save_failed": "Δεν ήταν δυνατή η αποθήκευση του ιστορικού υποστήριξης.",
+  "respondkit_done": "Τέλος",
+  "respondkit_unread_reply": "Μη αναγνωσμένη απάντηση",
+  "respondkit_reconnecting": "Γίνεται επανασύνδεση. Τα υπάρχοντα μηνύματά σας εξακολουθούν να είναι διαθέσιμα.",
+  "respondkit_conversation_label": "Συνομιλία",
+  "respondkit_identity_unverified": "Δεν ήταν δυνατή η επαλήθευση της ταυτότητας υποστήριξης."
 }

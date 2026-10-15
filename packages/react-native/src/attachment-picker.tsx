@@ -3,6 +3,7 @@ import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import type { AttachmentV1 } from "@respondkit/api-client";
 import { nativeFileSource, pickSupportFiles, type NativeFile } from "./files";
 import { messages } from "./messages";
+import { presentedMessage } from "./presented-error";
 import type { RespondKitStore } from "./store";
 interface Picked {
   id: string;
@@ -57,7 +58,9 @@ export function AttachmentPicker({
       update(item.id, { attachment });
     } catch (cause) {
       if (!controller.signal.aborted)
-        update(item.id, { error: cause instanceof Error ? cause.message : "Upload failed" });
+        update(item.id, {
+          error: presentedMessage(cause, t.respondkit_upload_failed()),
+        });
     } finally {
       controllers.current.delete(item.id);
     }
@@ -77,8 +80,7 @@ export function AttachmentPicker({
       setFiles((current) => [...current, ...incoming]);
       incoming.forEach((item) => void upload(item));
     } catch (cause) {
-      if (alive.current)
-        setError(cause instanceof Error ? cause.message : "Cannot open file picker");
+      if (alive.current) setError(presentedMessage(cause, t.respondkit_picker_failed()));
     }
   }
   return (
@@ -106,24 +108,28 @@ export function AttachmentPicker({
           <View key={item.id} style={{ paddingVertical: 5 }}>
             <Text numberOfLines={1}>
               {item.file.name} ·{" "}
-              {item.attachment ? "Ready" : item.error ? "Upload failed" : `${item.progress}%`}
+              {item.attachment
+                ? t.respondkit_ready()
+                : item.error
+                  ? t.respondkit_upload_failed()
+                  : `${item.progress}%`}
             </Text>
             {item.error ? <Text style={{ color: "#b91c1c" }}>{item.error}</Text> : null}
             <View style={{ flexDirection: "row", gap: 20 }}>
               {item.error ? (
                 <Pressable accessibilityRole="button" onPress={() => void upload(item)}>
-                  <Text>Retry</Text>
+                  <Text>{t.respondkit_retry()}</Text>
                 </Pressable>
               ) : null}
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={`Remove ${item.file.name}`}
+                accessibilityLabel={t.respondkit_remove_file({ name: item.file.name })}
                 onPress={() => {
                   controllers.current.get(item.id)?.abort();
                   setFiles((current) => current.filter((f) => f.id !== item.id));
                 }}
               >
-                <Text>Remove</Text>
+                <Text>{t.respondkit_remove()}</Text>
               </Pressable>
             </View>
           </View>

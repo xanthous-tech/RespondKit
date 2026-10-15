@@ -92,5 +92,15 @@
   "respondkit_session_expired": "Sesiunea de asistență a expirat. Reconectați-vă pentru a continua.",
   "respondkit_identity_changed": "Identitatea de asistență s-a schimbat în altă filă. Reconectați-vă pentru a reîncărca contul.",
   "respondkit_connecting": "Asistența încă se conectează.",
-  "respondkit_reconnect_upload": "Reconectați-vă înainte de a încărca fișiere."
+  "respondkit_reconnect_upload": "Reconectați-vă înainte de a încărca fișiere.",
+  "respondkit_message_too_long": "Introduceți un mesaj de cel mult 6.000 de caractere.",
+  "respondkit_message_limit": "Mesajele pot conține cel mult 6.000 de caractere.",
+  "respondkit_closed_start_new": "Această conversație este închisă. Începeți o conversație nouă.",
+  "respondkit_logout_failed": "Sesiunea de asistență anterioară nu a putut fi revocată. Va expira automat.",
+  "respondkit_history_save_failed": "Istoricul asistenței nu a putut fi salvat.",
+  "respondkit_done": "Gata",
+  "respondkit_unread_reply": "Răspuns necitit",
+  "respondkit_reconnecting": "Se reconectează. Mesajele existente sunt în continuare disponibile.",
+  "respondkit_conversation_label": "Conversație",
+  "respondkit_identity_unverified": "Identitatea de asistență nu a putut fi verificată."
 }

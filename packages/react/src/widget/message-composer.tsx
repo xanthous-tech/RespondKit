@@ -6,6 +6,7 @@ import { Button } from "#components/ui/button";
 import { Textarea } from "#components/ui/textarea";
 
 import { messages } from "./messages";
+import { presentedMessage } from "./presented-error";
 
 interface MessageComposerProps {
   readonly disabled: boolean;
@@ -34,6 +35,7 @@ export function MessageComposer({
   onUpload,
   scope,
 }: MessageComposerProps) {
+  const t = messages(locale);
   const [files, setFiles] = useState<Picked[]>([]);
   const fileInput = useRef<HTMLInputElement>(null);
   const controllers = useRef(new Map<string, AbortController>());
@@ -57,7 +59,9 @@ export function MessageComposer({
       update(item.id, { attachment });
     } catch (error) {
       if (!controller.signal.aborted)
-        update(item.id, { error: error instanceof Error ? error.message : "Upload failed" });
+        update(item.id, {
+          error: presentedMessage(error, t.respondkit_upload_failed()),
+        });
     } finally {
       controllers.current.delete(item.id);
     }
@@ -109,19 +113,20 @@ export function MessageComposer({
           {files.map((item) => (
             <li key={item.id} className="ac:flex ac:items-center ac:gap-2 ac:py-1">
               <span className="ac:min-w-0 ac:flex-1 ac:truncate">
-                {item.file.name} · {item.error ?? (item.attachment ? "Ready" : `${item.progress}%`)}
+                {item.file.name} ·{" "}
+                {item.error ?? (item.attachment ? t.respondkit_ready() : `${item.progress}%`)}
               </span>
               {item.error ? (
                 <button type="button" onClick={() => void upload(item)}>
-                  Retry
+                  {t.respondkit_retry()}
                 </button>
               ) : null}
               <button
                 type="button"
                 onClick={() => remove(item.id)}
-                aria-label={`Remove ${item.file.name}`}
+                aria-label={t.respondkit_remove_file({ name: item.file.name })}
               >
-                Remove
+                {t.respondkit_remove()}
               </button>
             </li>
           ))}
@@ -151,18 +156,18 @@ export function MessageComposer({
         className="ac:size-11 ac:shrink-0"
         disabled={disabled}
         onClick={() => fileInput.current?.click()}
-        aria-label={messages(locale).respondkit_attach_files()}
+        aria-label={t.respondkit_attach_files()}
       >
         <PaperclipIcon />
       </Button>
       <Textarea
-        aria-label="Message"
+        aria-label={t.respondkit_message()}
         className="ac:min-w-0 ac:flex-1 ac:max-h-36 ac:min-h-11 ac:resize-none ac:py-2.5 ac:leading-5"
         disabled={disabled}
         maxLength={6_000}
         onChange={(event) => setDraft(event.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Write a message…"
+        placeholder={t.respondkit_write_message()}
         rows={1}
         value={draft}
       />
@@ -171,7 +176,7 @@ export function MessageComposer({
         size="icon-lg"
         className="ac:size-11 ac:shrink-0"
         disabled={!canSend}
-        aria-label="Send message"
+        aria-label={t.respondkit_send_message()}
       >
         <SendIcon />
       </Button>

@@ -81,5 +81,15 @@
   "respondkit_session_expired": "Sesi sokongan anda telah tamat tempoh. Sambung semula untuk meneruskan.",
   "respondkit_identity_changed": "Identiti sokongan telah bertukar dalam tab lain. Sambung semula untuk memuatkan semula akaun anda.",
   "respondkit_connecting": "Sokongan masih menyambung.",
-  "respondkit_reconnect_upload": "Sambung semula sebelum memuat naik."
+  "respondkit_reconnect_upload": "Sambung semula sebelum memuat naik.",
+  "respondkit_message_too_long": "Masukkan mesej sehingga 6,000 aksara.",
+  "respondkit_message_limit": "Mesej boleh mengandungi sehingga 6,000 aksara.",
+  "respondkit_closed_start_new": "Perbualan ini telah ditutup. Mulakan perbualan baharu.",
+  "respondkit_logout_failed": "Sesi sokongan sebelumnya tidak dapat dibatalkan. Sesi itu akan tamat tempoh secara automatik.",
+  "respondkit_history_save_failed": "Sejarah sokongan tidak dapat disimpan.",
+  "respondkit_done": "Selesai",
+  "respondkit_unread_reply": "Balasan belum dibaca",
+  "respondkit_reconnecting": "Menyambung semula. Mesej sedia ada anda masih tersedia.",
+  "respondkit_conversation_label": "Perbualan",
+  "respondkit_identity_unverified": "Identiti sokongan tidak dapat disahkan."
 }

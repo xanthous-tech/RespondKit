@@ -8,7 +8,7 @@ import { cn } from "#lib/utils";
 
 import type { DisplayMessage, TranscriptState } from "./types";
 import { MessageText } from "./message-text";
-import { messages as catalog } from "./messages";
+import { messages as catalog, type Messages } from "./messages";
 
 interface MessageListProps {
   readonly greeting?: string | undefined;
@@ -37,14 +37,14 @@ function dayKey(date: Date) {
   return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
 }
 
-function deliveryLabel(message: DisplayMessage) {
-  if (message.localDelivery === "acceptance_unknown") return "Confirming…";
-  if (message.localDelivery === "optimistic") return "Sending…";
-  if (message.state === "failed") return "Failed";
+function deliveryLabel(message: DisplayMessage, t: Messages) {
+  if (message.localDelivery === "acceptance_unknown") return t.respondkit_confirming();
+  if (message.localDelivery === "optimistic") return t.respondkit_sending();
+  if (message.state === "failed") return t.respondkit_failed();
   if (message.localDelivery === "accepted" || message.state === "processing") {
-    return "Sent";
+    return t.respondkit_sent();
   }
-  if (message.state === "available") return "Sent";
+  if (message.state === "available") return t.respondkit_sent();
   return undefined;
 }
 
@@ -109,7 +109,10 @@ export function MessageList({
 
   if ((transcriptState === "idle" || transcriptState === "loading") && messages.length === 0) {
     return (
-      <div className="ac:flex ac:flex-1 ac:flex-col ac:gap-4 ac:p-4" aria-label="Loading messages">
+      <div
+        className="ac:flex ac:flex-1 ac:flex-col ac:gap-4 ac:p-4"
+        aria-label={t.respondkit_loading_messages()}
+      >
         <Skeleton className="ac:h-14 ac:w-3/4 ac:self-end" />
         <Skeleton className="ac:h-20 ac:w-4/5" />
         <Skeleton className="ac:h-12 ac:w-2/3 ac:self-end" />
@@ -150,7 +153,7 @@ export function MessageList({
             const failed =
               message.localDelivery === "failed_retryable" || message.state === "failed";
             const retryable = failed || message.localDelivery === "acceptance_unknown";
-            const status = customer ? deliveryLabel(message) : undefined;
+            const status = customer ? deliveryLabel(message, t) : undefined;
 
             return (
               <div className="ac:contents" key={message.key}>
@@ -209,7 +212,7 @@ export function MessageList({
                         onClick={() => onRetry(message.clientMessageId!)}
                       >
                         <AlertCircleIcon data-icon="inline-start" />
-                        Try again
+                        {t.respondkit_try_again()}
                       </Button>
                     ) : null}
                   </div>
@@ -226,10 +229,10 @@ export function MessageList({
           size="sm"
           className="ac:absolute ac:right-4 ac:bottom-3 ac:rounded-full ac:bg-background ac:shadow-sm"
           onClick={scrollToLatest}
-          aria-label={`Show ${unseenCount} new ${unseenCount === 1 ? "message" : "messages"}`}
+          aria-label={t.respondkit_show_new({ count: unseenCount })}
         >
           <ArrowDownIcon data-icon="inline-start" />
-          {unseenCount} new
+          {t.respondkit_new_count({ count: unseenCount })}
         </Button>
       ) : null}
     </div>

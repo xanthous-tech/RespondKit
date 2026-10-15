@@ -87,5 +87,15 @@
   "respondkit_session_expired": "ଆପଣଙ୍କ ସହାୟତା ସେସନ୍‌ର ମିଆଦ ଶେଷ ହୋଇଛି। ଜାରି ରଖିବାକୁ ପୁଣି ସଂଯୋଗ କରନ୍ତୁ।",
   "respondkit_identity_changed": "ଅନ୍ୟ ଏକ ଟ୍ୟାବ୍‌ରେ ସହାୟତା ପରିଚୟ ବଦଳିଯାଇଛି। ଆପଣଙ୍କ ଆକାଉଣ୍ଟ ପୁଣି ଲୋଡ୍ କରିବାକୁ ପୁଣି ସଂଯୋଗ କରନ୍ତୁ।",
   "respondkit_connecting": "ସହାୟତା ଏବେ ବି ସଂଯୋଗ ହେଉଛି।",
-  "respondkit_reconnect_upload": "ଅପଲୋଡ୍ କରିବା ପୂର୍ବରୁ ପୁଣି ସଂଯୋଗ କରନ୍ତୁ।"
+  "respondkit_reconnect_upload": "ଅପଲୋଡ୍ କରିବା ପୂର୍ବରୁ ପୁଣି ସଂଯୋଗ କରନ୍ତୁ।",
+  "respondkit_message_too_long": "6,000 ଅକ୍ଷର ପର୍ଯ୍ୟନ୍ତ ଏକ ବାର୍ତ୍ତା ଲେଖନ୍ତୁ।",
+  "respondkit_message_limit": "ବାର୍ତ୍ତାରେ ସର୍ବାଧିକ 6,000 ଅକ୍ଷର ରହିପାରିବ।",
+  "respondkit_closed_start_new": "ଏହି ବାର୍ତ୍ତାଳାପ ବନ୍ଦ ହୋଇଛି। ଏକ ନୂଆ ବାର୍ତ୍ତାଳାପ ଆରମ୍ଭ କରନ୍ତୁ।",
+  "respondkit_logout_failed": "ପୂର୍ବ ସହାୟତା ସେସନ୍ ବାତିଲ କରାଯାଇପାରିଲା ନାହିଁ। ଏହା ସ୍ୱୟଂଚାଳିତ ଭାବେ ସମାପ୍ତ ହେବ।",
+  "respondkit_history_save_failed": "ସହାୟତା ଇତିହାସ ସେଭ୍ କରାଯାଇପାରିଲା ନାହିଁ।",
+  "respondkit_done": "ହୋଇଗଲା",
+  "respondkit_unread_reply": "ପଢ଼ାଯାଇନଥିବା ଉତ୍ତର",
+  "respondkit_reconnecting": "ପୁଣି ସଂଯୋଗ କରାଯାଉଛି। ଆପଣଙ୍କ ବିଦ୍ୟମାନ ବାର୍ତ୍ତାଗୁଡ଼ିକ ଏବେ ବି ଉପଲବ୍ଧ।",
+  "respondkit_conversation_label": "ବାର୍ତ୍ତାଳାପ",
+  "respondkit_identity_unverified": "ସହାୟତା ପରିଚୟ ଯାଞ୍ଚ କରାଯାଇପାରିଲା ନାହିଁ।"
 }

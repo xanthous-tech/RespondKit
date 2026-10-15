@@ -90,5 +90,15 @@
   "respondkit_session_expired": "Tukiistuntosi on vanhentunut. Jatka yhdistämällä uudelleen.",
   "respondkit_identity_changed": "Tuen tunnistetiedot vaihtuivat toisessa välilehdessä. Lataa tilisi uudelleen yhdistämällä uudelleen.",
   "respondkit_connecting": "Yhteyttä tukeen muodostetaan vielä.",
-  "respondkit_reconnect_upload": "Yhdistä uudelleen ennen tiedostojen lataamista."
+  "respondkit_reconnect_upload": "Yhdistä uudelleen ennen tiedostojen lataamista.",
+  "respondkit_message_too_long": "Kirjoita enintään 6 000 merkin viesti.",
+  "respondkit_message_limit": "Viesteissä voi olla enintään 6 000 merkkiä.",
+  "respondkit_closed_start_new": "Tämä keskustelu on suljettu. Aloita uusi keskustelu.",
+  "respondkit_logout_failed": "Edellistä tukiistuntoa ei voitu peruuttaa. Se vanhenee automaattisesti.",
+  "respondkit_history_save_failed": "Tukihistoriaa ei voitu tallentaa.",
+  "respondkit_done": "Valmis",
+  "respondkit_unread_reply": "Lukematon vastaus",
+  "respondkit_reconnecting": "Yhdistetään uudelleen. Aiemmat viestisi ovat yhä saatavilla.",
+  "respondkit_conversation_label": "Keskustelu",
+  "respondkit_identity_unverified": "Tuen tunnistetta ei voitu vahvistaa."
 }

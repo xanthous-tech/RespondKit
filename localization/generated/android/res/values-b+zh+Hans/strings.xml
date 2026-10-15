@@ -10,13 +10,16 @@
     <string name="respondkit_close_chat" formatted="false">"关闭客服聊天"</string>
     <string name="respondkit_closed" formatted="false">"已关闭"</string>
     <string name="respondkit_closed_help" formatted="false">"此对话已关闭。"</string>
+    <string name="respondkit_closed_start_new" formatted="false">"此对话已关闭。请开始新对话。"</string>
     <string name="respondkit_confirming" formatted="false">"正在确认…"</string>
     <string name="respondkit_connecting" formatted="false">"客服仍在连接中。"</string>
     <string name="respondkit_conversation">"对话 %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"对话"</string>
     <string name="respondkit_conversations" formatted="false">"对话"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="other">"对话 · %1$d 条未读"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"完成"</string>
     <string name="respondkit_email_address" formatted="false">"邮箱地址"</string>
     <string name="respondkit_email_failed" formatted="false">"无法保存您的邮箱，请检查后重试。"</string>
     <string name="respondkit_email_prompt" formatted="false">"我们该把回复发送到哪个邮箱？"</string>
@@ -25,13 +28,18 @@
     <string name="respondkit_files" formatted="false">"文件"</string>
     <string name="respondkit_help" formatted="false">"有什么可以帮您？"</string>
     <string name="respondkit_history_failed" formatted="false">"无法加载对话记录。请再次选择“更多”。"</string>
+    <string name="respondkit_history_save_failed" formatted="false">"无法保存支持记录。"</string>
     <string name="respondkit_identity_changed" formatted="false">"客服身份已在其他标签页中更改。请重新连接以重新加载您的账户。"</string>
+    <string name="respondkit_identity_unverified" formatted="false">"无法验证支持身份。"</string>
     <string name="respondkit_intro" formatted="false">"发送消息后请保持此页面打开，以便及时收到回复。"</string>
     <string name="respondkit_intro_short" formatted="false">"发送消息即可开始对话。"</string>
     <string name="respondkit_latest" formatted="false">"最新消息"</string>
     <string name="respondkit_loading" formatted="false">"正在加载…"</string>
     <string name="respondkit_loading_messages" formatted="false">"正在加载消息"</string>
+    <string name="respondkit_logout_failed" formatted="false">"无法撤销之前的支持会话。该会话将自动过期。"</string>
     <string name="respondkit_message" formatted="false">"消息"</string>
+    <string name="respondkit_message_limit" formatted="false">"消息最多可包含 6,000 个字符。"</string>
+    <string name="respondkit_message_too_long" formatted="false">"请输入不超过 6,000 个字符的消息。"</string>
     <string name="respondkit_messages_failed" formatted="false">"无法加载新消息。"</string>
     <string name="respondkit_more" formatted="false">"更多"</string>
     <string name="respondkit_new_conversation" formatted="false">"新对话"</string>
@@ -45,6 +53,7 @@
     <string name="respondkit_ready" formatted="false">"已就绪"</string>
     <string name="respondkit_reconnect" formatted="false">"重新连接"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"请先重新连接再上传。"</string>
+    <string name="respondkit_reconnecting" formatted="false">"正在重新连接。您现有的消息仍然可用。"</string>
     <string name="respondkit_remove" formatted="false">"移除"</string>
     <string name="respondkit_remove_file">"移除 %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"客服请求失败。"</string>
@@ -69,6 +78,7 @@
     <string name="respondkit_try_again" formatted="false">"再试一次"</string>
     <string name="respondkit_unknown" formatted="false">"未确认 — 可放心重试"</string>
     <string name="respondkit_unread" formatted="false">"未读客服回复"</string>
+    <string name="respondkit_unread_reply" formatted="false">"未读回复"</string>
     <string name="respondkit_upload_failed" formatted="false">"上传失败"</string>
     <string name="respondkit_write_message" formatted="false">"输入消息…"</string>
 </resources>

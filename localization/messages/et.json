@@ -90,5 +90,15 @@
   "respondkit_session_expired": "Tugiseanss aegus. Jätkamiseks ühenda uuesti.",
   "respondkit_identity_changed": "Tugiidentiteet muutus teisel vahekaardil. Ühenda uuesti, et konto uuesti laadida.",
   "respondkit_connecting": "Tugi alles ühendub.",
-  "respondkit_reconnect_upload": "Enne üleslaadimist ühenda uuesti."
+  "respondkit_reconnect_upload": "Enne üleslaadimist ühenda uuesti.",
+  "respondkit_message_too_long": "Sisestage kuni 6000 tähemärgi pikkune sõnum.",
+  "respondkit_message_limit": "Sõnumid võivad sisaldada kuni 6000 tähemärki.",
+  "respondkit_closed_start_new": "See vestlus on suletud. Alustage uut vestlust.",
+  "respondkit_logout_failed": "Eelmist tugiseanssi ei õnnestunud tühistada. See aegub automaatselt.",
+  "respondkit_history_save_failed": "Toe ajalugu ei õnnestunud salvestada.",
+  "respondkit_done": "Valmis",
+  "respondkit_unread_reply": "Lugemata vastus",
+  "respondkit_reconnecting": "Ühenduse taastamine. Teie olemasolevad sõnumid on endiselt saadaval.",
+  "respondkit_conversation_label": "Vestlus",
+  "respondkit_identity_unverified": "Toe identiteeti ei õnnestunud kinnitada."
 }

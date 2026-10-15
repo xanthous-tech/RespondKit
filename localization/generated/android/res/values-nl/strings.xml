@@ -10,14 +10,17 @@
     <string name="respondkit_close_chat" formatted="false">"Supportchat sluiten"</string>
     <string name="respondkit_closed" formatted="false">"Gesloten"</string>
     <string name="respondkit_closed_help" formatted="false">"Dit gesprek is gesloten."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"Dit gesprek is gesloten. Start een nieuw gesprek."</string>
     <string name="respondkit_confirming" formatted="false">"Bevestigen…"</string>
     <string name="respondkit_connecting" formatted="false">"Support maakt nog verbinding."</string>
     <string name="respondkit_conversation">"Gesprek %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Gesprek"</string>
     <string name="respondkit_conversations" formatted="false">"Gesprekken"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Gesprekken · %1$d ongelezen"</item>
         <item quantity="other">"Gesprekken · %1$d ongelezen"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Gereed"</string>
     <string name="respondkit_email_address" formatted="false">"E-mailadres"</string>
     <string name="respondkit_email_failed" formatted="false">"We konden je e-mailadres niet opslaan. Controleer het en probeer het opnieuw."</string>
     <string name="respondkit_email_prompt" formatted="false">"Op welk e-mailadres kunnen we je antwoorden?"</string>
@@ -26,13 +29,18 @@
     <string name="respondkit_files" formatted="false">"Bestanden"</string>
     <string name="respondkit_help" formatted="false">"Waarmee kunnen we je helpen?"</string>
     <string name="respondkit_history_failed" formatted="false">"De gespreksgeschiedenis kon niet worden geladen. Probeer het opnieuw via Meer."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"Kan de supportgeschiedenis niet opslaan."</string>
     <string name="respondkit_identity_changed" formatted="false">"Je supportidentiteit is in een ander tabblad gewijzigd. Maak opnieuw verbinding om je account opnieuw te laden."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"De support-identiteit kan niet worden geverifieerd."</string>
     <string name="respondkit_intro" formatted="false">"Stuur een bericht en houd deze pagina open voor een snel antwoord."</string>
     <string name="respondkit_intro_short" formatted="false">"Stuur een bericht om een gesprek te starten."</string>
     <string name="respondkit_latest" formatted="false">"Nieuwste berichten"</string>
     <string name="respondkit_loading" formatted="false">"Laden…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Berichten laden"</string>
+    <string name="respondkit_logout_failed" formatted="false">"De vorige supportsessie kon niet worden ingetrokken. Deze verloopt automatisch."</string>
     <string name="respondkit_message" formatted="false">"Bericht"</string>
+    <string name="respondkit_message_limit" formatted="false">"Berichten mogen maximaal 6.000 tekens bevatten."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Voer een bericht in van maximaal 6.000 tekens."</string>
     <string name="respondkit_messages_failed" formatted="false">"Nieuwe berichten konden niet worden geladen."</string>
     <string name="respondkit_more" formatted="false">"Meer"</string>
     <string name="respondkit_new_conversation" formatted="false">"Nieuw gesprek"</string>
@@ -47,6 +55,7 @@
     <string name="respondkit_ready" formatted="false">"Klaar"</string>
     <string name="respondkit_reconnect" formatted="false">"Opnieuw verbinden"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Maak opnieuw verbinding voordat je iets uploadt."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Opnieuw verbinden. Je bestaande berichten zijn nog steeds beschikbaar."</string>
     <string name="respondkit_remove" formatted="false">"Verwijderen"</string>
     <string name="respondkit_remove_file">"%1$s verwijderen"</string>
     <string name="respondkit_request_failed" formatted="false">"Supportverzoek mislukt."</string>
@@ -72,6 +81,7 @@
     <string name="respondkit_try_again" formatted="false">"Probeer het opnieuw"</string>
     <string name="respondkit_unknown" formatted="false">"Niet bevestigd — opnieuw proberen is veilig"</string>
     <string name="respondkit_unread" formatted="false">"Ongelezen antwoord van support"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Ongelezen antwoord"</string>
     <string name="respondkit_upload_failed" formatted="false">"Uploaden mislukt"</string>
     <string name="respondkit_write_message" formatted="false">"Typ een bericht…"</string>
 </resources>

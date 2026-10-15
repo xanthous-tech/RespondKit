@@ -20,7 +20,7 @@
           id: message.id, text: message.text, customer: message.direction == "customer_to_operator",
           date: parseDate(message.acceptedAt),
           status: message.direction == "customer_to_operator"
-            ? (message.state == "failed" ? "Failed" : "Sent") : nil,
+            ? catalog(message.state == "failed" ? "respondkit_failed" : "respondkit_sent") : nil,
           retryID: pending.flatMap {
             ["failed", "acceptance_unknown"].contains($0.delivery) ? $0.id : nil
           },
@@ -30,9 +30,11 @@
           Self(
             id: pending.id, text: pending.text, customer: true, date: parseDate(pending.acceptedAt),
             status: pending.delivery == "sending"
-              ? "Sending…"
+              ? catalog("respondkit_sending")
               : pending.delivery == "accepted"
-                ? "Sent" : pending.delivery == "failed" ? "Failed" : "Confirming…",
+                ? catalog("respondkit_sent")
+                : pending.delivery == "failed"
+                  ? catalog("respondkit_failed") : catalog("respondkit_confirming"),
             retryID: ["failed", "acceptance_unknown"].contains(pending.delivery) ? pending.id : nil,
             failed: pending.delivery == "failed", attachments: pending.attachments ?? [])
         }

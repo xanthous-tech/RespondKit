@@ -10,15 +10,18 @@
     <string name="respondkit_close_chat" formatted="false">"Затвори ћаскање са подршком"</string>
     <string name="respondkit_closed" formatted="false">"Затворен"</string>
     <string name="respondkit_closed_help" formatted="false">"Овај разговор је затворен."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"Овај разговор је затворен. Започните нови разговор."</string>
     <string name="respondkit_confirming" formatted="false">"Потврђивање…"</string>
     <string name="respondkit_connecting" formatted="false">"Подршка се још повезује."</string>
     <string name="respondkit_conversation">"Разговор %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Разговор"</string>
     <string name="respondkit_conversations" formatted="false">"Разговори"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Разговори · %1$d непрочитан"</item>
         <item quantity="few">"Разговори · %1$d непрочитана"</item>
         <item quantity="other">"Разговори · %1$d непрочитаних"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Готово"</string>
     <string name="respondkit_email_address" formatted="false">"Имејл адреса"</string>
     <string name="respondkit_email_failed" formatted="false">"Нисмо успели да сачувамо ваш имејл. Проверите га и покушајте поново."</string>
     <string name="respondkit_email_prompt" formatted="false">"На коју адресу да вам пошаљемо одговор?"</string>
@@ -27,13 +30,18 @@
     <string name="respondkit_files" formatted="false">"Датотеке"</string>
     <string name="respondkit_help" formatted="false">"Како можемо да помогнемо?"</string>
     <string name="respondkit_history_failed" formatted="false">"Није могуће учитати историју разговора. Поново изаберите „Још“."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"Историја подршке није могла да буде сачувана."</string>
     <string name="respondkit_identity_changed" formatted="false">"Налог за подршку је промењен у другој картици. Поново се повежите да бисте поново учитали свој налог."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"Идентитет подршке није могао да буде потврђен."</string>
     <string name="respondkit_intro" formatted="false">"Пошаљите поруку и држите ову страницу отвореном за брз одговор."</string>
     <string name="respondkit_intro_short" formatted="false">"Пошаљите поруку да бисте започели разговор."</string>
     <string name="respondkit_latest" formatted="false">"Најновије поруке"</string>
     <string name="respondkit_loading" formatted="false">"Учитава се…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Учитавање порука"</string>
+    <string name="respondkit_logout_failed" formatted="false">"Претходна сесија подршке није могла да буде опозвана. Аутоматски ће истећи."</string>
     <string name="respondkit_message" formatted="false">"Порука"</string>
+    <string name="respondkit_message_limit" formatted="false">"Поруке могу да садрже највише 6.000 знакова."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Унесите поруку од највише 6.000 знакова."</string>
     <string name="respondkit_messages_failed" formatted="false">"Није могуће учитати нове поруке."</string>
     <string name="respondkit_more" formatted="false">"Још"</string>
     <string name="respondkit_new_conversation" formatted="false">"Нови разговор"</string>
@@ -49,6 +57,7 @@
     <string name="respondkit_ready" formatted="false">"Спремно"</string>
     <string name="respondkit_reconnect" formatted="false">"Поново се повежи"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Поново се повежите пре отпремања."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Поновно повезивање. Ваше постојеће поруке су и даље доступне."</string>
     <string name="respondkit_remove" formatted="false">"Уклони"</string>
     <string name="respondkit_remove_file">"Уклони %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"Захтев подршци није успео."</string>
@@ -75,6 +84,7 @@
     <string name="respondkit_try_again" formatted="false">"Покушај поново"</string>
     <string name="respondkit_unknown" formatted="false">"Није потврђено — слободно покушајте поново"</string>
     <string name="respondkit_unread" formatted="false">"Непрочитан одговор подршке"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Непрочитан одговор"</string>
     <string name="respondkit_upload_failed" formatted="false">"Отпремање није успело"</string>
     <string name="respondkit_write_message" formatted="false">"Напишите поруку…"</string>
 </resources>

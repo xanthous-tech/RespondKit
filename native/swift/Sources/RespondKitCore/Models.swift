@@ -128,6 +128,25 @@ public struct PendingMessage: Codable, Sendable, Equatable, Identifiable {
   public var delivery: String
 }
 
+/// Text the store writes itself. RespondKitUI fills it from the catalog in the app's language.
+public struct RespondKitStrings: Sendable, Equatable {
+  public var attachedFiles = "Attached files"
+  public var messageTooLong = "Enter a message of up to 6,000 characters."
+  public var conversationClosed = "This conversation is closed. Start a new conversation."
+  public var logoutFailed =
+    "Previous support session could not be revoked. It will expire automatically."
+  public var identityUnverified = "Support identity could not be verified."
+  public var requestFailed = "Support request failed."
+  public var historySaveFailed = "Could not save support history."
+  public init() {}
+}
+
+/// An error whose message is already presentation text in the user's language.
+struct PresentedError: Error, LocalizedError {
+  let message: String
+  var errorDescription: String? { message }
+}
+
 public struct RespondKitError: Error, LocalizedError, Sendable {
   public let code: String
   public let message: String

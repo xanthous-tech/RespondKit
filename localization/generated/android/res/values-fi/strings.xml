@@ -10,14 +10,17 @@
     <string name="respondkit_close_chat" formatted="false">"Sulje tukichat"</string>
     <string name="respondkit_closed" formatted="false">"Suljettu"</string>
     <string name="respondkit_closed_help" formatted="false">"Tämä keskustelu on suljettu."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"Tämä keskustelu on suljettu. Aloita uusi keskustelu."</string>
     <string name="respondkit_confirming" formatted="false">"Vahvistetaan…"</string>
     <string name="respondkit_connecting" formatted="false">"Yhteyttä tukeen muodostetaan vielä."</string>
     <string name="respondkit_conversation">"Keskustelu %1$s"</string>
+    <string name="respondkit_conversation_label" formatted="false">"Keskustelu"</string>
     <string name="respondkit_conversations" formatted="false">"Keskustelut"</string>
     <plurals name="respondkit_conversations_unread">
         <item quantity="one">"Keskustelut · %1$d lukematon"</item>
         <item quantity="other">"Keskustelut · %1$d lukematonta"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Valmis"</string>
     <string name="respondkit_email_address" formatted="false">"Sähköpostiosoite"</string>
     <string name="respondkit_email_failed" formatted="false">"Sähköpostiosoitteen tallennus epäonnistui. Tarkista osoite ja yritä uudelleen."</string>
     <string name="respondkit_email_prompt" formatted="false">"Mihin sähköpostiosoitteeseen voimme lähettää vastauksen?"</string>
@@ -26,13 +29,18 @@
     <string name="respondkit_files" formatted="false">"Tiedostot"</string>
     <string name="respondkit_help" formatted="false">"Miten voimme auttaa?"</string>
     <string name="respondkit_history_failed" formatted="false">"Keskusteluhistoriaa ei voitu ladata. Kokeile Lisää-painiketta uudelleen."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"Tukihistoriaa ei voitu tallentaa."</string>
     <string name="respondkit_identity_changed" formatted="false">"Tuen tunnistetiedot vaihtuivat toisessa välilehdessä. Lataa tilisi uudelleen yhdistämällä uudelleen."</string>
+    <string name="respondkit_identity_unverified" formatted="false">"Tuen tunnistetta ei voitu vahvistaa."</string>
     <string name="respondkit_intro" formatted="false">"Lähetä viesti ja pidä tämä sivu auki, niin saat vastauksen nopeasti."</string>
     <string name="respondkit_intro_short" formatted="false">"Aloita keskustelu lähettämällä viesti."</string>
     <string name="respondkit_latest" formatted="false">"Uusimmat viestit"</string>
     <string name="respondkit_loading" formatted="false">"Ladataan…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Ladataan viestejä"</string>
+    <string name="respondkit_logout_failed" formatted="false">"Edellistä tukiistuntoa ei voitu peruuttaa. Se vanhenee automaattisesti."</string>
     <string name="respondkit_message" formatted="false">"Viesti"</string>
+    <string name="respondkit_message_limit" formatted="false">"Viesteissä voi olla enintään 6 000 merkkiä."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Kirjoita enintään 6 000 merkin viesti."</string>
     <string name="respondkit_messages_failed" formatted="false">"Uusia viestejä ei voitu ladata."</string>
     <string name="respondkit_more" formatted="false">"Lisää"</string>
     <string name="respondkit_new_conversation" formatted="false">"Uusi keskustelu"</string>
@@ -47,6 +55,7 @@
     <string name="respondkit_ready" formatted="false">"Valmis"</string>
     <string name="respondkit_reconnect" formatted="false">"Yhdistä uudelleen"</string>
     <string name="respondkit_reconnect_upload" formatted="false">"Yhdistä uudelleen ennen tiedostojen lataamista."</string>
+    <string name="respondkit_reconnecting" formatted="false">"Yhdistetään uudelleen. Aiemmat viestisi ovat yhä saatavilla."</string>
     <string name="respondkit_remove" formatted="false">"Poista"</string>
     <string name="respondkit_remove_file">"Poista %1$s"</string>
     <string name="respondkit_request_failed" formatted="false">"Tukipyyntö epäonnistui."</string>
@@ -72,6 +81,7 @@
     <string name="respondkit_try_again" formatted="false">"Yritä uudelleen"</string>
     <string name="respondkit_unknown" formatted="false">"Ei vahvistettu – voit turvallisesti yrittää uudelleen"</string>
     <string name="respondkit_unread" formatted="false">"Lukematon vastaus tuelta"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Lukematon vastaus"</string>
     <string name="respondkit_upload_failed" formatted="false">"Lataus epäonnistui"</string>
     <string name="respondkit_write_message" formatted="false">"Kirjoita viesti…"</string>
 </resources>

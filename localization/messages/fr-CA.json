@@ -93,5 +93,15 @@
   "respondkit_session_expired": "Votre session de soutien a expiré. Reconnectez-vous pour continuer.",
   "respondkit_identity_changed": "Le compte de soutien a changé dans un autre onglet. Reconnectez-vous pour recharger votre compte.",
   "respondkit_connecting": "Connexion au soutien en cours.",
-  "respondkit_reconnect_upload": "Reconnectez-vous avant de téléverser des fichiers."
+  "respondkit_reconnect_upload": "Reconnectez-vous avant de téléverser des fichiers.",
+  "respondkit_message_too_long": "Saisissez un message de 6 000 caractères maximum.",
+  "respondkit_message_limit": "Les messages peuvent contenir jusqu'à 6 000 caractères.",
+  "respondkit_closed_start_new": "Cette conversation est fermée. Commencez une nouvelle conversation.",
+  "respondkit_logout_failed": "La session de soutien précédente n'a pas pu être révoquée. Elle expirera automatiquement.",
+  "respondkit_history_save_failed": "Impossible d'enregistrer l'historique de soutien.",
+  "respondkit_done": "OK",
+  "respondkit_unread_reply": "Réponse non lue",
+  "respondkit_reconnecting": "Reconnexion en cours. Vos messages existants restent disponibles.",
+  "respondkit_conversation_label": "Conversation",
+  "respondkit_identity_unverified": "Impossible de vérifier l'identité de soutien."
 }
