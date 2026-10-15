@@ -1,6 +1,6 @@
 # RespondKit
 
-RespondKit is a small, multilingual support stack for indie products. Customers use a React or native chat widget, and each support thread appears in a Discord forum post in its original language. Optional Gemini translation is available through message actions, `/translate`, and `/reply translate:…`. Plain `/reply` sends as written.
+RespondKit is a small, multilingual support stack for indie products. Customers use a React or native chat widget, and each support thread appears in a Discord forum post in its original language. Optional Gemini translation is available through `/reply translate:…`; `/approve` hands an agent's draft back to the agent, which translates and sends it. Plain `/reply` sends as written.
 
 The runtime is one Cloudflare Worker bundle with D1 and Cloudflare Workflows. It deliberately has no control-plane dashboard, Better Auth, Queue, Cron trigger, Durable Object, WebSocket, or Discord Gateway.
 
@@ -64,7 +64,7 @@ pnpm config:apply --local
 pnpm discord:commands:apply --dry-run
 ```
 
-`config:apply` validates the complete workspace → product → inbox topology, applies the checked-in D1 migration, and idempotently seeds the local database. The Discord dry run prints the guild-scoped `/reply`, `/status`, `/retry`, `/translate`, and **Translate to English** registration requests without contacting Discord. See the [optional translation setup and test guide](docs/architecture/optional-translation.md) for inbox enablement, permissions, and rollout.
+`config:apply` validates the complete workspace → product → inbox topology, applies the checked-in D1 migration, and idempotently seeds the local database. The Discord dry run prints the guild-scoped command registration requests (`/agent`, `/approve`, **Approve draft**, `/reply`, `/status`, `/retry`, `/activity`) without contacting Discord. See the [optional translation setup and test guide](docs/architecture/optional-translation.md) for inbox enablement, permissions, and rollout.
 
 Inbox origin allowlists accept exact production origins and loopback any-port patterns such as `http://localhost:*` or `http://127.0.0.1:*`. Wildcards are rejected for non-loopback hosts so a development convenience cannot expose an inbox to arbitrary websites.
 
@@ -112,4 +112,4 @@ The implementation and automated tests are key-free. Before a real-world pilot, 
 - a Discord application/bot (`DISCORD_BOT_TOKEN`, application ID, and Ed25519 public key)
 - a random customer-session signing secret (`SESSION_SIGNING_KEY`)
 
-Then run one Thai and one Burmese customer message end to end, verify original-language Discord delivery, use **Translate to English**, and invoke `/reply translate:customer` to validate localized customer delivery. Also verify plain `/reply` works with translation disabled. Follow the [translation test checklist](docs/architecture/optional-translation.md#test-checklist).
+Then run one Thai and one Burmese customer message end to end, verify original-language Discord delivery, and invoke `/reply translate:th` then `/reply translate:customer` to validate localized customer delivery. Also verify plain `/reply` works with translation disabled. Follow the [translation test checklist](docs/architecture/optional-translation.md#test-checklist).

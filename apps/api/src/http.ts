@@ -972,10 +972,7 @@ export function createHttpApp() {
         );
       }
       const { languageQuery: _query, ...rest } = interaction;
-      interaction =
-        rest.command === "translate"
-          ? { ...rest, targetLanguage: code }
-          : { ...rest, translate: code };
+      interaction = { ...rest, translate: code };
     }
 
     if (
@@ -1012,13 +1009,12 @@ export function createHttpApp() {
       context.executionCtx.waitUntil(handleActivityInteraction(context.env, interaction));
       return context.json(createDeferredEphemeralResponse());
     }
-    if (interaction.command === "translate" || interaction.command === "confirm_translation") {
+    if (interaction.command === "confirm_translation") {
       context.executionCtx.waitUntil(handleTranslationInteraction(context.env, interaction));
       return context.json(createDeferredEphemeralResponse());
     }
     const command = normalizeDiscordCommand(interaction);
     if (
-      command.command === "translate" ||
       command.command === "confirm_translation" ||
       command.command === "activity" ||
       command.command === "agent_decision" ||
@@ -1088,7 +1084,10 @@ export function createHttpApp() {
               ),
             );
           }
-          if (replyTranslation === "customer") {
+          if (replyTranslation === "customer" && thread.customerLanguage) {
+            // Recorded by an earlier /reply translate:<language>, /approve or translation, never the browser locale.
+            replyTranslation = thread.customerLanguage;
+          } else if (replyTranslation === "customer") {
             // This value comes from reliable message detection, never the browser locale.
             const detected = await context.env.DB.prepare(`
               SELECT source_language FROM (
@@ -1110,7 +1109,7 @@ export function createHttpApp() {
             if (detected === null)
               return context.json(
                 createEphemeralInteractionResponse(
-                  "Customer language is unknown. Translate a customer message first, or specify translate:hi (or another language code).",
+                  "Customer language is unknown. Name it once, for example translate:Burmese or translate:hi; this thread remembers it.",
                 ),
               );
             replyTranslation = detected.source_language;
@@ -1140,6 +1139,21 @@ export function createHttpApp() {
               "That interaction already belongs to another reply or language.",
             ),
           );
+        // A language the operator names is the customer's language from now on: /reply translate:customer,
+        // /approve and the support agent use it.
+        if (replyTranslation !== "off" && command.translate !== "customer")
+          await context.env.DB.prepare(
+            "UPDATE thread SET customer_language=?, customer_language_updated_at=? WHERE id=? AND workspace_id=? AND inbox_id=? AND (customer_language_updated_at IS NULL OR customer_language_updated_at<=?)",
+          )
+            .bind(
+              replyTranslation,
+              acceptedAt.getTime(),
+              thread.id,
+              thread.workspaceId,
+              thread.inboxId,
+              acceptedAt.getTime(),
+            )
+            .run();
         const envelope = operatorEnvelope({
           command,
           integrationId: authorized.integration.id,

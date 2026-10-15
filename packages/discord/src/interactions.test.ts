@@ -144,19 +144,21 @@ describe("Discord interaction parsing and authorization", () => {
     expect(normalized).not.toHaveProperty("token");
   });
 
-  it("parses message actions, optional translation arguments, and approval buttons", () => {
+  it("parses the Approve draft action, optional translation arguments, and approval buttons; /translate, Translate to English and Reject draft are gone", () => {
     const base = replyPayload();
+    for (const data of [
+      { type: 3, name: "Translate to English", target_id: "12345" },
+      { type: 3, name: "Reject draft", target_id: "12345" },
+      { type: 1, name: "translate" },
+    ])
+      expect(() => parseDiscordInteraction(JSON.stringify({ ...base, data }))).toThrow(
+        "Unsupported Discord command",
+      );
     expect(
       parseDiscordInteraction(
-        JSON.stringify({
-          ...base,
-          data: { type: 3, name: "Translate to English", target_id: "12345" },
-        }),
+        JSON.stringify({ ...base, data: { type: 3, name: "Approve draft", target_id: "12345" } }),
       ),
-    ).toMatchObject({ command: "translate", targetMessageId: "12345", targetLanguage: "en" });
-    expect(
-      parseDiscordInteraction(JSON.stringify({ ...base, data: { type: 1, name: "translate" } })),
-    ).toMatchObject({ command: "translate", targetLanguage: "en" });
+    ).toMatchObject({ command: "agent_context", action: "approve", targetMessageId: "12345" });
     expect(
       parseDiscordInteraction(
         JSON.stringify({

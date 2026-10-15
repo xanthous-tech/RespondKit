@@ -4,7 +4,7 @@ import {
   ListThreadsResponseV1Schema,
   ListThreadStatusesResponseV1Schema,
 } from "@respondkit/protocol";
-import { DiscordRestClient } from "@respondkit/discord";
+import { DiscordRestClient, createEphemeralInteractionResponse } from "@respondkit/discord";
 import { enqueueReplyEmail, deliverPendingEmails } from "./email";
 import { requestMessageTranslation } from "./translation-service";
 import { syncDiscordReadReceipts } from "./read-receipts";
@@ -77,6 +77,15 @@ async function customerMessage(threadId: string, text = "Please help", at = Date
     originalText: text,
     acceptedAt: new Date(at),
   });
+}
+async function sha256Hex(text: string) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+/** The approve line and English text of an operator approval note. */
+function approvalOf(text: string) {
+  const [, line, ...english] = text.split("\n");
+  return { approval: JSON.parse(line!.slice("`approve:".length, -1)), english: english.join("\n") };
 }
 function fakeWorkflow() {
   const createBatch = vi.fn().mockResolvedValue([{}]);
@@ -402,7 +411,7 @@ it("sends through the real workflow once, attributes the Discord note and schedu
   }
 });
 
-it("posts a private-to-operators draft then accepts only signed allowlisted approval, including duplicate taps", async () => {
+it("posts a private-to-operators draft then hands it back to the agent on a signed allowlisted approval, once", async () => {
   const { threadId } = await createCustomerFixture();
   await seedReadyDiscordThread(threadId);
   const posts = mockDiscord();
@@ -417,10 +426,11 @@ it("posts a private-to-operators draft then accepts only signed allowlisted appr
     expect(response.status).toBe(202);
     const { messageId } = await response.json<{ messageId: string }>();
     await vi.waitFor(() => expect(posts).toHaveLength(1));
-    // One plain message: no buttons, clearly not sent; operators use the Approve/Reject draft commands.
+    // One plain message: no buttons, clearly not sent; operators use Approve draft or /approve.
     expect(posts[0]?.components).toBeUndefined();
     expect(posts[0]?.content).toContain("· Draft, not sent**\nDraft answer");
-    expect(posts[0]?.content).toContain("Apps → **Approve draft**");
+    expect(posts[0]?.content).toContain("Apps → **Approve draft**, or `/approve`");
+    expect(posts[0]?.content).not.toContain("Reject draft");
     expect(await env.DB.prepare("SELECT count(*) n FROM message").first("n")).toBe(0);
     const unsigned = await app.request(
       "/v1/discord/interactions",
@@ -434,20 +444,46 @@ it("posts a private-to-operators draft then accepts only signed allowlisted appr
     expect(
       await (await signedDecision(messageId, "approve", undefined, { guild_id: "999999" })).text(),
     ).toContain("not authorized");
-    expect(await (await signedDecision(messageId)).text()).toContain("approved");
+    // An old Approve button follows the one rule: the agent gets the draft, in the customer's language.
+    expect(await (await signedDecision(messageId)).text()).toBe(
+      JSON.stringify(
+        createEphemeralInteractionResponse(
+          "Handed to the agent: it will translate this reply into the customer's language (inferred from the thread), send it, and post both versions here.",
+        ),
+      ),
+    );
+    // The draft is stale, so its workflow ends without publishing.
     await (await workflows.get())[0]!.waitForStatus("complete");
     const get = vi.fn().mockRejectedValue(new Error("Workflow history expired"));
     apiEnv = { ...apiEnv, MESSAGE_WORKFLOW: { get } as unknown as Env["MESSAGE_WORKFLOW"] };
-    expect(await (await signedDecision(messageId)).text()).toContain("approved");
+    expect(await (await signedDecision(messageId)).text()).toContain(
+      "already handed this draft to the agent",
+    );
     expect(get).not.toHaveBeenCalled();
     expect(posts).toHaveLength(2);
+    expect(posts[1]?.content).toMatch(
+      /· steer\nApproved \[this draft\]\(https:\/\/discord\.com\/channels\/\d+\/\d+\/\d+\): translate it into the customer's language \(inferred from the thread\) and send it\.\n`approve:/,
+    );
+    expect(await env.DB.prepare("SELECT count(*) n FROM message").first("n")).toBe(0);
     expect(
-      await env.DB.prepare(
-        "SELECT count(*) n FROM message WHERE id=? AND customer_availability='available'",
-      )
+      await env.DB.prepare("SELECT status FROM agent_reply WHERE message_id=?")
         .bind(messageId)
-        .first("n"),
-    ).toBe(1);
+        .first("status"),
+    ).toBe("stale");
+    const note = await env.DB.prepare(
+      "SELECT author_kind,kind,text FROM internal_note WHERE thread_id=?",
+    )
+      .bind(threadId)
+      .first<{ author_kind: string; kind: string; text: string }>();
+    expect(note).toMatchObject({ author_kind: "operator", kind: "steer" });
+    const [, line, ...english] = note!.text.split("\n");
+    expect(JSON.parse(line!.slice("`approve:".length, -1))).toEqual({
+      draft: messageId,
+      language: "customer",
+      sha256: await sha256Hex("Draft answer"),
+      by: TEST_TOPOLOGY.operatorId,
+    });
+    expect(english.join("\n")).toBe("Draft answer");
   } finally {
     await workflows.dispose();
   }
@@ -469,7 +505,7 @@ it.each(["reject", "new-message", "close"])("does not publish a draft after %s",
     if (action === "new-message") await customerMessage(threadId);
     if (action === "close") await request(`/threads/${threadId}/close`, {});
     const decision = await signedDecision(messageId, action === "reject" ? "reject" : "approve");
-    expect(await decision.text()).toContain(action === "reject" ? "rejected" : "stale");
+    expect(await decision.text()).toContain(action === "reject" ? "rejected" : "out of date");
     if (action === "reject") {
       await (await workflows.get())[0]!.waitForStatus("complete");
       expect(await (await signedDecision(messageId)).text()).toContain("rejected");
@@ -675,7 +711,8 @@ it("revokes a draft's send authority when the customer writes during translation
     });
     const { messageId } = await response.json<{ messageId: string }>();
     await vi.waitFor(() => expect(posts).toHaveLength(1));
-    await signedDecision(messageId);
+    // The agent's own approval (an untapped draft's timeout); an operator's hands it back instead.
+    await request(`/threads/${threadId}/replies/${messageId}/approve`, {});
     await vi.waitFor(() => expect(posts).toHaveLength(2));
     await customerMessage(threadId, "Actually, the issue changed");
     expect(await (await signedDecision(`${messageId}:1`, "translate")).text()).toContain(
@@ -1045,70 +1082,66 @@ it("accepts only signed allowlisted steering with durable operator identity and 
   ]);
 });
 
-it.each(["Approve draft", "Reject draft"])(
-  "routes %s from any draft chunk through the signed first-decision-wins path",
-  async (name) => {
-    const { threadId } = await createCustomerFixture();
-    await seedReadyDiscordThread(threadId);
-    const posts = mockDiscord();
-    const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
-    try {
-      await workflows.modifyAll(async (modifier) => modifier.disableRetryDelays());
-      const response = await request(`/threads/${threadId}/replies`, {
-        text: "A long English answer. ".repeat(200),
-        mode: "draft",
-        idempotencyKey: name,
-      });
-      const { messageId } = await response.json<{ messageId: string }>();
-      await vi.waitFor(async () =>
-        expect(
-          await env.DB.prepare("SELECT count(*) n FROM agent_draft_chunk WHERE message_id=?")
-            .bind(messageId)
-            .first("n"),
-        ).toBe(3),
-      );
-      expect(posts).toHaveLength(3);
-      const chunks = (
-        await env.DB.prepare(
-          "SELECT discord_message_id FROM agent_draft_chunk WHERE message_id=? ORDER BY chunk_index",
-        )
-          .bind(messageId)
-          .all<{ discord_message_id: string }>()
-      ).results;
+it("hands a draft back from any of its chunks with Approve draft, once; Reject draft is gone", async () => {
+  const { threadId } = await createCustomerFixture();
+  await seedReadyDiscordThread(threadId);
+  const posts = mockDiscord();
+  const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+  try {
+    await workflows.modifyAll(async (modifier) => modifier.disableRetryDelays());
+    const response = await request(`/threads/${threadId}/replies`, {
+      text: "A long English answer. ".repeat(200),
+      mode: "draft",
+      idempotencyKey: "long-draft",
+    });
+    const { messageId } = await response.json<{ messageId: string }>();
+    await vi.waitFor(async () =>
       expect(
-        await (await contextDecision(chunks[0]!.discord_message_id, name, {}, [])).text(),
-      ).toContain("not authorized");
-      expect(
-        await (
-          await contextDecision(chunks[0]!.discord_message_id, name, { channel_id: "999" })
-        ).text(),
-      ).toContain("not authorized");
-      expect(await (await contextDecision("999999", name)).text()).toContain("not found");
-      expect(await (await contextDecision(chunks[0]!.discord_message_id, name)).text()).toContain(
-        name === "Approve draft" ? "approved" : "rejected",
-      );
-      await (await workflows.get())[0]!.waitForStatus("complete");
-      for (const chunk of chunks)
-        expect(
-          await (
-            await contextDecision(
-              chunk.discord_message_id,
-              name === "Approve draft" ? "Reject draft" : "Approve draft",
-            )
-          ).text(),
-        ).toContain(name === "Approve draft" ? "approved" : "rejected");
-      expect(
-        await env.DB.prepare(
-          "SELECT count(*) n FROM message WHERE id=? AND customer_availability='available'",
-        )
+        await env.DB.prepare("SELECT count(*) n FROM agent_draft_chunk WHERE message_id=?")
           .bind(messageId)
           .first("n"),
-      ).toBe(name === "Approve draft" ? 1 : 0);
-    } finally {
-      await workflows.dispose();
-    }
-  },
-);
+      ).toBe(3),
+    );
+    expect(posts).toHaveLength(3);
+    const chunks = (
+      await env.DB.prepare(
+        "SELECT discord_message_id FROM agent_draft_chunk WHERE message_id=? ORDER BY chunk_index",
+      )
+        .bind(messageId)
+        .all<{ discord_message_id: string }>()
+    ).results;
+    expect(
+      await (await contextDecision(chunks[0]!.discord_message_id, "Approve draft", {}, [])).text(),
+    ).toContain("not authorized");
+    expect(
+      await (
+        await contextDecision(chunks[0]!.discord_message_id, "Approve draft", { channel_id: "999" })
+      ).text(),
+    ).toContain("not authorized");
+    expect(await (await contextDecision("999999999999999999")).text()).toContain(
+      "not an agent draft",
+    );
+    const reject = await contextDecision(chunks[0]!.discord_message_id, "Reject draft");
+    expect(reject.status).toBe(400);
+    expect(await reject.text()).toContain("Unsupported Discord command");
+    expect(await (await contextDecision(chunks[1]!.discord_message_id)).text()).toContain(
+      "Handed to the agent",
+    );
+    await (await workflows.get())[0]!.waitForStatus("complete");
+    for (const chunk of chunks)
+      expect(await (await contextDecision(chunk.discord_message_id)).text()).toContain(
+        "already handed this draft to the agent",
+      );
+    expect(await env.DB.prepare("SELECT count(*) n FROM message").first("n")).toBe(0);
+    expect(
+      await env.DB.prepare("SELECT count(*) n FROM internal_note WHERE thread_id=?")
+        .bind(threadId)
+        .first("n"),
+    ).toBe(1);
+  } finally {
+    await workflows.dispose();
+  }
+});
 
 it("invalidates a draft after steering while agent reasoning does not invalidate it", async () => {
   const { threadId } = await createCustomerFixture();
@@ -1139,8 +1172,10 @@ it("invalidates a draft after steering while agent reasoning does not invalidate
         .first("status"),
     ).toBe("pending");
     await steer("Do not send that; investigate first");
-    expect(await (await contextDecision(chunk!.discord_message_id)).text()).toContain("stale");
-    expect(await (await signedDecision(messageId)).text()).toContain("stale");
+    expect(await (await contextDecision(chunk!.discord_message_id)).text()).toContain(
+      "out of date",
+    );
+    expect(await (await signedDecision(messageId)).text()).toContain("out of date");
     expect(await env.DB.prepare("SELECT count(*) n FROM message").first("n")).toBe(0);
   } finally {
     await workflows.dispose();
@@ -1148,7 +1183,7 @@ it("invalidates a draft after steering while agent reasoning does not invalidate
 });
 
 it.each([false, true])(
-  "shows English and translation before one approval (needsReview=%s)",
+  "shows English and a translation preview, then hands the English back in the customer's language (needsReview=%s)",
   async (needsReview) => {
     const { threadId } = await createCustomerFixture();
     await seedReadyDiscordThread(threadId);
@@ -1220,40 +1255,27 @@ it.each([false, true])(
       )
         .bind(messageId)
         .first<{ discord_message_id: string }>();
-      await contextDecision(chunk!.discord_message_id);
+      expect(posts[0]?.content).toContain("**Translation preview (fr)**");
+      expect(await (await contextDecision(chunk!.discord_message_id)).text()).toContain(
+        "Handed to the agent: it will translate this reply into French (fr), send it, and post both versions here.",
+      );
+      // The draft's workflow ends without a second translation or any delivery.
       await (await workflows.get())[0]!.waitForStatus("complete");
       expect(posts).toHaveLength(2);
-      expect(
-        posts.flatMap(
-          (post) =>
-            post.components?.flatMap((row) => row.components.map((button) => button.label)) ?? [],
-        ),
-      ).not.toContain("Approve translation");
-      const review = await env.DB.prepare(
-        "SELECT result_json,confirmed_by FROM reply_review WHERE message_id=?",
-      )
-        .bind(messageId)
-        .first<{ result_json: string; confirmed_by: string }>();
-      const preview = await env.DB.prepare(
-        "SELECT result_json,confirmed_by FROM agent_draft_preview WHERE message_id=?",
-      )
-        .bind(messageId)
-        .first();
-      expect(review).toEqual(preview);
-      expect(review?.confirmed_by).toBe(TEST_TOPOLOGY.operatorId);
-      expect(JSON.parse(review!.result_json)).toMatchObject({
-        translatedText: "Votre réponse",
-        needsReview,
+      expect(await env.DB.prepare("SELECT count(*) n FROM message").first("n")).toBe(0);
+      expect(await env.DB.prepare("SELECT count(*) n FROM reply_review").first("n")).toBe(0);
+      const note = await env.DB.prepare("SELECT text FROM internal_note WHERE thread_id=?")
+        .bind(threadId)
+        .first<{ text: string }>();
+      expect(approvalOf(note!.text)).toEqual({
+        approval: {
+          draft: messageId,
+          language: "fr",
+          sha256: await sha256Hex("Your English answer"),
+          by: TEST_TOPOLOGY.operatorId,
+        },
+        english: "Your English answer",
       });
-      expect(
-        await (await contextDecision(chunk!.discord_message_id, "Reject draft")).text(),
-      ).toContain("approved");
-      expect(await (await signedDecision(messageId)).text()).toContain("already available");
-      expect(
-        await env.DB.prepare("SELECT original_text,customer_visible_text FROM message WHERE id=?")
-          .bind(messageId)
-          .first(),
-      ).toEqual({ original_text: "Your English answer", customer_visible_text: "Votre réponse" });
     } finally {
       await workflows.dispose();
     }
@@ -1370,7 +1392,8 @@ it("preserves an approved legacy draft through steering during uncertain transla
     });
     await request(`/threads/${threadId}/replies`, body);
     await vi.waitFor(() => expect(posts).toHaveLength(1));
-    await signedDecision(messageId);
+    // Approved by the agent itself (an untapped draft's timeout): operators hand drafts back instead.
+    await request(`/threads/${threadId}/replies/${messageId}/approve`, {});
     await vi.waitFor(() => expect(posts).toHaveLength(2));
     expect(posts[1]?.components?.[0]?.components[0]?.label).toBe("Approve translation");
     await steer("Investigate the next question");
@@ -1393,7 +1416,7 @@ it("preserves an approved legacy draft through steering during uncertain transla
   }
 });
 
-it("refuses approval until the full translated preview is posted, and permits rejection without confirming it", async () => {
+it("hands a translated draft back before its preview is fully posted, without confirming the preview", async () => {
   const { threadId } = await createCustomerFixture();
   await seedReadyDiscordThread(threadId);
   const posts = mockDiscord();
@@ -1439,25 +1462,21 @@ it("refuses approval until the full translated preview is posted, and permits re
     )
       .bind(messageId)
       .first<{ discord_message_id: string }>();
-    expect(await (await contextDecision(chunk!.discord_message_id)).text()).toContain(
-      "not fully posted",
+    // The approval is of the English: the agent translates it again, so the preview need not be complete.
+    expect(await (await approveCommand(chunk!.discord_message_id, "fr")).text()).toContain(
+      "Handed to the agent: it will translate this reply into French (fr)",
     );
-    expect(await (await signedDecision(messageId)).text()).toContain("not fully posted");
     expect(
       await env.DB.prepare("SELECT status FROM agent_reply WHERE message_id=?")
         .bind(messageId)
         .first("status"),
-    ).toBe("pending");
+    ).toBe("stale");
     expect(
       await env.DB.prepare("SELECT confirmed_by FROM agent_draft_preview WHERE message_id=?")
         .bind(messageId)
         .first("confirmed_by"),
     ).toBeNull();
-    expect(
-      await (await contextDecision(chunk!.discord_message_id, "Reject draft")).text(),
-    ).toContain("rejected");
     await (await workflows.get())[0]!.waitForStatus("complete");
-    expect(await (await signedDecision(messageId)).text()).toContain("rejected");
     expect(await env.DB.prepare("SELECT count(*) n FROM message").first("n")).toBe(0);
     expect(await env.DB.prepare("SELECT count(*) n FROM reply_review").first("n")).toBe(0);
   } finally {
@@ -1509,7 +1528,7 @@ it.each(["customer", "steer", "close"])(
       if (change === "customer") await customerMessage(threadId);
       if (change === "steer") await steer("Change that answer");
       if (change === "close") await request(`/threads/${threadId}/close`, {});
-      expect(await (await signedDecision(messageId)).text()).toContain("stale");
+      expect(await (await signedDecision(messageId)).text()).toContain("out of date");
       expect(
         await env.DB.prepare("SELECT confirmed_by FROM agent_draft_preview WHERE message_id=?")
           .bind(messageId)
@@ -1707,21 +1726,6 @@ async function approveCommand(
   });
 }
 
-function translationResult(targetLanguage: string, needsReview: boolean) {
-  return {
-    sourceLanguage: "en",
-    targetLanguage,
-    translatedText: "Su respuesta",
-    needsReview,
-    mixedLanguage: false,
-    ambiguityNotes: needsReview ? ["Tone"] : [],
-    passThrough: false,
-    promptVersion: "test",
-    provider: "test",
-    modelId: "test",
-  };
-}
-
 async function postedDraft(threadId: string, body: Record<string, unknown>) {
   const { messageId } = await (
     await request(`/threads/${threadId}/replies`, {
@@ -1749,74 +1753,74 @@ async function postedDraft(threadId: string, body: Record<string, unknown>) {
   };
 }
 
-it("/approve in another language supersedes the draft, records the language and delivers once", async () => {
+async function approvalNotes(threadId: string) {
+  const notes = await env.DB.prepare(
+    "SELECT text FROM internal_note WHERE thread_id=? AND kind='steer' ORDER BY ordering_key",
+  )
+    .bind(threadId)
+    .all<{ text: string }>();
+  return notes.results.map((note) => approvalOf(note.text));
+}
+
+it("/approve hands a draft to the agent in the named language, records it as the customer's, and says what happens next", async () => {
   const { threadId } = await createCustomerFixture();
   await seedReadyDiscordThread(threadId);
-  mockDiscord();
+  const posts = mockDiscord();
   const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
   try {
-    await workflows.modifyAll(async (modifier) => {
-      await modifier.disableRetryDelays();
-      await modifier.mockStepResult({ name: "translate-message" }, translationResult("es", false));
-    });
-    const draft = await postedDraft(threadId, { translate: "fr", idempotencyKey: "approve-es" });
-
-    expect(await (await approveCommand(draft.link, "Spanish")).text()).toContain(
-      "approved in Spanish (es)",
+    await workflows.modifyAll(async (modifier) => modifier.disableRetryDelays());
+    const draft = await postedDraft(threadId, { idempotencyKey: "approve-es" });
+    expect(await (await approveCommand(draft.link, "Spanish")).text()).toBe(
+      JSON.stringify(
+        createEphemeralInteractionResponse(
+          "Handed to the agent: it will translate this reply into Spanish (es), send it, and post both versions here.",
+        ),
+      ),
     );
-    const rows = (
+    expect(await approvalNotes(threadId)).toEqual([
+      {
+        approval: {
+          draft: draft.messageId,
+          language: "es",
+          sha256: await sha256Hex("English answer"),
+          by: TEST_TOPOLOGY.operatorId,
+        },
+        english: "English answer",
+      },
+    ]);
+    expect(posts.at(-1)?.content).toContain(
+      `Approved [this draft](${draft.link}): translate it into Spanish (es) and send it.`,
+    );
+    // Nothing new was filed or sent from here; the draft can no longer be approved as it was.
+    expect(
+      (
+        await env.DB.prepare("SELECT message_id,status FROM agent_reply WHERE thread_id=?")
+          .bind(threadId)
+          .all()
+      ).results,
+    ).toEqual([{ message_id: draft.messageId, status: "stale" }]);
+    expect(
       await env.DB.prepare(
-        "SELECT message_id, status, mode, decided_by, json_extract(envelope,'$.replyTranslation') tr, json_extract(envelope,'$.originalText') text FROM agent_reply WHERE thread_id=? ORDER BY created_at",
+        "SELECT count(*) n FROM message WHERE thread_id=? AND direction='operator_to_customer'",
       )
         .bind(threadId)
-        .all<{
-          message_id: string;
-          status: string;
-          mode: string;
-          decided_by: string;
-          tr: string;
-          text: string;
-        }>()
-    ).results;
-    expect(rows).toHaveLength(2);
-    expect(rows[0]).toMatchObject({ message_id: draft.messageId, status: "stale", tr: "fr" });
-    expect(rows[1]).toMatchObject({
-      status: "approved",
-      mode: "send",
-      decided_by: TEST_TOPOLOGY.operatorId,
-      tr: "es",
-      text: "English answer",
-    });
+        .first("n"),
+    ).toBe(0);
     expect(
       await env.DB.prepare("SELECT customer_language FROM thread WHERE id=?")
         .bind(threadId)
         .first("customer_language"),
     ).toBe("es");
-    await vi.waitFor(
-      async () =>
-        expect(
-          await env.DB.prepare("SELECT customer_availability FROM message WHERE id=?")
-            .bind(rows[1]!.message_id)
-            .first("customer_availability"),
-        ).toBe("available"),
-      { timeout: 5000 },
-    );
-    // Idempotent: again, or as "customer" (now es), answers without a third reply.
-    expect(await (await approveCommand(draft.discordMessageId, "es")).text()).toContain(
-      "already available",
-    );
-    expect(await (await approveCommand(draft.discordMessageId, "customer")).text()).toContain(
-      "already available",
-    );
-    expect(await (await approveCommand(draft.discordMessageId, "German")).text()).toContain(
-      "stale",
-    );
-    expect(await (await approveCommand(draft.discordMessageId)).text()).toContain("stale");
-    expect(
-      await env.DB.prepare("SELECT count(*) n FROM agent_reply WHERE thread_id=?")
-        .bind(threadId)
-        .first("n"),
-    ).toBe(2);
+    await (await workflows.get())[0]!.waitForStatus("complete");
+    // Again, by message ID or RespondKit ID, in any language: already handed back, no second note.
+    for (const [ref, language] of [
+      [draft.discordMessageId, "German"],
+      [draft.messageId, undefined],
+    ] as const)
+      expect(await (await approveCommand(ref, language)).text()).toMatch(
+        /already handed this draft to the agent \(<t:\d+:f>\): it will translate this reply into Spanish \(es\)/,
+      );
+    expect(await approvalNotes(threadId)).toHaveLength(1);
     // Not a draft, wrong forum, unknown language.
     expect(await (await approveCommand("999999999999999999", "es")).text()).toContain(
       "not an agent draft",
@@ -1830,60 +1834,89 @@ it("/approve in another language supersedes the draft, records the language and 
   }
 });
 
-it("/approve without a language approves like Approve draft; customer needs a known language", async () => {
+it("/approve defaults to the customer's language, inferred by the agent when unknown; off sends the English as written", async () => {
   const { threadId } = await createCustomerFixture();
   await seedReadyDiscordThread(threadId);
   mockDiscord();
-  const draft = await postedDraft(threadId, { idempotencyKey: "approve-plain" });
-  expect(await (await approveCommand(draft.link, "customer")).text()).toContain(
-    "customer language is unknown",
+  const first = await postedDraft(threadId, { idempotencyKey: "approve-default" });
+  expect(await (await approveCommand(first.link)).text()).toContain(
+    "Handed to the agent: it will translate this reply into the customer's language (inferred from the thread), send it, and post both versions here.",
   );
-  expect(await (await approveCommand(draft.link)).text()).toContain("Draft approved for delivery");
+  const second = await postedDraft(threadId, { idempotencyKey: "approve-off" });
+  expect(await (await approveCommand(second.link, "off")).text()).toContain(
+    "Handed to the agent: it will send this reply in English, as written, and post it here.",
+  );
+  await env.DB.prepare("UPDATE thread SET customer_language='ja' WHERE id=?").bind(threadId).run();
+  const third = await postedDraft(threadId, { idempotencyKey: "approve-known" });
+  expect(await (await approveCommand(third.link, "customer")).text()).toContain(
+    "translate this reply into Japanese (ja)",
+  );
+  const fourth = await postedDraft(threadId, { idempotencyKey: "approve-english" });
+  expect(await (await approveCommand(fourth.link, "English")).text()).toContain(
+    "in English, as written",
+  );
+  expect((await approvalNotes(threadId)).map((note) => note.approval.language)).toEqual([
+    "customer",
+    "en",
+    "ja",
+    "en",
+  ]);
+  // "customer" and "off" leave the recorded language alone; a named language replaces it.
   expect(
-    await env.DB.prepare("SELECT status FROM agent_reply WHERE message_id=?")
-      .bind(draft.messageId)
-      .first("status"),
-  ).toBe("approved");
-  expect(
-    await env.DB.prepare("SELECT count(*) n FROM agent_reply WHERE thread_id=?")
+    await env.DB.prepare("SELECT customer_language FROM thread WHERE id=?")
       .bind(threadId)
-      .first("n"),
-  ).toBe(1);
+      .first("customer_language"),
+  ).toBe("en");
 });
 
-it("/approve in a new language keeps the review gate when the translation needs review", async () => {
+it("/approve on a reply already sent, a customer message or a rejected draft says so and hands nothing back", async () => {
   const { threadId } = await createCustomerFixture();
   await seedReadyDiscordThread(threadId);
+  await customerMessage(threadId, "Where is the export button?");
   const posts = mockDiscord();
   const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
   try {
-    await workflows.modifyAll(async (modifier) => {
-      await modifier.disableRetryDelays();
-      await modifier.mockStepResult({ name: "translate-message" }, translationResult("es", true));
-    });
-    const draft = await postedDraft(threadId, { idempotencyKey: "approve-review" });
-    expect(await (await approveCommand(draft.link, "Spanish")).text()).toContain(
-      "Approve translation",
-    );
-    const next = await env.DB.prepare(
-      "SELECT message_id FROM agent_reply WHERE thread_id=? AND status='approved'",
+    await workflows.modifyAll(async (modifier) => modifier.disableRetryDelays());
+    const { messageId: sentId } = await (
+      await request(`/threads/${threadId}/replies`, {
+        text: "Already sent",
+        mode: "send",
+        idempotencyKey: "approve-sent",
+      })
+    ).json<{ messageId: string }>();
+    await (await workflows.get())[0]!.waitForStatus("complete");
+    const audit = await env.DB.prepare(
+      "SELECT discord_message_id FROM discord_message WHERE message_id=?",
+    )
+      .bind(sentId)
+      .first<{ discord_message_id: string }>();
+    for (const ref of [sentId, audit!.discord_message_id])
+      expect(await (await approveCommand(ref)).text()).toMatch(
+        /That reply was already sent to the customer \(<t:\d+:f>\); it is not a draft\. Use \/reply to send a correction\./,
+      );
+    // The customer's message as RespondKit posted it in the thread.
+    const customerId = await env.DB.prepare(
+      "SELECT id FROM message WHERE thread_id=? AND direction='customer_to_operator'",
     )
       .bind(threadId)
-      .first<{ message_id: string }>();
-    await vi.waitFor(
-      async () => expect(JSON.stringify(posts)).toContain(`agent:translate:${next!.message_id}:1`),
-      { timeout: 5000 },
+      .first<string>("id");
+    await env.DB.prepare(
+      "INSERT INTO discord_message(workspace_id,inbox_id,thread_id,message_id,integration_id,projection_kind,chunk_index,nonce,correlation_marker,discord_thread_id,discord_message_id,status) SELECT workspace_id,inbox_id,thread_id,?,integration_id,'customer_projection',0,'customer','customer',discord_thread_id,'100000000000000999',status FROM discord_message WHERE message_id=?",
+    )
+      .bind(customerId, sentId)
+      .run();
+    const customer = { discord_message_id: "100000000000000999" };
+    expect(await (await approveCommand(customer.discord_message_id)).text()).toContain(
+      "That is a customer message, not an agent draft.",
     );
-    expect(
-      await env.DB.prepare("SELECT confirmed_by FROM reply_review WHERE message_id=?")
-        .bind(next!.message_id)
-        .first("confirmed_by"),
-    ).toBeNull();
-    expect(
-      await env.DB.prepare("SELECT customer_availability FROM message WHERE id=?")
-        .bind(next!.message_id)
-        .first("customer_availability"),
-    ).not.toBe("available");
+    const rejected = await postedDraft(threadId, { idempotencyKey: "approve-rejected" });
+    expect(await (await signedDecision(rejected.messageId, "reject")).text()).toContain("rejected");
+    await (await workflows.get())[1]!.waitForStatus("complete");
+    expect(await (await approveCommand(rejected.link)).text()).toContain(
+      "That draft was rejected and never sent.",
+    );
+    expect(await approvalNotes(threadId)).toEqual([]);
+    expect(posts.some((post) => post.content.includes("`approve:"))).toBe(false);
   } finally {
     await workflows.dispose();
   }
@@ -1930,7 +1963,7 @@ it("accepts a language name from the agent API's translate field", async () => {
   ).toMatchObject({ "json_extract(envelope,'$.replyTranslation')": "my" });
 });
 
-it("lets the agent approve its own pending draft once, racing the operator's tap without a second reply", async () => {
+it("lets the agent approve its own pending draft once; racing the operator's tap, exactly one of them wins", async () => {
   const { threadId } = await createCustomerFixture();
   await seedReadyDiscordThread(threadId);
   const posts = mockDiscord();
@@ -1948,22 +1981,25 @@ it("lets the agent approve its own pending draft once, racing the operator's tap
     const approve = () => request(`/threads/${threadId}/replies/${messageId}/approve`, {});
     const [first, tap] = await Promise.all([approve(), signedDecision(messageId)]);
     expect(first.status).toBe(200);
-    expect((await first.json<{ outcome: string }>()).outcome).toBe("approved");
-    expect(await tap.text()).toContain("approved");
+    const outcome = (await first.json<{ outcome: string }>()).outcome;
+    const answer = await tap.text();
     await (await workflows.get())[0]!.waitForStatus("complete");
-    expect((await (await approve()).json<{ outcome: string }>()).outcome).toBe("available");
-    expect(
-      await env.DB.prepare("SELECT decided_by FROM agent_reply WHERE message_id=?")
-        .bind(messageId)
-        .first("decided_by"),
-    ).toMatch(/^(agent:Helper|[0-9]+)$/);
-    expect(
-      await env.DB.prepare(
-        "SELECT count(*) n FROM message WHERE id=? AND customer_availability='available'",
-      )
-        .bind(messageId)
-        .first("n"),
-    ).toBe(1);
+    const published = await env.DB.prepare(
+      "SELECT count(*) n FROM message WHERE id=? AND customer_availability='available'",
+    )
+      .bind(messageId)
+      .first("n");
+    if (outcome === "approved") {
+      // The agent won: the tap finds the draft approved, and no approval note is filed.
+      expect(answer).toMatch(/already approved/);
+      expect(published).toBe(1);
+      expect((await (await approve()).json<{ outcome: string }>()).outcome).toBe("available");
+    } else {
+      // The tap won: the draft went back to the agent and its own approval finds it stale.
+      expect(outcome).toBe("stale");
+      expect(answer).toContain("Handed to the agent");
+      expect(published).toBe(0);
+    }
     expect(posts).toHaveLength(2);
   } finally {
     await workflows.dispose();

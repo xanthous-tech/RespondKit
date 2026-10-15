@@ -121,6 +121,8 @@ interface ParsedDiscordCommandBase extends ParsedDiscordInteractionBase {
   readonly forumChannelId: string | undefined;
   readonly operatorUserId: string;
   readonly operatorRoleIds: readonly string[];
+  /** The operator's display name (nickname, global name or username), for notes the agent reads. */
+  readonly operatorName?: string;
 }
 
 export interface ParsedDiscordReplyInteraction extends ParsedDiscordCommandBase {
@@ -140,15 +142,6 @@ export interface ParsedDiscordRetryInteraction extends ParsedDiscordCommandBase 
   readonly command: "retry";
   readonly reference: string;
   readonly message: string;
-}
-
-export interface ParsedDiscordTranslateInteraction extends ParsedDiscordCommandBase {
-  readonly command: "translate";
-  readonly targetLanguage: string;
-  /** A language name only the translation model can place; the API resolves it into `targetLanguage` first. */
-  readonly languageQuery?: string;
-  readonly targetMessageId?: string;
-  readonly messageLink?: string;
 }
 
 export interface ParsedDiscordActivityInteraction extends ParsedDiscordCommandBase {
@@ -172,7 +165,7 @@ export interface ParsedDiscordAgentNoteInteraction extends ParsedDiscordCommandB
 }
 
 /**
- * /approve: approve an agent draft by its message, optionally in another language
+ * /approve: hand an agent draft back to the agent, which translates and sends it
  * ("customer", "off" or a language code; a name not yet resolved is in languageQuery).
  */
 export interface ParsedDiscordApproveInteraction extends ParsedDiscordCommandBase {
@@ -185,7 +178,7 @@ export interface ParsedDiscordApproveInteraction extends ParsedDiscordCommandBas
 
 export interface ParsedDiscordAgentContextInteraction extends ParsedDiscordCommandBase {
   readonly command: "agent_context";
-  readonly action: "approve" | "reject";
+  readonly action: "approve";
   readonly targetMessageId: string;
 }
 
@@ -202,7 +195,6 @@ export type ParsedDiscordCommandInteraction =
   | ParsedDiscordAgentContextInteraction
   | ParsedDiscordAgentDecisionInteraction
   | ParsedDiscordActivityInteraction
-  | ParsedDiscordTranslateInteraction
   | ParsedDiscordConfirmInteraction
   | ParsedDiscordReplyInteraction
   | ParsedDiscordRetryInteraction
@@ -367,18 +359,13 @@ function parseCommandInteraction(
         ? "agent_decision"
         : "confirm_translation"
       : requiredString(data, "name", "command name");
-  const draftContext = commandName === "Approve draft" || commandName === "Reject draft";
-  const command = draftContext
-    ? "agent_context"
-    : commandName === "Translate to English"
-      ? "translate"
-      : commandName;
+  const draftContext = commandName === "Approve draft";
+  const command = draftContext ? "agent_context" : commandName;
   if (
     ![
       "reply",
       "retry",
       "status",
-      "translate",
       "confirm_translation",
       "activity",
       "agent_decision",
@@ -389,10 +376,7 @@ function parseCommandInteraction(
   ) {
     throw new DiscordInteractionParseError("unsupported_command", "Unsupported Discord command");
   }
-  if (
-    (commandName === "Translate to English" || draftContext) !== (data.type === 3) &&
-    payload.type !== 3
-  ) {
+  if (draftContext !== (data.type === 3) && payload.type !== 3) {
     throw new DiscordInteractionParseError("invalid_payload", "Invalid command type");
   }
   const options = parseOptions(data);
@@ -403,6 +387,15 @@ function parseCommandInteraction(
       "Discord interaction channel type must be a number",
     );
   }
+  const operatorUserId = requiredSnowflake(user, "id", "operator user ID");
+  const name =
+    typeof member.nick === "string"
+      ? member.nick
+      : typeof user.global_name === "string"
+        ? user.global_name
+        : typeof user.username === "string"
+          ? user.username
+          : operatorUserId;
   const commandBase = {
     ...base,
     kind: "command" as const,
@@ -413,26 +406,13 @@ function parseCommandInteraction(
       typeof channel.parent_id === "string" && SNOWFLAKE_PATTERN.test(channel.parent_id)
         ? channel.parent_id
         : undefined,
-    operatorUserId: requiredSnowflake(user, "id", "operator user ID"),
+    operatorUserId,
     operatorRoleIds,
+    operatorName: name.replaceAll(/[^\p{L}\p{N} ._-]/gu, "").slice(0, 80) || operatorUserId,
   };
   if (command === "agent") {
     requireAllowedOptions(options, ["message"], []);
-    const name =
-      typeof member.nick === "string"
-        ? member.nick
-        : typeof user.global_name === "string"
-          ? user.global_name
-          : typeof user.username === "string"
-            ? user.username
-            : commandBase.operatorUserId;
-    return {
-      ...commandBase,
-      command,
-      message: optionValue(options, "message", 6000),
-      operatorName:
-        name.replaceAll(/[^\p{L}\p{N} ._-]/gu, "").slice(0, 80) || commandBase.operatorUserId,
-    };
+    return { ...commandBase, command, message: optionValue(options, "message", 6000) };
   }
   if (command === "approve") {
     requireAllowedOptions(options, ["id"], ["translate"]);
@@ -454,7 +434,7 @@ function parseCommandInteraction(
     return {
       ...commandBase,
       command,
-      action: commandName === "Approve draft" ? "approve" : "reject",
+      action: "approve",
       targetMessageId: requiredSnowflake(data, "target_id"),
     };
   }
@@ -523,28 +503,6 @@ function parseCommandInteraction(
     if (payload.type !== 3 || match === null)
       throw new DiscordInteractionParseError("invalid_payload", "Invalid confirmation");
     return { ...commandBase, command, reference: match[1]!, generation: Number(match[2]) };
-  }
-  if (command === "translate") {
-    if (commandName === "Translate to English") {
-      return {
-        ...commandBase,
-        command,
-        targetLanguage: "en",
-        targetMessageId: requiredSnowflake(data, "target_id"),
-      };
-    }
-    requireAllowedOptions(options, [], ["message", "to"]);
-    const target = languageOption(
-      options.has("to") ? optionValue(options, "to", 35) : "en",
-      "targetLanguage",
-    );
-    return {
-      ...commandBase,
-      command,
-      targetLanguage: "targetLanguage" in target ? target.targetLanguage : "",
-      ...("languageQuery" in target ? { languageQuery: target.languageQuery } : {}),
-      ...(options.has("message") ? { messageLink: optionValue(options, "message", 200) } : {}),
-    };
   }
   if (command === "reply") {
     requireAllowedOptions(options, ["message"], ["translate"]);
@@ -695,11 +653,6 @@ export type NormalizedDiscordCommand =
         "command" | "count" | "minutes" | "activityKind" | "until"
       >)
   | (NormalizedDiscordCommandBase &
-      Pick<
-        ParsedDiscordTranslateInteraction,
-        "command" | "targetLanguage" | "targetMessageId" | "messageLink"
-      >)
-  | (NormalizedDiscordCommandBase &
       Pick<ParsedDiscordConfirmInteraction, "command" | "reference" | "generation">)
   | (NormalizedDiscordCommandBase & {
       readonly command: "reply";
@@ -768,17 +721,6 @@ export function normalizeDiscordCommand(
       activityKind: interaction.activityKind,
       until: interaction.until,
     };
-  if (interaction.command === "translate") {
-    return {
-      ...base,
-      command: interaction.command,
-      targetLanguage: interaction.targetLanguage,
-      ...(interaction.targetMessageId === undefined
-        ? {}
-        : { targetMessageId: interaction.targetMessageId }),
-      ...(interaction.messageLink === undefined ? {} : { messageLink: interaction.messageLink }),
-    };
-  }
   if (interaction.command === "confirm_translation")
     return {
       ...base,
@@ -856,7 +798,7 @@ export function normalizeTranslationLanguage(value: string): string {
 }
 
 /** A command's language option: a code when the table can place it, else a name for the API to resolve. */
-function languageOption<F extends "translate" | "targetLanguage">(
+function languageOption<F extends "translate">(
   value: string,
   field: F,
 ): { [K in F]: string } | { languageQuery: string } {

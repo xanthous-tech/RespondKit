@@ -38,14 +38,7 @@ export interface DiscordChatInputCommandDefinition {
   )[];
 }
 
-export type DiscordCommandName =
-  | "reply"
-  | "retry"
-  | "status"
-  | "translate"
-  | "activity"
-  | "agent"
-  | "approve";
+export type DiscordCommandName = "reply" | "retry" | "status" | "activity" | "agent" | "approve";
 
 export const DISCORD_REPLY_COMMAND = {
   type: DiscordApplicationCommandType.ChatInput,
@@ -71,37 +64,6 @@ export const DISCORD_REPLY_COMMAND = {
     },
   ],
 } as const satisfies DiscordChatInputCommandDefinition;
-
-export const DISCORD_TRANSLATE_COMMAND = {
-  type: DiscordApplicationCommandType.ChatInput,
-  name: "translate",
-  description: "Translate a customer message (defaults to the latest message, into English)",
-  default_member_permissions: "0",
-  options: [
-    {
-      type: 3,
-      name: "message",
-      description: "Discord message link in this support thread",
-      required: false,
-      min_length: 1,
-      max_length: 200,
-    },
-    {
-      type: 3,
-      name: "to",
-      description: "Target language name or code, for example English, Burmese, or my (default en)",
-      required: false,
-      min_length: 2,
-      max_length: 35,
-    },
-  ],
-} as const satisfies DiscordChatInputCommandDefinition;
-
-export const DISCORD_TRANSLATE_MESSAGE_COMMAND = {
-  type: DiscordApplicationCommandType.Message,
-  name: "Translate to English",
-  default_member_permissions: "0",
-} as const;
 
 export const DISCORD_STATUS_COMMAND = {
   type: DiscordApplicationCommandType.ChatInput,
@@ -215,7 +177,7 @@ export const DISCORD_AGENT_COMMAND = {
 export const DISCORD_APPROVE_COMMAND = {
   type: DiscordApplicationCommandType.ChatInput,
   name: "approve",
-  description: "Approve an agent draft, optionally sending it in another language",
+  description: "Hand an agent draft back to the agent to translate and send",
   default_member_permissions: "0",
   options: [
     {
@@ -229,7 +191,7 @@ export const DISCORD_APPROVE_COMMAND = {
     {
       type: DiscordApplicationCommandOptionType.String,
       name: "translate",
-      description: "customer, off, or a language name or code (Burmese, 简体中文, my)",
+      description: "customer (default), off (send the English as is), or a language name or code",
       required: false,
       min_length: 2,
       max_length: 35,
@@ -242,21 +204,13 @@ export const DISCORD_APPROVE_DRAFT_COMMAND = {
   name: "Approve draft",
   default_member_permissions: "0",
 } as const;
-export const DISCORD_REJECT_DRAFT_COMMAND = {
-  type: 3,
-  name: "Reject draft",
-  default_member_permissions: "0",
-} as const;
 
 export const DISCORD_GUILD_COMMANDS = [
   DISCORD_AGENT_COMMAND,
   DISCORD_APPROVE_COMMAND,
   DISCORD_APPROVE_DRAFT_COMMAND,
-  DISCORD_REJECT_DRAFT_COMMAND,
   DISCORD_REPLY_COMMAND,
   DISCORD_STATUS_COMMAND,
   DISCORD_RETRY_COMMAND,
-  DISCORD_TRANSLATE_COMMAND,
-  DISCORD_TRANSLATE_MESSAGE_COMMAND,
   DISCORD_ACTIVITY_COMMAND,
 ] as const;
