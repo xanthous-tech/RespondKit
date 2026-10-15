@@ -29,7 +29,12 @@ actor FakeAPI: RespondKitAPI {
   var contactFailures = 0
   var suspendContact = false
   var contactContinuation: CheckedContinuation<Void, Never>?
-  func failContact(times: Int) { contactFailures = times }
+  var statusCalls = 0
+  var beforeContactFailure: (@Sendable () async throws -> Void)?
+  func failContact(times: Int, before: (@Sendable () async throws -> Void)? = nil) {
+    contactFailures = times
+    beforeContactFailure = before
+  }
   func setSuspendContact(_ value: Bool) { suspendContact = value }
   func resumeContact() {
     contactContinuation?.resume()
@@ -39,6 +44,7 @@ actor FakeAPI: RespondKitAPI {
     contactCalls += 1
     if contactFailures > 0 {
       contactFailures -= 1
+      try await beforeContactFailure?()
       throw RespondKitError("Contact unavailable.")
     }
     if suspendContact {
@@ -74,6 +80,7 @@ actor FakeAPI: RespondKitAPI {
     return result.session
   }
   func statuses(token: String, after: String?) async throws -> StatusPage {
+    statusCalls += 1
     if suspendStatuses { await withCheckedContinuation { statusContinuation = $0 } }
     if unauthorizedOnce {
       unauthorizedOnce = false
@@ -173,6 +180,17 @@ struct StoreTests {
     await store.refresh()
     #expect(await api.contactCalls == 2)
     #expect(await api.sessionCalls == 1)
+  }
+
+  @Test func identitySwitchDuringAFailedLookupUsesNothingFromTheOldSession() async throws {
+    let api = FakeAPI()
+    let store = try make(api)
+    await api.failContact(times: 1) {
+      try await MainActor.run { try store.updateIdentity(context: CustomerContext(userId: "bob")) }
+    }
+    await store.refresh()
+    #expect(await api.statusCalls == 0)
+    #expect(!store.asksForEmail)
   }
 
   @Test func canceledContactLookupResumesOnTheCachedSession() async throws {

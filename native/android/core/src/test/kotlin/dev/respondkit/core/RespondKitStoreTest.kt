@@ -36,6 +36,8 @@ private class FakeApi : RespondKitApi {
     var storedEmail: String? = null
     var contactCalls = 0
     var contactFailures = 0
+    var beforeContactFailure: (() -> Unit)? = null
+    var statusCalls = 0
     var contactGate: CompletableDeferred<Unit>? = null
 
     fun seed() {
@@ -68,6 +70,7 @@ private class FakeApi : RespondKitApi {
     }
 
     override suspend fun statuses(token: String, after: String?): StatusPage {
+        statusCalls++
         statusesEntered.complete(Unit)
         waitForStatuses?.await()
         if (unauthorizedOnce) {
@@ -119,6 +122,7 @@ private class FakeApi : RespondKitApi {
         contactCalls++
         if (contactFailures > 0) {
             contactFailures--
+            beforeContactFailure?.invoke()
             throw RespondKitException("Contact unavailable.")
         }
         contactGate?.also { contactGate = null }?.await()
@@ -411,6 +415,16 @@ class RespondKitStoreTest {
             assertEquals(2, api.contactCalls)
             assertEquals(1, api.sessionCalls)
         }
+    }
+
+    @Test
+    fun identitySwitchDuringAFailedLookupUsesNothingFromTheOldSession() = runTest {
+        val api = FakeApi().apply { contactFailures = 1 }
+        val store = store(api)
+        api.beforeContactFailure = { store.updateIdentity(CustomerContext(userId = "bob")) }
+        assertFailsWith<CancellationException> { store.refresh() }
+        assertEquals(0, api.statusCalls)
+        assertFalse(store.state.value.asksForEmail)
     }
 
     @Test

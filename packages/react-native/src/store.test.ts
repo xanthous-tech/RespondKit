@@ -267,6 +267,17 @@ describe("React Native store", () => {
       expect(client.getContact).toHaveBeenCalledTimes(2);
     },
   );
+  it("uses nothing from the old session when identity switches during a failed lookup", async () => {
+    const client = api();
+    const store = await make(client);
+    client.getContact.mockImplementationOnce(async () => {
+      void store.updateIdentity({ userId: "user_next" });
+      throw new Error("503");
+    });
+    await store.saveEmail("customer@example.com");
+    expect(client.saveContact).not.toHaveBeenCalled();
+    expect(store.getSnapshot()).toMatchObject({ asksForEmail: false, email: undefined });
+  });
   it("fails closed on corrupt storage and never sends before pending data is saved", async () => {
     await expect(
       make(api(), { load: async () => "bad json", save: async () => undefined }),
