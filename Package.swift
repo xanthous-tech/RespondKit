@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
   name: "RespondKit",
+  defaultLocalization: "en",
   platforms: [.iOS(.v18), .macOS(.v15)],
   products: [
     .library(name: "RespondKitCore", targets: ["RespondKitCore"]),
@@ -12,7 +13,7 @@ let package = Package(
     .target(name: "RespondKitCore", path: "native/swift/Sources/RespondKitCore"),
     .target(
       name: "RespondKitUI", dependencies: ["RespondKitCore"],
-      path: "native/swift/Sources/RespondKitUI"),
+      path: "native/swift/Sources/RespondKitUI", resources: [.process("Resources")]),
     .testTarget(
       name: "RespondKitTests", dependencies: ["RespondKitCore", "RespondKitUI"], path: "native",
       exclude: ["android", "examples", "swift/Sources"],

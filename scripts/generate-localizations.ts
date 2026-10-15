@@ -3,7 +3,8 @@ import { resolve, dirname, relative } from "node:path";
 import { compileXCStrings } from "@respondkit/paraglide-ios";
 import { compileAndroidResources } from "@respondkit/paraglide-android";
 
-const root = resolve(import.meta.dirname, "../localization");
+const repo = resolve(import.meta.dirname, "..");
+const root = resolve(repo, "localization");
 const settings = JSON.parse(
   await readFile(resolve(root, "project.inlang/settings.json"), "utf8"),
 ) as { baseLocale: string; locales: string[] };
@@ -26,10 +27,11 @@ const input = {
   ),
 };
 // Complete validation/compilation before changing any output files.
-const files: Record<string, string> = { "ios/RespondKit.xcstrings": compileXCStrings(input) };
+const files: Record<string, string> = {
+  "native/swift/Sources/RespondKitUI/Resources/RespondKit.xcstrings": compileXCStrings(input),
+};
 for (const [path, content] of Object.entries(compileAndroidResources(input)))
-  files[`android/res/${path}`] = content;
-const output = resolve(root, "generated");
+  files[`localization/generated/android/res/${path}`] = content;
 async function existingFiles(directory: string): Promise<string[]> {
   const entries = await readdir(directory, { withFileTypes: true }).catch(
     (error: NodeJS.ErrnoException) => {
@@ -42,16 +44,16 @@ async function existingFiles(directory: string): Promise<string[]> {
       entries.map(async (entry) =>
         entry.isDirectory()
           ? existingFiles(resolve(directory, entry.name))
-          : [relative(output, resolve(directory, entry.name))],
+          : [relative(repo, resolve(directory, entry.name))],
       ),
     )
   ).flat();
 }
-const existing = await existingFiles(output);
+const existing = await existingFiles(resolve(root, "generated"));
 if (process.argv.includes("--check")) {
   const stale = existing.filter((path) => !(path in files));
   for (const [path, content] of Object.entries(files)) {
-    const actual = await readFile(resolve(output, path), "utf8").catch(() => undefined);
+    const actual = await readFile(resolve(repo, path), "utf8").catch(() => undefined);
     if (actual !== content) stale.push(path);
   }
   if (stale.length)
@@ -60,9 +62,9 @@ if (process.argv.includes("--check")) {
     );
   console.log("Native localization resources match the shared JSON catalogs.");
 } else {
-  for (const path of existing.filter((path) => !(path in files))) await rm(resolve(output, path));
+  for (const path of existing.filter((path) => !(path in files))) await rm(resolve(repo, path));
   for (const [path, content] of Object.entries(files)) {
-    const destination = resolve(output, path);
+    const destination = resolve(repo, path);
     await mkdir(dirname(destination), { recursive: true });
     await writeFile(destination, content);
   }

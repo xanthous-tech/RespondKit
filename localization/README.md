@@ -9,9 +9,9 @@ pnpm localization:check
 
 `project.inlang/settings.json` defines the base language and release locales. Add each new locale there and supply all message IDs in `messages/{locale}.json`. This is ordinary inlang message-format JSON, compatible with Paraglide JS. The native exporters are intentionally limited to the contract below. They do not load arbitrary inlang plugins.
 
-The generator writes `generated/ios/RespondKit.xcstrings` and `generated/android/res/values*/strings.xml`. Commit the outputs with the JSON changes. `pnpm ready` fails if an output is missing, modified, or left behind after removing a locale. Generated files belong to this pipeline; edits in Xcode or Android Studio must be made in JSON instead. No translation services run during compilation.
+The generator writes `native/swift/Sources/RespondKitUI/Resources/RespondKit.xcstrings` (the SwiftPM resource of `RespondKitUI`) and `generated/android/res/values*/strings.xml` (a resource directory of the Compose module). Commit the outputs with the JSON changes. `pnpm ready` fails if an output is missing, modified, or left behind after removing a locale. Generated files belong to this pipeline; edits in Xcode or Android Studio must be made in JSON instead. No translation services run during compilation.
 
-These are build tools and an English source catalog. The current SDK views still use their existing strings; the generated resources are not yet installed in the SDK bundles. Migrating lookups and adding UI locale selection are separate integration work. No new languages are advertised by the SDK in this change.
+Both native SDKs bundle the generated resources. Both read the empty state, the "Ask us anything" subtitle and the attach menu from them, and Compose also reads its closed-conversation strings from them. Other views still use English literals. The catalog is English only, so adding a language means adding it to `settings.json` with a complete `messages/{locale}.json`. The web widget and React Native screen still use English literals.
 
 ## Portable message contract
 
