@@ -81,5 +81,12 @@
   "respondkit_session_expired": "サポートセッションの有効期限が切れました。続けるには再接続してください。",
   "respondkit_identity_changed": "別のタブでサポートのアカウントが切り替わりました。アカウントを再読み込みするには再接続してください。",
   "respondkit_connecting": "サポートに接続しています。",
-  "respondkit_reconnect_upload": "アップロードする前に再接続してください。"
+  "respondkit_reconnect_upload": "アップロードする前に再接続してください。",
+  "respondkit_message_too_long": "6,000文字以内でメッセージを入力してください。",
+  "respondkit_message_limit": "メッセージは6,000文字まで入力できます。",
+  "respondkit_closed_start_new": "この会話は終了しています。新しい会話を始めてください。",
+  "respondkit_logout_failed": "以前のサポートセッションを取り消せませんでした。自動的に期限切れになります。",
+  "respondkit_history_save_failed": "サポート履歴を保存できませんでした。",
+  "respondkit_done": "完了",
+  "respondkit_unread_reply": "未読の返信"
 }

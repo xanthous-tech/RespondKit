@@ -90,5 +90,12 @@
   "respondkit_session_expired": "Die Support-Sitzung ist abgelaufen. Neu verbinden, um fortzufahren.",
   "respondkit_identity_changed": "Die Support-Identität wurde in einem anderen Tab geändert. Neu verbinden, um dein Konto neu zu laden.",
   "respondkit_connecting": "Support wird noch verbunden.",
-  "respondkit_reconnect_upload": "Vor dem Hochladen neu verbinden."
+  "respondkit_reconnect_upload": "Vor dem Hochladen neu verbinden.",
+  "respondkit_message_too_long": "Gib eine Nachricht mit bis zu 6.000 Zeichen ein.",
+  "respondkit_message_limit": "Nachrichten können bis zu 6.000 Zeichen enthalten.",
+  "respondkit_closed_start_new": "Diese Unterhaltung ist geschlossen. Beginne eine neue Unterhaltung.",
+  "respondkit_logout_failed": "Die vorherige Support-Sitzung konnte nicht widerrufen werden. Sie läuft automatisch ab.",
+  "respondkit_history_save_failed": "Der Support-Verlauf konnte nicht gespeichert werden.",
+  "respondkit_done": "Fertig",
+  "respondkit_unread_reply": "Ungelesene Antwort"
 }

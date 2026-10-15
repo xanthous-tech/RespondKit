@@ -10,6 +10,7 @@
     <string name="respondkit_close_chat" formatted="false">"ସହାୟତା ଚାଟ୍ ବନ୍ଦ କରନ୍ତୁ"</string>
     <string name="respondkit_closed" formatted="false">"ବନ୍ଦ"</string>
     <string name="respondkit_closed_help" formatted="false">"ଏହି ବାର୍ତ୍ତାଳାପ ବନ୍ଦ ହୋଇଯାଇଛି।"</string>
+    <string name="respondkit_closed_start_new" formatted="false">"ଏହି ବାର୍ତ୍ତାଳାପ ବନ୍ଦ ହୋଇଛି। ଏକ ନୂଆ ବାର୍ତ୍ତାଳାପ ଆରମ୍ଭ କରନ୍ତୁ।"</string>
     <string name="respondkit_confirming" formatted="false">"ନିଶ୍ଚିତ କରାଯାଉଛି…"</string>
     <string name="respondkit_connecting" formatted="false">"ସହାୟତା ଏବେ ବି ସଂଯୋଗ ହେଉଛି।"</string>
     <string name="respondkit_conversation">"ବାର୍ତ୍ତାଳାପ %1$s"</string>
@@ -18,6 +19,7 @@
         <item quantity="one">"ବାର୍ତ୍ତାଳାପଗୁଡ଼ିକ · %1$dଟି ଅପଠିତ"</item>
         <item quantity="other">"ବାର୍ତ୍ତାଳାପଗୁଡ଼ିକ · %1$dଟି ଅପଠିତ"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"ହୋଇଗଲା"</string>
     <string name="respondkit_email_address" formatted="false">"ଇମେଲ ଠିକଣା"</string>
     <string name="respondkit_email_failed" formatted="false">"ଆମେ ଆପଣଙ୍କ ଇମେଲ ସେଭ୍ କରିପାରିଲୁ ନାହିଁ। ଦୟାକରି ଏହାକୁ ଯାଞ୍ଚ କରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।"</string>
     <string name="respondkit_email_prompt" formatted="false">"ଆମେ ଆପଣଙ୍କୁ କେଉଁ ଇମେଲରେ ଉତ୍ତର ପଠାଇବୁ?"</string>
@@ -26,13 +28,17 @@
     <string name="respondkit_files" formatted="false">"ଫାଇଲ୍"</string>
     <string name="respondkit_help" formatted="false">"ଆମେ କିପରି ସାହାଯ୍ୟ କରିପାରିବା?"</string>
     <string name="respondkit_history_failed" formatted="false">"ବାର୍ତ୍ତାଳାପ ଇତିହାସ ଲୋଡ୍ କରାଯାଇପାରିଲା ନାହିଁ। ଅଧିକ ବଟନ୍ ସହ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।"</string>
+    <string name="respondkit_history_save_failed" formatted="false">"ସହାୟତା ଇତିହାସ ସେଭ୍ କରାଯାଇପାରିଲା ନାହିଁ।"</string>
     <string name="respondkit_identity_changed" formatted="false">"ଅନ୍ୟ ଏକ ଟ୍ୟାବ୍‌ରେ ସହାୟତା ପରିଚୟ ବଦଳିଯାଇଛି। ଆପଣଙ୍କ ଆକାଉଣ୍ଟ ପୁଣି ଲୋଡ୍ କରିବାକୁ ପୁଣି ସଂଯୋଗ କରନ୍ତୁ।"</string>
     <string name="respondkit_intro" formatted="false">"ଏକ ମେସେଜ୍ ପଠାନ୍ତୁ ଏବଂ ଶୀଘ୍ର ଉତ୍ତର ପାଇଁ ଏହି ପୃଷ୍ଠାଟି ଖୋଲା ରଖନ୍ତୁ।"</string>
     <string name="respondkit_intro_short" formatted="false">"ବାର୍ତ୍ତାଳାପ ଆରମ୍ଭ କରିବାକୁ ଏକ ମେସେଜ୍ ପଠାନ୍ତୁ।"</string>
     <string name="respondkit_latest" formatted="false">"ସର୍ବଶେଷ ମେସେଜ୍"</string>
     <string name="respondkit_loading" formatted="false">"ଲୋଡ୍ ହେଉଛି…"</string>
     <string name="respondkit_loading_messages" formatted="false">"ମେସେଜ୍ ଲୋଡ୍ ହେଉଛି"</string>
+    <string name="respondkit_logout_failed" formatted="false">"ପୂର୍ବ ସହାୟତା ସେସନ୍ ବାତିଲ କରାଯାଇପାରିଲା ନାହିଁ। ଏହା ସ୍ୱୟଂଚାଳିତ ଭାବେ ସମାପ୍ତ ହେବ।"</string>
     <string name="respondkit_message" formatted="false">"ମେସେଜ୍"</string>
+    <string name="respondkit_message_limit" formatted="false">"ବାର୍ତ୍ତାରେ ସର୍ବାଧିକ 6,000 ଅକ୍ଷର ରହିପାରିବ।"</string>
+    <string name="respondkit_message_too_long" formatted="false">"6,000 ଅକ୍ଷର ପର୍ଯ୍ୟନ୍ତ ଏକ ବାର୍ତ୍ତା ଲେଖନ୍ତୁ।"</string>
     <string name="respondkit_messages_failed" formatted="false">"ନୂଆ ମେସେଜ୍ ଲୋଡ୍ କରାଯାଇପାରିଲା ନାହିଁ।"</string>
     <string name="respondkit_more" formatted="false">"ଅଧିକ"</string>
     <string name="respondkit_new_conversation" formatted="false">"ନୂଆ ବାର୍ତ୍ତାଳାପ"</string>
@@ -72,6 +78,7 @@
     <string name="respondkit_try_again" formatted="false">"ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ"</string>
     <string name="respondkit_unknown" formatted="false">"ନିଶ୍ଚିତ ହୋଇନାହିଁ — ନିରାପଦରେ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ"</string>
     <string name="respondkit_unread" formatted="false">"ଅପଠିତ ସହାୟତା ଉତ୍ତର"</string>
+    <string name="respondkit_unread_reply" formatted="false">"ପଢ଼ାଯାଇନଥିବା ଉତ୍ତର"</string>
     <string name="respondkit_upload_failed" formatted="false">"ଅପଲୋଡ୍ ବିଫଳ ହେଲା"</string>
     <string name="respondkit_write_message" formatted="false">"ଏକ ମେସେଜ୍ ଲେଖନ୍ତୁ…"</string>
 </resources>

@@ -90,5 +90,12 @@
   "respondkit_session_expired": "உங்கள் ஆதரவு அமர்வு காலாவதியாகிவிட்டது. தொடர மீண்டும் இணையவும்.",
   "respondkit_identity_changed": "வேறொரு தாவலில் ஆதரவுக் கணக்கு மாற்றப்பட்டது. உங்கள் கணக்கை மீண்டும் ஏற்ற மீண்டும் இணையவும்.",
   "respondkit_connecting": "ஆதரவு இன்னும் இணைக்கப்படுகிறது.",
-  "respondkit_reconnect_upload": "பதிவேற்றும் முன் மீண்டும் இணையவும்."
+  "respondkit_reconnect_upload": "பதிவேற்றும் முன் மீண்டும் இணையவும்.",
+  "respondkit_message_too_long": "6,000 எழுத்துகள் வரையிலான செய்தியை உள்ளிடவும்.",
+  "respondkit_message_limit": "செய்திகளில் அதிகபட்சம் 6,000 எழுத்துகள் இருக்கலாம்.",
+  "respondkit_closed_start_new": "இந்த உரையாடல் மூடப்பட்டது. புதிய உரையாடலைத் தொடங்கவும்.",
+  "respondkit_logout_failed": "முந்தைய ஆதரவு அமர்வைத் திரும்பப்பெற முடியவில்லை. அது தானாகவே காலாவதியாகும்.",
+  "respondkit_history_save_failed": "ஆதரவு வரலாற்றைச் சேமிக்க முடியவில்லை.",
+  "respondkit_done": "முடிந்தது",
+  "respondkit_unread_reply": "படிக்காத பதில்"
 }

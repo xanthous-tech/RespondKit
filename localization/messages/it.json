@@ -96,5 +96,12 @@
   "respondkit_session_expired": "La sessione di assistenza è scaduta. Riconnettiti per continuare.",
   "respondkit_identity_changed": "L'account di assistenza è cambiato in un'altra scheda. Riconnettiti per ricaricare il tuo account.",
   "respondkit_connecting": "L'assistenza è ancora in fase di connessione.",
-  "respondkit_reconnect_upload": "Riconnettiti prima di caricare file."
+  "respondkit_reconnect_upload": "Riconnettiti prima di caricare file.",
+  "respondkit_message_too_long": "Inserisci un messaggio di massimo 6.000 caratteri.",
+  "respondkit_message_limit": "I messaggi possono contenere fino a 6.000 caratteri.",
+  "respondkit_closed_start_new": "Questa conversazione è chiusa. Inizia una nuova conversazione.",
+  "respondkit_logout_failed": "Impossibile revocare la sessione di assistenza precedente. Scadrà automaticamente.",
+  "respondkit_history_save_failed": "Impossibile salvare la cronologia dell'assistenza.",
+  "respondkit_done": "Fine",
+  "respondkit_unread_reply": "Risposta non letta"
 }

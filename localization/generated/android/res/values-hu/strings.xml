@@ -10,6 +10,7 @@
     <string name="respondkit_close_chat" formatted="false">"Ügyfélszolgálati chat bezárása"</string>
     <string name="respondkit_closed" formatted="false">"Lezárt"</string>
     <string name="respondkit_closed_help" formatted="false">"Ez a beszélgetés lezárult."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"Ez a beszélgetés lezárult. Kezdjen új beszélgetést."</string>
     <string name="respondkit_confirming" formatted="false">"Megerősítés…"</string>
     <string name="respondkit_connecting" formatted="false">"A kapcsolódás az ügyfélszolgálathoz még folyamatban van."</string>
     <string name="respondkit_conversation">"Beszélgetés – %1$s"</string>
@@ -18,6 +19,7 @@
         <item quantity="one">"Beszélgetések · %1$d olvasatlan"</item>
         <item quantity="other">"Beszélgetések · %1$d olvasatlan"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Kész"</string>
     <string name="respondkit_email_address" formatted="false">"E-mail-cím"</string>
     <string name="respondkit_email_failed" formatted="false">"Nem sikerült menteni az e-mail-címét. Ellenőrizze, és próbálja újra."</string>
     <string name="respondkit_email_prompt" formatted="false">"Milyen e-mail-címre küldhetjük a választ?"</string>
@@ -26,13 +28,17 @@
     <string name="respondkit_files" formatted="false">"Fájlok"</string>
     <string name="respondkit_help" formatted="false">"Miben segíthetünk?"</string>
     <string name="respondkit_history_failed" formatted="false">"Nem sikerült betölteni a beszélgetés előzményeit. Próbálja újra a „Továbbiak” gombbal."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"Nem sikerült menteni az ügyfélszolgálati előzményeket."</string>
     <string name="respondkit_identity_changed" formatted="false">"Egy másik lapon megváltozott az ügyfélszolgálati azonosító. Csatlakozzon újra a fiókja újbóli betöltéséhez."</string>
     <string name="respondkit_intro" formatted="false">"Küldjön üzenetet, és tartsa nyitva ezt az oldalt a gyors válaszért."</string>
     <string name="respondkit_intro_short" formatted="false">"Küldjön üzenetet a beszélgetés indításához."</string>
     <string name="respondkit_latest" formatted="false">"Legújabb üzenetek"</string>
     <string name="respondkit_loading" formatted="false">"Betöltés…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Üzenetek betöltése"</string>
+    <string name="respondkit_logout_failed" formatted="false">"Az előző ügyfélszolgálati munkamenetet nem sikerült visszavonni. Automatikusan lejár."</string>
     <string name="respondkit_message" formatted="false">"Üzenet"</string>
+    <string name="respondkit_message_limit" formatted="false">"Az üzenetek legfeljebb 6000 karaktert tartalmazhatnak."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Legfeljebb 6000 karakteres üzenetet írjon."</string>
     <string name="respondkit_messages_failed" formatted="false">"Nem sikerült betölteni az új üzeneteket."</string>
     <string name="respondkit_more" formatted="false">"Továbbiak"</string>
     <string name="respondkit_new_conversation" formatted="false">"Új beszélgetés"</string>
@@ -72,6 +78,7 @@
     <string name="respondkit_try_again" formatted="false">"Újrapróbálás"</string>
     <string name="respondkit_unknown" formatted="false">"Nincs megerősítve – nyugodtan próbálja újra"</string>
     <string name="respondkit_unread" formatted="false">"Olvasatlan ügyfélszolgálati válasz"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Olvasatlan válasz"</string>
     <string name="respondkit_upload_failed" formatted="false">"Sikertelen feltöltés"</string>
     <string name="respondkit_write_message" formatted="false">"Írjon üzenetet…"</string>
 </resources>

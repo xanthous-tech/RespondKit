@@ -10,6 +10,7 @@
     <string name="respondkit_close_chat" formatted="false">"Destek sohbetini kapat"</string>
     <string name="respondkit_closed" formatted="false">"Kapalı"</string>
     <string name="respondkit_closed_help" formatted="false">"Bu sohbet kapatıldı."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"Bu görüşme kapatıldı. Yeni bir görüşme başlatın."</string>
     <string name="respondkit_confirming" formatted="false">"Onaylanıyor…"</string>
     <string name="respondkit_connecting" formatted="false">"Destek bağlantısı hâlâ kuruluyor."</string>
     <string name="respondkit_conversation">"Sohbet %1$s"</string>
@@ -18,6 +19,7 @@
         <item quantity="one">"Sohbetler · %1$d okunmamış"</item>
         <item quantity="other">"Sohbetler · %1$d okunmamış"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Bitti"</string>
     <string name="respondkit_email_address" formatted="false">"E-posta adresi"</string>
     <string name="respondkit_email_failed" formatted="false">"E-posta adresiniz kaydedilemedi. Lütfen kontrol edip tekrar deneyin."</string>
     <string name="respondkit_email_prompt" formatted="false">"Yanıtı hangi e-posta adresine gönderelim?"</string>
@@ -26,13 +28,17 @@
     <string name="respondkit_files" formatted="false">"Dosyalar"</string>
     <string name="respondkit_help" formatted="false">"Nasıl yardımcı olabiliriz?"</string>
     <string name="respondkit_history_failed" formatted="false">"Sohbet geçmişi yüklenemedi. “Daha fazla” seçeneğini tekrar deneyin."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"Destek geçmişi kaydedilemedi."</string>
     <string name="respondkit_identity_changed" formatted="false">"Destek hesabı başka bir sekmede değişti. Hesabınızı yeniden yüklemek için yeniden bağlanın."</string>
     <string name="respondkit_intro" formatted="false">"Mesaj gönderin ve hızlı yanıt için bu sayfayı açık tutun."</string>
     <string name="respondkit_intro_short" formatted="false">"Sohbet başlatmak için mesaj gönderin."</string>
     <string name="respondkit_latest" formatted="false">"En son mesajlar"</string>
     <string name="respondkit_loading" formatted="false">"Yükleniyor…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Mesajlar yükleniyor"</string>
+    <string name="respondkit_logout_failed" formatted="false">"Önceki destek oturumu iptal edilemedi. Otomatik olarak sona erecek."</string>
     <string name="respondkit_message" formatted="false">"Mesaj"</string>
+    <string name="respondkit_message_limit" formatted="false">"Mesajlar en fazla 6.000 karakter içerebilir."</string>
+    <string name="respondkit_message_too_long" formatted="false">"En fazla 6.000 karakterlik bir mesaj girin."</string>
     <string name="respondkit_messages_failed" formatted="false">"Yeni mesajlar yüklenemedi."</string>
     <string name="respondkit_more" formatted="false">"Daha fazla"</string>
     <string name="respondkit_new_conversation" formatted="false">"Yeni sohbet"</string>
@@ -72,6 +78,7 @@
     <string name="respondkit_try_again" formatted="false">"Tekrar deneyin"</string>
     <string name="respondkit_unknown" formatted="false">"Onaylanmadı — güvenle tekrar deneyebilirsiniz"</string>
     <string name="respondkit_unread" formatted="false">"Okunmamış destek yanıtı"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Okunmamış yanıt"</string>
     <string name="respondkit_upload_failed" formatted="false">"Yükleme başarısız"</string>
     <string name="respondkit_write_message" formatted="false">"Bir mesaj yazın…"</string>
 </resources>

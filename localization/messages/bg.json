@@ -90,5 +90,12 @@
   "respondkit_session_expired": "Сесията ви с поддръжката изтече. Свържете се отново, за да продължите.",
   "respondkit_identity_changed": "Самоличността за поддръжка е променена в друг раздел. Свържете се отново, за да презаредите акаунта си.",
   "respondkit_connecting": "Поддръжката все още се свързва.",
-  "respondkit_reconnect_upload": "Свържете се отново преди качване."
+  "respondkit_reconnect_upload": "Свържете се отново преди качване.",
+  "respondkit_message_too_long": "Въведете съобщение до 6000 знака.",
+  "respondkit_message_limit": "Съобщенията могат да съдържат до 6000 знака.",
+  "respondkit_closed_start_new": "Този разговор е затворен. Започнете нов разговор.",
+  "respondkit_logout_failed": "Предишната сесия за поддръжка не можа да бъде прекратена. Тя ще изтече автоматично.",
+  "respondkit_history_save_failed": "Историята на поддръжката не можа да бъде запазена.",
+  "respondkit_done": "Готово",
+  "respondkit_unread_reply": "Непрочетен отговор"
 }

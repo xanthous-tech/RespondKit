@@ -99,5 +99,12 @@
   "respondkit_session_expired": "Pagalbos sesija baigėsi. Prisijunkite iš naujo, kad galėtumėte tęsti.",
   "respondkit_identity_changed": "Pagalbos tapatybė pasikeitė kitame skirtuke. Prisijunkite iš naujo, kad iš naujo įkeltumėte savo paskyrą.",
   "respondkit_connecting": "Pagalba vis dar jungiasi.",
-  "respondkit_reconnect_upload": "Prieš įkeldami prisijunkite iš naujo."
+  "respondkit_reconnect_upload": "Prieš įkeldami prisijunkite iš naujo.",
+  "respondkit_message_too_long": "Įveskite iki 6 000 simbolių žinutę.",
+  "respondkit_message_limit": "Žinutėse gali būti iki 6 000 simbolių.",
+  "respondkit_closed_start_new": "Šis pokalbis uždarytas. Pradėkite naują pokalbį.",
+  "respondkit_logout_failed": "Ankstesnės pagalbos sesijos atšaukti nepavyko. Ji baigsis automatiškai.",
+  "respondkit_history_save_failed": "Nepavyko išsaugoti pagalbos istorijos.",
+  "respondkit_done": "Atlikta",
+  "respondkit_unread_reply": "Neperskaitytas atsakymas"
 }

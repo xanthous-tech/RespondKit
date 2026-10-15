@@ -10,6 +10,7 @@
     <string name="respondkit_close_chat" formatted="false">"Zapri klepet s podporo"</string>
     <string name="respondkit_closed" formatted="false">"Zaprt"</string>
     <string name="respondkit_closed_help" formatted="false">"Ta pogovor je zaprt."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"Ta pogovor je zaprt. Začnite nov pogovor."</string>
     <string name="respondkit_confirming" formatted="false">"Potrjevanje…"</string>
     <string name="respondkit_connecting" formatted="false">"Podpora se še povezuje."</string>
     <string name="respondkit_conversation">"Pogovor %1$s"</string>
@@ -20,6 +21,7 @@
         <item quantity="few">"Pogovori · %1$d neprebrani"</item>
         <item quantity="other">"Pogovori · %1$d neprebranih"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Končano"</string>
     <string name="respondkit_email_address" formatted="false">"E-poštni naslov"</string>
     <string name="respondkit_email_failed" formatted="false">"E-poštnega naslova nismo mogli shraniti. Preverite ga in poskusite znova."</string>
     <string name="respondkit_email_prompt" formatted="false">"Na kateri e-poštni naslov vam lahko odgovorimo?"</string>
@@ -28,13 +30,17 @@
     <string name="respondkit_files" formatted="false">"Datoteke"</string>
     <string name="respondkit_help" formatted="false">"Kako vam lahko pomagamo?"</string>
     <string name="respondkit_history_failed" formatted="false">"Zgodovine pogovora ni bilo mogoče naložiti. Poskusite znova z gumbom Več."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"Zgodovine podpore ni bilo mogoče shraniti."</string>
     <string name="respondkit_identity_changed" formatted="false">"Identiteta podpore se je spremenila v drugem zavihku. Znova se povežite, da ponovno naložite svoj račun."</string>
     <string name="respondkit_intro" formatted="false">"Pošljite sporočilo in pustite to stran odprto, da boste hitro prejeli odgovor."</string>
     <string name="respondkit_intro_short" formatted="false">"Pošljite sporočilo, da začnete pogovor."</string>
     <string name="respondkit_latest" formatted="false">"Najnovejša sporočila"</string>
     <string name="respondkit_loading" formatted="false">"Nalaganje…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Nalaganje sporočil"</string>
+    <string name="respondkit_logout_failed" formatted="false">"Prejšnje seje podpore ni bilo mogoče preklicati. Samodejno bo potekla."</string>
     <string name="respondkit_message" formatted="false">"Sporočilo"</string>
+    <string name="respondkit_message_limit" formatted="false">"Sporočila lahko vsebujejo največ 6000 znakov."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Vnesite sporočilo z največ 6000 znaki."</string>
     <string name="respondkit_messages_failed" formatted="false">"Novih sporočil ni bilo mogoče naložiti."</string>
     <string name="respondkit_more" formatted="false">"Več"</string>
     <string name="respondkit_new_conversation" formatted="false">"Nov pogovor"</string>
@@ -78,6 +84,7 @@
     <string name="respondkit_try_again" formatted="false">"Poskusi znova"</string>
     <string name="respondkit_unknown" formatted="false">"Ni potrjeno — varno lahko poskusite znova"</string>
     <string name="respondkit_unread" formatted="false">"Neprebran odgovor podpore"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Neprebran odgovor"</string>
     <string name="respondkit_upload_failed" formatted="false">"Nalaganje ni uspelo"</string>
     <string name="respondkit_write_message" formatted="false">"Napišite sporočilo…"</string>
 </resources>

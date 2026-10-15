@@ -10,6 +10,7 @@
     <string name="respondkit_close_chat" formatted="false">"Close support chat"</string>
     <string name="respondkit_closed" formatted="false">"Closed"</string>
     <string name="respondkit_closed_help" formatted="false">"This conversation is closed."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"This conversation is closed. Start a new conversation."</string>
     <string name="respondkit_confirming" formatted="false">"Confirming…"</string>
     <string name="respondkit_connecting" formatted="false">"Support is still connecting."</string>
     <string name="respondkit_conversation">"Conversation %1$s"</string>
@@ -18,6 +19,7 @@
         <item quantity="one">"Conversations · %1$d unread"</item>
         <item quantity="other">"Conversations · %1$d unread"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Done"</string>
     <string name="respondkit_email_address" formatted="false">"Email address"</string>
     <string name="respondkit_email_failed" formatted="false">"We couldn\'t save your email. Please check it and try again."</string>
     <string name="respondkit_email_prompt" formatted="false">"Where can we email you a reply?"</string>
@@ -26,13 +28,17 @@
     <string name="respondkit_files" formatted="false">"Files"</string>
     <string name="respondkit_help" formatted="false">"How can we help?"</string>
     <string name="respondkit_history_failed" formatted="false">"Conversation history could not be loaded. Try More again."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"Could not save support history."</string>
     <string name="respondkit_identity_changed" formatted="false">"Support identity changed in another tab. Reconnect to reload your account."</string>
     <string name="respondkit_intro" formatted="false">"Send a message and keep this page open for a quick reply."</string>
     <string name="respondkit_intro_short" formatted="false">"Send a message to start a conversation."</string>
     <string name="respondkit_latest" formatted="false">"Latest messages"</string>
     <string name="respondkit_loading" formatted="false">"Loading…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Loading messages"</string>
+    <string name="respondkit_logout_failed" formatted="false">"Previous support session could not be revoked. It will expire automatically."</string>
     <string name="respondkit_message" formatted="false">"Message"</string>
+    <string name="respondkit_message_limit" formatted="false">"Messages can contain up to 6,000 characters."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Enter a message of up to 6,000 characters."</string>
     <string name="respondkit_messages_failed" formatted="false">"New messages could not be loaded."</string>
     <string name="respondkit_more" formatted="false">"More"</string>
     <string name="respondkit_new_conversation" formatted="false">"New conversation"</string>
@@ -72,6 +78,7 @@
     <string name="respondkit_try_again" formatted="false">"Try again"</string>
     <string name="respondkit_unknown" formatted="false">"Not confirmed — retry safely"</string>
     <string name="respondkit_unread" formatted="false">"Unread support reply"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Unread reply"</string>
     <string name="respondkit_upload_failed" formatted="false">"Upload failed"</string>
     <string name="respondkit_write_message" formatted="false">"Write a message…"</string>
 </resources>

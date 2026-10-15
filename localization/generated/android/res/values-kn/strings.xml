@@ -10,6 +10,7 @@
     <string name="respondkit_close_chat" formatted="false">"ಬೆಂಬಲ ಚಾಟ್ ಮುಚ್ಚಿರಿ"</string>
     <string name="respondkit_closed" formatted="false">"ಮುಚ್ಚಲಾಗಿದೆ"</string>
     <string name="respondkit_closed_help" formatted="false">"ಈ ಸಂಭಾಷಣೆಯನ್ನು ಮುಚ್ಚಲಾಗಿದೆ."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"ಈ ಸಂಭಾಷಣೆ ಮುಚ್ಚಲಾಗಿದೆ. ಹೊಸ ಸಂಭಾಷಣೆಯನ್ನು ಪ್ರಾರಂಭಿಸಿ."</string>
     <string name="respondkit_confirming" formatted="false">"ದೃಢೀಕರಿಸಲಾಗುತ್ತಿದೆ…"</string>
     <string name="respondkit_connecting" formatted="false">"ಬೆಂಬಲ ಇನ್ನೂ ಸಂಪರ್ಕಗೊಳ್ಳುತ್ತಿದೆ."</string>
     <string name="respondkit_conversation">"ಸಂಭಾಷಣೆ %1$s"</string>
@@ -18,6 +19,7 @@
         <item quantity="one">"ಸಂಭಾಷಣೆಗಳು · %1$d ಓದಿಲ್ಲ"</item>
         <item quantity="other">"ಸಂಭಾಷಣೆಗಳು · %1$d ಓದಿಲ್ಲ"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"ಮುಗಿದಿದೆ"</string>
     <string name="respondkit_email_address" formatted="false">"ಇಮೇಲ್ ವಿಳಾಸ"</string>
     <string name="respondkit_email_failed" formatted="false">"ನಿಮ್ಮ ಇಮೇಲ್ ಉಳಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಅದನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."</string>
     <string name="respondkit_email_prompt" formatted="false">"ನಿಮಗೆ ಉತ್ತರವನ್ನು ಯಾವ ಇಮೇಲ್‌ಗೆ ಕಳುಹಿಸಬೇಕು?"</string>
@@ -26,13 +28,17 @@
     <string name="respondkit_files" formatted="false">"ಫೈಲ್‌ಗಳು"</string>
     <string name="respondkit_help" formatted="false">"ನಾವು ಹೇಗೆ ಸಹಾಯ ಮಾಡಬಹುದು?"</string>
     <string name="respondkit_history_failed" formatted="false">"ಸಂಭಾಷಣೆಯ ಇತಿಹಾಸವನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ಇನ್ನಷ್ಟು ಬಟನ್ ಅನ್ನು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"ಬೆಂಬಲ ಇತಿಹಾಸವನ್ನು ಉಳಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ."</string>
     <string name="respondkit_identity_changed" formatted="false">"ಮತ್ತೊಂದು ಟ್ಯಾಬ್‌ನಲ್ಲಿ ಬೆಂಬಲ ಖಾತೆ ಬದಲಾಗಿದೆ. ನಿಮ್ಮ ಖಾತೆಯನ್ನು ಮರುಲೋಡ್ ಮಾಡಲು ಮರುಸಂಪರ್ಕಿಸಿ."</string>
     <string name="respondkit_intro" formatted="false">"ಸಂದೇಶ ಕಳುಹಿಸಿ ಮತ್ತು ತ್ವರಿತ ಉತ್ತರಕ್ಕಾಗಿ ಈ ಪುಟವನ್ನು ತೆರೆದಿಡಿ."</string>
     <string name="respondkit_intro_short" formatted="false">"ಸಂಭಾಷಣೆ ಪ್ರಾರಂಭಿಸಲು ಸಂದೇಶ ಕಳುಹಿಸಿ."</string>
     <string name="respondkit_latest" formatted="false">"ಇತ್ತೀಚಿನ ಸಂದೇಶಗಳು"</string>
     <string name="respondkit_loading" formatted="false">"ಲೋಡ್ ಆಗುತ್ತಿದೆ…"</string>
     <string name="respondkit_loading_messages" formatted="false">"ಸಂದೇಶಗಳು ಲೋಡ್ ಆಗುತ್ತಿವೆ"</string>
+    <string name="respondkit_logout_failed" formatted="false">"ಹಿಂದಿನ ಬೆಂಬಲ ಸೆಷನ್ ಅನ್ನು ರದ್ದುಗೊಳಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ಅದು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಅವಧಿ ಮುಗಿಯುತ್ತದೆ."</string>
     <string name="respondkit_message" formatted="false">"ಸಂದೇಶ"</string>
+    <string name="respondkit_message_limit" formatted="false">"ಸಂದೇಶಗಳು ಗರಿಷ್ಠ 6,000 ಅಕ್ಷರಗಳನ್ನು ಹೊಂದಿರಬಹುದು."</string>
+    <string name="respondkit_message_too_long" formatted="false">"6,000 ಅಕ್ಷರಗಳವರೆಗಿನ ಸಂದೇಶವನ್ನು ನಮೂದಿಸಿ."</string>
     <string name="respondkit_messages_failed" formatted="false">"ಹೊಸ ಸಂದೇಶಗಳನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ."</string>
     <string name="respondkit_more" formatted="false">"ಇನ್ನಷ್ಟು"</string>
     <string name="respondkit_new_conversation" formatted="false">"ಹೊಸ ಸಂಭಾಷಣೆ"</string>
@@ -72,6 +78,7 @@
     <string name="respondkit_try_again" formatted="false">"ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ"</string>
     <string name="respondkit_unknown" formatted="false">"ದೃಢೀಕರಿಸಲಾಗಿಲ್ಲ — ಸುರಕ್ಷಿತವಾಗಿ ಮರುಪ್ರಯತ್ನಿಸಬಹುದು"</string>
     <string name="respondkit_unread" formatted="false">"ಓದದ ಬೆಂಬಲ ಉತ್ತರ"</string>
+    <string name="respondkit_unread_reply" formatted="false">"ಓದದ ಉತ್ತರ"</string>
     <string name="respondkit_upload_failed" formatted="false">"ಅಪ್‌ಲೋಡ್ ವಿಫಲವಾಗಿದೆ"</string>
     <string name="respondkit_write_message" formatted="false">"ಸಂದೇಶ ಬರೆಯಿರಿ…"</string>
 </resources>

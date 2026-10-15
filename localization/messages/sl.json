@@ -99,5 +99,12 @@
   "respondkit_session_expired": "Seja podpore je potekla. Za nadaljevanje se znova povežite.",
   "respondkit_identity_changed": "Identiteta podpore se je spremenila v drugem zavihku. Znova se povežite, da ponovno naložite svoj račun.",
   "respondkit_connecting": "Podpora se še povezuje.",
-  "respondkit_reconnect_upload": "Pred nalaganjem se znova povežite."
+  "respondkit_reconnect_upload": "Pred nalaganjem se znova povežite.",
+  "respondkit_message_too_long": "Vnesite sporočilo z največ 6000 znaki.",
+  "respondkit_message_limit": "Sporočila lahko vsebujejo največ 6000 znakov.",
+  "respondkit_closed_start_new": "Ta pogovor je zaprt. Začnite nov pogovor.",
+  "respondkit_logout_failed": "Prejšnje seje podpore ni bilo mogoče preklicati. Samodejno bo potekla.",
+  "respondkit_history_save_failed": "Zgodovine podpore ni bilo mogoče shraniti.",
+  "respondkit_done": "Končano",
+  "respondkit_unread_reply": "Neprebran odgovor"
 }

@@ -93,5 +93,12 @@
   "respondkit_session_expired": "ನಿಮ್ಮ ಬೆಂಬಲ ಸೆಷನ್‌ನ ಅವಧಿ ಮುಗಿದಿದೆ. ಮುಂದುವರಿಯಲು ಮರುಸಂಪರ್ಕಿಸಿ.",
   "respondkit_identity_changed": "ಮತ್ತೊಂದು ಟ್ಯಾಬ್‌ನಲ್ಲಿ ಬೆಂಬಲ ಖಾತೆ ಬದಲಾಗಿದೆ. ನಿಮ್ಮ ಖಾತೆಯನ್ನು ಮರುಲೋಡ್ ಮಾಡಲು ಮರುಸಂಪರ್ಕಿಸಿ.",
   "respondkit_connecting": "ಬೆಂಬಲ ಇನ್ನೂ ಸಂಪರ್ಕಗೊಳ್ಳುತ್ತಿದೆ.",
-  "respondkit_reconnect_upload": "ಅಪ್‌ಲೋಡ್ ಮಾಡುವ ಮೊದಲು ಮರುಸಂಪರ್ಕಿಸಿ."
+  "respondkit_reconnect_upload": "ಅಪ್‌ಲೋಡ್ ಮಾಡುವ ಮೊದಲು ಮರುಸಂಪರ್ಕಿಸಿ.",
+  "respondkit_message_too_long": "6,000 ಅಕ್ಷರಗಳವರೆಗಿನ ಸಂದೇಶವನ್ನು ನಮೂದಿಸಿ.",
+  "respondkit_message_limit": "ಸಂದೇಶಗಳು ಗರಿಷ್ಠ 6,000 ಅಕ್ಷರಗಳನ್ನು ಹೊಂದಿರಬಹುದು.",
+  "respondkit_closed_start_new": "ಈ ಸಂಭಾಷಣೆ ಮುಚ್ಚಲಾಗಿದೆ. ಹೊಸ ಸಂಭಾಷಣೆಯನ್ನು ಪ್ರಾರಂಭಿಸಿ.",
+  "respondkit_logout_failed": "ಹಿಂದಿನ ಬೆಂಬಲ ಸೆಷನ್ ಅನ್ನು ರದ್ದುಗೊಳಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ಅದು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಅವಧಿ ಮುಗಿಯುತ್ತದೆ.",
+  "respondkit_history_save_failed": "ಬೆಂಬಲ ಇತಿಹಾಸವನ್ನು ಉಳಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ.",
+  "respondkit_done": "ಮುಗಿದಿದೆ",
+  "respondkit_unread_reply": "ಓದದ ಉತ್ತರ"
 }

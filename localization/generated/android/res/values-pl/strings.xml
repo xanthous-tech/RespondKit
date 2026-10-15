@@ -10,6 +10,7 @@
     <string name="respondkit_close_chat" formatted="false">"Zamknij czat pomocy"</string>
     <string name="respondkit_closed" formatted="false">"Zamknięta"</string>
     <string name="respondkit_closed_help" formatted="false">"Ta rozmowa jest zamknięta."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"Ta rozmowa jest zamknięta. Rozpocznij nową rozmowę."</string>
     <string name="respondkit_confirming" formatted="false">"Potwierdzanie…"</string>
     <string name="respondkit_connecting" formatted="false">"Czat pomocy wciąż się łączy."</string>
     <string name="respondkit_conversation">"Rozmowa z %1$s"</string>
@@ -20,6 +21,7 @@
         <item quantity="many">"Rozmowy · %1$d nieprzeczytanych"</item>
         <item quantity="other">"Rozmowy · %1$d nieprzeczytanej"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Gotowe"</string>
     <string name="respondkit_email_address" formatted="false">"Adres e-mail"</string>
     <string name="respondkit_email_failed" formatted="false">"Nie udało się zapisać adresu e-mail. Sprawdź go i spróbuj ponownie."</string>
     <string name="respondkit_email_prompt" formatted="false">"Na jaki adres e-mail wysłać odpowiedź?"</string>
@@ -28,13 +30,17 @@
     <string name="respondkit_files" formatted="false">"Pliki"</string>
     <string name="respondkit_help" formatted="false">"Jak możemy pomóc?"</string>
     <string name="respondkit_history_failed" formatted="false">"Nie udało się wczytać historii rozmowy. Spróbuj ponownie, wybierając Więcej."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"Nie udało się zapisać historii pomocy."</string>
     <string name="respondkit_identity_changed" formatted="false">"Tożsamość w czacie pomocy zmieniła się w innej karcie. Połącz ponownie, aby wczytać swoje konto."</string>
     <string name="respondkit_intro" formatted="false">"Wyślij wiadomość i nie zamykaj tej strony, aby szybko otrzymać odpowiedź."</string>
     <string name="respondkit_intro_short" formatted="false">"Wyślij wiadomość, aby rozpocząć rozmowę."</string>
     <string name="respondkit_latest" formatted="false">"Najnowsze wiadomości"</string>
     <string name="respondkit_loading" formatted="false">"Wczytywanie…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Wczytywanie wiadomości"</string>
+    <string name="respondkit_logout_failed" formatted="false">"Nie udało się unieważnić poprzedniej sesji pomocy. Wygaśnie ona automatycznie."</string>
     <string name="respondkit_message" formatted="false">"Wiadomość"</string>
+    <string name="respondkit_message_limit" formatted="false">"Wiadomości mogą zawierać do 6000 znaków."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Wpisz wiadomość o długości do 6000 znaków."</string>
     <string name="respondkit_messages_failed" formatted="false">"Nie udało się wczytać nowych wiadomości."</string>
     <string name="respondkit_more" formatted="false">"Więcej"</string>
     <string name="respondkit_new_conversation" formatted="false">"Nowa rozmowa"</string>
@@ -78,6 +84,7 @@
     <string name="respondkit_try_again" formatted="false">"Spróbuj ponownie"</string>
     <string name="respondkit_unknown" formatted="false">"Niepotwierdzona — możesz bezpiecznie ponowić"</string>
     <string name="respondkit_unread" formatted="false">"Nieprzeczytana odpowiedź zespołu pomocy"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Nieprzeczytana odpowiedź"</string>
     <string name="respondkit_upload_failed" formatted="false">"Przesyłanie nie powiodło się"</string>
     <string name="respondkit_write_message" formatted="false">"Napisz wiadomość…"</string>
 </resources>

@@ -10,6 +10,7 @@
     <string name="respondkit_close_chat" formatted="false">"Luk supportchat"</string>
     <string name="respondkit_closed" formatted="false">"Lukket"</string>
     <string name="respondkit_closed_help" formatted="false">"Denne samtale er lukket."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"Denne samtale er lukket. Start en ny samtale."</string>
     <string name="respondkit_confirming" formatted="false">"Bekræfter…"</string>
     <string name="respondkit_connecting" formatted="false">"Support er stadig ved at oprette forbindelse."</string>
     <string name="respondkit_conversation">"Samtale %1$s"</string>
@@ -18,6 +19,7 @@
         <item quantity="one">"Samtaler · %1$d ulæst"</item>
         <item quantity="other">"Samtaler · %1$d ulæste"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Færdig"</string>
     <string name="respondkit_email_address" formatted="false">"E-mailadresse"</string>
     <string name="respondkit_email_failed" formatted="false">"Vi kunne ikke gemme din e-mail. Tjek den, og prøv igen."</string>
     <string name="respondkit_email_prompt" formatted="false">"Hvilken e-mail kan vi sende svaret til?"</string>
@@ -26,13 +28,17 @@
     <string name="respondkit_files" formatted="false">"Filer"</string>
     <string name="respondkit_help" formatted="false">"Hvordan kan vi hjælpe?"</string>
     <string name="respondkit_history_failed" formatted="false">"Samtalehistorikken kunne ikke indlæses. Prøv »Flere« igen."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"Supporthistorikken kunne ikke gemmes."</string>
     <string name="respondkit_identity_changed" formatted="false">"Supportidentiteten blev ændret i en anden fane. Opret forbindelse igen for at genindlæse din konto."</string>
     <string name="respondkit_intro" formatted="false">"Send en besked, og hold siden åben for at få et hurtigt svar."</string>
     <string name="respondkit_intro_short" formatted="false">"Send en besked for at starte en samtale."</string>
     <string name="respondkit_latest" formatted="false">"Seneste beskeder"</string>
     <string name="respondkit_loading" formatted="false">"Indlæser…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Indlæser beskeder"</string>
+    <string name="respondkit_logout_failed" formatted="false">"Den tidligere supportsession kunne ikke tilbagekaldes. Den udløber automatisk."</string>
     <string name="respondkit_message" formatted="false">"Besked"</string>
+    <string name="respondkit_message_limit" formatted="false">"Beskeder kan indeholde op til 6.000 tegn."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Skriv en besked på op til 6.000 tegn."</string>
     <string name="respondkit_messages_failed" formatted="false">"Nye beskeder kunne ikke indlæses."</string>
     <string name="respondkit_more" formatted="false">"Flere"</string>
     <string name="respondkit_new_conversation" formatted="false">"Ny samtale"</string>
@@ -72,6 +78,7 @@
     <string name="respondkit_try_again" formatted="false">"Prøv igen"</string>
     <string name="respondkit_unknown" formatted="false">"Ikke bekræftet – du kan trygt prøve igen"</string>
     <string name="respondkit_unread" formatted="false">"Ulæst svar fra support"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Ulæst svar"</string>
     <string name="respondkit_upload_failed" formatted="false">"Upload mislykkedes"</string>
     <string name="respondkit_write_message" formatted="false">"Skriv en besked…"</string>
 </resources>

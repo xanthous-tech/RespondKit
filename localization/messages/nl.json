@@ -88,5 +88,12 @@
   "respondkit_session_expired": "Je supportsessie is verlopen. Maak opnieuw verbinding om door te gaan.",
   "respondkit_identity_changed": "Je supportidentiteit is in een ander tabblad gewijzigd. Maak opnieuw verbinding om je account opnieuw te laden.",
   "respondkit_connecting": "Support maakt nog verbinding.",
-  "respondkit_reconnect_upload": "Maak opnieuw verbinding voordat je iets uploadt."
+  "respondkit_reconnect_upload": "Maak opnieuw verbinding voordat je iets uploadt.",
+  "respondkit_message_too_long": "Voer een bericht in van maximaal 6.000 tekens.",
+  "respondkit_message_limit": "Berichten mogen maximaal 6.000 tekens bevatten.",
+  "respondkit_closed_start_new": "Dit gesprek is gesloten. Start een nieuw gesprek.",
+  "respondkit_logout_failed": "De vorige supportsessie kon niet worden ingetrokken. Deze verloopt automatisch.",
+  "respondkit_history_save_failed": "Kan de supportgeschiedenis niet opslaan.",
+  "respondkit_done": "Gereed",
+  "respondkit_unread_reply": "Ongelezen antwoord"
 }

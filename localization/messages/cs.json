@@ -96,5 +96,12 @@
   "respondkit_session_expired": "Relace podpory vypršela. Pro pokračování se znovu připojte.",
   "respondkit_identity_changed": "Identita podpory se změnila na jiné kartě. Znovu se připojte a načtěte svůj účet.",
   "respondkit_connecting": "Podpora se stále připojuje.",
-  "respondkit_reconnect_upload": "Před nahráním se znovu připojte."
+  "respondkit_reconnect_upload": "Před nahráním se znovu připojte.",
+  "respondkit_message_too_long": "Zadejte zprávu o délce nejvýše 6 000 znaků.",
+  "respondkit_message_limit": "Zprávy mohou mít nejvýše 6 000 znaků.",
+  "respondkit_closed_start_new": "Tato konverzace je uzavřená. Zahajte novou konverzaci.",
+  "respondkit_logout_failed": "Předchozí relaci podpory se nepodařilo zrušit. Platnost vyprší automaticky.",
+  "respondkit_history_save_failed": "Historii podpory se nepodařilo uložit.",
+  "respondkit_done": "Hotovo",
+  "respondkit_unread_reply": "Nepřečtená odpověď"
 }

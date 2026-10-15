@@ -84,5 +84,12 @@
   "respondkit_session_expired": "Your support session expired. Reconnect to continue.",
   "respondkit_identity_changed": "Support identity changed in another tab. Reconnect to reload your account.",
   "respondkit_connecting": "Support is still connecting.",
-  "respondkit_reconnect_upload": "Reconnect before uploading."
+  "respondkit_reconnect_upload": "Reconnect before uploading.",
+  "respondkit_message_too_long": "Enter a message of up to 6,000 characters.",
+  "respondkit_message_limit": "Messages can contain up to 6,000 characters.",
+  "respondkit_closed_start_new": "This conversation is closed. Start a new conversation.",
+  "respondkit_logout_failed": "Previous support session could not be revoked. It will expire automatically.",
+  "respondkit_history_save_failed": "Could not save support history.",
+  "respondkit_done": "Done",
+  "respondkit_unread_reply": "Unread reply"
 }

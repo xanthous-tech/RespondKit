@@ -87,5 +87,12 @@
   "respondkit_session_expired": "Destek oturumunuzun süresi doldu. Devam etmek için yeniden bağlanın.",
   "respondkit_identity_changed": "Destek hesabı başka bir sekmede değişti. Hesabınızı yeniden yüklemek için yeniden bağlanın.",
   "respondkit_connecting": "Destek bağlantısı hâlâ kuruluyor.",
-  "respondkit_reconnect_upload": "Yüklemeden önce yeniden bağlanın."
+  "respondkit_reconnect_upload": "Yüklemeden önce yeniden bağlanın.",
+  "respondkit_message_too_long": "En fazla 6.000 karakterlik bir mesaj girin.",
+  "respondkit_message_limit": "Mesajlar en fazla 6.000 karakter içerebilir.",
+  "respondkit_closed_start_new": "Bu görüşme kapatıldı. Yeni bir görüşme başlatın.",
+  "respondkit_logout_failed": "Önceki destek oturumu iptal edilemedi. Otomatik olarak sona erecek.",
+  "respondkit_history_save_failed": "Destek geçmişi kaydedilemedi.",
+  "respondkit_done": "Bitti",
+  "respondkit_unread_reply": "Okunmamış yanıt"
 }

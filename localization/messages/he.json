@@ -93,5 +93,12 @@
   "respondkit_session_expired": "פג תוקף הסשן מול התמיכה. צריך להתחבר מחדש כדי להמשיך.",
   "respondkit_identity_changed": "זהות התמיכה השתנתה בכרטיסייה אחרת. צריך להתחבר מחדש כדי לטעון מחדש את החשבון.",
   "respondkit_connecting": "החיבור לתמיכה עדיין מתבצע.",
-  "respondkit_reconnect_upload": "צריך להתחבר מחדש לפני ההעלאה."
+  "respondkit_reconnect_upload": "צריך להתחבר מחדש לפני ההעלאה.",
+  "respondkit_message_too_long": "יש להזין הודעה של עד 6,000 תווים.",
+  "respondkit_message_limit": "הודעות יכולות להכיל עד 6,000 תווים.",
+  "respondkit_closed_start_new": "השיחה הזו סגורה. יש להתחיל שיחה חדשה.",
+  "respondkit_logout_failed": "לא ניתן היה לבטל את סשן התמיכה הקודם. התוקף שלו יפוג אוטומטית.",
+  "respondkit_history_save_failed": "לא ניתן היה לשמור את היסטוריית התמיכה.",
+  "respondkit_done": "סיום",
+  "respondkit_unread_reply": "תשובה שלא נקראה"
 }

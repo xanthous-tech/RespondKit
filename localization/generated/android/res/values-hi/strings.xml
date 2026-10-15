@@ -10,6 +10,7 @@
     <string name="respondkit_close_chat" formatted="false">"सहायता चैट बंद करें"</string>
     <string name="respondkit_closed" formatted="false">"बंद"</string>
     <string name="respondkit_closed_help" formatted="false">"यह बातचीत बंद हो चुकी है।"</string>
+    <string name="respondkit_closed_start_new" formatted="false">"यह बातचीत बंद है। नई बातचीत शुरू करें।"</string>
     <string name="respondkit_confirming" formatted="false">"पुष्टि हो रही है…"</string>
     <string name="respondkit_connecting" formatted="false">"सहायता से अभी कनेक्ट हो रहा है।"</string>
     <string name="respondkit_conversation">"बातचीत %1$s"</string>
@@ -18,6 +19,7 @@
         <item quantity="one">"बातचीत · %1$d बिना पढ़ी"</item>
         <item quantity="other">"बातचीत · %1$d बिना पढ़ी"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"हो गया"</string>
     <string name="respondkit_email_address" formatted="false">"ईमेल पता"</string>
     <string name="respondkit_email_failed" formatted="false">"हम आपका ईमेल सेव नहीं कर सके। कृपया इसे जांचें और फिर से कोशिश करें।"</string>
     <string name="respondkit_email_prompt" formatted="false">"हम आपको किस ईमेल पर जवाब भेजें?"</string>
@@ -26,13 +28,17 @@
     <string name="respondkit_files" formatted="false">"फ़ाइलें"</string>
     <string name="respondkit_help" formatted="false">"हम आपकी क्या मदद कर सकते हैं?"</string>
     <string name="respondkit_history_failed" formatted="false">"बातचीत का इतिहास लोड नहीं हो सका। “और देखें” को फिर से आज़माएं।"</string>
+    <string name="respondkit_history_save_failed" formatted="false">"सहायता इतिहास सहेजा नहीं जा सका।"</string>
     <string name="respondkit_identity_changed" formatted="false">"किसी दूसरे टैब में सहायता पहचान बदल गई है। अपना खाता फिर से लोड करने के लिए फिर से कनेक्ट करें।"</string>
     <string name="respondkit_intro" formatted="false">"मैसेज भेजें और जल्दी जवाब पाने के लिए यह पेज खुला रखें।"</string>
     <string name="respondkit_intro_short" formatted="false">"बातचीत शुरू करने के लिए मैसेज भेजें।"</string>
     <string name="respondkit_latest" formatted="false">"सबसे नए मैसेज"</string>
     <string name="respondkit_loading" formatted="false">"लोड हो रहा है…"</string>
     <string name="respondkit_loading_messages" formatted="false">"मैसेज लोड हो रहे हैं"</string>
+    <string name="respondkit_logout_failed" formatted="false">"पिछला सहायता सत्र रद्द नहीं किया जा सका। यह अपने आप समाप्त हो जाएगा।"</string>
     <string name="respondkit_message" formatted="false">"मैसेज"</string>
+    <string name="respondkit_message_limit" formatted="false">"संदेशों में अधिकतम 6,000 वर्ण हो सकते हैं।"</string>
+    <string name="respondkit_message_too_long" formatted="false">"अधिकतम 6,000 वर्णों का संदेश लिखें।"</string>
     <string name="respondkit_messages_failed" formatted="false">"नए मैसेज लोड नहीं हो सके।"</string>
     <string name="respondkit_more" formatted="false">"और देखें"</string>
     <string name="respondkit_new_conversation" formatted="false">"नई बातचीत"</string>
@@ -72,6 +78,7 @@
     <string name="respondkit_try_again" formatted="false">"फिर से कोशिश करें"</string>
     <string name="respondkit_unknown" formatted="false">"पुष्टि नहीं हुई — फिर से कोशिश करना सुरक्षित है"</string>
     <string name="respondkit_unread" formatted="false">"सहायता टीम का बिना पढ़ा जवाब"</string>
+    <string name="respondkit_unread_reply" formatted="false">"अपठित जवाब"</string>
     <string name="respondkit_upload_failed" formatted="false">"अपलोड नहीं हो सका"</string>
     <string name="respondkit_write_message" formatted="false">"मैसेज लिखें…"</string>
 </resources>

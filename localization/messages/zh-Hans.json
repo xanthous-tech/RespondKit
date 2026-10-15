@@ -87,5 +87,12 @@
   "respondkit_session_expired": "客服会话已过期。请重新连接以继续。",
   "respondkit_identity_changed": "客服身份已在其他标签页中更改。请重新连接以重新加载您的账户。",
   "respondkit_connecting": "客服仍在连接中。",
-  "respondkit_reconnect_upload": "请先重新连接再上传。"
+  "respondkit_reconnect_upload": "请先重新连接再上传。",
+  "respondkit_message_too_long": "请输入不超过 6,000 个字符的消息。",
+  "respondkit_message_limit": "消息最多可包含 6,000 个字符。",
+  "respondkit_closed_start_new": "此对话已关闭。请开始新对话。",
+  "respondkit_logout_failed": "无法撤销之前的支持会话。该会话将自动过期。",
+  "respondkit_history_save_failed": "无法保存支持记录。",
+  "respondkit_done": "完成",
+  "respondkit_unread_reply": "未读回复"
 }

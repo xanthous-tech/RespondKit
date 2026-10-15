@@ -90,5 +90,12 @@
   "respondkit_session_expired": "Az ügyfélszolgálati munkamenet lejárt. A folytatáshoz csatlakozzon újra.",
   "respondkit_identity_changed": "Egy másik lapon megváltozott az ügyfélszolgálati azonosító. Csatlakozzon újra a fiókja újbóli betöltéséhez.",
   "respondkit_connecting": "A kapcsolódás az ügyfélszolgálathoz még folyamatban van.",
-  "respondkit_reconnect_upload": "Feltöltés előtt csatlakozzon újra."
+  "respondkit_reconnect_upload": "Feltöltés előtt csatlakozzon újra.",
+  "respondkit_message_too_long": "Legfeljebb 6000 karakteres üzenetet írjon.",
+  "respondkit_message_limit": "Az üzenetek legfeljebb 6000 karaktert tartalmazhatnak.",
+  "respondkit_closed_start_new": "Ez a beszélgetés lezárult. Kezdjen új beszélgetést.",
+  "respondkit_logout_failed": "Az előző ügyfélszolgálati munkamenetet nem sikerült visszavonni. Automatikusan lejár.",
+  "respondkit_history_save_failed": "Nem sikerült menteni az ügyfélszolgálati előzményeket.",
+  "respondkit_done": "Kész",
+  "respondkit_unread_reply": "Olvasatlan válasz"
 }

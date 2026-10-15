@@ -10,6 +10,7 @@
     <string name="respondkit_close_chat" formatted="false">"మద్దతు చాట్‌ను మూసివేయి"</string>
     <string name="respondkit_closed" formatted="false">"మూసివేయబడింది"</string>
     <string name="respondkit_closed_help" formatted="false">"ఈ సంభాషణ మూసివేయబడింది."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"ఈ సంభాషణ మూసివేయబడింది. కొత్త సంభాషణను ప్రారంభించండి."</string>
     <string name="respondkit_confirming" formatted="false">"నిర్ధారిస్తోంది…"</string>
     <string name="respondkit_connecting" formatted="false">"మద్దతు ఇంకా కనెక్ట్ అవుతోంది."</string>
     <string name="respondkit_conversation">"సంభాషణ %1$s"</string>
@@ -18,6 +19,7 @@
         <item quantity="one">"సంభాషణలు · %1$d చదవనిది"</item>
         <item quantity="other">"సంభాషణలు · %1$d చదవనివి"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"పూర్తయింది"</string>
     <string name="respondkit_email_address" formatted="false">"ఈమెయిల్ చిరునామా"</string>
     <string name="respondkit_email_failed" formatted="false">"మీ ఈమెయిల్‌ను సేవ్ చేయలేకపోయాము. దాన్ని తనిఖీ చేసి, మళ్లీ ప్రయత్నించండి."</string>
     <string name="respondkit_email_prompt" formatted="false">"మీకు సమాధానం ఏ ఈమెయిల్‌కు పంపాలి?"</string>
@@ -26,13 +28,17 @@
     <string name="respondkit_files" formatted="false">"ఫైల్స్"</string>
     <string name="respondkit_help" formatted="false">"మేము ఎలా సహాయపడగలం?"</string>
     <string name="respondkit_history_failed" formatted="false">"సంభాషణ చరిత్రను లోడ్ చేయడం సాధ్యం కాలేదు. ‘మరిన్ని’ని మళ్లీ ఎంచుకోండి."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"సపోర్ట్ చరిత్రను సేవ్ చేయడం సాధ్యపడలేదు."</string>
     <string name="respondkit_identity_changed" formatted="false">"మరో ట్యాబ్‌లో మద్దతు ఖాతా మారింది. మీ ఖాతాను మళ్లీ లోడ్ చేయడానికి మళ్లీ కనెక్ట్ చేయండి."</string>
     <string name="respondkit_intro" formatted="false">"సందేశం పంపి, త్వరగా సమాధానం పొందడానికి ఈ పేజీని తెరిచే ఉంచండి."</string>
     <string name="respondkit_intro_short" formatted="false">"సంభాషణను ప్రారంభించడానికి సందేశం పంపండి."</string>
     <string name="respondkit_latest" formatted="false">"తాజా సందేశాలు"</string>
     <string name="respondkit_loading" formatted="false">"లోడ్ అవుతోంది…"</string>
     <string name="respondkit_loading_messages" formatted="false">"సందేశాలు లోడ్ అవుతున్నాయి"</string>
+    <string name="respondkit_logout_failed" formatted="false">"మునుపటి సపోర్ట్ సెషన్‌ను రద్దు చేయడం సాధ్యపడలేదు. అది ఆటోమేటిక్‌గా గడువు ముగుస్తుంది."</string>
     <string name="respondkit_message" formatted="false">"సందేశం"</string>
+    <string name="respondkit_message_limit" formatted="false">"సందేశాలలో గరిష్ఠంగా 6,000 అక్షరాలు ఉండవచ్చు."</string>
+    <string name="respondkit_message_too_long" formatted="false">"6,000 అక్షరాల వరకు ఉన్న సందేశాన్ని నమోదు చేయండి."</string>
     <string name="respondkit_messages_failed" formatted="false">"కొత్త సందేశాలను లోడ్ చేయడం సాధ్యం కాలేదు."</string>
     <string name="respondkit_more" formatted="false">"మరిన్ని"</string>
     <string name="respondkit_new_conversation" formatted="false">"కొత్త సంభాషణ"</string>
@@ -72,6 +78,7 @@
     <string name="respondkit_try_again" formatted="false">"మళ్లీ ప్రయత్నించండి"</string>
     <string name="respondkit_unknown" formatted="false">"నిర్ధారించబడలేదు — సురక్షితంగా మళ్లీ ప్రయత్నించవచ్చు"</string>
     <string name="respondkit_unread" formatted="false">"చదవని మద్దతు సమాధానం"</string>
+    <string name="respondkit_unread_reply" formatted="false">"చదవని ప్రత్యుత్తరం"</string>
     <string name="respondkit_upload_failed" formatted="false">"అప్‌లోడ్ విఫలమైంది"</string>
     <string name="respondkit_write_message" formatted="false">"సందేశం రాయండి…"</string>
 </resources>

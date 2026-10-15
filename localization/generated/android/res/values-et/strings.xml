@@ -10,6 +10,7 @@
     <string name="respondkit_close_chat" formatted="false">"Sulge tugivestlus"</string>
     <string name="respondkit_closed" formatted="false">"Suletud"</string>
     <string name="respondkit_closed_help" formatted="false">"See vestlus on suletud."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"See vestlus on suletud. Alustage uut vestlust."</string>
     <string name="respondkit_confirming" formatted="false">"Kinnitamine…"</string>
     <string name="respondkit_connecting" formatted="false">"Tugi alles ühendub."</string>
     <string name="respondkit_conversation">"Vestlus %1$s"</string>
@@ -18,6 +19,7 @@
         <item quantity="one">"Vestlused · %1$d lugemata"</item>
         <item quantity="other">"Vestlused · %1$d lugemata"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Valmis"</string>
     <string name="respondkit_email_address" formatted="false">"E-posti aadress"</string>
     <string name="respondkit_email_failed" formatted="false">"E-posti aadressi ei õnnestunud salvestada. Kontrolli seda ja proovi uuesti."</string>
     <string name="respondkit_email_prompt" formatted="false">"Millisele e-posti aadressile võime vastuse saata?"</string>
@@ -26,13 +28,17 @@
     <string name="respondkit_files" formatted="false">"Failid"</string>
     <string name="respondkit_help" formatted="false">"Kuidas saame aidata?"</string>
     <string name="respondkit_history_failed" formatted="false">"Vestluse ajalugu ei õnnestunud laadida. Vajuta uuesti „Veel“."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"Toe ajalugu ei õnnestunud salvestada."</string>
     <string name="respondkit_identity_changed" formatted="false">"Tugiidentiteet muutus teisel vahekaardil. Ühenda uuesti, et konto uuesti laadida."</string>
     <string name="respondkit_intro" formatted="false">"Saada sõnum ja hoia see leht avatuna, et saada kiire vastus."</string>
     <string name="respondkit_intro_short" formatted="false">"Saada sõnum, et alustada vestlust."</string>
     <string name="respondkit_latest" formatted="false">"Uusimad sõnumid"</string>
     <string name="respondkit_loading" formatted="false">"Laadimine…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Sõnumite laadimine"</string>
+    <string name="respondkit_logout_failed" formatted="false">"Eelmist tugiseanssi ei õnnestunud tühistada. See aegub automaatselt."</string>
     <string name="respondkit_message" formatted="false">"Sõnum"</string>
+    <string name="respondkit_message_limit" formatted="false">"Sõnumid võivad sisaldada kuni 6000 tähemärki."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Sisestage kuni 6000 tähemärgi pikkune sõnum."</string>
     <string name="respondkit_messages_failed" formatted="false">"Uusi sõnumeid ei õnnestunud laadida."</string>
     <string name="respondkit_more" formatted="false">"Veel"</string>
     <string name="respondkit_new_conversation" formatted="false">"Uus vestlus"</string>
@@ -72,6 +78,7 @@
     <string name="respondkit_try_again" formatted="false">"Proovi uuesti"</string>
     <string name="respondkit_unknown" formatted="false">"Kinnitamata – uuesti proovimine on ohutu"</string>
     <string name="respondkit_unread" formatted="false">"Lugemata vastus toelt"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Lugemata vastus"</string>
     <string name="respondkit_upload_failed" formatted="false">"Üleslaadimine ebaõnnestus"</string>
     <string name="respondkit_write_message" formatted="false">"Kirjuta sõnum…"</string>
 </resources>

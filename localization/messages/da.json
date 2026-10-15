@@ -90,5 +90,12 @@
   "respondkit_session_expired": "Din supportsession er udløbet. Opret forbindelse igen for at fortsætte.",
   "respondkit_identity_changed": "Supportidentiteten blev ændret i en anden fane. Opret forbindelse igen for at genindlæse din konto.",
   "respondkit_connecting": "Support er stadig ved at oprette forbindelse.",
-  "respondkit_reconnect_upload": "Opret forbindelse igen før upload."
+  "respondkit_reconnect_upload": "Opret forbindelse igen før upload.",
+  "respondkit_message_too_long": "Skriv en besked på op til 6.000 tegn.",
+  "respondkit_message_limit": "Beskeder kan indeholde op til 6.000 tegn.",
+  "respondkit_closed_start_new": "Denne samtale er lukket. Start en ny samtale.",
+  "respondkit_logout_failed": "Den tidligere supportsession kunne ikke tilbagekaldes. Den udløber automatisk.",
+  "respondkit_history_save_failed": "Supporthistorikken kunne ikke gemmes.",
+  "respondkit_done": "Færdig",
+  "respondkit_unread_reply": "Ulæst svar"
 }

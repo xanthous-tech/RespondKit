@@ -10,6 +10,7 @@
     <string name="respondkit_close_chat" formatted="false">"Stäng supportchatten"</string>
     <string name="respondkit_closed" formatted="false">"Stängd"</string>
     <string name="respondkit_closed_help" formatted="false">"Den här konversationen är stängd."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"Den här konversationen är stängd. Starta en ny konversation."</string>
     <string name="respondkit_confirming" formatted="false">"Bekräftar…"</string>
     <string name="respondkit_connecting" formatted="false">"Supporten ansluter fortfarande."</string>
     <string name="respondkit_conversation">"Konversation %1$s"</string>
@@ -18,6 +19,7 @@
         <item quantity="one">"Konversationer · %1$d oläst"</item>
         <item quantity="other">"Konversationer · %1$d olästa"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Klar"</string>
     <string name="respondkit_email_address" formatted="false">"E-postadress"</string>
     <string name="respondkit_email_failed" formatted="false">"Vi kunde inte spara din e-postadress. Kontrollera den och försök igen."</string>
     <string name="respondkit_email_prompt" formatted="false">"Vart kan vi mejla dig ett svar?"</string>
@@ -26,13 +28,17 @@
     <string name="respondkit_files" formatted="false">"Filer"</string>
     <string name="respondkit_help" formatted="false">"Hur kan vi hjälpa till?"</string>
     <string name="respondkit_history_failed" formatted="false">"Det gick inte att läsa in konversationshistoriken. Försök med Mer igen."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"Det gick inte att spara supporthistoriken."</string>
     <string name="respondkit_identity_changed" formatted="false">"Supportkontot ändrades i en annan flik. Anslut igen för att läsa in ditt konto på nytt."</string>
     <string name="respondkit_intro" formatted="false">"Skicka ett meddelande och håll den här sidan öppen för ett snabbt svar."</string>
     <string name="respondkit_intro_short" formatted="false">"Skicka ett meddelande för att starta en konversation."</string>
     <string name="respondkit_latest" formatted="false">"Senaste meddelandena"</string>
     <string name="respondkit_loading" formatted="false">"Läser in…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Läser in meddelanden"</string>
+    <string name="respondkit_logout_failed" formatted="false">"Den tidigare supportsessionen kunde inte återkallas. Den upphör automatiskt."</string>
     <string name="respondkit_message" formatted="false">"Meddelande"</string>
+    <string name="respondkit_message_limit" formatted="false">"Meddelanden kan innehålla högst 6 000 tecken."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Skriv ett meddelande på högst 6 000 tecken."</string>
     <string name="respondkit_messages_failed" formatted="false">"Det gick inte att läsa in nya meddelanden."</string>
     <string name="respondkit_more" formatted="false">"Mer"</string>
     <string name="respondkit_new_conversation" formatted="false">"Ny konversation"</string>
@@ -72,6 +78,7 @@
     <string name="respondkit_try_again" formatted="false">"Försök igen"</string>
     <string name="respondkit_unknown" formatted="false">"Inte bekräftat – du kan tryggt försöka igen"</string>
     <string name="respondkit_unread" formatted="false">"Oläst svar från supporten"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Oläst svar"</string>
     <string name="respondkit_upload_failed" formatted="false">"Uppladdningen misslyckades"</string>
     <string name="respondkit_write_message" formatted="false">"Skriv ett meddelande…"</string>
 </resources>

@@ -10,6 +10,7 @@
     <string name="respondkit_close_chat" formatted="false">"סגירת צ׳אט התמיכה"</string>
     <string name="respondkit_closed" formatted="false">"סגורה"</string>
     <string name="respondkit_closed_help" formatted="false">"השיחה הזו סגורה."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"השיחה הזו סגורה. יש להתחיל שיחה חדשה."</string>
     <string name="respondkit_confirming" formatted="false">"בתהליך אישור…"</string>
     <string name="respondkit_connecting" formatted="false">"החיבור לתמיכה עדיין מתבצע."</string>
     <string name="respondkit_conversation">"שיחה מ־%1$s"</string>
@@ -20,6 +21,7 @@
         <item quantity="many">"שיחות · %1$d שלא נקראו"</item>
         <item quantity="other">"שיחות · %1$d שלא נקראו"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"סיום"</string>
     <string name="respondkit_email_address" formatted="false">"כתובת אימייל"</string>
     <string name="respondkit_email_failed" formatted="false">"לא הצלחנו לשמור את כתובת האימייל. כדאי לבדוק אותה ולנסות שוב."</string>
     <string name="respondkit_email_prompt" formatted="false">"לאיזו כתובת אימייל נשלח את התשובה?"</string>
@@ -28,13 +30,17 @@
     <string name="respondkit_files" formatted="false">"קבצים"</string>
     <string name="respondkit_help" formatted="false">"איך נוכל לעזור?"</string>
     <string name="respondkit_history_failed" formatted="false">"לא ניתן היה לטעון את היסטוריית השיחה. אפשר ללחוץ שוב על ״עוד״."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"לא ניתן היה לשמור את היסטוריית התמיכה."</string>
     <string name="respondkit_identity_changed" formatted="false">"זהות התמיכה השתנתה בכרטיסייה אחרת. צריך להתחבר מחדש כדי לטעון מחדש את החשבון."</string>
     <string name="respondkit_intro" formatted="false">"אפשר לשלוח הודעה ולהשאיר את הדף הזה פתוח כדי לקבל תשובה מהירה."</string>
     <string name="respondkit_intro_short" formatted="false">"אפשר לשלוח הודעה כדי להתחיל שיחה."</string>
     <string name="respondkit_latest" formatted="false">"ההודעות האחרונות"</string>
     <string name="respondkit_loading" formatted="false">"בטעינה…"</string>
     <string name="respondkit_loading_messages" formatted="false">"ההודעות נטענות"</string>
+    <string name="respondkit_logout_failed" formatted="false">"לא ניתן היה לבטל את סשן התמיכה הקודם. התוקף שלו יפוג אוטומטית."</string>
     <string name="respondkit_message" formatted="false">"הודעה"</string>
+    <string name="respondkit_message_limit" formatted="false">"הודעות יכולות להכיל עד 6,000 תווים."</string>
+    <string name="respondkit_message_too_long" formatted="false">"יש להזין הודעה של עד 6,000 תווים."</string>
     <string name="respondkit_messages_failed" formatted="false">"לא ניתן היה לטעון הודעות חדשות."</string>
     <string name="respondkit_more" formatted="false">"עוד"</string>
     <string name="respondkit_new_conversation" formatted="false">"שיחה חדשה"</string>
@@ -78,6 +84,7 @@
     <string name="respondkit_try_again" formatted="false">"ניסיון חוזר"</string>
     <string name="respondkit_unknown" formatted="false">"לא אושרה — אפשר לנסות שוב בבטחה"</string>
     <string name="respondkit_unread" formatted="false">"תשובה מהתמיכה שלא נקראה"</string>
+    <string name="respondkit_unread_reply" formatted="false">"תשובה שלא נקראה"</string>
     <string name="respondkit_upload_failed" formatted="false">"ההעלאה נכשלה"</string>
     <string name="respondkit_write_message" formatted="false">"כתיבת הודעה…"</string>
 </resources>

@@ -10,6 +10,7 @@
     <string name="respondkit_close_chat" formatted="false">"Isara ang support chat"</string>
     <string name="respondkit_closed" formatted="false">"Sarado"</string>
     <string name="respondkit_closed_help" formatted="false">"Sarado na ang pag-uusap na ito."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"Sarado na ang usapang ito. Magsimula ng bagong usapan."</string>
     <string name="respondkit_confirming" formatted="false">"Kinukumpirma…"</string>
     <string name="respondkit_connecting" formatted="false">"Kumokonekta pa ang suporta."</string>
     <string name="respondkit_conversation">"Pag-uusap %1$s"</string>
@@ -18,6 +19,7 @@
         <item quantity="one">"Mga pag-uusap · %1$d hindi pa nababasa"</item>
         <item quantity="other">"Mga pag-uusap · %1$d hindi pa nababasa"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Tapos na"</string>
     <string name="respondkit_email_address" formatted="false">"Email address"</string>
     <string name="respondkit_email_failed" formatted="false">"Hindi namin na-save ang email mo. Pakitingnan ito at subukang muli."</string>
     <string name="respondkit_email_prompt" formatted="false">"Saang email namin ipapadala ang sagot?"</string>
@@ -26,13 +28,17 @@
     <string name="respondkit_files" formatted="false">"Mga file"</string>
     <string name="respondkit_help" formatted="false">"Paano kami makakatulong?"</string>
     <string name="respondkit_history_failed" formatted="false">"Hindi ma-load ang history ng pag-uusap. Subukang muli ang “Higit pa”."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"Hindi ma-save ang history ng support."</string>
     <string name="respondkit_identity_changed" formatted="false">"Napalitan ang account sa suporta sa ibang tab. Kumonektang muli para i-reload ang account mo."</string>
     <string name="respondkit_intro" formatted="false">"Magpadala ng mensahe at panatilihing bukas ang page na ito para sa mabilis na sagot."</string>
     <string name="respondkit_intro_short" formatted="false">"Magpadala ng mensahe para magsimula ng pag-uusap."</string>
     <string name="respondkit_latest" formatted="false">"Mga pinakabagong mensahe"</string>
     <string name="respondkit_loading" formatted="false">"Naglo-load…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Nilo-load ang mga mensahe"</string>
+    <string name="respondkit_logout_failed" formatted="false">"Hindi mabawi ang naunang support session. Kusa itong mag-e-expire."</string>
     <string name="respondkit_message" formatted="false">"Mensahe"</string>
+    <string name="respondkit_message_limit" formatted="false">"Hanggang 6,000 character ang maaaring laman ng mga mensahe."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Maglagay ng mensaheng hanggang 6,000 character."</string>
     <string name="respondkit_messages_failed" formatted="false">"Hindi ma-load ang mga bagong mensahe."</string>
     <string name="respondkit_more" formatted="false">"Higit pa"</string>
     <string name="respondkit_new_conversation" formatted="false">"Bagong pag-uusap"</string>
@@ -72,6 +78,7 @@
     <string name="respondkit_try_again" formatted="false">"Subukang muli"</string>
     <string name="respondkit_unknown" formatted="false">"Hindi nakumpirma — ligtas subukang muli"</string>
     <string name="respondkit_unread" formatted="false">"Hindi pa nababasang sagot ng suporta"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Hindi pa nababasang sagot"</string>
     <string name="respondkit_upload_failed" formatted="false">"Nabigo ang pag-upload"</string>
     <string name="respondkit_write_message" formatted="false">"Sumulat ng mensahe…"</string>
 </resources>

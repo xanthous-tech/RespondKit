@@ -10,6 +10,7 @@
     <string name="respondkit_close_chat" formatted="false">"Закрити чат підтримки"</string>
     <string name="respondkit_closed" formatted="false">"Закрита"</string>
     <string name="respondkit_closed_help" formatted="false">"Цю розмову закрито."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"Цю розмову закрито. Почніть нову розмову."</string>
     <string name="respondkit_confirming" formatted="false">"Підтвердження…"</string>
     <string name="respondkit_connecting" formatted="false">"Підтримка ще підключається."</string>
     <string name="respondkit_conversation">"Розмова %1$s"</string>
@@ -20,6 +21,7 @@
         <item quantity="many">"Розмови · %1$d непрочитаних"</item>
         <item quantity="other">"Розмови · %1$d непрочитаної"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Готово"</string>
     <string name="respondkit_email_address" formatted="false">"Електронна адреса"</string>
     <string name="respondkit_email_failed" formatted="false">"Не вдалося зберегти вашу електронну адресу. Перевірте її та спробуйте ще раз."</string>
     <string name="respondkit_email_prompt" formatted="false">"На яку адресу надіслати вам відповідь?"</string>
@@ -28,13 +30,17 @@
     <string name="respondkit_files" formatted="false">"Файли"</string>
     <string name="respondkit_help" formatted="false">"Чим можемо допомогти?"</string>
     <string name="respondkit_history_failed" formatted="false">"Не вдалося завантажити історію розмови. Спробуйте «Ще» знову."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"Не вдалося зберегти історію звернень до підтримки."</string>
     <string name="respondkit_identity_changed" formatted="false">"Обліковий запис підтримки змінено в іншій вкладці. Перепідключіться, щоб перезавантажити свій обліковий запис."</string>
     <string name="respondkit_intro" formatted="false">"Надішліть повідомлення й не закривайте цю сторінку, щоб швидко отримати відповідь."</string>
     <string name="respondkit_intro_short" formatted="false">"Надішліть повідомлення, щоб почати розмову."</string>
     <string name="respondkit_latest" formatted="false">"Останні повідомлення"</string>
     <string name="respondkit_loading" formatted="false">"Завантаження…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Завантаження повідомлень"</string>
+    <string name="respondkit_logout_failed" formatted="false">"Не вдалося відкликати попередній сеанс підтримки. Він завершиться автоматично."</string>
     <string name="respondkit_message" formatted="false">"Повідомлення"</string>
+    <string name="respondkit_message_limit" formatted="false">"Повідомлення можуть містити до 6000 символів."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Введіть повідомлення довжиною до 6000 символів."</string>
     <string name="respondkit_messages_failed" formatted="false">"Не вдалося завантажити нові повідомлення."</string>
     <string name="respondkit_more" formatted="false">"Ще"</string>
     <string name="respondkit_new_conversation" formatted="false">"Нова розмова"</string>
@@ -78,6 +84,7 @@
     <string name="respondkit_try_again" formatted="false">"Спробувати ще раз"</string>
     <string name="respondkit_unknown" formatted="false">"Не підтверджено — можна безпечно повторити"</string>
     <string name="respondkit_unread" formatted="false">"Непрочитана відповідь підтримки"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Непрочитана відповідь"</string>
     <string name="respondkit_upload_failed" formatted="false">"Не вдалося завантажити"</string>
     <string name="respondkit_write_message" formatted="false">"Напишіть повідомлення…"</string>
 </resources>

@@ -10,6 +10,7 @@
     <string name="respondkit_close_chat" formatted="false">"Uždaryti pagalbos pokalbį"</string>
     <string name="respondkit_closed" formatted="false">"Uždarytas"</string>
     <string name="respondkit_closed_help" formatted="false">"Šis pokalbis uždarytas."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"Šis pokalbis uždarytas. Pradėkite naują pokalbį."</string>
     <string name="respondkit_confirming" formatted="false">"Patvirtinama…"</string>
     <string name="respondkit_connecting" formatted="false">"Pagalba vis dar jungiasi."</string>
     <string name="respondkit_conversation">"Pokalbis %1$s"</string>
@@ -20,6 +21,7 @@
         <item quantity="many">"Pokalbiai · %1$d neperskaityto"</item>
         <item quantity="other">"Pokalbiai · %1$d neperskaitytų"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Atlikta"</string>
     <string name="respondkit_email_address" formatted="false">"El. pašto adresas"</string>
     <string name="respondkit_email_failed" formatted="false">"Nepavyko išsaugoti jūsų el. pašto adreso. Patikrinkite jį ir bandykite dar kartą."</string>
     <string name="respondkit_email_prompt" formatted="false">"Kokiu el. pašto adresu galime jums atsakyti?"</string>
@@ -28,13 +30,17 @@
     <string name="respondkit_files" formatted="false">"Failai"</string>
     <string name="respondkit_help" formatted="false">"Kuo galime padėti?"</string>
     <string name="respondkit_history_failed" formatted="false">"Nepavyko įkelti pokalbio istorijos. Dar kartą spustelėkite Daugiau."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"Nepavyko išsaugoti pagalbos istorijos."</string>
     <string name="respondkit_identity_changed" formatted="false">"Pagalbos tapatybė pasikeitė kitame skirtuke. Prisijunkite iš naujo, kad iš naujo įkeltumėte savo paskyrą."</string>
     <string name="respondkit_intro" formatted="false">"Parašykite žinutę ir neuždarykite šio puslapio – greitai atsakysime."</string>
     <string name="respondkit_intro_short" formatted="false">"Parašykite žinutę ir pradėkite pokalbį."</string>
     <string name="respondkit_latest" formatted="false">"Naujausios žinutės"</string>
     <string name="respondkit_loading" formatted="false">"Įkeliama…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Įkeliamos žinutės"</string>
+    <string name="respondkit_logout_failed" formatted="false">"Ankstesnės pagalbos sesijos atšaukti nepavyko. Ji baigsis automatiškai."</string>
     <string name="respondkit_message" formatted="false">"Žinutė"</string>
+    <string name="respondkit_message_limit" formatted="false">"Žinutėse gali būti iki 6 000 simbolių."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Įveskite iki 6 000 simbolių žinutę."</string>
     <string name="respondkit_messages_failed" formatted="false">"Nepavyko įkelti naujų žinučių."</string>
     <string name="respondkit_more" formatted="false">"Daugiau"</string>
     <string name="respondkit_new_conversation" formatted="false">"Naujas pokalbis"</string>
@@ -78,6 +84,7 @@
     <string name="respondkit_try_again" formatted="false">"Bandykite dar kartą"</string>
     <string name="respondkit_unknown" formatted="false">"Nepatvirtinta – galite saugiai bandyti dar kartą"</string>
     <string name="respondkit_unread" formatted="false">"Neperskaitytas pagalbos atsakymas"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Neperskaitytas atsakymas"</string>
     <string name="respondkit_upload_failed" formatted="false">"Nepavyko įkelti"</string>
     <string name="respondkit_write_message" formatted="false">"Rašykite žinutę…"</string>
 </resources>

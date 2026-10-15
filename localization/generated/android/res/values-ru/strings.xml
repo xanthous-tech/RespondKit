@@ -10,6 +10,7 @@
     <string name="respondkit_close_chat" formatted="false">"Закрыть чат поддержки"</string>
     <string name="respondkit_closed" formatted="false">"Закрыт"</string>
     <string name="respondkit_closed_help" formatted="false">"Этот диалог закрыт."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"Этот разговор закрыт. Начните новый разговор."</string>
     <string name="respondkit_confirming" formatted="false">"Подтверждение…"</string>
     <string name="respondkit_connecting" formatted="false">"Чат поддержки ещё подключается."</string>
     <string name="respondkit_conversation">"Диалог от %1$s"</string>
@@ -20,6 +21,7 @@
         <item quantity="many">"Диалоги · %1$d непрочитанных"</item>
         <item quantity="other">"Диалоги · %1$d непрочитанного"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Готово"</string>
     <string name="respondkit_email_address" formatted="false">"Адрес эл. почты"</string>
     <string name="respondkit_email_failed" formatted="false">"Не удалось сохранить адрес эл. почты. Проверьте его и попробуйте снова."</string>
     <string name="respondkit_email_prompt" formatted="false">"На какой адрес эл. почты отправить ответ?"</string>
@@ -28,13 +30,17 @@
     <string name="respondkit_files" formatted="false">"Файлы"</string>
     <string name="respondkit_help" formatted="false">"Чем можем помочь?"</string>
     <string name="respondkit_history_failed" formatted="false">"Не удалось загрузить историю диалога. Нажмите «Ещё» повторно."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"Не удалось сохранить историю обращений в поддержку."</string>
     <string name="respondkit_identity_changed" formatted="false">"Профиль поддержки изменён в другой вкладке. Переподключитесь, чтобы заново загрузить аккаунт."</string>
     <string name="respondkit_intro" formatted="false">"Отправьте сообщение и не закрывайте эту страницу, чтобы быстро получить ответ."</string>
     <string name="respondkit_intro_short" formatted="false">"Отправьте сообщение, чтобы начать диалог."</string>
     <string name="respondkit_latest" formatted="false">"Последние сообщения"</string>
     <string name="respondkit_loading" formatted="false">"Загрузка…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Загрузка сообщений"</string>
+    <string name="respondkit_logout_failed" formatted="false">"Не удалось отозвать предыдущий сеанс поддержки. Он истечёт автоматически."</string>
     <string name="respondkit_message" formatted="false">"Сообщение"</string>
+    <string name="respondkit_message_limit" formatted="false">"Сообщения могут содержать до 6000 символов."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Введите сообщение длиной до 6000 символов."</string>
     <string name="respondkit_messages_failed" formatted="false">"Не удалось загрузить новые сообщения."</string>
     <string name="respondkit_more" formatted="false">"Ещё"</string>
     <string name="respondkit_new_conversation" formatted="false">"Новый диалог"</string>
@@ -78,6 +84,7 @@
     <string name="respondkit_try_again" formatted="false">"Попробовать снова"</string>
     <string name="respondkit_unknown" formatted="false">"Не подтверждено — можно безопасно повторить"</string>
     <string name="respondkit_unread" formatted="false">"Непрочитанный ответ поддержки"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Непрочитанный ответ"</string>
     <string name="respondkit_upload_failed" formatted="false">"Не удалось загрузить"</string>
     <string name="respondkit_write_message" formatted="false">"Напишите сообщение…"</string>
 </resources>

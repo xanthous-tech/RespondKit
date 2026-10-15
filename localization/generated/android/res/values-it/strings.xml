@@ -10,6 +10,7 @@
     <string name="respondkit_close_chat" formatted="false">"Chiudi la chat di assistenza"</string>
     <string name="respondkit_closed" formatted="false">"Chiusa"</string>
     <string name="respondkit_closed_help" formatted="false">"Questa conversazione è chiusa."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"Questa conversazione è chiusa. Inizia una nuova conversazione."</string>
     <string name="respondkit_confirming" formatted="false">"Conferma in corso…"</string>
     <string name="respondkit_connecting" formatted="false">"L\'assistenza è ancora in fase di connessione."</string>
     <string name="respondkit_conversation">"Conversazione del %1$s"</string>
@@ -19,6 +20,7 @@
         <item quantity="many">"Conversazioni · %1$d da leggere"</item>
         <item quantity="other">"Conversazioni · %1$d da leggere"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Fine"</string>
     <string name="respondkit_email_address" formatted="false">"Indirizzo email"</string>
     <string name="respondkit_email_failed" formatted="false">"Non siamo riusciti a salvare la tua email. Controllala e riprova."</string>
     <string name="respondkit_email_prompt" formatted="false">"A quale indirizzo email possiamo risponderti?"</string>
@@ -27,13 +29,17 @@
     <string name="respondkit_files" formatted="false">"File"</string>
     <string name="respondkit_help" formatted="false">"Come possiamo aiutarti?"</string>
     <string name="respondkit_history_failed" formatted="false">"Impossibile caricare la cronologia della conversazione. Riprova con Altro."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"Impossibile salvare la cronologia dell\'assistenza."</string>
     <string name="respondkit_identity_changed" formatted="false">"L\'account di assistenza è cambiato in un\'altra scheda. Riconnettiti per ricaricare il tuo account."</string>
     <string name="respondkit_intro" formatted="false">"Invia un messaggio e tieni aperta questa pagina per ricevere una risposta rapida."</string>
     <string name="respondkit_intro_short" formatted="false">"Invia un messaggio per iniziare una conversazione."</string>
     <string name="respondkit_latest" formatted="false">"Ultimi messaggi"</string>
     <string name="respondkit_loading" formatted="false">"Caricamento…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Caricamento dei messaggi"</string>
+    <string name="respondkit_logout_failed" formatted="false">"Impossibile revocare la sessione di assistenza precedente. Scadrà automaticamente."</string>
     <string name="respondkit_message" formatted="false">"Messaggio"</string>
+    <string name="respondkit_message_limit" formatted="false">"I messaggi possono contenere fino a 6.000 caratteri."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Inserisci un messaggio di massimo 6.000 caratteri."</string>
     <string name="respondkit_messages_failed" formatted="false">"Impossibile caricare i nuovi messaggi."</string>
     <string name="respondkit_more" formatted="false">"Altro"</string>
     <string name="respondkit_new_conversation" formatted="false">"Nuova conversazione"</string>
@@ -75,6 +81,7 @@
     <string name="respondkit_try_again" formatted="false">"Prova di nuovo"</string>
     <string name="respondkit_unknown" formatted="false">"Non confermato: puoi riprovare senza rischi"</string>
     <string name="respondkit_unread" formatted="false">"Risposta dell\'assistenza non letta"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Risposta non letta"</string>
     <string name="respondkit_upload_failed" formatted="false">"Caricamento non riuscito"</string>
     <string name="respondkit_write_message" formatted="false">"Scrivi un messaggio…"</string>
 </resources>

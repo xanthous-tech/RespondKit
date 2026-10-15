@@ -10,6 +10,7 @@
     <string name="respondkit_close_chat" formatted="false">"Tutup chat dukungan"</string>
     <string name="respondkit_closed" formatted="false">"Ditutup"</string>
     <string name="respondkit_closed_help" formatted="false">"Percakapan ini sudah ditutup."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"Percakapan ini sudah ditutup. Mulai percakapan baru."</string>
     <string name="respondkit_confirming" formatted="false">"Mengonfirmasi…"</string>
     <string name="respondkit_connecting" formatted="false">"Masih menghubungkan ke dukungan."</string>
     <string name="respondkit_conversation">"Percakapan %1$s"</string>
@@ -17,6 +18,7 @@
     <plurals name="respondkit_conversations_unread">
         <item quantity="other">"Percakapan · %1$d belum dibaca"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"Selesai"</string>
     <string name="respondkit_email_address" formatted="false">"Alamat email"</string>
     <string name="respondkit_email_failed" formatted="false">"Kami tidak dapat menyimpan email Anda. Periksa kembali, lalu coba lagi."</string>
     <string name="respondkit_email_prompt" formatted="false">"Ke email mana kami bisa mengirim balasan?"</string>
@@ -25,13 +27,17 @@
     <string name="respondkit_files" formatted="false">"File"</string>
     <string name="respondkit_help" formatted="false">"Ada yang bisa kami bantu?"</string>
     <string name="respondkit_history_failed" formatted="false">"Riwayat percakapan tidak dapat dimuat. Coba “Muat lagi” sekali lagi."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"Riwayat dukungan tidak dapat disimpan."</string>
     <string name="respondkit_identity_changed" formatted="false">"Identitas dukungan berubah di tab lain. Hubungkan ulang untuk memuat ulang akun Anda."</string>
     <string name="respondkit_intro" formatted="false">"Kirim pesan dan biarkan halaman ini tetap terbuka agar cepat mendapat balasan."</string>
     <string name="respondkit_intro_short" formatted="false">"Kirim pesan untuk memulai percakapan."</string>
     <string name="respondkit_latest" formatted="false">"Pesan terbaru"</string>
     <string name="respondkit_loading" formatted="false">"Memuat…"</string>
     <string name="respondkit_loading_messages" formatted="false">"Memuat pesan"</string>
+    <string name="respondkit_logout_failed" formatted="false">"Sesi dukungan sebelumnya tidak dapat dicabut. Sesi akan berakhir secara otomatis."</string>
     <string name="respondkit_message" formatted="false">"Pesan"</string>
+    <string name="respondkit_message_limit" formatted="false">"Pesan dapat berisi hingga 6.000 karakter."</string>
+    <string name="respondkit_message_too_long" formatted="false">"Masukkan pesan hingga 6.000 karakter."</string>
     <string name="respondkit_messages_failed" formatted="false">"Pesan baru tidak dapat dimuat."</string>
     <string name="respondkit_more" formatted="false">"Muat lagi"</string>
     <string name="respondkit_new_conversation" formatted="false">"Percakapan baru"</string>
@@ -69,6 +75,7 @@
     <string name="respondkit_try_again" formatted="false">"Coba lagi"</string>
     <string name="respondkit_unknown" formatted="false">"Belum dikonfirmasi — aman untuk dicoba lagi"</string>
     <string name="respondkit_unread" formatted="false">"Balasan dukungan belum dibaca"</string>
+    <string name="respondkit_unread_reply" formatted="false">"Balasan belum dibaca"</string>
     <string name="respondkit_upload_failed" formatted="false">"Gagal mengunggah"</string>
     <string name="respondkit_write_message" formatted="false">"Tulis pesan…"</string>
 </resources>

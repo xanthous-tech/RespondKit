@@ -90,5 +90,12 @@
   "respondkit_session_expired": "Nag-expire na ang session mo sa suporta. Kumonektang muli para magpatuloy.",
   "respondkit_identity_changed": "Napalitan ang account sa suporta sa ibang tab. Kumonektang muli para i-reload ang account mo.",
   "respondkit_connecting": "Kumokonekta pa ang suporta.",
-  "respondkit_reconnect_upload": "Kumonektang muli bago mag-upload."
+  "respondkit_reconnect_upload": "Kumonektang muli bago mag-upload.",
+  "respondkit_message_too_long": "Maglagay ng mensaheng hanggang 6,000 character.",
+  "respondkit_message_limit": "Hanggang 6,000 character ang maaaring laman ng mga mensahe.",
+  "respondkit_closed_start_new": "Sarado na ang usapang ito. Magsimula ng bagong usapan.",
+  "respondkit_logout_failed": "Hindi mabawi ang naunang support session. Kusa itong mag-e-expire.",
+  "respondkit_history_save_failed": "Hindi ma-save ang history ng support.",
+  "respondkit_done": "Tapos na",
+  "respondkit_unread_reply": "Hindi pa nababasang sagot"
 }

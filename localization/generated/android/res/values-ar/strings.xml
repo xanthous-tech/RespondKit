@@ -10,6 +10,7 @@
     <string name="respondkit_close_chat" formatted="false">"إغلاق دردشة الدعم"</string>
     <string name="respondkit_closed" formatted="false">"مغلقة"</string>
     <string name="respondkit_closed_help" formatted="false">"تم إغلاق هذه المحادثة."</string>
+    <string name="respondkit_closed_start_new" formatted="false">"هذه المحادثة مغلقة. ابدأ محادثة جديدة."</string>
     <string name="respondkit_confirming" formatted="false">"جارٍ التأكيد…"</string>
     <string name="respondkit_connecting" formatted="false">"لا يزال الدعم قيد الاتصال."</string>
     <string name="respondkit_conversation">"محادثة %1$s"</string>
@@ -22,6 +23,7 @@
         <item quantity="many">"المحادثات · %1$d غير مقروءة"</item>
         <item quantity="other">"المحادثات · %1$d غير مقروءة"</item>
     </plurals>
+    <string name="respondkit_done" formatted="false">"تم"</string>
     <string name="respondkit_email_address" formatted="false">"عنوان البريد الإلكتروني"</string>
     <string name="respondkit_email_failed" formatted="false">"تعذّر حفظ بريدك الإلكتروني. يُرجى التحقق منه والمحاولة مرة أخرى."</string>
     <string name="respondkit_email_prompt" formatted="false">"على أي بريد إلكتروني نرسل إليك الرد؟"</string>
@@ -30,13 +32,17 @@
     <string name="respondkit_files" formatted="false">"الملفات"</string>
     <string name="respondkit_help" formatted="false">"كيف يمكننا مساعدتك؟"</string>
     <string name="respondkit_history_failed" formatted="false">"تعذّر تحميل سجل المحادثة. اضغط على «المزيد» للمحاولة مرة أخرى."</string>
+    <string name="respondkit_history_save_failed" formatted="false">"تعذّر حفظ سجل الدعم."</string>
     <string name="respondkit_identity_changed" formatted="false">"تغيّرت هوية الدعم في علامة تبويب أخرى. أعد الاتصال لإعادة تحميل حسابك."</string>
     <string name="respondkit_intro" formatted="false">"أرسل رسالة وأبقِ هذه الصفحة مفتوحة لتلقي رد سريع."</string>
     <string name="respondkit_intro_short" formatted="false">"أرسل رسالة لبدء محادثة."</string>
     <string name="respondkit_latest" formatted="false">"أحدث الرسائل"</string>
     <string name="respondkit_loading" formatted="false">"جارٍ التحميل…"</string>
     <string name="respondkit_loading_messages" formatted="false">"جارٍ تحميل الرسائل"</string>
+    <string name="respondkit_logout_failed" formatted="false">"تعذّر إلغاء جلسة الدعم السابقة. ستنتهي صلاحيتها تلقائيًا."</string>
     <string name="respondkit_message" formatted="false">"الرسالة"</string>
+    <string name="respondkit_message_limit" formatted="false">"يمكن أن تحتوي الرسائل على 6000 حرف كحد أقصى."</string>
+    <string name="respondkit_message_too_long" formatted="false">"أدخل رسالة لا تتجاوز 6000 حرف."</string>
     <string name="respondkit_messages_failed" formatted="false">"تعذّر تحميل الرسائل الجديدة."</string>
     <string name="respondkit_more" formatted="false">"المزيد"</string>
     <string name="respondkit_new_conversation" formatted="false">"محادثة جديدة"</string>
@@ -84,6 +90,7 @@
     <string name="respondkit_try_again" formatted="false">"حاول مرة أخرى"</string>
     <string name="respondkit_unknown" formatted="false">"لم يتم التأكيد — يمكنك إعادة المحاولة بأمان"</string>
     <string name="respondkit_unread" formatted="false">"رد غير مقروء من الدعم"</string>
+    <string name="respondkit_unread_reply" formatted="false">"رد غير مقروء"</string>
     <string name="respondkit_upload_failed" formatted="false">"فشل الرفع"</string>
     <string name="respondkit_write_message" formatted="false">"اكتب رسالة…"</string>
 </resources>

@@ -90,5 +90,12 @@
   "respondkit_session_expired": "Din supportsession har gått ut. Anslut igen för att fortsätta.",
   "respondkit_identity_changed": "Supportkontot ändrades i en annan flik. Anslut igen för att läsa in ditt konto på nytt.",
   "respondkit_connecting": "Supporten ansluter fortfarande.",
-  "respondkit_reconnect_upload": "Anslut igen innan du laddar upp."
+  "respondkit_reconnect_upload": "Anslut igen innan du laddar upp.",
+  "respondkit_message_too_long": "Skriv ett meddelande på högst 6 000 tecken.",
+  "respondkit_message_limit": "Meddelanden kan innehålla högst 6 000 tecken.",
+  "respondkit_closed_start_new": "Den här konversationen är stängd. Starta en ny konversation.",
+  "respondkit_logout_failed": "Den tidigare supportsessionen kunde inte återkallas. Den upphör automatiskt.",
+  "respondkit_history_save_failed": "Det gick inte att spara supporthistoriken.",
+  "respondkit_done": "Klar",
+  "respondkit_unread_reply": "Oläst svar"
 }

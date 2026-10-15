@@ -93,5 +93,12 @@
   "respondkit_session_expired": "Ваша сесија подршке је истекла. Поново се повежите да бисте наставили.",
   "respondkit_identity_changed": "Налог за подршку је промењен у другој картици. Поново се повежите да бисте поново учитали свој налог.",
   "respondkit_connecting": "Подршка се још повезује.",
-  "respondkit_reconnect_upload": "Поново се повежите пре отпремања."
+  "respondkit_reconnect_upload": "Поново се повежите пре отпремања.",
+  "respondkit_message_too_long": "Унесите поруку од највише 6.000 знакова.",
+  "respondkit_message_limit": "Поруке могу да садрже највише 6.000 знакова.",
+  "respondkit_closed_start_new": "Овај разговор је затворен. Започните нови разговор.",
+  "respondkit_logout_failed": "Претходна сесија подршке није могла да буде опозвана. Аутоматски ће истећи.",
+  "respondkit_history_save_failed": "Историја подршке није могла да буде сачувана.",
+  "respondkit_done": "Готово",
+  "respondkit_unread_reply": "Непрочитан одговор"
 }

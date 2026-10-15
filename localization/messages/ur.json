@@ -89,5 +89,12 @@
   "respondkit_session_expired": "آپ کے سپورٹ سیشن کی میعاد ختم ہو گئی۔ جاری رکھنے کے لیے دوبارہ منسلک ہوں۔",
   "respondkit_identity_changed": "کسی دوسرے ٹیب میں سپورٹ اکاؤنٹ تبدیل ہو گیا۔ اپنا اکاؤنٹ دوبارہ لوڈ کرنے کے لیے دوبارہ منسلک ہوں۔",
   "respondkit_connecting": "سپورٹ ابھی منسلک ہو رہی ہے۔",
-  "respondkit_reconnect_upload": "اپ لوڈ کرنے سے پہلے دوبارہ منسلک ہوں۔"
+  "respondkit_reconnect_upload": "اپ لوڈ کرنے سے پہلے دوبارہ منسلک ہوں۔",
+  "respondkit_message_too_long": "زیادہ سے زیادہ 6,000 حروف کا پیغام درج کریں۔",
+  "respondkit_message_limit": "پیغامات میں زیادہ سے زیادہ 6,000 حروف ہو سکتے ہیں۔",
+  "respondkit_closed_start_new": "یہ گفتگو بند ہے۔ نئی گفتگو شروع کریں۔",
+  "respondkit_logout_failed": "پچھلا سپورٹ سیشن منسوخ نہیں کیا جا سکا۔ یہ خود بخود ختم ہو جائے گا۔",
+  "respondkit_history_save_failed": "سپورٹ کی سرگزشت محفوظ نہیں کی جا سکی۔",
+  "respondkit_done": "ہو گیا",
+  "respondkit_unread_reply": "نہ پڑھا گیا جواب"
 }

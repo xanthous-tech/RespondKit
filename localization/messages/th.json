@@ -87,5 +87,12 @@
   "respondkit_session_expired": "เซสชันฝ่ายสนับสนุนหมดอายุแล้ว เชื่อมต่ออีกครั้งเพื่อดำเนินการต่อ",
   "respondkit_identity_changed": "บัญชีฝ่ายสนับสนุนมีการเปลี่ยนแปลงในแท็บอื่น เชื่อมต่ออีกครั้งเพื่อโหลดบัญชีของคุณใหม่",
   "respondkit_connecting": "กำลังเชื่อมต่อกับฝ่ายสนับสนุน",
-  "respondkit_reconnect_upload": "เชื่อมต่ออีกครั้งก่อนอัปโหลด"
+  "respondkit_reconnect_upload": "เชื่อมต่ออีกครั้งก่อนอัปโหลด",
+  "respondkit_message_too_long": "ป้อนข้อความได้ไม่เกิน 6,000 อักขระ",
+  "respondkit_message_limit": "ข้อความมีได้สูงสุด 6,000 อักขระ",
+  "respondkit_closed_start_new": "การสนทนานี้ปิดแล้ว เริ่มการสนทนาใหม่",
+  "respondkit_logout_failed": "ไม่สามารถเพิกถอนเซสชันการสนับสนุนก่อนหน้าได้ เซสชันจะหมดอายุโดยอัตโนมัติ",
+  "respondkit_history_save_failed": "ไม่สามารถบันทึกประวัติการสนับสนุนได้",
+  "respondkit_done": "เสร็จสิ้น",
+  "respondkit_unread_reply": "คำตอบที่ยังไม่ได้อ่าน"
 }

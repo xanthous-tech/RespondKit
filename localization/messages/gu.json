@@ -90,5 +90,12 @@
   "respondkit_session_expired": "તમારું સપોર્ટ સેશન સમાપ્ત થઈ ગયું છે. ચાલુ રાખવા માટે ફરી કનેક્ટ કરો.",
   "respondkit_identity_changed": "બીજા ટૅબમાં સપોર્ટ ઓળખ બદલાઈ ગઈ છે. તમારું એકાઉન્ટ ફરી લોડ કરવા માટે ફરી કનેક્ટ કરો.",
   "respondkit_connecting": "સપોર્ટ હજી કનેક્ટ થઈ રહ્યું છે.",
-  "respondkit_reconnect_upload": "અપલોડ કરતાં પહેલાં ફરી કનેક્ટ કરો."
+  "respondkit_reconnect_upload": "અપલોડ કરતાં પહેલાં ફરી કનેક્ટ કરો.",
+  "respondkit_message_too_long": "6,000 અક્ષરો સુધીનો સંદેશ લખો.",
+  "respondkit_message_limit": "સંદેશામાં વધુમાં વધુ 6,000 અક્ષરો હોઈ શકે છે.",
+  "respondkit_closed_start_new": "આ વાતચીત બંધ છે. નવી વાતચીત શરૂ કરો.",
+  "respondkit_logout_failed": "અગાઉનું સપોર્ટ સત્ર રદ કરી શકાયું નથી. તે આપમેળે સમાપ્ત થશે.",
+  "respondkit_history_save_failed": "સપોર્ટ ઇતિહાસ સાચવી શકાયો નથી.",
+  "respondkit_done": "પૂર્ણ",
+  "respondkit_unread_reply": "ન વાંચેલો જવાબ"
 }

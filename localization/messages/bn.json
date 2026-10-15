@@ -90,5 +90,12 @@
   "respondkit_session_expired": "আপনার সহায়তা সেশনের মেয়াদ শেষ হয়ে গেছে। চালিয়ে যেতে আবার সংযোগ করুন।",
   "respondkit_identity_changed": "অন্য একটি ট্যাবে সহায়তার পরিচয় পরিবর্তিত হয়েছে। আপনার অ্যাকাউন্ট আবার লোড করতে পুনরায় সংযোগ করুন।",
   "respondkit_connecting": "সহায়তা এখনও সংযুক্ত হচ্ছে।",
-  "respondkit_reconnect_upload": "আপলোড করার আগে আবার সংযোগ করুন।"
+  "respondkit_reconnect_upload": "আপলোড করার আগে আবার সংযোগ করুন।",
+  "respondkit_message_too_long": "৬,০০০ অক্ষর পর্যন্ত একটি বার্তা লিখুন।",
+  "respondkit_message_limit": "বার্তায় সর্বোচ্চ ৬,০০০ অক্ষর থাকতে পারে।",
+  "respondkit_closed_start_new": "এই কথোপকথনটি বন্ধ। একটি নতুন কথোপকথন শুরু করুন।",
+  "respondkit_logout_failed": "আগের সহায়তা সেশনটি বাতিল করা যায়নি। এটি স্বয়ংক্রিয়ভাবে মেয়াদোত্তীর্ণ হবে।",
+  "respondkit_history_save_failed": "সহায়তার ইতিহাস সংরক্ষণ করা যায়নি।",
+  "respondkit_done": "সম্পন্ন",
+  "respondkit_unread_reply": "অপঠিত উত্তর"
 }

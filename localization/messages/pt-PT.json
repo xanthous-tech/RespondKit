@@ -91,5 +91,12 @@
   "respondkit_session_expired": "A sua sessão de suporte expirou. Restabeleça a ligação para continuar.",
   "respondkit_identity_changed": "A identidade de suporte mudou noutro separador. Restabeleça a ligação para recarregar a sua conta.",
   "respondkit_connecting": "O suporte ainda está a estabelecer ligação.",
-  "respondkit_reconnect_upload": "Restabeleça a ligação antes de carregar ficheiros."
+  "respondkit_reconnect_upload": "Restabeleça a ligação antes de carregar ficheiros.",
+  "respondkit_message_too_long": "Introduza uma mensagem com até 6000 carateres.",
+  "respondkit_message_limit": "As mensagens podem ter até 6000 carateres.",
+  "respondkit_closed_start_new": "Esta conversa está encerrada. Inicie uma nova conversa.",
+  "respondkit_logout_failed": "Não foi possível revogar a sessão de suporte anterior. Irá expirar automaticamente.",
+  "respondkit_history_save_failed": "Não foi possível guardar o histórico de suporte.",
+  "respondkit_done": "OK",
+  "respondkit_unread_reply": "Resposta não lida"
 }

@@ -93,5 +93,12 @@
   "respondkit_session_expired": "तुमचे सहाय्य सत्र कालबाह्य झाले. सुरू ठेवण्यासाठी पुन्हा कनेक्ट करा.",
   "respondkit_identity_changed": "दुसऱ्या टॅबमध्ये सहाय्य खाते बदलले. तुमचे खाते रीलोड करण्यासाठी पुन्हा कनेक्ट करा.",
   "respondkit_connecting": "सहाय्य अजून कनेक्ट होत आहे.",
-  "respondkit_reconnect_upload": "अपलोड करण्यापूर्वी पुन्हा कनेक्ट करा."
+  "respondkit_reconnect_upload": "अपलोड करण्यापूर्वी पुन्हा कनेक्ट करा.",
+  "respondkit_message_too_long": "जास्तीत जास्त 6,000 वर्णांचा संदेश लिहा.",
+  "respondkit_message_limit": "संदेशांमध्ये जास्तीत जास्त 6,000 वर्ण असू शकतात.",
+  "respondkit_closed_start_new": "हे संभाषण बंद आहे. नवीन संभाषण सुरू करा.",
+  "respondkit_logout_failed": "मागील सहाय्य सत्र रद्द करता आले नाही. ते आपोआप कालबाह्य होईल.",
+  "respondkit_history_save_failed": "सहाय्य इतिहास जतन करता आला नाही.",
+  "respondkit_done": "पूर्ण",
+  "respondkit_unread_reply": "न वाचलेले उत्तर"
 }

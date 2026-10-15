@@ -99,5 +99,12 @@
   "respondkit_session_expired": "Сеанс поддержки истёк. Переподключитесь, чтобы продолжить.",
   "respondkit_identity_changed": "Профиль поддержки изменён в другой вкладке. Переподключитесь, чтобы заново загрузить аккаунт.",
   "respondkit_connecting": "Чат поддержки ещё подключается.",
-  "respondkit_reconnect_upload": "Переподключитесь перед загрузкой файлов."
+  "respondkit_reconnect_upload": "Переподключитесь перед загрузкой файлов.",
+  "respondkit_message_too_long": "Введите сообщение длиной до 6000 символов.",
+  "respondkit_message_limit": "Сообщения могут содержать до 6000 символов.",
+  "respondkit_closed_start_new": "Этот разговор закрыт. Начните новый разговор.",
+  "respondkit_logout_failed": "Не удалось отозвать предыдущий сеанс поддержки. Он истечёт автоматически.",
+  "respondkit_history_save_failed": "Не удалось сохранить историю обращений в поддержку.",
+  "respondkit_done": "Готово",
+  "respondkit_unread_reply": "Непрочитанный ответ"
 }
