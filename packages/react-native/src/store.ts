@@ -17,6 +17,12 @@ import {
   ThreadV1Schema,
 } from "@respondkit/protocol";
 import { z } from "zod";
+import { messages } from "./messages";
+
+/** The catalog for the device locale, the same source the screen reads. */
+function deviceMessages() {
+  return messages(Intl.DateTimeFormat().resolvedOptions().locale);
+}
 
 export interface RespondKitPersistence {
   load(): Promise<string | null>;
@@ -249,7 +255,8 @@ export class RespondKitStore {
           this.error = undefined;
         } catch (error) {
           if (epoch === this.epoch)
-            this.error = error instanceof Error ? error.message : "Support request failed.";
+            this.error =
+              error instanceof Error ? error.message : deviceMessages().respondkit_request_failed();
         } finally {
           if (epoch === this.epoch) {
             this.loading = false;
@@ -274,7 +281,7 @@ export class RespondKitStore {
     const identityToken = await this.getIdentityToken?.();
     this.check(epoch);
     if (this.getIdentityToken && !identityToken)
-      throw new Error("Support identity could not be verified.");
+      throw new Error(deviceMessages().respondkit_identity_unverified());
     const result = await this.client.createSession({
       inboxId: this.options.inboxId,
       installationId: this.data.installationId,
@@ -486,7 +493,9 @@ export class RespondKitStore {
     return file;
   }
   sendDraft(attachments: AttachmentV1[] = []): Promise<void> {
-    const text = this.snapshot.draft.trim() || (attachments.length ? "Attached files" : "");
+    const text =
+      this.snapshot.draft.trim() ||
+      (attachments.length ? deviceMessages().respondkit_attached_files() : "");
     if (
       !text ||
       text.length > 6_000 ||

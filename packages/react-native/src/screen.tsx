@@ -22,7 +22,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinkifyIt } from "linkify-it";
 import { useRespondKit } from "./hooks";
-import { messages } from "./messages";
+import { messages, type Messages } from "./messages";
 import type { RespondKitStore, SupportSnapshot } from "./store";
 
 const links = new LinkifyIt().set({ fuzzyEmail: false, fuzzyIP: false });
@@ -44,7 +44,7 @@ interface Row {
   retryId?: string;
   failed: boolean;
 }
-export function transcriptRows(state: SupportSnapshot): Row[] {
+export function transcriptRows(state: SupportSnapshot, t: Messages = messages()): Row[] {
   const canonicalIds = new Set(state.messages.map((m) => m.clientMessageId));
   return [
     ...state.messages.map((m) => ({
@@ -54,7 +54,7 @@ export function transcriptRows(state: SupportSnapshot): Row[] {
       customer: m.direction === "customer_to_operator",
       date: m.acceptedAt,
       ...(m.direction === "customer_to_operator"
-        ? { status: m.state === "failed" ? "Failed" : "Sent" }
+        ? { status: m.state === "failed" ? t.respondkit_failed() : t.respondkit_sent() }
         : {}),
       ...(m.state === "failed" && m.clientMessageId ? { retryId: m.clientMessageId } : {}),
       failed: m.state === "failed",
@@ -69,12 +69,12 @@ export function transcriptRows(state: SupportSnapshot): Row[] {
         date: m.acceptedAt,
         status:
           m.delivery === "sending"
-            ? "Sending…"
+            ? t.respondkit_sending()
             : m.delivery === "acceptance_unknown"
-              ? "Confirming…"
+              ? t.respondkit_confirming()
               : m.delivery === "failed"
-                ? "Failed"
-                : "Sent",
+                ? t.respondkit_failed()
+                : t.respondkit_sent(),
         ...(m.delivery === "failed" || m.delivery === "acceptance_unknown"
           ? { retryId: m.id }
           : {}),
@@ -133,7 +133,7 @@ function Action({
 export function RespondKitScreen({
   store,
   onClose,
-  title = "Support",
+  title,
   greeting,
   accentColor = "#432dd7",
   accentForegroundColor = "#ffffff",
@@ -154,7 +154,7 @@ export function RespondKitScreen({
     if (typeof color !== "number") return "#f5f5f5";
     return `rgba(${(color >>> 16) & 255}, ${(color >>> 8) & 255}, ${color & 255}, 0.1)`;
   }, [accentColor]);
-  const rows = useMemo(() => transcriptRows(state), [state.messages, state.pending]);
+  const rows = useMemo(() => transcriptRows(state, t), [state.messages, state.pending, t]);
   const list = useRef<FlatList<Row>>(null);
   const nearBottom = useRef(true);
   const visibleIds = useRef(new Set<string>());
@@ -249,14 +249,14 @@ export function RespondKitScreen({
         <View style={styles.header}>
           <View style={styles.grow}>
             <Text accessibilityRole="header" style={styles.title}>
-              {title}
+              {title ?? t.respondkit_support()}
             </Text>
             <Text style={styles.muted}>{t.respondkit_ask_anything()}</Text>
           </View>
           <Pressable
             onPress={onClose}
             accessibilityRole="button"
-            accessibilityLabel="Close support chat"
+            accessibilityLabel={t.respondkit_close_chat()}
             style={styles.icon}
           >
             <Text style={styles.close}>×</Text>
@@ -267,13 +267,21 @@ export function RespondKitScreen({
             <Text accessibilityRole="alert" style={[styles.text, styles.grow]}>
               {state.error}
             </Text>
-            <Action label="Reconnect" accent={accentColor} onPress={() => void store.refresh()} />
+            <Action
+              label={t.respondkit_reconnect()}
+              accent={accentColor}
+              onPress={() => void store.refresh()}
+            />
           </View>
         ) : null}
         {state.threads.length > 1 ? (
           <View style={styles.historyBar}>
             <Action
-              label={`Conversations${state.unreadThreadIds.size ? ` · ${state.unreadThreadIds.size} unread` : ""}`}
+              label={
+                state.unreadThreadIds.size
+                  ? t.respondkit_conversations_unread({ count: state.unreadThreadIds.size })
+                  : t.respondkit_conversations()
+              }
               accent={accentColor}
               onPress={() => setHistory(true)}
             />
@@ -288,7 +296,7 @@ export function RespondKitScreen({
             contentContainerStyle={styles.messages}
             viewabilityConfig={viewabilityConfig.current}
             onViewableItemsChanged={onViewableItemsChanged.current}
-            accessibilityLabel="Support messages"
+            accessibilityLabel={t.respondkit_support_messages()}
             keyboardShouldPersistTaps="handled"
             onScroll={scroll}
             scrollEventThrottle={32}
@@ -311,7 +319,10 @@ export function RespondKitScreen({
             ListEmptyComponent={
               !welcome ? (
                 state.loading ? (
-                  <View accessibilityLabel="Loading messages" style={styles.skeletons}>
+                  <View
+                    accessibilityLabel={t.respondkit_loading_messages()}
+                    style={styles.skeletons}
+                  >
                     {[0.75, 0.8, 0.67].map((width, i) => (
                       <View
                         key={width}
@@ -386,7 +397,7 @@ export function RespondKitScreen({
                       {item.status ? <Text style={styles.caption}>{item.status}</Text> : null}
                       {item.retryId ? (
                         <Action
-                          label="Try again"
+                          label={t.respondkit_try_again()}
                           disabled={state.sending}
                           accent={item.failed ? "#dc2626" : accentColor}
                           onPress={() => void store.retry(item.retryId!)}
@@ -401,19 +412,19 @@ export function RespondKitScreen({
           {unseen > 0 ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`Show ${unseen} new messages`}
+              accessibilityLabel={t.respondkit_show_new({ count: unseen })}
               onPress={latest}
               style={styles.latest}
             >
-              <Text style={styles.text}>↓ {unseen} new</Text>
+              <Text style={styles.text}>↓ {t.respondkit_new_count({ count: unseen })}</Text>
             </Pressable>
           ) : null}
         </View>
         {state.activeThread?.state === "closed" ? (
           <View style={styles.closed}>
-            <Text style={styles.muted}>This conversation is closed.</Text>
+            <Text style={styles.muted}>{t.respondkit_closed_help()}</Text>
             <Action
-              label="Send another message"
+              label={t.respondkit_another_message()}
               accent={accentColor}
               onPress={() => void store.selectThread()}
             />
@@ -422,10 +433,10 @@ export function RespondKitScreen({
           <>
             {state.asksForEmail ? (
               <View style={styles.email}>
-                <Text style={styles.muted}>Where can we email you a reply?</Text>
+                <Text style={styles.muted}>{t.respondkit_email_prompt()}</Text>
                 <View style={styles.emailRow}>
                   <TextInput
-                    accessibilityLabel="Email address"
+                    accessibilityLabel={t.respondkit_email_address()}
                     placeholder="you@example.com"
                     placeholderTextColor="#737373"
                     keyboardType="email-address"
@@ -438,7 +449,7 @@ export function RespondKitScreen({
                     style={[styles.input, styles.grow]}
                   />
                   <Action
-                    label={state.loading ? "Saving…" : "Save email"}
+                    label={state.loading ? t.respondkit_saving() : t.respondkit_save_email()}
                     accent={accentColor}
                     disabled={state.loading || !email.trim()}
                     onPress={() => void store.saveEmail(email)}
@@ -453,8 +464,8 @@ export function RespondKitScreen({
             />
             <View style={styles.composer}>
               <TextInput
-                accessibilityLabel="Message"
-                placeholder="Write a message…"
+                accessibilityLabel={t.respondkit_message()}
+                placeholder={t.respondkit_write_message()}
                 placeholderTextColor="#737373"
                 multiline
                 value={state.draft}
@@ -471,7 +482,7 @@ export function RespondKitScreen({
               />
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Send message"
+                accessibilityLabel={t.respondkit_send_message()}
                 disabled={!canSend}
                 onPress={() => {
                   void store.sendDraft(attachments);
@@ -489,7 +500,7 @@ export function RespondKitScreen({
             </View>
             {state.draft.trim().length > 6_000 ? (
               <Text accessibilityRole="alert" style={styles.limit}>
-                Messages can contain up to 6,000 characters.
+                {t.respondkit_message_limit()}
               </Text>
             ) : null}
           </>
@@ -497,8 +508,12 @@ export function RespondKitScreen({
         <Modal visible={history} animationType="slide" onRequestClose={() => setHistory(false)}>
           <SafeAreaView style={styles.root}>
             <View style={styles.header}>
-              <Text style={[styles.title, styles.grow]}>Conversations</Text>
-              <Action label="Done" accent={accentColor} onPress={() => setHistory(false)} />
+              <Text style={[styles.title, styles.grow]}>{t.respondkit_conversations()}</Text>
+              <Action
+                label={t.respondkit_done()}
+                accent={accentColor}
+                onPress={() => setHistory(false)}
+              />
             </View>
             <FlatList
               data={state.threads}
@@ -513,10 +528,11 @@ export function RespondKitScreen({
                   style={styles.historyItem}
                 >
                   <Text style={styles.text}>
-                    {new Date(item.createdAt).toLocaleDateString()} · {item.state}
+                    {new Date(item.createdAt).toLocaleDateString()} ·{" "}
+                    {item.state === "closed" ? t.respondkit_closed() : t.respondkit_open()}
                   </Text>
                   {state.unreadThreadIds.has(item.id) ? (
-                    <Text style={{ color: accentColor }}>Unread reply</Text>
+                    <Text style={{ color: accentColor }}>{t.respondkit_unread_reply()}</Text>
                   ) : null}
                 </Pressable>
               )}
