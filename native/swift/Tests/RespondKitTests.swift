@@ -316,6 +316,18 @@ struct StoreTests {
     #expect(store.pendingMessages.map(\.text) == ["添付ファイル"])
   }
 
+  @Test func failedRequestShowsHostTextAndKeepsTheDiagnostic() async throws {
+    let api = FakeAPI()
+    await api.configure(failStatuses: true)
+    let store = try make(api)
+    var strings = RespondKitStrings()
+    strings.requestFailed = "サポートへのリクエストに失敗しました。"
+    store.strings = strings
+    await store.refresh()
+    #expect(store.errorMessage == "サポートへのリクエストに失敗しました。")
+    #expect(store.errorDetail == "Offline")
+  }
+
   @Test func contractAndNumericCursors() throws {
     let page: MessagePage = try fixture("messages")
     #expect(page.messages[0].text == "你好！我們可以幫忙。")

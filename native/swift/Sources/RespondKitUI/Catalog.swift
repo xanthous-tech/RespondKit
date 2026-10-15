@@ -17,6 +17,8 @@ extension RespondKitStrings {
     strings.conversationClosed = RespondKitUI.catalog("respondkit_closed_start_new")
     strings.logoutFailed = RespondKitUI.catalog("respondkit_logout_failed")
     strings.identityUnverified = RespondKitUI.catalog("respondkit_identity_unverified")
+    strings.requestFailed = RespondKitUI.catalog("respondkit_request_failed")
+    strings.historySaveFailed = RespondKitUI.catalog("respondkit_history_save_failed")
     return strings
   }
 }

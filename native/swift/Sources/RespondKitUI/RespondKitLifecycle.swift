@@ -7,7 +7,9 @@
     @Environment(\.scenePhase) private var scenePhase
     func body(content: Content) -> some View {
       content
-        .onChange(of: scenePhase, initial: true) { _, phase in store.setForeground(phase == .active)
+        .onChange(of: scenePhase, initial: true) { _, phase in
+          store.strings = .catalog
+          store.setForeground(phase == .active)
         }
     }
   }

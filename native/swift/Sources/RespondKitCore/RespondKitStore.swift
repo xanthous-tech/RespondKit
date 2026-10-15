@@ -19,7 +19,9 @@ import Observation
   /// Initial loads and explicit operations only; background refreshes remain silent.
   public private(set) var isLoading = false
   public private(set) var isSending = false
+  /// Presentation text from `strings`; `errorDetail` keeps the underlying diagnostic.
   public private(set) var errorMessage: String?
+  public private(set) var errorDetail: String?
   public private(set) var isForeground = false
   @ObservationIgnored public var strings = RespondKitStrings()
   public var activeThread: SupportThread? {
@@ -133,7 +135,10 @@ import Observation
       self.emailAddress = contact.email
     }
   }
-  public func clearError() { errorMessage = nil }
+  public func clearError() {
+    errorMessage = nil
+    errorDetail = nil
+  }
 
   /// Call only after host authentication settles. A subject change isolates all cached state immediately.
   public func updateIdentity(
@@ -225,7 +230,7 @@ import Observation
       if let threadID,
         self.state.statuses.first(where: { $0.thread.id == threadID })?.thread.state == "closed"
       {
-        throw RespondKitError(self.strings.conversationClosed)
+        throw PresentedError(message: self.strings.conversationClosed)
       }
       let key = threadID ?? "new"
       var pending = PendingMessage(
@@ -390,7 +395,7 @@ import Observation
       let assertion = try await identityToken?()
       try check(epoch)
       if identityToken != nil && (assertion?.isEmpty ?? true) {
-        throw RespondKitError(self.strings.identityUnverified)
+        throw PresentedError(message: self.strings.identityUnverified)
       }
       let value = try await api.createSession(
         installationID: state.installationID, context: context, identityToken: assertion)
@@ -443,9 +448,9 @@ import Observation
     do {
       try await action(expected)
       try check(expected)
-      errorMessage = nil
+      clearError()
     } catch is CancellationError {} catch {
-      if expected == epoch { errorMessage = error.localizedDescription }
+      if expected == epoch { report(error, as: strings.requestFailed) }
     }
   }
   private func setDelivery(_ messageID: String, threadID: String, value: String) {
@@ -456,7 +461,11 @@ import Observation
   }
   private func persist() throws { try persistence.save(JSONEncoder().encode(state)) }
   private func persistOrReport() {
-    do { try persist() } catch { errorMessage = error.localizedDescription }
+    do { try persist() } catch { report(error, as: strings.historySaveFailed) }
+  }
+  private func report(_ error: any Error, as fallback: String) {
+    errorMessage = (error as? PresentedError)?.message ?? fallback
+    errorDetail = error.localizedDescription
   }
   private func publish() {
     isFreshConversation =

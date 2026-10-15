@@ -383,7 +383,7 @@
           }
         } catch {
           if !Task.isCancelled, let index = picked.firstIndex(where: { $0.id == file.id }) {
-            picked[index].error = error.localizedDescription
+            picked[index].error = catalog("respondkit_upload_failed")
           }
         }
         tasks[file.id] = nil

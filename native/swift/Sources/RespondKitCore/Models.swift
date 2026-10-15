@@ -136,7 +136,15 @@ public struct RespondKitStrings: Sendable, Equatable {
   public var logoutFailed =
     "Previous support session could not be revoked. It will expire automatically."
   public var identityUnverified = "Support identity could not be verified."
+  public var requestFailed = "Support request failed."
+  public var historySaveFailed = "Could not save support history."
   public init() {}
+}
+
+/// An error whose message is already presentation text in the user's language.
+struct PresentedError: Error, LocalizedError {
+  let message: String
+  var errorDescription: String? { message }
 }
 
 public struct RespondKitError: Error, LocalizedError, Sendable {
