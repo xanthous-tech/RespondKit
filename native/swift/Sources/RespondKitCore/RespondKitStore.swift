@@ -4,6 +4,9 @@ import Observation
 /// Retain one store in the host app, independently of the presented screen.
 @MainActor @Observable public final class RespondKitStore {
   public private(set) var emailAddress: String?
+  private var contactResolved = false
+  /// True only once the session's contact lookup finished without finding an email.
+  public var asksForEmail: Bool { contactResolved && emailAddress == nil }
   public private(set) var isFreshConversation = false
   @ObservationIgnored private var freshThreadIDs: Set<String> = []
   public private(set) var statuses: [ThreadStatus] = []
@@ -142,6 +145,7 @@ import Observation
     self.context.device = context.device ?? .current()
     self.identityToken = identityToken
     session = nil
+    contactResolved = false
     if changed {
       freshThreadIDs.removeAll()
       hasLoadedHistory = false
@@ -396,6 +400,7 @@ import Observation
       try check(epoch)
       context.email = contact?.email
     }
+    contactResolved = true
     emailAddress = context.email
     return value.token
   }
