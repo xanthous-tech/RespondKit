@@ -35,6 +35,9 @@ internal fun AttachmentPicker(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val fileOpenFailed = stringResource(R.string.respondkit_file_open_failed)
+    val uploadFailed = stringResource(R.string.respondkit_upload_failed)
+    val selectedFile = stringResource(R.string.respondkit_selected_file)
     var picked by remember(store.attachmentScope, clear) { mutableStateOf(emptyList<PickedFile>()) }
     var expanded by remember { mutableStateOf(false) }
     var requestedScope by remember { mutableStateOf<String?>(null) }
@@ -56,7 +59,7 @@ internal fun AttachmentPicker(
                         val directory = File(context.cacheDir, "respondkit-${item.id}").apply { mkdirs() }
                         val destination = File(directory, File(name).name.ifBlank { "file" })
                         resolver.openInputStream(item.uri)?.use { input -> destination.outputStream().use { input.copyTo(it) } }
-                            ?: throw RespondKitException("Cannot open the selected file.")
+                            ?: throw RespondKitException(fileOpenFailed)
                         item.copy(file = destination, name = destination.name, type = resolver.getType(item.uri) ?: "application/octet-stream")
                     }
                 }
@@ -65,12 +68,12 @@ internal fun AttachmentPicker(
                 update(item.id) { it.copy(attachment = attachment) }
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
-                update(item.id) { it.copy(error = error.message ?: "Upload failed") }
+                update(item.id) { it.copy(error = error.message ?: uploadFailed) }
             } finally { jobs.remove(item.id) }
         }
     }
     fun select(uris: List<Uri>) {
-        val items = uris.map { PickedFile(UUID.randomUUID().toString(), it, "Selected file") }
+        val items = uris.map { PickedFile(UUID.randomUUID().toString(), it, selectedFile) }
         picked = picked + items
         items.forEach { upload(it) }
     }
@@ -82,8 +85,8 @@ internal fun AttachmentPicker(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(item.name, Modifier.weight(1f), maxLines = 1, style = MaterialTheme.typography.bodySmall)
                 if (item.attachment == null && item.error == null) CircularProgressIndicator(Modifier.size(18.dp))
-                if (item.error != null) TextButton(onClick = { upload(item) }) { Text("Retry") }
-                TextButton(onClick = { jobs[item.id]?.cancel(); picked = picked.filter { it.id != item.id } }) { Text("Remove") }
+                if (item.error != null) TextButton(onClick = { upload(item) }) { Text(stringResource(R.string.respondkit_retry)) }
+                TextButton(onClick = { jobs[item.id]?.cancel(); picked = picked.filter { it.id != item.id } }) { Text(stringResource(R.string.respondkit_remove)) }
             }
             if (item.error != null) Text(item.error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
         }

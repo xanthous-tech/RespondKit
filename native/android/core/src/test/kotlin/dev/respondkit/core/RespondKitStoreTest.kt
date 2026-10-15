@@ -346,6 +346,16 @@ class RespondKitStoreTest {
     }
 
     @Test
+    fun attachmentOnlyMessageUsesLocalizedBody() = runTest {
+        val api = FakeApi()
+        val store = store(api)
+        store.strings = RespondKitStrings(attachedFiles = "添付ファイル")
+        val attachment = SupportAttachment("att_one", "photo.jpg", "image/jpeg", 42, "https://support.example.com/v1/files/token")
+        store.sendDraft(listOf(attachment))
+        assertEquals("添付ファイル", api.sent.single().second)
+    }
+
+    @Test
     fun uncertainSendRetriesImmutablePayloadAfterRestart() = runTest {
         val api = FakeApi().apply { failSend = true }
         val storage = MemoryPersistence()

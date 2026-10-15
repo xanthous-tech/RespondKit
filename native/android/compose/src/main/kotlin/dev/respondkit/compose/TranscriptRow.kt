@@ -16,7 +16,14 @@ internal data class TranscriptRow(
     val attachments: List<dev.respondkit.core.SupportAttachment> = emptyList(),
 )
 
-internal fun transcriptRows(state: SupportState): List<TranscriptRow> {
+internal data class TranscriptLabels(
+    val sent: String,
+    val failed: String,
+    val sending: String,
+    val confirming: String,
+)
+
+internal fun transcriptRows(state: SupportState, labels: TranscriptLabels): List<TranscriptRow> {
     val canonical = state.messages.mapNotNull { it.clientMessageId }.toSet()
     fun date(value: String) =
         runCatching { Instant.parse(value).atZone(ZoneId.systemDefault()) }.getOrNull()
@@ -28,7 +35,7 @@ internal fun transcriptRows(state: SupportState): List<TranscriptRow> {
             message.text,
             customer,
             date(message.acceptedAt),
-            if (customer) if (message.state == "failed") "Failed" else "Sent" else null,
+            if (customer) if (message.state == "failed") labels.failed else labels.sent else null,
             pending?.takeIf { it.delivery in listOf("failed", "acceptance_unknown") }?.id,
             message.state == "failed",
             message.attachments,
@@ -43,10 +50,10 @@ internal fun transcriptRows(state: SupportState): List<TranscriptRow> {
                     true,
                     date(pending.acceptedAt),
                     when (pending.delivery) {
-                        "sending" -> "Sending…"
-                        "accepted" -> "Sent"
-                        "failed" -> "Failed"
-                        else -> "Confirming…"
+                        "sending" -> labels.sending
+                        "accepted" -> labels.sent
+                        "failed" -> labels.failed
+                        else -> labels.confirming
                     },
                     pending.id.takeIf {
                         pending.delivery in listOf("failed", "acceptance_unknown")

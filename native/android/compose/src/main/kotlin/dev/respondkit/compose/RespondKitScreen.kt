@@ -21,9 +21,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -39,7 +41,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.respondkit.core.*
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import java.util.Locale
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
@@ -116,6 +117,16 @@ private fun RespondKitContent(
         onDispose { store.setScreenVisible(false) }
     }
     val context = LocalContext.current
+    val strings = RespondKitStrings(
+        attachedFiles = stringResource(R.string.respondkit_attached_files),
+        messageTooLong = stringResource(R.string.respondkit_message_too_long),
+        conversationClosed = stringResource(R.string.respondkit_closed_start_new),
+        logoutFailed = stringResource(R.string.respondkit_logout_failed),
+        requestFailed = stringResource(R.string.respondkit_request_failed),
+        historySaveFailed = stringResource(R.string.respondkit_history_save_failed),
+        identityUnverified = stringResource(R.string.respondkit_identity_unverified),
+    )
+    SideEffect { store.strings = strings }
     LaunchedEffect(store) {
         store.setDeviceContext(androidDeviceContext(context))
         store.openConversation()
@@ -144,7 +155,7 @@ private fun RespondKitContent(
             ) {
                 Icon(
                     painterResource(R.drawable.respondkit_close),
-                    "Close support chat",
+                    stringResource(R.string.respondkit_close_chat),
                     Modifier.size(16.dp),
                     tint = WidgetInk,
                 )
@@ -157,7 +168,7 @@ private fun RespondKitContent(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(error, Modifier.weight(1f), fontSize = 14.sp, color = WidgetInk)
-                TextButton(onClick = { scope.launch { store.refresh() } }) { Text("Retry") }
+                TextButton(onClick = { scope.launch { store.refresh() } }) { Text(stringResource(R.string.respondkit_retry)) }
             }
         }
         Conversation(store, state, Modifier.weight(1f), greeting)
@@ -170,7 +181,16 @@ private fun Conversation(store: RespondKitStore, state: SupportState, modifier: 
     val greetingRows = if (welcome == null) 0 else 1
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
-    val rows = remember(state.messages, state.pendingMessages) { transcriptRows(state) }
+    val labels = TranscriptLabels(
+        sent = stringResource(R.string.respondkit_sent),
+        failed = stringResource(R.string.respondkit_failed),
+        sending = stringResource(R.string.respondkit_sending),
+        confirming = stringResource(R.string.respondkit_confirming),
+    )
+    val rows = remember(state.messages, state.pendingMessages, labels) { transcriptRows(state, labels) }
+    val loadingMessages = stringResource(R.string.respondkit_loading_messages)
+    val latestMessages = stringResource(R.string.respondkit_latest)
+    val locale = LocalConfiguration.current.locales[0]
     val bottomKey = "bottom-${state.loadedCursor}"
     var atBottom by remember(state.activeThreadId) { mutableStateOf(true) }
     var unseen by remember(state.activeThreadId) { mutableIntStateOf(0) }
@@ -229,7 +249,7 @@ private fun Conversation(store: RespondKitStore, state: SupportState, modifier: 
                             Text(
                                 row.date.format(
                                     DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-                                        .withLocale(Locale.getDefault())
+                                        .withLocale(locale)
                                 ),
                                 Modifier.fillMaxWidth().padding(vertical = 8.dp),
                                 textAlign = TextAlign.Center,
@@ -248,7 +268,7 @@ private fun Conversation(store: RespondKitStore, state: SupportState, modifier: 
                 if (state.isLoading && !state.isSending) {
                     Column(
                         Modifier.fillMaxWidth().align(Alignment.TopStart).padding(16.dp).semantics {
-                            contentDescription = "Loading messages"
+                            contentDescription = loadingMessages
                         },
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
@@ -293,7 +313,7 @@ private fun Conversation(store: RespondKitStore, state: SupportState, modifier: 
                     },
                     modifier =
                         Modifier.align(Alignment.BottomEnd).padding(12.dp).semantics {
-                            contentDescription = "Latest messages"
+                            contentDescription = latestMessages
                         },
                     colors =
                         ButtonDefaults.outlinedButtonColors(
@@ -303,7 +323,7 @@ private fun Conversation(store: RespondKitStore, state: SupportState, modifier: 
                 ) {
                     Icon(painterResource(R.drawable.respondkit_down), null, Modifier.size(16.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("$unseen new", fontSize = 14.sp)
+                    Text(pluralStringResource(R.plurals.respondkit_new_count, unseen, unseen), fontSize = 14.sp)
                 }
         }
         HorizontalDivider(color = WidgetBorder)
@@ -330,11 +350,11 @@ private fun EmailCapture(store: RespondKitStore, saving: Boolean) {
     var email by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
     Column(Modifier.fillMaxWidth().padding(12.dp)) {
-        Text("Where can we email you a reply?", fontSize = 14.sp, color = WidgetMuted)
+        Text(stringResource(R.string.respondkit_email_prompt), fontSize = 14.sp, color = WidgetMuted)
         Row(verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(email, { email = it }, Modifier.weight(1f), singleLine = true,
-                label = { Text("Email address") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email))
-            TextButton(onClick = { scope.launch { store.saveEmail(email) } }, enabled = email.isNotBlank() && !saving) { Text("Save email") }
+                label = { Text(stringResource(R.string.respondkit_email_address)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email))
+            TextButton(onClick = { scope.launch { store.saveEmail(email) } }, enabled = email.isNotBlank() && !saving) { Text(stringResource(R.string.respondkit_save_email)) }
         }
     }
 }
@@ -346,6 +366,7 @@ private fun Composer(store: RespondKitStore, state: SupportState) {
     var uploading by remember { mutableStateOf(false) }
     var clearAttachments by remember { mutableIntStateOf(0) }
     var focused by remember { mutableStateOf(false) }
+    val messageLabel = stringResource(R.string.respondkit_message)
     val canSend =
         !state.isLoading &&
             !state.isSending &&
@@ -364,7 +385,7 @@ private fun Composer(store: RespondKitStore, state: SupportState) {
             Modifier.weight(1f)
                 .heightIn(min = 44.dp)
                 .testTag("respondkit-composer")
-                .semantics { contentDescription = "Message" }
+                .semantics { contentDescription = messageLabel }
                 .onFocusChanged { focused = it.isFocused }
                 .border(
                     1.dp,
@@ -379,7 +400,7 @@ private fun Composer(store: RespondKitStore, state: SupportState) {
                 Box {
                     if (state.draft.isEmpty())
                         Text(
-                            "Write a message…",
+                            stringResource(R.string.respondkit_write_message),
                             fontSize = 16.sp,
                             lineHeight = 20.sp,
                             color = WidgetMuted,
@@ -400,7 +421,7 @@ private fun Composer(store: RespondKitStore, state: SupportState) {
                     disabledContentColor = MaterialTheme.colorScheme.onPrimary,
                 ),
         ) {
-            Icon(painterResource(R.drawable.respondkit_send), "Send message", Modifier.size(16.dp))
+            Icon(painterResource(R.drawable.respondkit_send), stringResource(R.string.respondkit_send_message), Modifier.size(16.dp))
         }
     }
 }
@@ -409,6 +430,7 @@ private fun Composer(store: RespondKitStore, state: SupportState) {
 @Composable
 private fun Bubble(row: TranscriptRow, isSending: Boolean, retry: (String) -> Unit) {
     val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+    val locale = LocalConfiguration.current.locales[0]
     val accent = MaterialTheme.colorScheme.primary
     val message = remember(row.text, accent) { linkedMessage(row.text, accent) }
     BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -451,7 +473,7 @@ private fun Bubble(row: TranscriptRow, isSending: Boolean, retry: (String) -> Un
                     Text(
                         it.format(
                             DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
-                                .withLocale(Locale.getDefault())
+                                .withLocale(locale)
                         ),
                         fontSize = 12.sp,
                         lineHeight = 16.sp,
@@ -466,7 +488,7 @@ private fun Bubble(row: TranscriptRow, isSending: Boolean, retry: (String) -> Un
                         contentPadding = PaddingValues(0.dp),
                     ) {
                         Text(
-                            "Try again",
+                            stringResource(R.string.respondkit_try_again),
                             fontSize = 12.sp,
                             lineHeight = 16.sp,
                             color =

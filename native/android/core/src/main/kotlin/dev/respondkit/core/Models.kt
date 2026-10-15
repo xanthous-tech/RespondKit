@@ -17,6 +17,16 @@ data class CustomerContext(
     val device: DeviceContext? = null,
 )
 
+data class RespondKitStrings(
+    val attachedFiles: String = "Attached files",
+    val messageTooLong: String = "Enter a message of up to 6,000 characters.",
+    val conversationClosed: String = "This conversation is closed. Start a new conversation.",
+    val logoutFailed: String = "Previous support session could not be revoked. It will expire automatically.",
+    val requestFailed: String = "Support request failed.",
+    val historySaveFailed: String = "Could not save support history.",
+    val identityUnverified: String = "Support identity could not be verified.",
+)
+
 @Serializable
 data class SupportThread(
     val id: String,
