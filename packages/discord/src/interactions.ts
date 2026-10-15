@@ -1,3 +1,4 @@
+import { isLanguageQuery, resolveLanguageInput } from "./languages";
 export const DiscordInteractionType = {
   Ping: 1,
   ApplicationCommand: 2,
@@ -126,6 +127,8 @@ export interface ParsedDiscordReplyInteraction extends ParsedDiscordCommandBase 
   readonly command: "reply";
   readonly message: string;
   readonly translate?: string;
+  /** A language name only the translation model can place; the API resolves it into `translate` first. */
+  readonly languageQuery?: string;
 }
 
 export interface ParsedDiscordStatusInteraction extends ParsedDiscordCommandBase {
@@ -142,6 +145,8 @@ export interface ParsedDiscordRetryInteraction extends ParsedDiscordCommandBase 
 export interface ParsedDiscordTranslateInteraction extends ParsedDiscordCommandBase {
   readonly command: "translate";
   readonly targetLanguage: string;
+  /** A language name only the translation model can place; the API resolves it into `targetLanguage` first. */
+  readonly languageQuery?: string;
   readonly targetMessageId?: string;
   readonly messageLink?: string;
 }
@@ -166,6 +171,15 @@ export interface ParsedDiscordAgentNoteInteraction extends ParsedDiscordCommandB
   readonly operatorName: string;
 }
 
+/** /retranslate: a pending agent draft translated again into a language the operator names. */
+export interface ParsedDiscordRetranslateInteraction extends ParsedDiscordCommandBase {
+  readonly command: "retranslate";
+  /** The draft's Discord message link or ID, or its RespondKit message ID (msg_agent_...). */
+  readonly draft: string;
+  readonly translate?: string;
+  readonly languageQuery?: string;
+}
+
 export interface ParsedDiscordAgentContextInteraction extends ParsedDiscordCommandBase {
   readonly command: "agent_context";
   readonly action: "approve" | "reject";
@@ -180,6 +194,7 @@ export interface ParsedDiscordAgentDecisionInteraction extends ParsedDiscordComm
 }
 
 export type ParsedDiscordCommandInteraction =
+  | ParsedDiscordRetranslateInteraction
   | ParsedDiscordAgentNoteInteraction
   | ParsedDiscordAgentContextInteraction
   | ParsedDiscordAgentDecisionInteraction
@@ -366,6 +381,7 @@ function parseCommandInteraction(
       "agent_decision",
       "agent_context",
       "agent",
+      "retranslate",
     ].includes(command)
   ) {
     throw new DiscordInteractionParseError("unsupported_command", "Unsupported Discord command");
@@ -413,6 +429,15 @@ function parseCommandInteraction(
       message: optionValue(options, "message", 6000),
       operatorName:
         name.replaceAll(/[^\p{L}\p{N} ._-]/gu, "").slice(0, 80) || commandBase.operatorUserId,
+    };
+  }
+  if (command === "retranslate") {
+    requireAllowedOptions(options, ["message", "translate"], []);
+    return {
+      ...commandBase,
+      command,
+      draft: optionValue(options, "message", 200),
+      ...languageOption(optionValue(options, "translate", 35), "translate"),
     };
   }
   if (command === "agent_context") {
@@ -499,24 +524,28 @@ function parseCommandInteraction(
       };
     }
     requireAllowedOptions(options, [], ["message", "to"]);
+    const target = languageOption(
+      options.has("to") ? optionValue(options, "to", 35) : "en",
+      "targetLanguage",
+    );
     return {
       ...commandBase,
       command,
-      targetLanguage: normalizeTranslationLanguage(
-        options.has("to") ? optionValue(options, "to", 35) : "en",
-      ),
+      targetLanguage: "targetLanguage" in target ? target.targetLanguage : "",
+      ...("languageQuery" in target ? { languageQuery: target.languageQuery } : {}),
       ...(options.has("message") ? { messageLink: optionValue(options, "message", 200) } : {}),
     };
   }
   if (command === "reply") {
     requireAllowedOptions(options, ["message"], ["translate"]);
+    const translate = options.has("translate") ? optionValue(options, "translate", 35) : "off";
     return {
       ...commandBase,
       command,
       message: optionValue(options, "message", 6_000),
-      translate: normalizeReplyTranslation(
-        options.has("translate") ? optionValue(options, "translate", 35) : "off",
-      ),
+      ...(translate === "off" || translate === "customer"
+        ? { translate }
+        : languageOption(translate, "translate")),
     };
   }
   if (command === "status") {
@@ -680,6 +709,16 @@ export type NormalizedDiscordCommand =
 export function normalizeDiscordCommand(
   interaction: ParsedDiscordCommandInteraction,
 ): NormalizedDiscordCommand {
+  if (interaction.command === "retranslate") {
+    throw new DiscordInteractionParseError(
+      "invalid_payload",
+      "retranslate is handled with agent drafts",
+    );
+  }
+  // A language name must be resolved to a code first: never default an unresolved name to "off".
+  if ("languageQuery" in interaction && interaction.languageQuery !== undefined) {
+    throw new DiscordInteractionParseError("invalid_payload", "Language name not resolved");
+  }
   const base = {
     interactionId: interaction.interactionId,
     applicationId: interaction.applicationId,
@@ -794,20 +833,30 @@ function requireAllowedOptions(
   }
 }
 
+/** A language code or a known language name, as a canonical code; throws for anything else. */
 export function normalizeTranslationLanguage(value: string): string {
-  try {
-    if (!/^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/i.test(value) || value.length > 35) throw new Error();
-    return new Intl.Locale(value).baseName;
-  } catch {
+  const code = resolveLanguageInput(value);
+  if (code === null) {
     throw new DiscordInteractionParseError(
       "invalid_payload",
-      "Use a language code such as en, hi, or my",
+      "Use a language name or code, such as Burmese, 简体中文, hi or my",
     );
   }
+  return code;
 }
 
-function normalizeReplyTranslation(value: string): string {
-  return value === "off" || value === "customer" ? value : normalizeTranslationLanguage(value);
+/** A command's language option: a code when the table can place it, else a name for the API to resolve. */
+function languageOption<F extends "translate" | "targetLanguage">(
+  value: string,
+  field: F,
+): { [K in F]: string } | { languageQuery: string } {
+  const code = resolveLanguageInput(value);
+  if (code !== null) return { [field]: code } as { [K in F]: string };
+  if (isLanguageQuery(value)) return { languageQuery: value.trim() };
+  throw new DiscordInteractionParseError(
+    "invalid_payload",
+    "Use a language name or code, such as Burmese, 简体中文, hi or my",
+  );
 }
 
 export function createDeferredEphemeralResponse() {

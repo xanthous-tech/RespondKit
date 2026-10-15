@@ -1687,3 +1687,147 @@ it("lists a message's attachments with the agent's download path, and serves the
     ).status,
   ).toBe(401);
 });
+
+async function retranslate(draft: string, language: string, extra: Record<string, unknown> = {}) {
+  return signedDecision("unused", "approve", undefined, {
+    type: 2,
+    data: {
+      type: 1,
+      name: "retranslate",
+      options: [
+        { type: 3, name: "message", value: draft },
+        { type: 3, name: "translate", value: language },
+      ],
+    },
+    ...extra,
+  });
+}
+
+it("retranslates a pending draft by name into a superseding draft, once, and records the thread language", async () => {
+  const { threadId } = await createCustomerFixture();
+  await seedReadyDiscordThread(threadId);
+  const posts = mockDiscord();
+  const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+  try {
+    await workflows.modifyAll(async (modifier) => {
+      await modifier.disableRetryDelays();
+      await modifier.mockStepResult(
+        { name: "translate-message" },
+        {
+          sourceLanguage: "en",
+          targetLanguage: "fr",
+          translatedText: "Votre réponse",
+          needsReview: false,
+          mixedLanguage: false,
+          ambiguityNotes: [],
+          passThrough: false,
+          promptVersion: "test",
+          provider: "test",
+          modelId: "test",
+        },
+      );
+    });
+    const { messageId } = await (
+      await request(`/threads/${threadId}/replies`, {
+        text: "English answer",
+        translate: "fr",
+        mode: "draft",
+        idempotencyKey: "retranslate-me",
+      })
+    ).json<{ messageId: string }>();
+    await vi.waitFor(async () =>
+      expect(
+        await env.DB.prepare("SELECT count(*) n FROM agent_draft_chunk WHERE message_id=?")
+          .bind(messageId)
+          .first("n"),
+      ).toBeGreaterThan(0),
+    );
+    const chunk = await env.DB.prepare(
+      "SELECT discord_message_id FROM agent_draft_chunk WHERE message_id=? AND chunk_index=0",
+    )
+      .bind(messageId)
+      .first<{ discord_message_id: string }>();
+    const link = `https://discord.com/channels/${TEST_TOPOLOGY.guildId}/${TEST_TOPOLOGY.discordThreadId}/${chunk!.discord_message_id}`;
+
+    expect(await (await retranslate(link, "Spanish", {})).text()).toContain("Spanish (es)");
+    const rows = (
+      await env.DB.prepare(
+        "SELECT message_id, status, json_extract(envelope,'$.replyTranslation') tr, json_extract(envelope,'$.originalText') text FROM agent_reply WHERE thread_id=? ORDER BY created_at",
+      )
+        .bind(threadId)
+        .all<{ message_id: string; status: string; tr: string; text: string }>()
+    ).results;
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ message_id: messageId, status: "stale", tr: "fr" });
+    expect(rows[1]).toMatchObject({ status: "pending", tr: "es", text: "English answer" });
+    expect(
+      await env.DB.prepare("SELECT customer_language FROM thread WHERE id=?")
+        .bind(threadId)
+        .first("customer_language"),
+    ).toBe("es");
+    // Idempotent: the same request answers again without a third draft; the stale one cannot be retranslated anew.
+    expect(await (await retranslate(chunk!.discord_message_id, "es")).text()).toContain(
+      "Spanish (es)",
+    );
+    expect(await (await retranslate(chunk!.discord_message_id, "German")).text()).toContain(
+      "stale",
+    );
+    expect(
+      await env.DB.prepare("SELECT count(*) n FROM agent_reply WHERE thread_id=?")
+        .bind(threadId)
+        .first("n"),
+    ).toBe(2);
+    // Not a draft, wrong forum, unknown language.
+    expect(await (await retranslate("999999999999999999", "es")).text()).toContain(
+      "not an agent draft",
+    );
+    expect(await (await retranslate(link, "es", { channel_id: "999" })).text()).toContain(
+      "not authorized",
+    );
+    expect(await (await retranslate(link, "en; DROP")).text()).toContain("language");
+    expect(posts.length).toBeGreaterThan(0);
+  } finally {
+    await workflows.dispose();
+  }
+});
+
+it("answers the operator with the reason when a draft decision throws, instead of failing the interaction", async () => {
+  const { threadId } = await createCustomerFixture();
+  await seedReadyDiscordThread(threadId);
+  mockDiscord();
+  const failing = {
+    ...apiEnv,
+    DB: new Proxy(env.DB, {
+      get(target, property, receiver) {
+        if (property === "prepare")
+          return (sql: string) => {
+            if (sql.includes("agent_draft_chunk")) throw new Error("D1 is unavailable");
+            return target.prepare(sql);
+          };
+        return Reflect.get(target, property, receiver);
+      },
+    }),
+  } as Env;
+  apiEnv = failing;
+  const response = await contextDecision("123456789012345678");
+  expect(response.status).toBe(200);
+  expect(await response.text()).toContain("That did not work: D1 is unavailable");
+});
+
+it("accepts a language name from the agent API's translate field", async () => {
+  const { threadId } = await createCustomerFixture();
+  const { createBatch, MESSAGE_WORKFLOW } = fakeWorkflow();
+  const response = await request(
+    `/threads/${threadId}/replies`,
+    { text: "Hello", mode: "draft", idempotencyKey: "named-language", translate: "Burmese" },
+    "one",
+    { MESSAGE_WORKFLOW },
+  );
+  expect(response.status).toBe(202);
+  expect(createBatch).toHaveBeenCalled();
+  expect(
+    await env.DB.prepare(
+      "SELECT json_extract(envelope,'$.replyTranslation') FROM agent_reply WHERE idempotency_key='named-language'",
+    ).first(),
+  ).toMatchObject({ "json_extract(envelope,'$.replyTranslation')": "my" });
+});

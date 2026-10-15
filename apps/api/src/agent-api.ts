@@ -8,11 +8,7 @@ import {
   threads,
   translationJobs,
 } from "@respondkit/conversations";
-import {
-  discordIntegrations,
-  discordThreads,
-  normalizeTranslationLanguage,
-} from "@respondkit/discord";
+import { discordIntegrations, discordThreads } from "@respondkit/discord";
 import {
   findInboxByPublicId,
   findVisitorCustomer,
@@ -25,6 +21,7 @@ import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { activityConnection, ActivityError, fetchActivity } from "./activity-service";
 import { createDatabase } from "./db";
+import { resolveTranslationLanguage } from "./language";
 import type { Env } from "./env";
 import { readBearerToken } from "./session";
 import { translationEnabled } from "./translation-service";
@@ -481,9 +478,12 @@ export function createAgentApp() {
           translate = thread.customerLanguage;
         } else {
           try {
-            translate = normalizeTranslationLanguage(translate);
+            translate = await resolveTranslationLanguage(c.env, translate);
           } catch {
-            throw new HTTPException(400, { message: "Invalid translation language" });
+            throw new HTTPException(400, {
+              message:
+                "Invalid translation language: use a code such as my or a name such as Burmese",
+            });
           }
         }
       }

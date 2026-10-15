@@ -11,6 +11,7 @@ export {
   createGeminiTranslationModel,
   type GeminiTranslationModelOptions,
 } from "./gemini";
+export { resolveLanguageName } from "./language-name";
 export {
   maskProtectedText,
   restoreProtectedText,
