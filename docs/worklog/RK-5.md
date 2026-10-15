@@ -19,3 +19,10 @@ The views converted in 0.6.3 read the catalog; the rest of each client still had
 - Web 89 tests, React Native 24, `vp check`, `localization:check` and `test:native-strings`: passed.
 
 Translations of the new keys were written by the agent. No native-speaker review yet.
+
+## Review RK-6 (changes requested at 71a3e48)
+
+- SDK-authored errors reached the UI in English: Android's "File upload failed (500). Try again." and React Native's "Unable to reach RespondKit". Stores and pickers now show catalog text for any error they did not write in the user's language. Errors the SDK localizes itself are thrown as `PresentedError` / `PresentedException`. The raw message stays in `errorDetail` (Swift, Kotlin and React Native stores).
+- The new ja/zh-Hans Android test of a failed request found a first-open race: `openConversation` ran before the screen's `SideEffect` handed the store its strings, so the banner was English. The screen now sets the strings at the start of its `LaunchedEffect`, and `RespondKitLifecycle` sets them on both platforms before any background refresh.
+- The guard now scans every file in both UI modules, including the transcript helpers. It flags any literal in a UI-call position (so `Text("retry")` and `Button("OK")` fail), English phrases, and interpolated labels. Fixtures cover each case. Restoring 0.6.3's TranscriptRow on either platform now fails it.
+- Verification: `pnpm ready` passed (455 package tests). `swift test`: 29 passed. RespondKitUI iOS build: succeeded. Android core tests: 26 passed. `:compose:connectedDebugAndroidTest` on emulator-5554: 11/11 passed.
