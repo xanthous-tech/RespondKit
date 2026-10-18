@@ -16,6 +16,7 @@ describe("Discord guild commands", () => {
       "reply",
       "status",
       "retry",
+      "Translate to English",
       "activity",
     ]);
     expect(

@@ -123,7 +123,7 @@ export class TranslationWorkflow extends WorkflowEntrypoint<Env, TranslationWork
         "UPDATE translation_job SET status = 'succeeded', result_json = ?, error_code = NULL, provider_status = NULL, updated_at = ? WHERE id = ? AND generation = ?",
       ).bind(JSON.stringify(result), Date.now(), job.id, job.generation),
       this.env.DB.prepare(
-        "UPDATE thread SET customer_language = ?, customer_language_updated_at = (SELECT accepted_at FROM message WHERE id = ?) WHERE id = ? AND workspace_id = ? AND inbox_id = ? AND ? = 0 AND (customer_language_updated_at IS NULL OR customer_language_updated_at <= (SELECT accepted_at FROM message WHERE id = ?))",
+        "UPDATE thread SET customer_language = ?, customer_language_updated_at = (SELECT accepted_at FROM message WHERE id = ?) WHERE id = ? AND workspace_id = ? AND inbox_id = ? AND ? = 0 AND customer_language IS NULL",
       ).bind(
         result.sourceLanguage,
         job.message_id,
@@ -131,9 +131,9 @@ export class TranslationWorkflow extends WorkflowEntrypoint<Env, TranslationWork
         job.workspace_id,
         job.inbox_id,
         result.needsReview ? 1 : 0,
-        job.message_id,
       ),
     ]);
+    // Detection only fills an unknown language: one an operator named stays until they name another.
     // The original message, its processing status, and its display text stay untouched.
   }
 

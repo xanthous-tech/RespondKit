@@ -144,6 +144,13 @@ export interface ParsedDiscordRetryInteraction extends ParsedDiscordCommandBase 
   readonly message: string;
 }
 
+/** Translate to English: translate one customer message and post the result as a reply to it. */
+export interface ParsedDiscordTranslateInteraction extends ParsedDiscordCommandBase {
+  readonly command: "translate";
+  readonly targetLanguage: "en";
+  readonly targetMessageId: string;
+}
+
 export interface ParsedDiscordActivityInteraction extends ParsedDiscordCommandBase {
   readonly command: "activity";
   readonly count: number;
@@ -195,6 +202,7 @@ export type ParsedDiscordCommandInteraction =
   | ParsedDiscordAgentContextInteraction
   | ParsedDiscordAgentDecisionInteraction
   | ParsedDiscordActivityInteraction
+  | ParsedDiscordTranslateInteraction
   | ParsedDiscordConfirmInteraction
   | ParsedDiscordReplyInteraction
   | ParsedDiscordRetryInteraction
@@ -360,12 +368,18 @@ function parseCommandInteraction(
         : "confirm_translation"
       : requiredString(data, "name", "command name");
   const draftContext = commandName === "Approve draft";
-  const command = draftContext ? "agent_context" : commandName;
+  const messageCommand = draftContext || commandName === "Translate to English";
+  const command = draftContext
+    ? "agent_context"
+    : commandName === "Translate to English"
+      ? "translate"
+      : commandName;
   if (
     ![
       "reply",
       "retry",
       "status",
+      "translate",
       "confirm_translation",
       "activity",
       "agent_decision",
@@ -376,7 +390,7 @@ function parseCommandInteraction(
   ) {
     throw new DiscordInteractionParseError("unsupported_command", "Unsupported Discord command");
   }
-  if (draftContext !== (data.type === 3) && payload.type !== 3) {
+  if (messageCommand !== (data.type === 3) && payload.type !== 3) {
     throw new DiscordInteractionParseError("invalid_payload", "Invalid command type");
   }
   const options = parseOptions(data);
@@ -435,6 +449,16 @@ function parseCommandInteraction(
       ...commandBase,
       command,
       action: "approve",
+      targetMessageId: requiredSnowflake(data, "target_id"),
+    };
+  }
+  if (command === "translate") {
+    if (commandName !== "Translate to English")
+      throw new DiscordInteractionParseError("unsupported_command", "Unsupported Discord command");
+    return {
+      ...commandBase,
+      command,
+      targetLanguage: "en",
       targetMessageId: requiredSnowflake(data, "target_id"),
     };
   }
@@ -653,6 +677,8 @@ export type NormalizedDiscordCommand =
         "command" | "count" | "minutes" | "activityKind" | "until"
       >)
   | (NormalizedDiscordCommandBase &
+      Pick<ParsedDiscordTranslateInteraction, "command" | "targetLanguage" | "targetMessageId">)
+  | (NormalizedDiscordCommandBase &
       Pick<ParsedDiscordConfirmInteraction, "command" | "reference" | "generation">)
   | (NormalizedDiscordCommandBase & {
       readonly command: "reply";
@@ -720,6 +746,13 @@ export function normalizeDiscordCommand(
       minutes: interaction.minutes,
       activityKind: interaction.activityKind,
       until: interaction.until,
+    };
+  if (interaction.command === "translate")
+    return {
+      ...base,
+      command: interaction.command,
+      targetLanguage: interaction.targetLanguage,
+      targetMessageId: interaction.targetMessageId,
     };
   if (interaction.command === "confirm_translation")
     return {

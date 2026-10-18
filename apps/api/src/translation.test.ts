@@ -16,7 +16,11 @@ import {
   requestMessageTranslation,
   startTranslationWorkflow,
 } from "./translation-service";
-import { handleTranslationInteraction, replyReview } from "./discord-translation";
+import {
+  handleTranslationInteraction,
+  replyReview,
+  resolveTranslationMessage,
+} from "./discord-translation";
 import {
   TEST_TOPOLOGY,
   createCustomerFixture,
@@ -201,7 +205,110 @@ describe("optional message translation", () => {
     }
   });
 
-  it("rejects other-thread targets and disabled inboxes", async () => {
+  it("Translate to English posts the translation as a reply to the selected message and links it privately", async () => {
+    const { identity } = await fixture();
+    const workflows = await introspectWorkflow(env.TRANSLATION_WORKFLOW);
+    const posted: Record<string, unknown>[] = [];
+    const privateReplies: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (request, init) => {
+        if (init?.method === "GET") return Response.json([]);
+        const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+        if (init?.method === "PATCH" && String(request).includes("/webhooks/")) {
+          privateReplies.push(String(body.content));
+          return Response.json({});
+        }
+        posted.push(body);
+        return Response.json({
+          id: "100000000000000082",
+          channel_id: TEST_TOPOLOGY.discordThreadId,
+          content: body.content,
+          nonce: body.nonce,
+        });
+      }),
+    );
+    try {
+      await workflows.modifyAll(async (modifier) => {
+        await modifier.disableRetryDelays();
+        await modifier.mockStepResult({ name: "translate-message" }, result);
+      });
+      await handleTranslationInteraction(createTestEnv(), {
+        ...interaction(),
+        command: "translate",
+        targetLanguage: "en",
+        targetMessageId: "100000000000000081",
+      });
+      expect(posted).toHaveLength(1);
+      expect(posted[0]).toMatchObject({
+        message_reference: { message_id: "100000000000000081", fail_if_not_exists: false },
+      });
+      expect(String(posted[0]?.content)).toContain(result.translatedText);
+      expect(privateReplies).toEqual([
+        `Translation: https://discord.com/channels/${TEST_TOPOLOGY.guildId}/${TEST_TOPOLOGY.discordThreadId}/100000000000000082`,
+      ]);
+      const job = await env.DB.prepare(
+        "SELECT status, target_language FROM translation_job WHERE message_id = ?",
+      )
+        .bind(identity.messageId)
+        .first();
+      expect(job).toEqual({ status: "succeeded", target_language: "en" });
+    } finally {
+      vi.unstubAllGlobals();
+      await workflows.dispose();
+    }
+  });
+
+  it("keeps a language the operator named when Translate to English runs on a newer customer message", async () => {
+    const { scope, identity } = await fixture();
+    const workflows = await introspectWorkflow(env.TRANSLATION_WORKFLOW);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_request, init) => {
+        if (init?.method === "GET" || init?.method === "PATCH") return Response.json([]);
+        const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+        return Response.json({
+          id: "100000000000000082",
+          channel_id: TEST_TOPOLOGY.discordThreadId,
+          content: body.content,
+          nonce: body.nonce,
+        });
+      }),
+    );
+    try {
+      await workflows.modifyAll(async (modifier) => {
+        await modifier.disableRetryDelays();
+        await modifier.mockStepResult({ name: "translate-message" }, result);
+      });
+      // The write `/reply translate:es` makes, before the Hindi message arrived.
+      await env.DB.prepare(
+        "UPDATE thread SET customer_language='es', customer_language_updated_at=(SELECT accepted_at - 60000 FROM message WHERE id=?) WHERE id=?",
+      )
+        .bind(identity.messageId, scope.threadId)
+        .run();
+      await handleTranslationInteraction(createTestEnv(), {
+        ...interaction(),
+        command: "translate",
+        targetLanguage: "en",
+        targetMessageId: "100000000000000081",
+      });
+      expect(
+        await env.DB.prepare("SELECT status FROM translation_job WHERE message_id = ?")
+          .bind(identity.messageId)
+          .first("status"),
+      ).toBe("succeeded");
+      expect(
+        await env.DB.prepare("SELECT customer_language FROM thread WHERE id = ?")
+          .bind(scope.threadId)
+          .first("customer_language"),
+      ).toBe("es");
+    } finally {
+      vi.unstubAllGlobals();
+      await workflows.dispose();
+    }
+  });
+
+  it("rejects other-thread targets and disabled inboxes, and resolves exact Discord messages", async () => {
     const { scope, identity } = await fixture();
     const apiEnv = createTestEnv();
     await expect(
@@ -220,6 +327,24 @@ describe("optional message translation", () => {
         "en",
       ),
     ).rejects.toThrow("not enabled");
+    const translate = (targetMessageId: string) => ({
+      ...interaction(),
+      command: "translate" as const,
+      targetLanguage: "en" as const,
+      targetMessageId,
+    });
+    expect(await resolveTranslationMessage(apiEnv, scope, translate("100000000000000081"))).toBe(
+      identity.messageId,
+    );
+    await expect(
+      resolveTranslationMessage(apiEnv, scope, translate("999999999999999999")),
+    ).rejects.toThrow("original customer message");
+    await expect(
+      resolveTranslationMessage(apiEnv, scope, {
+        ...translate("100000000000000081"),
+        discordThreadId: "100000000000000099",
+      }),
+    ).rejects.toThrow("original customer message");
   });
 
   it("records a provider rejection without leaking its response body or failing delivery", async () => {
