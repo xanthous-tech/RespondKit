@@ -13,7 +13,7 @@ This supersedes the mandatory-translation flows in `base-v1.md`. Incoming messag
 | Message menu → Apps → **Approve draft** | The same as `/approve` on that draft with the default language, `customer`. |
 | Message menu → Apps → **Translate to English** | Translate that exact customer message and post the English as a reply to it. |
 
-`translate:off` is equivalent to omitting the option. `customer` never falls back to browser locale. It uses the language last named in `/reply` or `/approve` for this thread, or else a reliably detected one; if neither exists, name the language. The original reply text, requested mode, and resolved language are persisted before workflow acceptance. `/retry` cannot choose a different language.
+`translate:off` is equivalent to omitting the option. `customer` never falls back to browser locale. It uses the language last named in `/reply` or `/approve` for this thread, or else a reliably detected one; if neither exists, name the language. Detection, including **Translate to English**, only fills a thread whose language is unknown: it never replaces a language an operator named, or an earlier detected one. The original reply text, requested mode, and resolved language are persisted before workflow acceptance. `/retry` cannot choose a different language.
 
 **Translate to English** works on any original customer message RespondKit posted in the current support thread; selecting any chunk maps to the whole message. Repeated requests reuse the saved translation and do not post it twice. The private answer links the posted translation, or says why there is none. There is no `/translate` slash command.
 
