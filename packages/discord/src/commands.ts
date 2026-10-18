@@ -65,6 +65,12 @@ export const DISCORD_REPLY_COMMAND = {
   ],
 } as const satisfies DiscordChatInputCommandDefinition;
 
+export const DISCORD_TRANSLATE_MESSAGE_COMMAND = {
+  type: DiscordApplicationCommandType.Message,
+  name: "Translate to English",
+  default_member_permissions: "0",
+} as const;
+
 export const DISCORD_STATUS_COMMAND = {
   type: DiscordApplicationCommandType.ChatInput,
   name: "status",
@@ -212,5 +218,6 @@ export const DISCORD_GUILD_COMMANDS = [
   DISCORD_REPLY_COMMAND,
   DISCORD_STATUS_COMMAND,
   DISCORD_RETRY_COMMAND,
+  DISCORD_TRANSLATE_MESSAGE_COMMAND,
   DISCORD_ACTIVITY_COMMAND,
 ] as const;
