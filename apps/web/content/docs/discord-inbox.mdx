@@ -46,14 +46,7 @@ You can also approve a draft with `/approve id:<draft message link or ID>`, whic
 
 ## Translate an incoming message
 
-Right-click or long-press a customer message and choose **Apps → Translate to English**. Alternatively:
-
-```text
-/translate
-/translate message:<Discord message link> to:en
-```
-
-Without a link, `/translate` selects the latest customer message in the current thread. A translation appears as a reply to its original message. Repeated requests reuse the saved result. Translation failures are private and do not mark the original message as failed.
+Right-click or long-press a customer message and choose **Apps → Translate to English**. A translation appears as a reply to its original message. Repeated requests reuse the saved result. Translation failures are private and do not mark the original message as failed.
 
 Translation must be enabled for the inbox using `TRANSLATION_ENABLED_INBOXES`, with a working Gemini credential. The new commands also need access enabled for your operator role under **Server Settings → Integrations → RespondKit**. No additional Discord OAuth scope or Message Content intent is needed.
 
