@@ -1009,12 +1009,13 @@ export function createHttpApp() {
       context.executionCtx.waitUntil(handleActivityInteraction(context.env, interaction));
       return context.json(createDeferredEphemeralResponse());
     }
-    if (interaction.command === "confirm_translation") {
+    if (interaction.command === "translate" || interaction.command === "confirm_translation") {
       context.executionCtx.waitUntil(handleTranslationInteraction(context.env, interaction));
       return context.json(createDeferredEphemeralResponse());
     }
     const command = normalizeDiscordCommand(interaction);
     if (
+      command.command === "translate" ||
       command.command === "confirm_translation" ||
       command.command === "activity" ||
       command.command === "agent_decision" ||

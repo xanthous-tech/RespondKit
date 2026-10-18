@@ -1,10 +1,18 @@
 import {
   resolveAuthorizedDiscordThread,
   type ParsedDiscordCommandInteraction,
+  type ParsedDiscordTranslateInteraction,
 } from "@respondkit/discord";
 import type { TranslationResult } from "@respondkit/translation";
 import type { Env } from "./env";
 import { createDatabase } from "./db";
+import {
+  getTranslationJob,
+  requestMessageTranslation,
+  startTranslationWorkflow,
+  translationResult,
+  type TranslationScope,
+} from "./translation-service";
 
 export interface PrivateReply {
   content: string;
@@ -46,6 +54,27 @@ export async function updatePrivateInteraction(
       throw new Error(`Discord private response failed (${response.status})`);
     await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
   }
+}
+
+export async function resolveTranslationMessage(
+  env: Env,
+  scope: TranslationScope,
+  interaction: ParsedDiscordTranslateInteraction,
+) {
+  const row = await env.DB.prepare(
+    "SELECT m.id FROM message m JOIN discord_message dm ON dm.message_id = m.id AND dm.workspace_id = m.workspace_id AND dm.inbox_id = m.inbox_id AND dm.thread_id = m.thread_id WHERE m.workspace_id = ? AND m.inbox_id = ? AND m.thread_id = ? AND m.direction = 'customer_to_operator' AND dm.discord_message_id = ? AND dm.discord_thread_id = ? AND dm.projection_kind IN ('customer_projection', 'failure_audit')",
+  )
+    .bind(
+      scope.workspaceId,
+      scope.inboxId,
+      scope.threadId,
+      interaction.targetMessageId,
+      interaction.discordThreadId,
+    )
+    .first<{ id: string }>();
+  if (!row)
+    throw new Error("Select an original customer message posted by RespondKit in this thread.");
+  return row.id;
 }
 
 export async function handleTranslationInteraction(
@@ -102,6 +131,58 @@ export async function handleTranslationInteraction(
       });
       return;
     }
+    if (interaction.command !== "translate") return;
+    const messageId = await resolveTranslationMessage(env, scope, interaction);
+    const job = await requestMessageTranslation(env, scope, messageId, interaction.targetLanguage);
+    await startTranslationWorkflow(env, job, "publish");
+    // Bounded notification only; the durable job and its publication outlive this request.
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const current = await getTranslationJob(env, scope, job.id);
+      if (current?.status === "failed") {
+        await updatePrivateInteraction(env, interaction, {
+          content: `Translation unavailable (${current.error_code ?? "unknown"}${current.provider_status === null ? "" : `, HTTP ${current.provider_status}`}). The original message is available. Run Translate to English again to retry.`,
+        });
+        return;
+      }
+      if (current?.status === "succeeded") {
+        const result = translationResult(current);
+        if (
+          result &&
+          new Intl.Locale(result.sourceLanguage).language ===
+            new Intl.Locale(result.targetLanguage).language
+        ) {
+          await updatePrivateInteraction(env, interaction, {
+            content: `This message is already in ${result.targetLanguage}. No duplicate was posted.`,
+          });
+          return;
+        }
+        const post = await env.DB.prepare(
+          "SELECT discord_message_id FROM translation_post WHERE job_id = ? AND chunk_index = 0",
+        )
+          .bind(job.id)
+          .first<{ discord_message_id: string }>();
+        const publication = await env.TRANSLATION_WORKFLOW.get(`tp_${job.id}_${job.generation}`);
+        const publicationState = await publication.status();
+        if (publicationState.status === "errored" || publicationState.status === "terminated") {
+          await updatePrivateInteraction(env, interaction, {
+            content:
+              "Translation is saved, but posting it to Discord failed. Run Translate to English again to retry posting.",
+          });
+          return;
+        }
+        if (post && publicationState.status === "complete") {
+          await updatePrivateInteraction(env, interaction, {
+            content: `Translation: https://discord.com/channels/${interaction.guildId}/${interaction.discordThreadId}/${post.discord_message_id}`,
+          });
+          return;
+        }
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1_000));
+    }
+    await updatePrivateInteraction(env, interaction, {
+      content:
+        "Translation is still being prepared or posted. The result will appear as a reply to the original message. Run Translate to English again to check or retry publication.",
+    });
   } catch (error) {
     const message =
       error instanceof Error
