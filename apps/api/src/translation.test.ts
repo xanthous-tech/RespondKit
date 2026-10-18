@@ -259,6 +259,55 @@ describe("optional message translation", () => {
     }
   });
 
+  it("keeps a language the operator named when Translate to English runs on a newer customer message", async () => {
+    const { scope, identity } = await fixture();
+    const workflows = await introspectWorkflow(env.TRANSLATION_WORKFLOW);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_request, init) => {
+        if (init?.method === "GET" || init?.method === "PATCH") return Response.json([]);
+        const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+        return Response.json({
+          id: "100000000000000082",
+          channel_id: TEST_TOPOLOGY.discordThreadId,
+          content: body.content,
+          nonce: body.nonce,
+        });
+      }),
+    );
+    try {
+      await workflows.modifyAll(async (modifier) => {
+        await modifier.disableRetryDelays();
+        await modifier.mockStepResult({ name: "translate-message" }, result);
+      });
+      // The write `/reply translate:es` makes, before the Hindi message arrived.
+      await env.DB.prepare(
+        "UPDATE thread SET customer_language='es', customer_language_updated_at=(SELECT accepted_at - 60000 FROM message WHERE id=?) WHERE id=?",
+      )
+        .bind(identity.messageId, scope.threadId)
+        .run();
+      await handleTranslationInteraction(createTestEnv(), {
+        ...interaction(),
+        command: "translate",
+        targetLanguage: "en",
+        targetMessageId: "100000000000000081",
+      });
+      expect(
+        await env.DB.prepare("SELECT status FROM translation_job WHERE message_id = ?")
+          .bind(identity.messageId)
+          .first("status"),
+      ).toBe("succeeded");
+      expect(
+        await env.DB.prepare("SELECT customer_language FROM thread WHERE id = ?")
+          .bind(scope.threadId)
+          .first("customer_language"),
+      ).toBe("es");
+    } finally {
+      vi.unstubAllGlobals();
+      await workflows.dispose();
+    }
+  });
+
   it("rejects other-thread targets and disabled inboxes, and resolves exact Discord messages", async () => {
     const { scope, identity } = await fixture();
     const apiEnv = createTestEnv();
