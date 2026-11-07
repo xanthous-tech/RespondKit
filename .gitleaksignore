@@ -1,0 +1,11 @@
+# gitleaks history findings proven false positives by director@respondkit (OF-548, msg-18713).
+# Exact commit:file:rule:line fingerprints only, so a real key added to these files later is still caught.
+
+# idempotencyKey string literal in the local wrangler walkthrough script, not a credential.
+27df2abdd7f13577414fc53238bc61badf7b9664:apps/api/scripts/verify-agent-api.mjs:generic-api-key:368
+# idempotencyKey string literal in the local wrangler walkthrough script, not a credential.
+704667d2ac438a3f16e806bfa46903ce4963780d:apps/api/scripts/verify-agent-api.mjs:generic-api-key:539
+# CocoaPods SPEC CHECKSUM for React-cxxstableapi, a public hash.
+55db1a6c4061897809c4f768122b25f66c721877:apps/native-example/ios/Podfile.lock:generic-api-key:2021
+# TypeScript interface declaration (CreateReconciledDiscordForumThreadInput), not a value.
+9460beaf7bddad080677aa10a70c3e4e0c200dd2:packages/discord/src/rest.ts:discord-client-secret:257
