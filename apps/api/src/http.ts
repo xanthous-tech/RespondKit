@@ -13,6 +13,7 @@ import {
   acknowledgeCustomerRead,
   createThread,
   findCustomerMessageByClientId,
+  findMessageById,
   findThreadById,
   listCustomerMessages,
   listCustomerThreads,
@@ -1159,6 +1160,18 @@ export function createHttpApp() {
         );
       }
 
+      let resolvedTranslationPromise: ReturnType<typeof resolveReplyTranslation> | undefined;
+      const getResolvedTranslation = () => {
+        resolvedTranslationPromise ??= resolveReplyTranslation(
+          context.env,
+          thread,
+          command.translate ?? "off",
+        );
+        return resolvedTranslationPromise;
+      };
+      const sameTranslationTarget = (requested: string, candidate: string | null | undefined) =>
+        candidate != null && requested.toLowerCase() === candidate.toLowerCase();
+
       const inFlightReplies = await findInFlightDiscordReplies(db, {
         workspaceId: thread.workspaceId,
         inboxId: thread.inboxId,
@@ -1166,6 +1179,13 @@ export function createHttpApp() {
         normalizedMessage: command.message,
       });
       for (const candidate of inFlightReplies) {
+        if (candidate.message?.customerAvailability === "available") {
+          return context.json(
+            createEphemeralInteractionResponse(
+              "Already sent to the customer. The thread copy is still posting. Do not resend.",
+            ),
+          );
+        }
         const candidateIdentity =
           candidate.message !== null
             ? {
@@ -1189,7 +1209,19 @@ export function createHttpApp() {
           candidate.interaction.interactionId,
         );
         if (pendingReview !== null) {
-          return ephemeralReviewResponse(context, interaction, pendingReview);
+          const resolved = await getResolvedTranslation();
+          if (!resolved.ok) {
+            return context.json(createEphemeralInteractionResponse(resolved.message));
+          }
+          if (
+            sameTranslationTarget(
+              resolved.language,
+              candidate.message?.replyTranslation ?? pendingReview.targetLanguage,
+            )
+          ) {
+            return ephemeralReviewResponse(context, interaction, pendingReview);
+          }
+          continue;
         }
         if (status !== null && isActiveWorkflow(status.status)) {
           return context.json(
@@ -1199,20 +1231,22 @@ export function createHttpApp() {
           );
         }
 
+        const resolved = await getResolvedTranslation();
+        if (!resolved.ok) {
+          return context.json(createEphemeralInteractionResponse(resolved.message));
+        }
         let reDispatchTranslation: string | undefined;
         let reDispatchTranslationRequest: string | undefined;
         if (candidate.message !== null) {
+          if (
+            candidate.message.replyTranslation !== null &&
+            !sameTranslationTarget(resolved.language, candidate.message.replyTranslation)
+          ) {
+            continue;
+          }
           reDispatchTranslation = candidate.message.replyTranslation ?? undefined;
           reDispatchTranslationRequest = candidate.message.replyTranslationRequest ?? undefined;
         } else {
-          const resolved = await resolveReplyTranslation(
-            context.env,
-            thread,
-            command.translate ?? "off",
-          );
-          if (!resolved.ok) {
-            return context.json(createEphemeralInteractionResponse(resolved.message));
-          }
           reDispatchTranslation = resolved.language;
           reDispatchTranslationRequest = command.translate ?? "off";
         }
@@ -1266,6 +1300,24 @@ export function createHttpApp() {
             ),
           );
         }
+        const currentMessage = await findMessageById(db, {
+          workspaceId: thread.workspaceId,
+          inboxId: thread.inboxId,
+          threadId: thread.id,
+          messageId: candidateIdentity.messageId,
+        });
+        if (
+          currentMessage !== null &&
+          currentMessage.customerAvailability === "available" &&
+          (currentMessage.processingStatus === "processing" ||
+            currentMessage.processingStatus === "retrying")
+        ) {
+          return context.json(
+            createEphemeralInteractionResponse(
+              "Already sent to the customer. The thread copy is still posting. Do not resend.",
+            ),
+          );
+        }
         if (isActiveWorkflow(accepted.status.status)) {
           const activeReview = await replyReview(
             context.env,
@@ -1273,7 +1325,17 @@ export function createHttpApp() {
             candidate.interaction.interactionId,
           );
           if (activeReview !== null) {
-            return ephemeralReviewResponse(context, interaction, activeReview);
+            if (
+              sameTranslationTarget(
+                resolved.language,
+                currentMessage?.replyTranslation ??
+                  candidate.message?.replyTranslation ??
+                  activeReview.targetLanguage,
+              )
+            ) {
+              return ephemeralReviewResponse(context, interaction, activeReview);
+            }
+            continue;
           }
           return context.json(
             createEphemeralInteractionResponse(
@@ -1283,11 +1345,7 @@ export function createHttpApp() {
         }
       }
 
-      const resolvedTranslation = await resolveReplyTranslation(
-        context.env,
-        thread,
-        command.translate ?? "off",
-      );
+      const resolvedTranslation = await getResolvedTranslation();
       if (!resolvedTranslation.ok) {
         return context.json(createEphemeralInteractionResponse(resolvedTranslation.message));
       }

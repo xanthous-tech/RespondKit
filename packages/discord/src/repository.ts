@@ -353,13 +353,7 @@ export async function findInFlightDiscordReplies(
         eq(discordInteractions.threadId, input.threadId),
         eq(discordInteractions.commandName, "reply"),
         eq(discordInteractions.normalizedMessage, input.normalizedMessage),
-        or(
-          isNull(messages.id),
-          and(
-            inArray(messages.processingStatus, ["processing", "retrying"]),
-            eq(messages.customerAvailability, "pending"),
-          ),
-        ),
+        or(isNull(messages.id), inArray(messages.processingStatus, ["processing", "retrying"])),
       ),
     )
     .orderBy(desc(discordInteractions.acceptedAt), desc(discordInteractions.createdAt))

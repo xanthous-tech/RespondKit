@@ -89,13 +89,14 @@ const DISCORD_STEP = {
 } as const;
 
 export const DISCORD_INTERACTION_TOKEN_LIFETIME_MS = 15 * 60 * 1_000;
-export const DISCORD_PREVIEW_DEADLINE_BUFFER_MS = 30 * 1_000;
+export const DISCORD_PREVIEW_DEADLINE_BUFFER_MS = 2 * 60 * 1_000;
 export const DISCORD_PREVIEW_DEADLINE_MS =
   DISCORD_INTERACTION_TOKEN_LIFETIME_MS - DISCORD_PREVIEW_DEADLINE_BUFFER_MS;
+export const PRIVATE_PREVIEW_RETRY_DELAY_MS = 5_000;
 
 export const PRIVATE_PREVIEW_STEP = {
-  retries: { limit: 6, delay: "5 seconds", backoff: "exponential" },
-  timeout: "1 minute",
+  retries: { limit: 3, delay: "5 seconds", backoff: "constant" },
+  timeout: "15 seconds",
 } as const;
 
 export function assertPreviewTokenActive(acceptedAt: string, nowMs = Date.now()): void {
@@ -852,7 +853,10 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
                 if (error instanceof PrivateInteractionError && !error.retryable) {
                   permanent(error, "notify reply review");
                 }
-                assertPreviewTokenActive(envelope.acceptedAt);
+                assertPreviewTokenActive(
+                  envelope.acceptedAt,
+                  Date.now() + PRIVATE_PREVIEW_RETRY_DELAY_MS,
+                );
                 throw error;
               }
             });

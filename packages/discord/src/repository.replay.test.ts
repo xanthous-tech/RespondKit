@@ -171,7 +171,7 @@ describe("Discord interaction timestamp replay", () => {
     expect(changedPayload.interaction.acceptedAt).toEqual(firstAcceptedAt);
   });
 
-  it("finds in-flight replies with matching text and excludes delivered or failed rows", async () => {
+  it("finds unfinished replies with matching text and excludes succeeded or failed rows", async () => {
     const db = createTestDatabase();
     const raw = openDatabases.at(-1)!;
     await acceptReplyIngress(db, {
@@ -181,6 +181,16 @@ describe("Discord interaction timestamp replay", () => {
       workflowInstanceId: "workflow_processing" as WorkflowInstanceId,
       originalEnglishText: "Same text",
     });
+    await acceptReplyIngress(db, {
+      ...replyInput(new Date(1_500)),
+      interactionId: "interaction_audit_pending",
+      messageId: "message_audit_pending" as MessageId,
+      workflowInstanceId: "workflow_audit_pending" as WorkflowInstanceId,
+      originalEnglishText: "Same text",
+    });
+    raw.exec(
+      "update message set processing_status = 'processing', customer_availability = 'available' where id = 'message_audit_pending'",
+    );
     await acceptReplyIngress(db, {
       ...replyInput(new Date(2_000)),
       interactionId: "interaction_delivered",
@@ -223,10 +233,20 @@ describe("Discord interaction timestamp replay", () => {
       matches.map((entry) => ({
         interactionId: entry.interaction.interactionId,
         hasMessage: entry.message !== null,
+        customerAvailability: entry.message?.customerAvailability ?? null,
       })),
     ).toEqual([
-      { interactionId: "interaction_orphan", hasMessage: false },
-      { interactionId: "interaction_processing", hasMessage: true },
+      { interactionId: "interaction_orphan", hasMessage: false, customerAvailability: null },
+      {
+        interactionId: "interaction_audit_pending",
+        hasMessage: true,
+        customerAvailability: "available",
+      },
+      {
+        interactionId: "interaction_processing",
+        hasMessage: true,
+        customerAvailability: "pending",
+      },
     ]);
   });
 });

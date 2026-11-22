@@ -18,6 +18,7 @@ export interface PrivateReply {
   content: string;
   components?: unknown[];
   file?: string;
+  targetLanguage?: string;
 }
 
 export class PrivateInteractionError extends Error {
@@ -263,6 +264,7 @@ export async function replyReview(
   return {
     content: `**Review required · reply not sent**\nTarget language: ${result.targetLanguage}\n${result.translatedText.length > 1500 ? "Read the complete translation in the attached file before confirming." : result.translatedText}`,
     ...(result.translatedText.length > 1500 ? { file: result.translatedText } : {}),
+    targetLanguage: result.targetLanguage,
     components: [
       {
         type: 1,

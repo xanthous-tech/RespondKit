@@ -37,6 +37,7 @@ import { deriveOperatorMessageIdentity, translationRecordId } from "./identity";
 import {
   DISCORD_INTERACTION_TOKEN_LIFETIME_MS,
   DISCORD_PREVIEW_DEADLINE_MS,
+  PRIVATE_PREVIEW_RETRY_DELAY_MS,
   PRIVATE_PREVIEW_STEP,
   assertPreviewTokenActive,
 } from "./workflows/message";
@@ -1809,7 +1810,7 @@ describe("signed Discord interaction ingress", () => {
     }
   });
 
-  it("recovers the private review preview on the original interaction after five 503s with zero transport replay", async () => {
+  it("recovers the private review preview on the original interaction after three 503s with zero transport replay", async () => {
     const customer = await createCustomerFixture();
     await seedReadyDiscordThread(customer.threadId);
     let previewAttempts = 0;
@@ -1830,7 +1831,7 @@ describe("signed Discord interaction ingress", () => {
         ) {
           if (url.includes("/outage-preview-token/")) {
             previewAttempts += 1;
-            if (previewAttempts <= 5) {
+            if (previewAttempts <= 3) {
               return new Response("Discord unavailable", { status: 503 });
             }
           }
@@ -1874,7 +1875,7 @@ describe("signed Discord interaction ingress", () => {
       // No transport replay: durable workflow retries deliver the preview once Discord recovers.
       const instance = await oneCapturedWorkflow(workflows);
       await instance.waitForStepResult({ name: "notify-reply-review-1" });
-      expect(previewAttempts).toBe(6);
+      expect(previewAttempts).toBe(4);
       expect(webhookPatches).toContainEqual(
         expect.objectContaining({
           url: expect.stringContaining("/outage-preview-token/messages/@original"),
@@ -2617,18 +2618,303 @@ describe("signed Discord interaction ingress", () => {
     }
   });
 
-  it("bounds review preview retries within Discord's 15-minute token lifetime and fails closed past deadline", async () => {
-    expect(PRIVATE_PREVIEW_STEP.retries).toEqual({
-      limit: 6,
-      delay: "5 seconds",
-      backoff: "exponential",
+  it("tells the operator not to resend when an earlier ambiguous /reply is already customer-available while Discord audit is still delayed", async () => {
+    const customer = await createCustomerFixture();
+    await seedReadyDiscordThread(customer.threadId);
+    let auditStarted = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof globalThis.fetch>(async (request, init) => {
+        const url =
+          typeof request === "string"
+            ? request
+            : request instanceof URL
+              ? request.href
+              : request.url;
+        if (init?.method === "GET" && url.endsWith("/messages?limit=100")) {
+          return Response.json([]);
+        }
+        if (
+          init?.method === "POST" &&
+          url.includes("/channels/") &&
+          url.endsWith("/messages") &&
+          typeof init.body === "string"
+        ) {
+          auditStarted += 1;
+          await new Promise((resolve) => setTimeout(resolve, 600));
+          const body = JSON.parse(init.body) as { content: string; nonce: string };
+          return Response.json({
+            id: "100000000000000109",
+            channel_id: TEST_TOPOLOGY.discordThreadId,
+            content: body.content,
+            nonce: body.nonce,
+          });
+        }
+        if (init?.method === "PATCH" && url.includes("/webhooks/")) {
+          return Response.json({});
+        }
+        return Response.json([]);
+      }),
+    );
+
+    const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+    try {
+      await workflows.modifyAll(async (modifier) => {
+        await modifier.disableRetryDelays();
+      });
+
+      const ambiguousWorkflow = {
+        createBatch: vi.fn(async (items: WorkflowInstanceCreateOptions<unknown>[]) => {
+          await env.MESSAGE_WORKFLOW.createBatch(
+            items as Parameters<ApiEnv["MESSAGE_WORKFLOW"]["createBatch"]>[0],
+          );
+          throw new Error("Lost response after workflow started");
+        }),
+        get: vi.fn(async () => {
+          throw new Error("Status lookup unavailable during ambiguity");
+        }),
+      } as unknown as ApiEnv["MESSAGE_WORKFLOW"];
+
+      const firstRaw = JSON.stringify({
+        ...commandPayload(snowflakeAt(Date.now(), 104n), "reply", [
+          { name: "message", value: "Already published while audit posts." },
+        ]),
+        token: "audit-delayed-first-token",
+      });
+      const signed = await signedRequest(firstRaw);
+      const first = await createHttpApp().request(
+        "/v1/discord/interactions",
+        { method: "POST", headers: signed.headers, body: firstRaw },
+        createTestEnv({
+          DISCORD_PUBLIC_KEY: signed.publicKeyHex,
+          MESSAGE_WORKFLOW: ambiguousWorkflow,
+        }),
+      );
+      expect(first.status).toBe(200);
+
+      const deadline = Date.now() + 2_000;
+      while (auditStarted === 0 && Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+      expect(auditStarted).toBe(1);
+      expect(
+        await env.DB.prepare(
+          "SELECT processing_status, customer_availability FROM message WHERE thread_id = ? AND direction = 'operator_to_customer'",
+        )
+          .bind(customer.threadId)
+          .first(),
+      ).toEqual({
+        processing_status: "processing",
+        customer_availability: "available",
+      });
+
+      const fresh = await sendSignedCommand({
+        ...commandPayload(snowflakeAt(Date.now() + 1_000, 105n), "reply", [
+          { name: "message", value: "Already published while audit posts." },
+        ]),
+        token: "audit-delayed-second-token",
+      });
+      expect(fresh.status).toBe(200);
+      await expect(fresh.json()).resolves.toMatchObject({
+        data: {
+          content: "Already sent to the customer. The thread copy is still posting. Do not resend.",
+        },
+      });
+      expect(await workflows.get()).toHaveLength(1);
+
+      await (await oneCapturedWorkflow(workflows)).waitForStatus("complete");
+      expect((await pollMessages(customer)).messages).toEqual([
+        expect.objectContaining({
+          direction: "operator_to_customer",
+          text: "Already published while audit posts.",
+          state: "available",
+        }),
+      ]);
+    } finally {
+      vi.unstubAllGlobals();
+      await workflows.dispose();
+    }
+  });
+
+  it("never falls through to a second send when an unfinished row is already customer-available even if its workflow ended or errored", async () => {
+    const customer = await createCustomerFixture();
+    await seedReadyDiscordThread(customer.threadId);
+    const db = createDatabase(env.DB);
+    const workspaceId = WorkspaceIdSchema.parse(TEST_TOPOLOGY.workspaceId);
+    const inboxId = InboxIdSchema.parse(TEST_TOPOLOGY.inboxId);
+    const originalInteractionId = snowflakeAt(Date.now() - 5_000, 106n);
+    const originalIdentity = await deriveOperatorMessageIdentity({
+      applicationId: TEST_TOPOLOGY.applicationId,
+      interactionId: originalInteractionId,
     });
-    const baseDelayMs = 5_000;
-    const totalBackoffMs = baseDelayMs * (2 ** PRIVATE_PREVIEW_STEP.retries.limit - 1);
-    expect(totalBackoffMs).toBe(315_000);
-    expect(totalBackoffMs).toBeLessThan(DISCORD_PREVIEW_DEADLINE_MS);
-    expect(totalBackoffMs).toBeLessThan(DISCORD_INTERACTION_TOKEN_LIFETIME_MS);
-    expect(DISCORD_PREVIEW_DEADLINE_MS).toBeLessThanOrEqual(DISCORD_INTERACTION_TOKEN_LIFETIME_MS);
+    await acceptReplyIngress(db, {
+      integrationId: TEST_TOPOLOGY.integrationId,
+      interactionId: originalInteractionId,
+      workspaceId,
+      inboxId,
+      threadId: customer.threadId,
+      ...originalIdentity,
+      applicationId: TEST_TOPOLOGY.applicationId,
+      guildId: TEST_TOPOLOGY.guildId,
+      discordThreadId: TEST_TOPOLOGY.discordThreadId,
+      operatorUserId: TEST_TOPOLOGY.operatorId,
+      operatorRoleIds: [TEST_TOPOLOGY.operatorRoleId],
+      acceptedAt: new Date(Date.now() - 5_000),
+      originalEnglishText: "Already delivered with ended workflow.",
+      replyTranslation: "off",
+      replyTranslationRequest: "off",
+    });
+    await env.DB.prepare(
+      "UPDATE message SET processing_status = 'processing', customer_availability = 'available', customer_visible_text = original_text WHERE id = ?",
+    )
+      .bind(originalIdentity.messageId)
+      .run();
+
+    for (const terminalStatus of ["complete", "errored"] as const) {
+      const createBatch = vi.fn(async () => [] as WorkflowInstance[]);
+      const endedWorkflow = {
+        createBatch,
+        get: vi.fn(async () => ({
+          status: vi.fn(async () => ({ status: terminalStatus })),
+        })),
+      } as unknown as ApiEnv["MESSAGE_WORKFLOW"];
+      const rawBody = JSON.stringify(
+        commandPayload(
+          snowflakeAt(Date.now() + (terminalStatus === "complete" ? 1_000 : 2_000), 107n),
+          "reply",
+          [{ name: "message", value: "Already delivered with ended workflow." }],
+        ),
+      );
+      const signed = await signedRequest(rawBody);
+      const response = await createHttpApp().request(
+        "/v1/discord/interactions",
+        { method: "POST", headers: signed.headers, body: rawBody },
+        createTestEnv({
+          DISCORD_PUBLIC_KEY: signed.publicKeyHex,
+          MESSAGE_WORKFLOW: endedWorkflow,
+        }),
+      );
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toMatchObject({
+        data: {
+          content: "Already sent to the customer. The thread copy is still posting. Do not resend.",
+        },
+      });
+      expect(createBatch).not.toHaveBeenCalled();
+    }
+    expect(
+      await env.DB.prepare(
+        "SELECT count(*) n FROM message WHERE thread_id = ? AND direction = 'operator_to_customer'",
+      )
+        .bind(customer.threadId)
+        .first("n"),
+    ).toBe(1);
+  });
+
+  it("sends a fresh plain reply instead of showing a pending translate:my review button when the operator switches to translate:off", async () => {
+    const customer = await createCustomerFixture();
+    await seedReadyDiscordThread(customer.threadId);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof globalThis.fetch>(async () => Response.json({})),
+    );
+
+    const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+    try {
+      await workflows.modifyAll(async (modifier) => {
+        await modifier.disableRetryDelays();
+        await modifier.mockStepResult(
+          { name: "translate-message" },
+          { ...outgoingTranslation, targetLanguage: "my", needsReview: true },
+        );
+        await modifier.mockStepResult(
+          { name: "post-available-audit-0" },
+          { discordMessageId: "100000000000000110" },
+        );
+      });
+
+      const translatedInteractionId = snowflakeAt(Date.now(), 108n);
+      const first = await sendSignedCommand({
+        ...commandPayload(translatedInteractionId, "reply", [
+          { name: "message", value: "Please check your settings." },
+          { name: "translate", value: "my" },
+        ]),
+        token: "review-my-token",
+      });
+      expect(first.status).toBe(200);
+      const firstInstance = await oneCapturedWorkflow(workflows);
+      await firstInstance.waitForStepResult({ name: "notify-reply-review-1" });
+
+      // Same text with translate:my recovers the existing preview button without a second workflow.
+      const sameOption = await sendSignedCommand({
+        ...commandPayload(snowflakeAt(Date.now() + 1_000, 109n), "reply", [
+          { name: "message", value: "Please check your settings." },
+          { name: "translate", value: "my" },
+        ]),
+        token: "review-my-again-token",
+      });
+      expect(sameOption.status).toBe(200);
+      await expect(sameOption.json()).resolves.toMatchObject({
+        data: {
+          content: expect.stringContaining("Review required · reply not sent"),
+          components: [
+            {
+              type: 1,
+              components: [
+                expect.objectContaining({
+                  label: "Send this translation",
+                  custom_id: `confirm-translation:${translatedInteractionId}:1`,
+                }),
+              ],
+            },
+          ],
+        },
+      });
+      expect(await workflows.get()).toHaveLength(1);
+
+      // Same text with translate:off must NOT show the translate:my button; it sends a fresh plain reply.
+      const plainReply = await sendSignedCommand({
+        ...commandPayload(snowflakeAt(Date.now() + 2_000, 110n), "reply", [
+          { name: "message", value: "Please check your settings." },
+        ]),
+        token: "plain-reply-token",
+      });
+      expect(plainReply.status).toBe(200);
+      const plainBody = (await plainReply.json()) as {
+        data: { content: string; components?: unknown[] };
+      };
+      expect(plainBody.data.content).toBe("Queued for delivery as written.");
+      expect(plainBody.data.components).toBeUndefined();
+
+      const allInstances = await workflows.get();
+      expect(allInstances).toHaveLength(2);
+      const plainInstance = allInstances[1];
+      if (!plainInstance) throw new Error("Expected fresh plain reply workflow");
+      await plainInstance.waitForStatus("complete");
+
+      expect((await pollMessages(customer)).messages).toEqual([
+        expect.objectContaining({
+          direction: "operator_to_customer",
+          text: "Please check your settings.",
+          state: "available",
+        }),
+      ]);
+    } finally {
+      vi.unstubAllGlobals();
+      await workflows.dispose();
+    }
+  });
+
+  it("bounds review preview retries with constant 5s delay, limit 3, 15s timeout, and 13-minute deadline so terminal notices fit inside 900s", async () => {
+    expect(PRIVATE_PREVIEW_STEP).toEqual({
+      retries: { limit: 3, delay: "5 seconds", backoff: "constant" },
+      timeout: "15 seconds",
+    });
+    expect(PRIVATE_PREVIEW_RETRY_DELAY_MS).toBe(5_000);
+    expect(DISCORD_PREVIEW_DEADLINE_MS).toBe(13 * 60 * 1_000);
+    expect(DISCORD_INTERACTION_TOKEN_LIFETIME_MS - DISCORD_PREVIEW_DEADLINE_MS).toBe(
+      2 * 60 * 1_000,
+    );
 
     const acceptedAtMs = Date.parse("2026-11-22T12:00:00.000Z");
     const acceptedAtIso = new Date(acceptedAtMs).toISOString();
@@ -2639,108 +2925,199 @@ describe("signed Discord interaction ingress", () => {
       assertPreviewTokenActive(acceptedAtIso, acceptedAtMs + DISCORD_PREVIEW_DEADLINE_MS),
     ).toThrow(NonRetryableError);
     expect(() =>
-      assertPreviewTokenActive(acceptedAtIso, acceptedAtMs + DISCORD_PREVIEW_DEADLINE_MS),
-    ).toThrow(/expired/);
-    expect(() =>
       assertPreviewTokenActive(
         acceptedAtIso,
-        acceptedAtMs + DISCORD_INTERACTION_TOKEN_LIFETIME_MS + 1,
+        acceptedAtMs + 776_000 + PRIVATE_PREVIEW_RETRY_DELAY_MS,
       ),
     ).toThrow(NonRetryableError);
 
     const customer = await createCustomerFixture();
     await seedReadyDiscordThread(customer.threadId);
-    const previewAttempts: string[] = [];
-    vi.stubGlobal(
-      "fetch",
-      vi.fn<typeof globalThis.fetch>(async (request, init) => {
-        const url =
-          typeof request === "string"
-            ? request
-            : request instanceof URL
-              ? request.href
-              : request.url;
-        if (
-          init?.method === "PATCH" &&
-          url.includes("/expired-preview-token/") &&
-          typeof init.body === "string"
-        ) {
-          const content = (JSON.parse(init.body) as { content: string }).content;
-          if (content.includes("Review required")) previewAttempts.push(content);
-          return Response.json({});
-        }
-        return Response.json([]);
-      }),
-    );
-
-    const expiredAtMs = Date.now() - DISCORD_INTERACTION_TOKEN_LIFETIME_MS - 60_000;
-    const expiredInteractionId = snowflakeAt(expiredAtMs, 103n);
-    const identity = await deriveOperatorMessageIdentity({
-      applicationId: TEST_TOPOLOGY.applicationId,
-      interactionId: expiredInteractionId,
-    });
     const thread = await env.DB.prepare("SELECT visitor_id FROM thread WHERE id = ?")
       .bind(customer.threadId)
       .first<{ visitor_id: string }>();
     if (!thread) throw new Error("Expected thread");
 
-    const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
-    try {
-      await workflows.modifyAll(async (modifier) => {
-        await modifier.disableRetryDelays();
-        await modifier.mockStepResult(
-          { name: "translate-message" },
-          { ...outgoingTranslation, needsReview: true },
-        );
-      });
+    // Case 1: 503 at interaction age 776s -> next attempt at 781s exceeds 780s deadline -> fails closed immediately and delivers terminal notice well before 900s.
+    {
+      let previewAttempts = 0;
+      const failureNotices: string[] = [];
+      vi.stubGlobal(
+        "fetch",
+        vi.fn<typeof globalThis.fetch>(async (request, init) => {
+          const url =
+            typeof request === "string"
+              ? request
+              : request instanceof URL
+                ? request.href
+                : request.url;
+          if (
+            init?.method === "PATCH" &&
+            url.includes("/age-776s-token/") &&
+            typeof init.body === "string"
+          ) {
+            const content = (JSON.parse(init.body) as { content: string }).content;
+            if (content.includes("Review required")) {
+              previewAttempts += 1;
+              return new Response("Discord unavailable", { status: 503 });
+            }
+            failureNotices.push(content);
+            return Response.json({});
+          }
+          return Response.json([]);
+        }),
+      );
 
-      await env.MESSAGE_WORKFLOW.create({
-        id: identity.workflowInstanceId,
-        params: {
-          schema: "respondkit.workflow-message/1",
-          direction: "operator_to_customer",
-          workspaceId: WorkspaceIdSchema.parse(TEST_TOPOLOGY.workspaceId),
-          inboxId: InboxIdSchema.parse(TEST_TOPOLOGY.inboxId),
-          threadId: customer.threadId,
-          visitorId: thread.visitor_id,
-          ...identity,
-          originalText: "Expired preview token reply.",
-          acceptedAt: new Date(expiredAtMs).toISOString(),
-          replyTranslation: "my-MM",
-          replyTranslationRequest: "my-MM",
-          discord: {
-            integrationId: TEST_TOPOLOGY.integrationId,
-            interactionId: expiredInteractionId,
-            interactionToken: "expired-preview-token",
-            applicationId: TEST_TOPOLOGY.applicationId,
-            guildId: TEST_TOPOLOGY.guildId,
-            threadId: TEST_TOPOLOGY.discordThreadId,
-            operatorId: TEST_TOPOLOGY.operatorId,
-            operatorRoleIds: [TEST_TOPOLOGY.operatorRoleId],
+      const agedAtMs = Date.now() - 776_000;
+      const interactionId = snowflakeAt(agedAtMs, 111n);
+      const identity = await deriveOperatorMessageIdentity({
+        applicationId: TEST_TOPOLOGY.applicationId,
+        interactionId,
+      });
+      const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+      try {
+        await workflows.modifyAll(async (modifier) => {
+          await modifier.disableRetryDelays();
+          await modifier.mockStepResult(
+            { name: "translate-message" },
+            { ...outgoingTranslation, needsReview: true },
+          );
+        });
+        await env.MESSAGE_WORKFLOW.create({
+          id: identity.workflowInstanceId,
+          params: {
+            schema: "respondkit.workflow-message/1",
+            direction: "operator_to_customer",
+            workspaceId: WorkspaceIdSchema.parse(TEST_TOPOLOGY.workspaceId),
+            inboxId: InboxIdSchema.parse(TEST_TOPOLOGY.inboxId),
+            threadId: customer.threadId,
+            visitorId: thread.visitor_id,
+            ...identity,
+            originalText: "Near-deadline 503 preview.",
+            acceptedAt: new Date(agedAtMs).toISOString(),
+            replyTranslation: "my-MM",
+            replyTranslationRequest: "my-MM",
+            discord: {
+              integrationId: TEST_TOPOLOGY.integrationId,
+              interactionId,
+              interactionToken: "age-776s-token",
+              applicationId: TEST_TOPOLOGY.applicationId,
+              guildId: TEST_TOPOLOGY.guildId,
+              threadId: TEST_TOPOLOGY.discordThreadId,
+              operatorId: TEST_TOPOLOGY.operatorId,
+              operatorRoleIds: [TEST_TOPOLOGY.operatorRoleId],
+            },
           },
-        },
-      });
+        });
+        const instance = await oneCapturedWorkflow(workflows);
+        await instance.waitForStatus("errored");
+        await expect(instance.getError()).resolves.toMatchObject({
+          message: expect.stringContaining("NonRetryableError"),
+        });
+        expect(previewAttempts).toBe(1);
+        expect(failureNotices).toEqual(["Reply not sent. Send it again with /reply."]);
+        expect(Date.now() - agedAtMs).toBeLessThan(DISCORD_INTERACTION_TOKEN_LIFETIME_MS);
+        expect((await pollMessages(customer)).messages).toEqual([]);
+        expect(
+          await env.DB.prepare(
+            "SELECT processing_status, customer_availability FROM message WHERE id = ?",
+          )
+            .bind(identity.messageId)
+            .first(),
+        ).toEqual({
+          processing_status: "failed",
+          customer_availability: "not_available",
+        });
+      } finally {
+        vi.unstubAllGlobals();
+        await workflows.dispose();
+      }
+    }
 
-      const instance = await oneCapturedWorkflow(workflows);
-      await instance.waitForStatus("errored");
-      await expect(instance.getError()).resolves.toMatchObject({
-        message: expect.stringContaining("NonRetryableError"),
+    // Case 2: At interaction age 780s -> zero preview attempts start, terminal notice fires well before 900s.
+    {
+      let previewAttempts = 0;
+      const failureNotices: string[] = [];
+      vi.stubGlobal(
+        "fetch",
+        vi.fn<typeof globalThis.fetch>(async (request, init) => {
+          const url =
+            typeof request === "string"
+              ? request
+              : request instanceof URL
+                ? request.href
+                : request.url;
+          if (
+            init?.method === "PATCH" &&
+            url.includes("/age-780s-token/") &&
+            typeof init.body === "string"
+          ) {
+            const content = (JSON.parse(init.body) as { content: string }).content;
+            if (content.includes("Review required")) {
+              previewAttempts += 1;
+              return new Response("Discord unavailable", { status: 503 });
+            }
+            failureNotices.push(content);
+            return Response.json({});
+          }
+          return Response.json([]);
+        }),
+      );
+
+      const expiredAtMs = Date.now() - DISCORD_PREVIEW_DEADLINE_MS;
+      const interactionId = snowflakeAt(expiredAtMs, 112n);
+      const identity = await deriveOperatorMessageIdentity({
+        applicationId: TEST_TOPOLOGY.applicationId,
+        interactionId,
       });
-      expect(previewAttempts).toEqual([]);
-      expect((await pollMessages(customer)).messages).toEqual([]);
-      expect(
-        await env.DB.prepare(
-          "SELECT processing_status, customer_availability FROM message WHERE id = ?",
-        )
-          .bind(identity.messageId)
-          .first(),
-      ).toEqual({
-        processing_status: "failed",
-        customer_availability: "not_available",
-      });
-    } finally {
-      vi.unstubAllGlobals();
-      await workflows.dispose();
+      const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+      try {
+        await workflows.modifyAll(async (modifier) => {
+          await modifier.disableRetryDelays();
+          await modifier.mockStepResult(
+            { name: "translate-message" },
+            { ...outgoingTranslation, needsReview: true },
+          );
+        });
+        await env.MESSAGE_WORKFLOW.create({
+          id: identity.workflowInstanceId,
+          params: {
+            schema: "respondkit.workflow-message/1",
+            direction: "operator_to_customer",
+            workspaceId: WorkspaceIdSchema.parse(TEST_TOPOLOGY.workspaceId),
+            inboxId: InboxIdSchema.parse(TEST_TOPOLOGY.inboxId),
+            threadId: customer.threadId,
+            visitorId: thread.visitor_id,
+            ...identity,
+            originalText: "Past-deadline preview.",
+            acceptedAt: new Date(expiredAtMs).toISOString(),
+            replyTranslation: "my-MM",
+            replyTranslationRequest: "my-MM",
+            discord: {
+              integrationId: TEST_TOPOLOGY.integrationId,
+              interactionId,
+              interactionToken: "age-780s-token",
+              applicationId: TEST_TOPOLOGY.applicationId,
+              guildId: TEST_TOPOLOGY.guildId,
+              threadId: TEST_TOPOLOGY.discordThreadId,
+              operatorId: TEST_TOPOLOGY.operatorId,
+              operatorRoleIds: [TEST_TOPOLOGY.operatorRoleId],
+            },
+          },
+        });
+        const instance = await oneCapturedWorkflow(workflows);
+        await instance.waitForStatus("errored");
+        await expect(instance.getError()).resolves.toMatchObject({
+          message: expect.stringContaining("NonRetryableError"),
+        });
+        expect(previewAttempts).toBe(0);
+        expect(failureNotices).toEqual(["Reply not sent. Send it again with /reply."]);
+        expect(Date.now() - expiredAtMs).toBeLessThan(DISCORD_INTERACTION_TOKEN_LIFETIME_MS);
+        expect((await pollMessages(customer)).messages).toEqual([]);
+      } finally {
+        vi.unstubAllGlobals();
+        await workflows.dispose();
+      }
     }
   });
 });
