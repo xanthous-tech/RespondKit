@@ -216,7 +216,7 @@ An “open” should be labelled **image loaded**, not read. Apple Mail Privacy 
 
 ### Discord has two materially different MVPs
 
-1. **Stateless interaction MVP:** create one Discord forum post/thread per conversation, post incoming messages through REST/webhooks, and expose Reply/Translate/Close buttons or a `/reply` command. Discord sends button, modal, and command interactions to an HTTPS Worker. This is easy to operate but human replies are not normal free-form thread messages.
+1. **Stateless interaction MVP:** create one Discord forum post/thread per conversation, post incoming messages through REST/webhooks, and expose a `/reply` command and message translation action. Discord sends command and component interactions to an HTTPS Worker. This is easy to operate but human replies are not normal free-form thread messages.
 2. **Natural thread-reply MVP:** allow the operator to type normally in the thread. Discord only delivers ordinary message events through its persistent Gateway WebSocket, so a bot must maintain heartbeats, sequence/resume state, reconnects, intents, and deduplication. An outbound Gateway socket prevents Durable Object hibernation and is vulnerable to runtime eviction; a supervised Cloudflare Container with resume state and REST reconciliation is the cleaner hosted design. See [Discord Gateway](https://docs.discord.com/developers/events/gateway), [threads](https://docs.discord.com/developers/topics/threads), [HTTP interactions](https://docs.discord.com/developers/platform/interactions), and [Container lifecycle](https://developers.cloudflare.com/containers/faq/).
 
 For one personal bot, the Gateway version is reasonable. For a hosted multi-tenant product, bot installation, sharding, permission drift, rate limits, and secret isolation become a real subsystem.
@@ -283,8 +283,7 @@ The useful agent is not merely RAG over documentation. It needs:
 - Read-only tools first: account state, plan, recent events, feature flags, entitlement and known incidents.
 - Explicitly scoped mutating tools later, with typed input/output and audit records.
 - Deterministic handoff on user request, low confidence, negative sentiment, repeated failure, unsupported language, tool error, or sensitive topic.
-- A visible “AI” identity and an operator takeover mechanism that prevents double replies.
-- A per-conversation generation epoch or lease: human takeover invalidates any in-flight AI generation before it can send a late duplicate response.
+- A visible “AI” identity so customers and operators can tell automated replies apart from human replies.
 - Rate limits, token/cost budgets, prompt-injection boundaries, redaction, transcript retention, and evals built from real resolved conversations.
 
 Coupons/upgrades/deep links should be typed actions, not prose invented by the model. For example, an `offer_card.v1` contains eligibility evidence, currency/discount, expiry, a signed redemption URL or app route, and a plain-text fallback. The host app decides how to render and execute it.

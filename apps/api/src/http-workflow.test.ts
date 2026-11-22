@@ -1802,10 +1802,10 @@ describe("signed Discord interaction ingress", () => {
     }
   });
 
-  it("recovers a pending translation review with the Send this translation button after a 503 preview webhook outage", async () => {
+  it("recovers the private review preview on the original interaction after five 503s with zero transport replay", async () => {
     const customer = await createCustomerFixture();
     await seedReadyDiscordThread(customer.threadId);
-    let failPreviewWebhook = true;
+    let previewAttempts = 0;
     const webhookPatches: Array<{ url: string; content: string; components: unknown[] }> = [];
     vi.stubGlobal(
       "fetch",
@@ -1821,8 +1821,11 @@ describe("signed Discord interaction ingress", () => {
           url.includes("/webhooks/") &&
           typeof init.body === "string"
         ) {
-          if (failPreviewWebhook) {
-            return new Response("Discord unavailable", { status: 503 });
+          if (url.includes("/outage-preview-token/")) {
+            previewAttempts += 1;
+            if (previewAttempts <= 5) {
+              return new Response("Discord unavailable", { status: 503 });
+            }
           }
           const parsed = JSON.parse(init.body) as { content: string; components?: unknown[] };
           webhookPatches.push({
@@ -1861,18 +1864,14 @@ describe("signed Discord interaction ingress", () => {
       const initial = await sendSignedCommand(replyPayload);
       expect(initial.status).toBe(200);
 
+      // No transport replay: durable workflow retries deliver the preview once Discord recovers.
       const instance = await oneCapturedWorkflow(workflows);
       await instance.waitForStepResult({ name: "notify-reply-review-1" });
-      expect(webhookPatches).toEqual([]);
-
-      // Redelivery recovers the pending review preview with the Send this translation button.
-      const recovered = await sendSignedCommand(replyPayload);
-      expect(recovered.status).toBe(200);
-      await expect(recovered.json()).resolves.toMatchObject({
-        type: 4,
-        data: {
+      expect(previewAttempts).toBe(6);
+      expect(webhookPatches).toContainEqual(
+        expect.objectContaining({
+          url: expect.stringContaining("/outage-preview-token/messages/@original"),
           content: expect.stringContaining("Review required · reply not sent"),
-          flags: 64,
           components: [
             {
               type: 1,
@@ -1884,10 +1883,9 @@ describe("signed Discord interaction ingress", () => {
               ],
             },
           ],
-        },
-      });
+        }),
+      );
 
-      failPreviewWebhook = false;
       const confirmCtx = createExecutionContext();
       const confirmRes = await sendSignedCommand(
         {
@@ -1918,6 +1916,114 @@ describe("signed Discord interaction ingress", () => {
     } finally {
       vi.unstubAllGlobals();
       await workflows.dispose();
+    }
+  });
+
+  it("fails closed when the review preview webhook never recovers so a fresh /reply delivers once", async () => {
+    const customer = await createCustomerFixture();
+    await seedReadyDiscordThread(customer.threadId);
+    let webhookAvailable = false;
+    const webhookPatches: Array<{ url: string; content: string }> = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof globalThis.fetch>(async (request, init) => {
+        const url =
+          typeof request === "string"
+            ? request
+            : request instanceof URL
+              ? request.href
+              : request.url;
+        if (
+          init?.method === "PATCH" &&
+          url.includes("/webhooks/") &&
+          typeof init.body === "string"
+        ) {
+          if (!webhookAvailable) {
+            return new Response("Discord unavailable", { status: 503 });
+          }
+          webhookPatches.push({
+            url,
+            content: (JSON.parse(init.body) as { content: string }).content,
+          });
+          return Response.json({});
+        }
+        return Response.json([]);
+      }),
+    );
+
+    const failedWorkflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+    try {
+      await failedWorkflows.modifyAll(async (modifier) => {
+        await modifier.disableRetryDelays();
+        await modifier.mockStepResult(
+          { name: "translate-message" },
+          { ...outgoingTranslation, needsReview: true },
+        );
+      });
+
+      const failedInteractionId = snowflakeAt(Date.now(), 88n);
+      const first = await sendSignedCommand({
+        ...commandPayload(failedInteractionId, "reply", [
+          { name: "message", value: "Please reopen the app." },
+          { name: "translate", value: "my-MM" },
+        ]),
+        token: "permanently-down-preview-token",
+      });
+      expect(first.status).toBe(200);
+
+      // Must fail closed after exhausting retries instead of waiting 24h for an invisible button.
+      await (await oneCapturedWorkflow(failedWorkflows)).waitForStatus("errored");
+      expect((await pollMessages(customer)).messages).toEqual([]);
+      const failedRow = await env.DB.prepare(
+        "SELECT m.processing_status, m.customer_availability FROM message m JOIN discord_interaction i ON i.message_id = m.id WHERE i.interaction_id = ?",
+      )
+        .bind(failedInteractionId)
+        .first<{ processing_status: string; customer_availability: string }>();
+      expect(failedRow).toEqual({
+        processing_status: "failed",
+        customer_availability: "not_available",
+      });
+    } finally {
+      await failedWorkflows.dispose();
+    }
+
+    // Once Discord recovers, a fresh /reply (new interaction ID) delivers once without duplicates.
+    webhookAvailable = true;
+    const retryWorkflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+    try {
+      await retryWorkflows.modifyAll(async (modifier) => {
+        await modifier.disableRetryDelays();
+        await modifier.mockStepResult({ name: "translate-message" }, outgoingTranslation);
+        await modifier.mockStepResult(
+          { name: "post-available-audit-0" },
+          { discordMessageId: "100000000000000102" },
+        );
+      });
+      const fresh = await sendSignedCommand({
+        ...commandPayload(snowflakeAt(Date.now() + 1_000, 89n), "reply", [
+          { name: "message", value: "Please reopen the app." },
+          { name: "translate", value: "my-MM" },
+        ]),
+        token: "fresh-reply-after-outage-token",
+      });
+      expect(fresh.status).toBe(200);
+      await (await oneCapturedWorkflow(retryWorkflows)).waitForStatus("complete");
+      expect((await pollMessages(customer)).messages).toEqual([
+        expect.objectContaining({
+          direction: "operator_to_customer",
+          text: outgoingTranslation.translatedText,
+          state: "available",
+        }),
+      ]);
+      expect(webhookPatches).toContainEqual(
+        expect.objectContaining({
+          url: expect.stringContaining("/fresh-reply-after-outage-token/messages/@original"),
+          content: "Reply sent to the customer.",
+        }),
+      );
+    } finally {
+      vi.unstubAllGlobals();
+      await retryWorkflows.dispose();
     }
   });
 
@@ -2018,6 +2124,107 @@ describe("signed Discord interaction ingress", () => {
       expect(privateUpdates).toEqual([
         expect.objectContaining({
           url: expect.stringContaining("/recovered-dispatch-token/messages/@original"),
+          content: "Reply sent to the customer.",
+        }),
+      ]);
+    } finally {
+      vi.unstubAllGlobals();
+      await workflows.dispose();
+    }
+  });
+
+  it("lets a fresh /reply deliver once after an earlier acceptance_unknown dispatch failure", async () => {
+    const customer = await createCustomerFixture();
+    await seedReadyDiscordThread(customer.threadId);
+    const privateUpdates: Array<{ url: string; content: string }> = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof globalThis.fetch>(async (request, init) => {
+        const url =
+          typeof request === "string"
+            ? request
+            : request instanceof URL
+              ? request.href
+              : request.url;
+        if (
+          init?.method === "PATCH" &&
+          url.includes("/webhooks/") &&
+          typeof init.body === "string"
+        ) {
+          privateUpdates.push({
+            url,
+            content: (JSON.parse(init.body) as { content: string }).content,
+          });
+          return Response.json({});
+        }
+        return Response.json([]);
+      }),
+    );
+
+    const flakyWorkflow = {
+      createBatch: vi.fn(async () => {
+        throw new Error("Transient workflow dispatch error");
+      }),
+      get: vi.fn(async () => {
+        throw new Error("Instance lookup unavailable");
+      }),
+    } as unknown as ApiEnv["MESSAGE_WORKFLOW"];
+
+    const firstRaw = JSON.stringify({
+      ...commandPayload(snowflakeAt(Date.now(), 92n), "reply", [
+        { name: "message", value: "Fresh send after ambiguity." },
+      ]),
+      token: "orphaned-first-token",
+    });
+    const signed = await signedRequest(firstRaw);
+    const first = await createHttpApp().request(
+      "/v1/discord/interactions",
+      { method: "POST", headers: signed.headers, body: firstRaw },
+      createTestEnv({
+        DISCORD_PUBLIC_KEY: signed.publicKeyHex,
+        MESSAGE_WORKFLOW: flakyWorkflow,
+      }),
+    );
+    expect(first.status).toBe(200);
+    await expect(first.json()).resolves.toMatchObject({
+      data: {
+        content:
+          "Reply delivery could not be confirmed. Check the thread before sending again with /reply.",
+      },
+    });
+
+    const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+    try {
+      await workflows.modifyAll(async (modifier) => {
+        await modifier.disableRetryDelays();
+        await modifier.mockStepResult(
+          { name: "post-available-audit-0" },
+          { discordMessageId: "100000000000000103" },
+        );
+      });
+      const fresh = await sendSignedCommand({
+        ...commandPayload(snowflakeAt(Date.now() + 1_000, 93n), "reply", [
+          { name: "message", value: "Fresh send after ambiguity." },
+        ]),
+        token: "fresh-second-token",
+      });
+      expect(fresh.status).toBe(200);
+      await expect(fresh.json()).resolves.toMatchObject({
+        data: { content: "Queued for delivery as written." },
+      });
+
+      const instance = await oneCapturedWorkflow(workflows);
+      await instance.waitForStatus("complete");
+      expect((await pollMessages(customer)).messages).toEqual([
+        expect.objectContaining({
+          direction: "operator_to_customer",
+          text: "Fresh send after ambiguity.",
+          state: "available",
+        }),
+      ]);
+      expect(privateUpdates).toEqual([
+        expect.objectContaining({
+          url: expect.stringContaining("/fresh-second-token/messages/@original"),
           content: "Reply sent to the customer.",
         }),
       ]);

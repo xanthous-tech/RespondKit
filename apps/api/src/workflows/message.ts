@@ -1,5 +1,10 @@
 import { acceptAgentIngress } from "../agent-api";
-import { replyReview, updatePrivateInteraction, type PrivateReply } from "../discord-translation";
+import {
+  PrivateInteractionError,
+  replyReview,
+  updatePrivateInteraction,
+  type PrivateReply,
+} from "../discord-translation";
 import { emailArchiveLinks } from "../email-content";
 import { acceptOperatorEmailIngress } from "../operator-email";
 import { enqueueReplyEmail } from "../email";
@@ -80,6 +85,11 @@ const DISCORD_STEP = {
     // get bounded exponential delay from the function above.
     backoff: "constant",
   },
+  timeout: "1 minute",
+} as const;
+
+const PRIVATE_PREVIEW_STEP = {
+  retries: { limit: 8, delay: "5 seconds", backoff: "exponential" },
   timeout: "1 minute",
 } as const;
 
@@ -803,14 +813,31 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
                 .bind(envelope.messageId, generation, JSON.stringify(translation), Date.now())
                 .run();
             });
-            await step.do(`notify-reply-review-${generation}`, DATABASE_STEP, async () => {
+            await step.do(`notify-reply-review-${generation}`, PRIVATE_PREVIEW_STEP, async () => {
+              if (!envelope.discord.interactionToken) return { notified: false };
               const review = await replyReview(
                 this.env,
                 envelope.messageId,
                 envelope.discord.interactionId,
               );
               if (!review) return { notified: false };
-              return notifyDiscordReply(this.env, envelope, review);
+              try {
+                await updatePrivateInteraction(
+                  this.env,
+                  {
+                    applicationId: envelope.discord.applicationId,
+                    token: envelope.discord.interactionToken,
+                  },
+                  review,
+                  { maxAttempts: 1 },
+                );
+                return { notified: true };
+              } catch (error) {
+                if (error instanceof PrivateInteractionError && !error.retryable) {
+                  permanent(error, "notify reply review");
+                }
+                throw error;
+              }
             });
             await step.waitForEvent(`review-translation-${generation}`, {
               type: `translation-confirmed-${generation}`,

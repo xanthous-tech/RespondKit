@@ -20,11 +20,23 @@ export interface PrivateReply {
   file?: string;
 }
 
+export class PrivateInteractionError extends Error {
+  constructor(
+    message: string,
+    readonly retryable: boolean,
+    readonly status?: number,
+  ) {
+    super(message);
+    this.name = "PrivateInteractionError";
+  }
+}
+
 /** Interaction tokens are never saved in D1; only used to patch the operator's ephemeral reply. */
 export async function updatePrivateInteraction(
   env: Env,
   interaction: { applicationId: string; token: string },
   reply: PrivateReply,
+  options?: { readonly maxAttempts?: number },
 ) {
   const payload = {
     content: reply.content,
@@ -43,16 +55,33 @@ export async function updatePrivateInteraction(
     form.set("files[0]", new Blob([reply.file], { type: "text/plain" }), "translation.txt");
     body = form;
   }
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const response = await fetch(
-      `${env.DISCORD_API_BASE_URL}/webhooks/${interaction.applicationId}/${encodeURIComponent(interaction.token)}/messages/@original`,
-      { method: "PATCH", headers, body, signal: AbortSignal.timeout(5_000) },
-    );
+  const maxAttempts = options?.maxAttempts ?? 3;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    let response: Response;
+    try {
+      response = await fetch(
+        `${env.DISCORD_API_BASE_URL}/webhooks/${interaction.applicationId}/${encodeURIComponent(interaction.token)}/messages/@original`,
+        { method: "PATCH", headers, body, signal: AbortSignal.timeout(5_000) },
+      );
+    } catch (error) {
+      if (attempt === maxAttempts - 1) {
+        throw new PrivateInteractionError(
+          `Discord private response network error: ${error instanceof Error ? error.message : String(error)}`,
+          true,
+        );
+      }
+      await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+      continue;
+    }
     if (response.ok) return;
-    // Retry briefly for initial-ack 404 races, rate limits, or transient 5xx responses.
+    // Retry for initial-ack 404 races, rate limits, or transient 5xx responses.
     const retryable = response.status === 404 || response.status === 429 || response.status >= 500;
-    if (!retryable || attempt === 2)
-      throw new Error(`Discord private response failed (${response.status})`);
+    if (!retryable || attempt === maxAttempts - 1)
+      throw new PrivateInteractionError(
+        `Discord private response failed (${response.status})`,
+        retryable,
+        response.status,
+      );
     await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
   }
 }

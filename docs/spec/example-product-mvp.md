@@ -193,7 +193,7 @@ Use Google's stable [`gemini-3.1-flash-lite`](https://ai.google.dev/gemini-api/d
 
 Create a new Gemini authorization key, store it only as a Worker secret, and do not inherit a legacy standard key that Google says will stop working in September 2026. The paid service is appropriate for customer messages because Google says paid prompts/responses are not used to improve its products, subject to its documented abuse-monitoring retention. See [API keys](https://ai.google.dev/gemini-api/docs/api-key) and [data use/ZDR](https://ai.google.dev/gemini-api/docs/zdr).
 
-The translator is a narrow component with no tools, URL fetching, PostHog/customer identity, source access, internal notes, or send privilege.
+The translator is a narrow component with no tools, URL fetching, PostHog/customer identity, source access, or send privilege.
 
 For every call:
 
