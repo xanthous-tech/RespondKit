@@ -1,4 +1,5 @@
 import { isLanguageQuery, resolveLanguageInput } from "./languages";
+
 export const DiscordInteractionType = {
   Ping: 1,
   ApplicationCommand: 2,
@@ -121,8 +122,6 @@ interface ParsedDiscordCommandBase extends ParsedDiscordInteractionBase {
   readonly forumChannelId: string | undefined;
   readonly operatorUserId: string;
   readonly operatorRoleIds: readonly string[];
-  /** The operator's display name (nickname, global name or username), for notes the agent reads. */
-  readonly operatorName?: string;
 }
 
 export interface ParsedDiscordReplyInteraction extends ParsedDiscordCommandBase {
@@ -131,17 +130,6 @@ export interface ParsedDiscordReplyInteraction extends ParsedDiscordCommandBase 
   readonly translate?: string;
   /** A language name only the translation model can place; the API resolves it into `translate` first. */
   readonly languageQuery?: string;
-}
-
-export interface ParsedDiscordStatusInteraction extends ParsedDiscordCommandBase {
-  readonly command: "status";
-  readonly reference: string;
-}
-
-export interface ParsedDiscordRetryInteraction extends ParsedDiscordCommandBase {
-  readonly command: "retry";
-  readonly reference: string;
-  readonly message: string;
 }
 
 /** Translate to English: translate one customer message and post the result as a reply to it. */
@@ -165,48 +153,11 @@ export interface ParsedDiscordConfirmInteraction extends ParsedDiscordCommandBas
   readonly generation: number;
 }
 
-export interface ParsedDiscordAgentNoteInteraction extends ParsedDiscordCommandBase {
-  readonly command: "agent";
-  readonly message: string;
-  readonly operatorName: string;
-}
-
-/**
- * /approve: hand an agent draft back to the agent, which translates and sends it
- * ("customer", "off" or a language code; a name not yet resolved is in languageQuery).
- */
-export interface ParsedDiscordApproveInteraction extends ParsedDiscordCommandBase {
-  readonly command: "approve";
-  /** The draft's Discord message link or ID, or its RespondKit message ID (msg_agent_...). */
-  readonly draft: string;
-  readonly translate?: string;
-  readonly languageQuery?: string;
-}
-
-export interface ParsedDiscordAgentContextInteraction extends ParsedDiscordCommandBase {
-  readonly command: "agent_context";
-  readonly action: "approve";
-  readonly targetMessageId: string;
-}
-
-export interface ParsedDiscordAgentDecisionInteraction extends ParsedDiscordCommandBase {
-  readonly command: "agent_decision";
-  readonly action: "approve" | "reject" | "translate";
-  readonly generation?: number;
-  readonly messageId: string;
-}
-
 export type ParsedDiscordCommandInteraction =
-  | ParsedDiscordApproveInteraction
-  | ParsedDiscordAgentNoteInteraction
-  | ParsedDiscordAgentContextInteraction
-  | ParsedDiscordAgentDecisionInteraction
   | ParsedDiscordActivityInteraction
   | ParsedDiscordTranslateInteraction
   | ParsedDiscordConfirmInteraction
-  | ParsedDiscordReplyInteraction
-  | ParsedDiscordRetryInteraction
-  | ParsedDiscordStatusInteraction;
+  | ParsedDiscordReplyInteraction;
 
 export type ParsedDiscordInteraction =
   | ParsedDiscordCommandInteraction
@@ -297,18 +248,6 @@ function parseOptions(
   return parsed;
 }
 
-function requireExactOptions(
-  options: ReadonlyMap<string, { readonly type: number; readonly value: string | number }>,
-  names: readonly string[],
-): void {
-  if (options.size !== names.length || names.some((name) => !options.has(name))) {
-    throw new DiscordInteractionParseError(
-      "invalid_payload",
-      `Expected Discord command options: ${names.join(", ")}`,
-    );
-  }
-}
-
 function optionValue(
   options: ReadonlyMap<string, { readonly type: number; readonly value: string | number }>,
   name: string,
@@ -361,39 +300,6 @@ function parseCommandInteraction(
     return role;
   });
 
-  const commandName =
-    payload.type === 3
-      ? typeof data.custom_id === "string" && data.custom_id.startsWith("agent:")
-        ? "agent_decision"
-        : "confirm_translation"
-      : requiredString(data, "name", "command name");
-  const draftContext = commandName === "Approve draft";
-  const messageCommand = draftContext || commandName === "Translate to English";
-  const command = draftContext
-    ? "agent_context"
-    : commandName === "Translate to English"
-      ? "translate"
-      : commandName;
-  if (
-    ![
-      "reply",
-      "retry",
-      "status",
-      "translate",
-      "confirm_translation",
-      "activity",
-      "agent_decision",
-      "agent_context",
-      "agent",
-      "approve",
-    ].includes(command)
-  ) {
-    throw new DiscordInteractionParseError("unsupported_command", "Unsupported Discord command");
-  }
-  if (messageCommand !== (data.type === 3) && payload.type !== 3) {
-    throw new DiscordInteractionParseError("invalid_payload", "Invalid command type");
-  }
-  const options = parseOptions(data);
   const threadType = channel.type;
   if (typeof threadType !== "number") {
     throw new DiscordInteractionParseError(
@@ -402,14 +308,6 @@ function parseCommandInteraction(
     );
   }
   const operatorUserId = requiredSnowflake(user, "id", "operator user ID");
-  const name =
-    typeof member.nick === "string"
-      ? member.nick
-      : typeof user.global_name === "string"
-        ? user.global_name
-        : typeof user.username === "string"
-          ? user.username
-          : operatorUserId;
   const commandBase = {
     ...base,
     kind: "command" as const,
@@ -422,39 +320,40 @@ function parseCommandInteraction(
         : undefined,
     operatorUserId,
     operatorRoleIds,
-    operatorName: name.replaceAll(/[^\p{L}\p{N} ._-]/gu, "").slice(0, 80) || operatorUserId,
   };
-  if (command === "agent") {
-    requireAllowedOptions(options, ["message"], []);
-    return { ...commandBase, command, message: optionValue(options, "message", 6000) };
-  }
-  if (command === "approve") {
-    requireAllowedOptions(options, ["id"], ["translate"]);
-    const translate = options.has("translate")
-      ? optionValue(options, "translate", 35).trim()
-      : undefined;
+
+  if (payload.type === DiscordInteractionType.MessageComponent) {
+    const customId = requiredString(data, "custom_id", "component custom_id");
+    if (!customId.startsWith("confirm-translation:")) {
+      throw new DiscordInteractionParseError("unsupported_command", "Unknown Discord interaction");
+    }
+    const match = /^confirm-translation:(\d{1,32}):(\d{1,9})$/.exec(customId);
+    if (match === null) {
+      throw new DiscordInteractionParseError("invalid_payload", "Invalid confirmation");
+    }
     return {
       ...commandBase,
-      command,
-      draft: optionValue(options, "id", 200),
-      ...(translate === undefined
-        ? {}
-        : translate.toLowerCase() === "off" || translate.toLowerCase() === "customer"
-          ? { translate: translate.toLowerCase() }
-          : languageOption(translate, "translate")),
+      command: "confirm_translation",
+      reference: match[1]!,
+      generation: Number(match[2]),
     };
   }
-  if (command === "agent_context") {
-    return {
-      ...commandBase,
-      command,
-      action: "approve",
-      targetMessageId: requiredSnowflake(data, "target_id"),
-    };
+
+  const commandName = requiredString(data, "name", "command name");
+  if (
+    commandName !== "reply" &&
+    commandName !== "activity" &&
+    commandName !== "Translate to English"
+  ) {
+    throw new DiscordInteractionParseError("unsupported_command", "Unknown Discord command");
   }
+  const messageCommand = commandName === "Translate to English";
+  if (messageCommand !== (data.type === 3)) {
+    throw new DiscordInteractionParseError("invalid_payload", "Invalid command type");
+  }
+  const command = messageCommand ? "translate" : commandName;
+
   if (command === "translate") {
-    if (commandName !== "Translate to English")
-      throw new DiscordInteractionParseError("unsupported_command", "Unsupported Discord command");
     return {
       ...commandBase,
       command,
@@ -462,26 +361,8 @@ function parseCommandInteraction(
       targetMessageId: requiredSnowflake(data, "target_id"),
     };
   }
-  if (command === "agent_decision") {
-    const match =
-      /^agent:(approve|reject|translate):(msg_agent_[a-f0-9]{64})(?::([1-9][0-9]{0,8}))?$/.exec(
-        requiredString(data, "custom_id"),
-      );
-    if (
-      payload.type !== 3 ||
-      data.component_type !== 2 ||
-      !match ||
-      (match[1] === "translate") !== (match[3] !== undefined)
-    )
-      throw new DiscordInteractionParseError("invalid_payload", "Invalid agent draft action");
-    return {
-      ...commandBase,
-      command,
-      action: match[1] as "approve" | "reject" | "translate",
-      ...(match[3] ? { generation: Number(match[3]) } : {}),
-      messageId: match[2]!,
-    };
-  }
+
+  const options = parseOptions(data);
   if (command === "activity") {
     requireAllowedOptions(options, [], ["count", "minutes", "kind", "until"]);
     const integer = (name: string, fallback: number, max: number) => {
@@ -520,51 +401,16 @@ function parseCommandInteraction(
       until,
     };
   }
-  if (command === "confirm_translation") {
-    const match = /^confirm-translation:(\d{1,32}):(\d{1,9})$/.exec(
-      requiredString(data, "custom_id"),
-    );
-    if (payload.type !== 3 || match === null)
-      throw new DiscordInteractionParseError("invalid_payload", "Invalid confirmation");
-    return { ...commandBase, command, reference: match[1]!, generation: Number(match[2]) };
-  }
-  if (command === "reply") {
-    requireAllowedOptions(options, ["message"], ["translate"]);
-    const translate = options.has("translate") ? optionValue(options, "translate", 35) : "off";
-    return {
-      ...commandBase,
-      command,
-      message: optionValue(options, "message", 6_000),
-      ...(translate === "off" || translate === "customer"
-        ? { translate }
-        : languageOption(translate, "translate")),
-    };
-  }
-  if (command === "status") {
-    requireExactOptions(options, ["reference"]);
-    const reference = optionValue(options, "reference", 32);
-    if (!SNOWFLAKE_PATTERN.test(reference)) {
-      throw new DiscordInteractionParseError(
-        "invalid_payload",
-        "Discord status reference must be an interaction snowflake",
-      );
-    }
-    return { ...commandBase, command, reference };
-  }
 
-  requireExactOptions(options, ["reference", "message"]);
-  const reference = optionValue(options, "reference", 32);
-  if (!SNOWFLAKE_PATTERN.test(reference)) {
-    throw new DiscordInteractionParseError(
-      "invalid_payload",
-      "Discord retry reference must be an interaction snowflake",
-    );
-  }
+  requireAllowedOptions(options, ["message"], ["translate"]);
+  const translate = options.has("translate") ? optionValue(options, "translate", 35) : "off";
   return {
     ...commandBase,
-    command: "retry",
-    reference,
+    command: "reply",
     message: optionValue(options, "message", 6_000),
+    ...(translate === "off" || translate === "customer"
+      ? { translate }
+      : languageOption(translate, "translate")),
   };
 }
 
@@ -663,15 +509,6 @@ export interface NormalizedDiscordCommandBase {
 
 export type NormalizedDiscordCommand =
   | (NormalizedDiscordCommandBase &
-      Pick<ParsedDiscordAgentNoteInteraction, "command" | "message" | "operatorName">)
-  | (NormalizedDiscordCommandBase &
-      Pick<ParsedDiscordAgentContextInteraction, "command" | "action" | "targetMessageId">)
-  | (NormalizedDiscordCommandBase &
-      Pick<
-        ParsedDiscordAgentDecisionInteraction,
-        "command" | "action" | "messageId" | "generation"
-      >)
-  | (NormalizedDiscordCommandBase &
       Pick<
         ParsedDiscordActivityInteraction,
         "command" | "count" | "minutes" | "activityKind" | "until"
@@ -684,26 +521,11 @@ export type NormalizedDiscordCommand =
       readonly command: "reply";
       readonly message: string;
       readonly translate?: string;
-    })
-  | (NormalizedDiscordCommandBase & {
-      readonly command: "retry";
-      readonly reference: string;
-      readonly message: string;
-    })
-  | (NormalizedDiscordCommandBase & {
-      readonly command: "status";
-      readonly reference: string;
     });
 
 export function normalizeDiscordCommand(
   interaction: ParsedDiscordCommandInteraction,
 ): NormalizedDiscordCommand {
-  if (interaction.command === "approve") {
-    throw new DiscordInteractionParseError(
-      "invalid_payload",
-      "approve is handled with agent drafts",
-    );
-  }
   // A language name must be resolved to a code first: never default an unresolved name to "off".
   if ("languageQuery" in interaction && interaction.languageQuery !== undefined) {
     throw new DiscordInteractionParseError("invalid_payload", "Language name not resolved");
@@ -716,76 +538,50 @@ export function normalizeDiscordCommand(
     operatorUserId: interaction.operatorUserId,
     operatorRoleIds: [...interaction.operatorRoleIds],
   };
-  if (interaction.command === "agent")
-    return {
-      ...base,
-      command: interaction.command,
-      message: interaction.message,
-      operatorName: interaction.operatorName,
-    };
-  if (interaction.command === "agent_context")
-    return {
-      ...base,
-      command: interaction.command,
-      action: interaction.action,
-      targetMessageId: interaction.targetMessageId,
-    };
-  if (interaction.command === "agent_decision")
-    return {
-      ...base,
-      command: interaction.command,
-      action: interaction.action,
-      messageId: interaction.messageId,
-      ...(interaction.generation === undefined ? {} : { generation: interaction.generation }),
-    };
-  if (interaction.command === "activity")
-    return {
-      ...base,
-      command: interaction.command,
-      count: interaction.count,
-      minutes: interaction.minutes,
-      activityKind: interaction.activityKind,
-      until: interaction.until,
-    };
-  if (interaction.command === "translate")
-    return {
-      ...base,
-      command: interaction.command,
-      targetLanguage: interaction.targetLanguage,
-      targetMessageId: interaction.targetMessageId,
-    };
-  if (interaction.command === "confirm_translation")
-    return {
-      ...base,
-      command: interaction.command,
-      reference: interaction.reference,
-      generation: interaction.generation,
-    };
-  if (interaction.command === "reply") {
-    return {
-      ...base,
-      command: interaction.command,
-      message: interaction.message,
-      translate: interaction.translate ?? "off",
-    };
+  switch (interaction.command) {
+    case "activity":
+      return {
+        ...base,
+        command: interaction.command,
+        count: interaction.count,
+        minutes: interaction.minutes,
+        activityKind: interaction.activityKind,
+        until: interaction.until,
+      };
+    case "translate":
+      return {
+        ...base,
+        command: interaction.command,
+        targetLanguage: interaction.targetLanguage,
+        targetMessageId: interaction.targetMessageId,
+      };
+    case "confirm_translation":
+      return {
+        ...base,
+        command: interaction.command,
+        reference: interaction.reference,
+        generation: interaction.generation,
+      };
+    case "reply":
+      return {
+        ...base,
+        command: interaction.command,
+        message: interaction.message,
+        translate: interaction.translate ?? "off",
+      };
   }
-  if (interaction.command === "status") {
-    return { ...base, command: interaction.command, reference: interaction.reference };
-  }
-  return {
-    ...base,
-    command: interaction.command,
-    reference: interaction.reference,
-    message: interaction.message,
-  };
 }
 
-export function createEphemeralInteractionResponse(content: string): {
+export function createEphemeralInteractionResponse(
+  content: string,
+  components?: readonly unknown[],
+): {
   readonly type: typeof DiscordInteractionResponseType.ChannelMessageWithSource;
   readonly data: {
     readonly content: string;
     readonly flags: typeof DiscordMessageFlag.Ephemeral;
     readonly allowed_mentions: { readonly parse: readonly [] };
+    readonly components?: readonly unknown[];
   };
 } {
   return {
@@ -794,6 +590,7 @@ export function createEphemeralInteractionResponse(content: string): {
       content,
       flags: DiscordMessageFlag.Ephemeral,
       allowed_mentions: { parse: [] },
+      ...(components === undefined ? {} : { components }),
     },
   };
 }

@@ -16,8 +16,7 @@ import { afterEach, describe, expect, it } from "vite-plus/test";
 
 import {
   acceptReplyIngress,
-  recordRecoveryInteraction,
-  type DiscordRecoveryInteractionInput,
+  findInFlightDiscordReplies,
   type DiscordReplyIngressInput,
 } from "./repository";
 
@@ -84,15 +83,14 @@ function createTestDatabase(): DrizzleD1Database {
       workspace_id text not null,
       inbox_id text not null,
       thread_id text not null,
-      message_id text,
+      message_id text not null,
       application_id text not null,
       guild_id text not null,
       discord_thread_id text not null,
       operator_user_id text not null,
       operator_role_ids text default '[]' not null,
       command_name text not null,
-      reference_interaction_id text,
-      normalized_message text,
+      normalized_message text not null,
       accepted_at integer not null,
       created_at integer not null,
       primary key (integration_id, interaction_id)
@@ -173,46 +171,82 @@ describe("Discord interaction timestamp replay", () => {
     expect(changedPayload.interaction.acceptedAt).toEqual(firstAcceptedAt);
   });
 
-  it.each(["status", "retry"] as const)(
-    "accepts a replayed /%s recovery command with a later observation time",
-    async (commandName) => {
-      const db = createTestDatabase();
-      const firstAcceptedAt = new Date(2_000);
-      const common = {
-        integrationId: "integration_1",
-        interactionId: `interaction_${commandName}_1`,
-        workspaceId,
-        inboxId,
-        threadId,
-        applicationId: "application_1",
-        guildId: "guild_1",
-        discordThreadId: "discord_thread_1",
-        operatorUserId: "operator_1",
-        operatorRoleIds: ["role_2", "role_1"],
-        referenceInteractionId: "interaction_reply_1",
-      } as const;
-      const input: DiscordRecoveryInteractionInput =
-        commandName === "retry"
-          ? {
-              ...common,
-              commandName,
-              originalEnglishText: "How can I help?",
-              acceptedAt: firstAcceptedAt,
-            }
-          : { ...common, commandName, acceptedAt: firstAcceptedAt };
+  it("finds unfinished replies with matching text and excludes succeeded or failed rows", async () => {
+    const db = createTestDatabase();
+    const raw = openDatabases.at(-1)!;
+    await acceptReplyIngress(db, {
+      ...replyInput(new Date(1_000)),
+      interactionId: "interaction_processing",
+      messageId: "message_processing" as MessageId,
+      workflowInstanceId: "workflow_processing" as WorkflowInstanceId,
+      originalEnglishText: "Same text",
+    });
+    await acceptReplyIngress(db, {
+      ...replyInput(new Date(1_500)),
+      interactionId: "interaction_audit_pending",
+      messageId: "message_audit_pending" as MessageId,
+      workflowInstanceId: "workflow_audit_pending" as WorkflowInstanceId,
+      originalEnglishText: "Same text",
+    });
+    raw.exec(
+      "update message set processing_status = 'processing', customer_availability = 'available' where id = 'message_audit_pending'",
+    );
+    await acceptReplyIngress(db, {
+      ...replyInput(new Date(2_000)),
+      interactionId: "interaction_delivered",
+      messageId: "message_delivered" as MessageId,
+      workflowInstanceId: "workflow_delivered" as WorkflowInstanceId,
+      originalEnglishText: "Same text",
+    });
+    raw.exec(
+      "update message set processing_status = 'succeeded', customer_availability = 'available' where id = 'message_delivered'",
+    );
+    await acceptReplyIngress(db, {
+      ...replyInput(new Date(3_000)),
+      interactionId: "interaction_failed",
+      messageId: "message_failed" as MessageId,
+      workflowInstanceId: "workflow_failed" as WorkflowInstanceId,
+      originalEnglishText: "Same text",
+    });
+    raw.exec(
+      "update message set processing_status = 'failed', customer_availability = 'not_available' where id = 'message_failed'",
+    );
+    raw.exec(`
+      insert into discord_interaction (
+        integration_id, interaction_id, workspace_id, inbox_id, thread_id, message_id,
+        application_id, guild_id, discord_thread_id, operator_user_id, operator_role_ids,
+        command_name, normalized_message, accepted_at, created_at
+      ) values (
+        'integration_1', 'interaction_orphan', 'workspace_1', 'inbox_1', 'thread_1', 'message_orphan',
+        'application_1', 'guild_1', 'discord_thread_1', 'operator_1', '["role_1"]',
+        'reply', 'Same text', 4000, 4000
+      )
+    `);
 
-      const initial = await recordRecoveryInteraction(db, input);
-      expect(initial.inserted).toBe(true);
-
-      const replay = await recordRecoveryInteraction(db, {
-        ...input,
-        acceptedAt: new Date(200_000),
-      });
-      expect(replay).toMatchObject({
-        inserted: false,
-        immutablePayloadMatches: true,
-      });
-      expect(replay.interaction.acceptedAt).toEqual(firstAcceptedAt);
-    },
-  );
+    const matches = await findInFlightDiscordReplies(db, {
+      workspaceId,
+      inboxId,
+      threadId,
+      normalizedMessage: "Same text",
+    });
+    expect(
+      matches.map((entry) => ({
+        interactionId: entry.interaction.interactionId,
+        hasMessage: entry.message !== null,
+        customerAvailability: entry.message?.customerAvailability ?? null,
+      })),
+    ).toEqual([
+      { interactionId: "interaction_orphan", hasMessage: false, customerAvailability: null },
+      {
+        interactionId: "interaction_audit_pending",
+        hasMessage: true,
+        customerAvailability: "available",
+      },
+      {
+        interactionId: "interaction_processing",
+        hasMessage: true,
+        customerAvailability: "pending",
+      },
+    ]);
+  });
 });

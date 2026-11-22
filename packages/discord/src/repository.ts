@@ -7,13 +7,14 @@ import type {
 } from "@respondkit/protocol";
 import {
   customerTranscriptEntries,
+  messages,
   threads,
   findMessageById,
   prepareOperatorMessageStatements,
   type IngressAcceptanceKind,
   type MessageRow,
 } from "@respondkit/conversations";
-import { and, asc, eq, isNull, lte, ne, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, lte, ne, or, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 
 import {
@@ -116,7 +117,7 @@ function loadCanonicalAcceptance(
   message: MessageRow,
   kind: IngressAcceptanceKind,
 ): DiscordReplyIngressAcceptance {
-  if (interaction.messageId === null || interaction.commandName !== "reply") {
+  if (interaction.commandName !== "reply") {
     throw new DiscordReplyIdentityConflictError(input.interactionId);
   }
 
@@ -139,7 +140,6 @@ function loadCanonicalAcceptance(
     interaction.discordThreadId === input.discordThreadId &&
     interaction.operatorUserId === input.operatorUserId &&
     JSON.stringify(interaction.operatorRoleIds) === JSON.stringify(roleIds) &&
-    interaction.referenceInteractionId === null &&
     interaction.normalizedMessage === input.originalEnglishText &&
     message.id === input.messageId &&
     message.workflowInstanceId === input.workflowInstanceId &&
@@ -166,15 +166,12 @@ export async function acceptReplyIngress(
 ): Promise<DiscordReplyIngressAcceptance> {
   const existingInteraction = await findDiscordInteraction(db, input);
   if (existingInteraction !== null) {
-    const existingMessage =
-      existingInteraction.messageId === null
-        ? null
-        : await findMessageById(db, {
-            workspaceId: existingInteraction.workspaceId,
-            inboxId: existingInteraction.inboxId,
-            threadId: existingInteraction.threadId,
-            messageId: existingInteraction.messageId,
-          });
+    const existingMessage = await findMessageById(db, {
+      workspaceId: existingInteraction.workspaceId,
+      inboxId: existingInteraction.inboxId,
+      threadId: existingInteraction.threadId,
+      messageId: existingInteraction.messageId,
+    });
     if (existingMessage === null) {
       throw new DiscordReplyIdentityConflictError(input.interactionId);
     }
@@ -214,7 +211,6 @@ export async function acceptReplyIngress(
       operatorUserId: input.operatorUserId,
       operatorRoleIds: canonicalRoleIds(input.operatorRoleIds),
       commandName: "reply",
-      referenceInteractionId: null,
       normalizedMessage: input.originalEnglishText,
       acceptedAt: input.acceptedAt,
       createdAt: input.acceptedAt,
@@ -232,15 +228,12 @@ export async function acceptReplyIngress(
   if (canonicalInteraction === null) {
     throw new DiscordReplyIdentityConflictError(input.interactionId);
   }
-  const canonicalMessage =
-    canonicalInteraction.messageId === null
-      ? null
-      : await findMessageById(db, {
-          workspaceId: canonicalInteraction.workspaceId,
-          inboxId: canonicalInteraction.inboxId,
-          threadId: canonicalInteraction.threadId,
-          messageId: canonicalInteraction.messageId,
-        });
+  const canonicalMessage = await findMessageById(db, {
+    workspaceId: canonicalInteraction.workspaceId,
+    inboxId: canonicalInteraction.inboxId,
+    threadId: canonicalInteraction.threadId,
+    messageId: canonicalInteraction.messageId,
+  });
   if (canonicalMessage === null) {
     throw new DiscordReplyIdentityConflictError(input.interactionId);
   }
@@ -309,7 +302,7 @@ export async function findDiscordReplyByReference(
   if (interaction === null) {
     return null;
   }
-  if (interaction.commandName !== "reply" || interaction.messageId === null) {
+  if (interaction.commandName !== "reply") {
     throw new DiscordPersistenceIdentityConflictError("interaction", input.interactionId);
   }
   const message = await findMessageById(db, {
@@ -322,6 +315,49 @@ export async function findDiscordReplyByReference(
     throw new DiscordPersistenceIdentityConflictError("interaction", input.interactionId);
   }
   return { interaction, message };
+}
+
+export interface InFlightDiscordReply {
+  readonly interaction: DiscordInteractionRow;
+  readonly message: MessageRow | null;
+}
+
+export async function findInFlightDiscordReplies(
+  db: DrizzleD1Database,
+  input: {
+    readonly workspaceId: WorkspaceId;
+    readonly inboxId: InboxId;
+    readonly threadId: ThreadId;
+    readonly normalizedMessage: string;
+  },
+): Promise<readonly InFlightDiscordReply[]> {
+  return db
+    .select({
+      interaction: discordInteractions,
+      message: messages,
+    })
+    .from(discordInteractions)
+    .leftJoin(
+      messages,
+      and(
+        eq(messages.id, discordInteractions.messageId),
+        eq(messages.workspaceId, discordInteractions.workspaceId),
+        eq(messages.inboxId, discordInteractions.inboxId),
+        eq(messages.threadId, discordInteractions.threadId),
+      ),
+    )
+    .where(
+      and(
+        eq(discordInteractions.workspaceId, input.workspaceId),
+        eq(discordInteractions.inboxId, input.inboxId),
+        eq(discordInteractions.threadId, input.threadId),
+        eq(discordInteractions.commandName, "reply"),
+        eq(discordInteractions.normalizedMessage, input.normalizedMessage),
+        or(isNull(messages.id), inArray(messages.processingStatus, ["processing", "retrying"])),
+      ),
+    )
+    .orderBy(desc(discordInteractions.acceptedAt), desc(discordInteractions.createdAt))
+    .limit(10);
 }
 
 export type ResolveAuthorizedDiscordThreadResult =
@@ -759,85 +795,6 @@ export async function markDiscordProjectionFailed(
     );
   }
   return canonical;
-}
-
-interface DiscordRecoveryInteractionBase {
-  readonly integrationId: string;
-  readonly interactionId: string;
-  readonly workspaceId: WorkspaceId;
-  readonly inboxId: InboxId;
-  readonly threadId: ThreadId;
-  readonly applicationId: string;
-  readonly guildId: string;
-  readonly discordThreadId: string;
-  readonly operatorUserId: string;
-  readonly operatorRoleIds: readonly string[];
-  readonly referenceInteractionId: string;
-  readonly acceptedAt: Date;
-}
-
-export type DiscordRecoveryInteractionInput =
-  | (DiscordRecoveryInteractionBase & {
-      readonly commandName: "status";
-    })
-  | (DiscordRecoveryInteractionBase & {
-      readonly commandName: "retry";
-      readonly originalEnglishText: string;
-      readonly replyTranslation?: string;
-      readonly replyTranslationRequest?: string;
-    });
-
-export async function recordRecoveryInteraction(
-  db: DrizzleD1Database,
-  input: DiscordRecoveryInteractionInput,
-): Promise<{
-  readonly inserted: boolean;
-  readonly immutablePayloadMatches: boolean;
-  readonly interaction: DiscordInteractionRow;
-}> {
-  const normalizedMessage = input.commandName === "retry" ? input.originalEnglishText : null;
-  const inserted = await db
-    .insert(discordInteractions)
-    .values({
-      integrationId: input.integrationId,
-      interactionId: input.interactionId,
-      workspaceId: input.workspaceId,
-      inboxId: input.inboxId,
-      threadId: input.threadId,
-      messageId: null,
-      applicationId: input.applicationId,
-      guildId: input.guildId,
-      discordThreadId: input.discordThreadId,
-      operatorUserId: input.operatorUserId,
-      operatorRoleIds: canonicalRoleIds(input.operatorRoleIds),
-      commandName: input.commandName,
-      referenceInteractionId: input.referenceInteractionId,
-      normalizedMessage,
-      acceptedAt: input.acceptedAt,
-      createdAt: input.acceptedAt,
-    })
-    .onConflictDoNothing()
-    .returning({ interactionId: discordInteractions.interactionId });
-  const canonical = await findDiscordInteraction(db, input);
-  if (canonical === null || canonical.commandName === "reply") {
-    throw new DiscordPersistenceIdentityConflictError("interaction", input.interactionId);
-  }
-  const roleIds = canonicalRoleIds(input.operatorRoleIds);
-  return {
-    inserted: inserted.length > 0,
-    // Return the first acceptedAt above, but exclude that observation from identity.
-    immutablePayloadMatches:
-      canonical.commandName === input.commandName &&
-      canonical.threadId === input.threadId &&
-      canonical.applicationId === input.applicationId &&
-      canonical.guildId === input.guildId &&
-      canonical.discordThreadId === input.discordThreadId &&
-      canonical.operatorUserId === input.operatorUserId &&
-      JSON.stringify(canonical.operatorRoleIds) === JSON.stringify(roleIds) &&
-      canonical.referenceInteractionId === input.referenceInteractionId &&
-      canonical.normalizedMessage === normalizedMessage,
-    interaction: canonical,
-  };
 }
 
 /** The durable cursor also covers reads arriving before Discord audit projection completes. */

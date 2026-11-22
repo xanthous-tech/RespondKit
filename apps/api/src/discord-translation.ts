@@ -4,8 +4,8 @@ import {
   type ParsedDiscordTranslateInteraction,
 } from "@respondkit/discord";
 import type { TranslationResult } from "@respondkit/translation";
-import type { Env } from "./env";
 import { createDatabase } from "./db";
+import type { Env } from "./env";
 import {
   getTranslationJob,
   requestMessageTranslation,
@@ -18,13 +18,26 @@ export interface PrivateReply {
   content: string;
   components?: unknown[];
   file?: string;
+  targetLanguage?: string;
 }
 
-/** Interaction credentials are used only in memory, never saved in D1 or workflow parameters. */
+export class PrivateInteractionError extends Error {
+  constructor(
+    message: string,
+    readonly retryable: boolean,
+    readonly status?: number,
+  ) {
+    super(message);
+    this.name = "PrivateInteractionError";
+  }
+}
+
+/** Interaction tokens are never saved in D1; only used to patch the operator's ephemeral reply. */
 export async function updatePrivateInteraction(
   env: Env,
   interaction: { applicationId: string; token: string },
   reply: PrivateReply,
+  options?: { readonly maxAttempts?: number },
 ) {
   const payload = {
     content: reply.content,
@@ -43,15 +56,33 @@ export async function updatePrivateInteraction(
     form.set("files[0]", new Blob([reply.file], { type: "text/plain" }), "translation.txt");
     body = form;
   }
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const response = await fetch(
-      `${env.DISCORD_API_BASE_URL}/webhooks/${interaction.applicationId}/${encodeURIComponent(interaction.token)}/messages/@original`,
-      { method: "PATCH", headers, body, signal: AbortSignal.timeout(5_000) },
-    );
+  const maxAttempts = options?.maxAttempts ?? 3;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    let response: Response;
+    try {
+      response = await fetch(
+        `${env.DISCORD_API_BASE_URL}/webhooks/${interaction.applicationId}/${encodeURIComponent(interaction.token)}/messages/@original`,
+        { method: "PATCH", headers, body, signal: AbortSignal.timeout(5_000) },
+      );
+    } catch (error) {
+      if (attempt === maxAttempts - 1) {
+        throw new PrivateInteractionError(
+          `Discord private response network error: ${error instanceof Error ? error.message : String(error)}`,
+          true,
+        );
+      }
+      await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+      continue;
+    }
     if (response.ok) return;
-    // A very fast job can finish before Discord has processed the initial acknowledgment.
-    if (response.status !== 404 || attempt === 2)
-      throw new Error(`Discord private response failed (${response.status})`);
+    // Retry for initial-ack 404 races, rate limits, or transient 5xx responses.
+    const retryable = response.status === 404 || response.status === 429 || response.status >= 500;
+    if (!retryable || attempt === maxAttempts - 1)
+      throw new PrivateInteractionError(
+        `Discord private response failed (${response.status})`,
+        retryable,
+        response.status,
+      );
     await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
   }
 }
@@ -114,7 +145,7 @@ export async function handleTranslationInteraction(
         .first<{ id: string; workflow_instance_id: string; processing_generation: number }>();
       if (!message)
         throw new Error(
-          "This preview is no longer awaiting confirmation. Check /status before sending another reply.",
+          "This preview is no longer awaiting confirmation. Check the thread before sending another reply.",
         );
       await env.DB.prepare(
         "UPDATE reply_review SET confirmed_by = coalesce(confirmed_by, ?) WHERE message_id = ? AND generation = ?",
@@ -123,11 +154,35 @@ export async function handleTranslationInteraction(
         .run();
       const workflow = await env.MESSAGE_WORKFLOW.get(message.workflow_instance_id);
       await workflow.sendEvent({
-        type: `translation-approved-${message.processing_generation}`,
+        type: `translation-confirmed-${message.processing_generation}`,
         payload: {},
       });
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const current = await env.DB.prepare(
+          "SELECT customer_availability, processing_status FROM message WHERE id = ?",
+        )
+          .bind(message.id)
+          .first<{ customer_availability: string; processing_status: string }>();
+        if (current?.customer_availability === "available") {
+          await updatePrivateInteraction(env, interaction, {
+            content:
+              current.processing_status === "failed"
+                ? "Reply sent to the customer, but posting the thread copy failed. Do not resend."
+                : "Reply sent to the customer.",
+          });
+          return;
+        }
+        if (current?.processing_status === "failed") {
+          await updatePrivateInteraction(env, interaction, {
+            content: "Reply not sent. Send it again with /reply.",
+          });
+          return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1_000));
+      }
       await updatePrivateInteraction(env, interaction, {
-        content: `Translation approved; delivery is pending. Use /status reference:${interaction.reference} to check.`,
+        content:
+          "Translation confirmed; delivery is still in progress. Check the thread before sending again.",
       });
       return;
     }
@@ -200,15 +255,16 @@ export async function replyReview(
   reference: string,
 ): Promise<PrivateReply | null> {
   const row = await env.DB.prepare(
-    "SELECT rr.generation, rr.result_json FROM reply_review rr JOIN message m ON m.id = rr.message_id AND m.processing_generation = rr.generation WHERE rr.message_id = ? AND m.customer_availability = 'pending' AND m.processing_status IN ('processing', 'retrying')",
+    "SELECT rr.generation, rr.result_json FROM reply_review rr JOIN message m ON m.id = rr.message_id AND m.processing_generation = rr.generation WHERE rr.message_id = ? AND rr.confirmed_by IS NULL AND m.customer_availability = 'pending' AND m.processing_status IN ('processing', 'retrying')",
   )
     .bind(messageId)
     .first<{ generation: number; result_json: string }>();
   if (!row) return null;
   const result = JSON.parse(row.result_json) as TranslationResult;
   return {
-    content: `**Review required · reply not sent**\nTarget language: ${result.targetLanguage}\n${result.translatedText.length > 1500 ? "Read the complete translation in the attached file before confirming." : result.translatedText}\n\nReference: ${reference}`,
+    content: `**Review required · reply not sent**\nTarget language: ${result.targetLanguage}\n${result.translatedText.length > 1500 ? "Read the complete translation in the attached file before confirming." : result.translatedText}`,
     ...(result.translatedText.length > 1500 ? { file: result.translatedText } : {}),
+    targetLanguage: result.targetLanguage,
     components: [
       {
         type: 1,
@@ -223,44 +279,4 @@ export async function replyReview(
       },
     ],
   };
-}
-
-export async function notifyReplyProgress(
-  env: Env,
-  interaction: { applicationId: string; token: string },
-  messageId: string,
-  reference: string,
-) {
-  try {
-    for (let attempt = 0; attempt < 10; attempt++) {
-      const review = await replyReview(env, messageId, reference);
-      if (review) {
-        await updatePrivateInteraction(env, interaction, review);
-        return;
-      }
-      const message = await env.DB.prepare(
-        "SELECT customer_availability, processing_status FROM message WHERE id = ?",
-      )
-        .bind(messageId)
-        .first<{ customer_availability: string; processing_status: string }>();
-      if (message?.customer_availability === "available") {
-        await updatePrivateInteraction(env, interaction, {
-          content: `Reply available in chat. Reference: ${reference}`,
-        });
-        return;
-      }
-      if (message?.processing_status === "failed") {
-        await updatePrivateInteraction(env, interaction, {
-          content: `Reply not sent—translation or publication failed. Use /status reference:${reference}.`,
-        });
-        return;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 1_000));
-    }
-    await updatePrivateInteraction(env, interaction, {
-      content: `Reply is still processing. Use /status reference:${reference} to check delivery or review a translation.`,
-    });
-  } catch {
-    // The durable reply state and /status remain available if the interaction token expires.
-  }
 }

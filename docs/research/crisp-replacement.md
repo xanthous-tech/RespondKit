@@ -102,7 +102,7 @@ Why it is the lead candidate:
 
 Important gaps:
 
-- The Google Translate integration is an operator action on an incoming message. It does not provide the automatic, bidirectional draft/send workflow required here. See [translation integration](https://www.chatwoot.com/hc/user-guide/articles/1679916448-how-to-translate-your-messages-with-google-translate).
+- The Google Translate integration is an operator action on an incoming message. It does not provide the automatic, bidirectional reply workflow required here. See [translation integration](https://www.chatwoot.com/hc/user-guide/articles/1679916448-how-to-translate-your-messages-with-google-translate).
 - Slack thread replies are native, but Discord is not. See [Slack integration](https://www.chatwoot.com/features/slack-integration).
 - Chatwoot's channel status matrix does not expose delivered or read status for email. Email continuity is strong, but an email-open signal would still need a separate, inherently noisy tracking layer. See [message statuses](https://developers.chatwoot.com/self-hosted/message-statuses).
 - The React Native customer widget is WebView-based and has open issues around keyboard behavior, repeat sessions, and push. The Flutter SDK offers both a WebView and a lower-level client, but there is no maintained native iOS customer SDK; the upstream request remains open. See [React Native widget](https://github.com/chatwoot/chatwoot-react-native-widget), [Flutter SDK](https://github.com/chatwoot/chatwoot-flutter-sdk), and [native iOS SDK request](https://github.com/chatwoot/chatwoot/issues/11598).
@@ -216,7 +216,7 @@ An “open” should be labelled **image loaded**, not read. Apple Mail Privacy 
 
 ### Discord has two materially different MVPs
 
-1. **Stateless interaction MVP:** create one Discord forum post/thread per conversation, post incoming messages through REST/webhooks, and expose Reply/Translate/Close buttons or a `/reply` command. Discord sends button, modal, and command interactions to an HTTPS Worker. This is easy to operate but human replies are not normal free-form thread messages.
+1. **Stateless interaction MVP:** create one Discord forum post/thread per conversation, post incoming messages through REST/webhooks, and expose a `/reply` command and message translation action. Discord sends command and component interactions to an HTTPS Worker. This is easy to operate but human replies are not normal free-form thread messages.
 2. **Natural thread-reply MVP:** allow the operator to type normally in the thread. Discord only delivers ordinary message events through its persistent Gateway WebSocket, so a bot must maintain heartbeats, sequence/resume state, reconnects, intents, and deduplication. An outbound Gateway socket prevents Durable Object hibernation and is vulnerable to runtime eviction; a supervised Cloudflare Container with resume state and REST reconciliation is the cleaner hosted design. See [Discord Gateway](https://docs.discord.com/developers/events/gateway), [threads](https://docs.discord.com/developers/topics/threads), [HTTP interactions](https://docs.discord.com/developers/platform/interactions), and [Container lifecycle](https://developers.cloudflare.com/containers/faq/).
 
 For one personal bot, the Gateway version is reasonable. For a hosted multi-tenant product, bot installation, sharding, permission drift, rate limits, and secret isolation become a real subsystem.
@@ -283,8 +283,7 @@ The useful agent is not merely RAG over documentation. It needs:
 - Read-only tools first: account state, plan, recent events, feature flags, entitlement and known incidents.
 - Explicitly scoped mutating tools later, with typed input/output and audit records.
 - Deterministic handoff on user request, low confidence, negative sentiment, repeated failure, unsupported language, tool error, or sensitive topic.
-- A visible “AI” identity and an operator takeover mechanism that prevents double replies.
-- A per-conversation generation epoch or lease: human takeover invalidates any in-flight AI generation before it can send a late duplicate response.
+- A visible “AI” identity so customers and operators can tell automated replies apart from human replies.
 - Rate limits, token/cost budgets, prompt-injection boundaries, redaction, transcript retention, and evals built from real resolved conversations.
 
 Coupons/upgrades/deep links should be typed actions, not prose invented by the model. For example, an `offer_card.v1` contains eligibility evidence, currency/discount, expiry, a signed redemption URL or app route, and a plain-text fallback. The host app decides how to render and execute it.
@@ -370,7 +369,7 @@ Cossistant remains the most relevant translation and source-owned-UI benchmark, 
 1. Browser or API access is still needed to measure the two Crisp workspaces: recent conversation/message volume, language distribution, attachments, response times, and email-continuation usage.
 2. Is using Freshchat's or JivoChat's operator app acceptable for an immediate paid solution, or is the Discord operator surface a hard launch requirement?
 3. What operator language should every incoming message translate into, and which customer languages are most important for the quality benchmark?
-4. Should a normal Discord reply send immediately after translation or use a short preview/undo window, and what prefix or channel behavior marks an internal note?
+4. Should a normal Discord reply send immediately after translation or use a short preview/undo window?
 5. Will the repository-adjacent agent be a continuously deployed daemon or sometimes a developer laptop? Can one process load both repositories, or must each product have an isolated agent/Queue?
 6. What is the expected maximum screen-recording size/duration, and must uploads survive app suspension or termination in v0?
 7. Unless requested otherwise, v0 will permit AI text answers and read-only tools only. Which, if any, mutating product action must be allowed initially?

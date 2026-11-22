@@ -71,7 +71,7 @@ The schemas reserve message kinds and event names for these additions, but the b
 - Any ordinary text message from an authorized human in a mapped thread is a customer reply.
 - The bot adds a pending reaction while translating, then a success/failure reaction and a compact receipt with the exact customer-facing text.
 - Bot messages, webhooks, messages outside the configured inbox, and the bot's own translation receipts never loop back to the customer.
-- `/language my`, `/language th`, and `/language en` override the persisted customer language. Other internal-note/agent commands are later work.
+- `/language my`, `/language th`, and `/language en` override the persisted customer language.
 
 Outgoing translation fails closed: an English Discord reply is never sent untranslated to a non-English customer.
 
@@ -193,7 +193,7 @@ Use Google's stable [`gemini-3.1-flash-lite`](https://ai.google.dev/gemini-api/d
 
 Create a new Gemini authorization key, store it only as a Worker secret, and do not inherit a legacy standard key that Google says will stop working in September 2026. The paid service is appropriate for customer messages because Google says paid prompts/responses are not used to improve its products, subject to its documented abuse-monitoring retention. See [API keys](https://ai.google.dev/gemini-api/docs/api-key) and [data use/ZDR](https://ai.google.dev/gemini-api/docs/zdr).
 
-The translator is a narrow component with no tools, URL fetching, PostHog/customer identity, source access, internal notes, or send privilege.
+The translator is a narrow component with no tools, URL fetching, PostHog/customer identity, source access, or send privilege.
 
 For every call:
 
@@ -329,8 +329,6 @@ Follow-on order is intentionally separate from the acceptance gate:
 
 1. R2 screenshot/screen-recording uploads with configurable abuse limits.
 2. Email continuity and server-signed Example Product identity.
-3. A Pi extension with a pull consumer that opens a fresh session and injects a bounded thread snapshot/context.
-4. Read-only PostHog tooling, reviewed agent manual, generated support documents, and controlled auto-send.
-5. SwiftUI/Jetpack Compose WebView clients, then other products.
-
-The base should retain a durable outbox and versioned thread/message APIs so the Pi extension can subscribe later. Its Queue credential, sandbox, context, and send-authority design are deliberately not launch decisions; the current research is recorded separately in [Future Pi agent extension](../research/future-pi-agent-extension.md).
+3. Inbox-scoped `/v1/agent` API for external support runners.
+4. Read-only PostHog activity lookup.
+5. SwiftUI/Jetpack Compose clients, then other products.

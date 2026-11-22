@@ -42,6 +42,7 @@ export const operatorWorkflowEnvelopeSchema = sharedEnvelopeSchema.extend({
   discord: z.object({
     integrationId: z.string().min(1).max(128),
     interactionId: z.string().min(1).max(32),
+    interactionToken: z.string().min(1).max(2_048).optional(),
     applicationId: z.string().min(1).max(32),
     guildId: z.string().min(1).max(32),
     threadId: z.string().min(1).max(32),
@@ -69,8 +70,6 @@ export const agentOperatorEnvelopeSchema = sharedEnvelopeSchema.extend({
   replyTranslationRequest: z.string().min(2).max(35),
   agent: z.object({
     name: z.string().min(1).max(80),
-    mode: z.enum(["send", "draft"]),
-    previewTranslation: z.literal(true).optional(),
   }),
 });
 export type AgentOperatorEnvelope = z.infer<typeof agentOperatorEnvelopeSchema>;

@@ -118,38 +118,6 @@ export async function findThreadById(
   return thread ?? null;
 }
 
-export async function closeThread(
-  db: DrizzleD1Database,
-  input: {
-    readonly workspaceId: WorkspaceId;
-    readonly inboxId: InboxId;
-    readonly threadId: ThreadId;
-    readonly closedAt: Date;
-    readonly claimedBy?: string;
-  },
-): Promise<ThreadRow | null> {
-  const [thread] = await db
-    .update(threads)
-    .set({
-      status: "closed",
-      closedAt: input.closedAt,
-      updatedAt: input.closedAt,
-    })
-    .where(
-      and(
-        threadScope(input),
-        input.claimedBy === undefined
-          ? undefined
-          : sql`(
-      ${threads.claimedBy} IS NULL OR ${threads.claimedBy}=${input.claimedBy} OR ${threads.claimExpiresAt}<=${input.closedAt.getTime()}
-    )`,
-      ),
-    )
-    .returning();
-
-  return thread ?? null;
-}
-
 function threadScope(input: {
   readonly workspaceId: WorkspaceId;
   readonly inboxId: InboxId;
@@ -1347,29 +1315,4 @@ export async function loadMessageTranslationContext(
         ? row.originalText
         : (row.visibleText ?? row.originalText),
   }));
-}
-
-export async function reopenThread(
-  db: DrizzleD1Database,
-  input: {
-    workspaceId: WorkspaceId;
-    inboxId: InboxId;
-    threadId: ThreadId;
-    reopenedAt: Date;
-    claimedBy?: string;
-  },
-): Promise<ThreadRow | null> {
-  const [thread] = await db
-    .update(threads)
-    .set({ status: "open", closedAt: null, updatedAt: input.reopenedAt })
-    .where(
-      and(
-        threadScope(input),
-        input.claimedBy === undefined
-          ? undefined
-          : sql`(${threads.claimedBy} IS NULL OR ${threads.claimedBy}=${input.claimedBy} OR ${threads.claimExpiresAt}<=${input.reopenedAt.getTime()})`,
-      ),
-    )
-    .returning();
-  return thread ?? null;
 }

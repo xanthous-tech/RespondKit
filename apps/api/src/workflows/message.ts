@@ -1,4 +1,10 @@
-import { acceptAgentIngress, agentReplyState } from "../agent-replies";
+import { acceptAgentIngress } from "../agent-api";
+import {
+  PrivateInteractionError,
+  replyReview,
+  updatePrivateInteraction,
+  type PrivateReply,
+} from "../discord-translation";
 import { emailArchiveLinks } from "../email-content";
 import { acceptOperatorEmailIngress } from "../operator-email";
 import { enqueueReplyEmail } from "../email";
@@ -81,6 +87,27 @@ const DISCORD_STEP = {
   },
   timeout: "1 minute",
 } as const;
+
+export const DISCORD_INTERACTION_TOKEN_LIFETIME_MS = 15 * 60 * 1_000;
+export const DISCORD_PREVIEW_DEADLINE_BUFFER_MS = 2 * 60 * 1_000;
+export const DISCORD_PREVIEW_DEADLINE_MS =
+  DISCORD_INTERACTION_TOKEN_LIFETIME_MS - DISCORD_PREVIEW_DEADLINE_BUFFER_MS;
+export const PRIVATE_PREVIEW_RETRY_DELAY_MS = 5_000;
+
+export const PRIVATE_PREVIEW_STEP = {
+  retries: { limit: 3, delay: "5 seconds", backoff: "constant" },
+  timeout: "15 seconds",
+} as const;
+
+export function assertPreviewTokenActive(acceptedAt: string, nowMs = Date.now()): void {
+  const acceptedAtMs = Date.parse(acceptedAt);
+  if (Number.isNaN(acceptedAtMs) || nowMs >= acceptedAtMs + DISCORD_PREVIEW_DEADLINE_MS) {
+    permanent(
+      new Error("Discord interaction token expired before the review preview could be delivered"),
+      "notify reply review",
+    );
+  }
+}
 
 const DISCORD_THREAD_CLAIM_LEASE_MS = 2 * 60 * 1_000;
 
@@ -673,26 +700,34 @@ function availableAuditContent(
   });
 }
 
-function failureAuditContent(
+function failureAuditContent(envelope: MessageWorkflowEnvelope): string {
+  return [
+    "**Processing failed** — the customer message needs investigation.",
+    "",
+    "**Original customer message**",
+    envelope.originalText,
+  ].join("\n");
+}
+
+async function notifyDiscordReply(
+  env: Env,
   envelope: MessageWorkflowEnvelope,
-  stage: MessageFailureStage,
-): string {
-  if (envelope.direction === "operator_to_customer" && stage === "discord_audit") {
-    return "**Available in chat, but the Discord audit failed.** The customer-facing reply remains available; do not resend it.";
+  reply: PrivateReply,
+): Promise<{ notified: boolean }> {
+  if (!("discord" in envelope) || !envelope.discord.interactionToken) {
+    return { notified: false };
   }
-  return envelope.direction === "operator_to_customer"
-    ? [
-        "**Processing failed** — the reply was not made available in chat.",
-        "",
-        "**English reply**",
-        envelope.originalText,
-      ].join("\n")
-    : [
-        "**Processing failed** — the customer message needs investigation.",
-        "",
-        "**Original customer message**",
-        envelope.originalText,
-      ].join("\n");
+  try {
+    await updatePrivateInteraction(
+      env,
+      { applicationId: envelope.discord.applicationId, token: envelope.discord.interactionToken },
+      reply,
+    );
+    return { notified: true };
+  } catch {
+    // The durable state remains in D1 if the short-lived interaction token expired.
+    return { notified: false };
+  }
 }
 
 async function finalizeSuccess(env: Env, envelope: MessageWorkflowEnvelope, generation: number) {
@@ -733,85 +768,8 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
     const envelope = messageWorkflowEnvelopeSchema.parse(event.payload);
     let generation = 1;
     let stage: MessageFailureStage = "ingress";
-    let previewTranslation: TranslationResult | undefined;
 
     try {
-      if ("agent" in envelope && envelope.agent.mode === "draft") {
-        if (envelope.agent.previewTranslation) {
-          stage = "translation";
-          const context = await step.do("load-translation-context", DATABASE_STEP, () =>
-            loadTranslationContext(this.env, envelope, generation),
-          );
-          previewTranslation = await step.do("translate-message", TRANSLATION_STEP, () =>
-            translate(this.env, envelope, context),
-          );
-          const resultJson = JSON.stringify(previewTranslation);
-          await step.do("save-draft-preview", DATABASE_STEP, async () => {
-            await this.env.DB.prepare(
-              "INSERT INTO agent_draft_preview(message_id,result_json) VALUES (?,?) ON CONFLICT(message_id) DO NOTHING",
-            )
-              .bind(envelope.messageId, resultJson)
-              .run();
-            const stored = await this.env.DB.prepare(
-              "SELECT result_json FROM agent_draft_preview WHERE message_id=?",
-            )
-              .bind(envelope.messageId)
-              .first<{ result_json: string }>();
-            if (stored?.result_json !== resultJson)
-              permanent(new Error("Draft translation changed"), "preview");
-          });
-        }
-        const target = await ensureDiscordThread(step, this.env, envelope, "draft-discord");
-        // A preview only: approving hands the English to the agent, which translates it again.
-        const translationPreview = previewTranslation
-          ? `**Translation preview (${previewTranslation.targetLanguage})**\n${previewTranslation.translatedText}\n\n${previewTranslation.needsReview ? `**Review translation wording**\n${previewTranslation.ambiguityNotes.join("\n")}\n\n` : ""}`
-          : "";
-        // One message, no buttons: the draft must never look sent. Operators approve with the
-        // Approve draft message command (right-click, or long-press on a phone) or /approve.
-        const chunks = splitDiscordMessage(
-          `**Agent ${envelope.agent.name} · Draft, not sent**\n${envelope.originalText}\n\n${translationPreview}_To send it: right-click this message (long-press on a phone) → Apps → **Approve draft**, or \`/approve\` with this message's link and a language. The agent then sends the English above in the customer's language (or the one you name) and posts both versions here. To change it, use /agent or /reply._`,
-        );
-        for (const [index, content] of chunks.entries()) {
-          const posted = await step.do(`post-agent-draft-${index}`, DISCORD_STEP, () =>
-            discordOperation(() =>
-              discordClient(this.env).sendMessageReconciled({
-                channelId: target.discordThreadId,
-                content,
-                nonce: createDiscordNonce(`draft:${envelope.messageId}`, index),
-              }),
-            ),
-          );
-          await step.do(`store-agent-draft-chunk-${index}`, DATABASE_STEP, async () => {
-            await this.env.DB.prepare(
-              "INSERT INTO agent_draft_chunk(discord_message_id,discord_thread_id,message_id,chunk_index) VALUES (?,?,?,?) ON CONFLICT(message_id,chunk_index) DO NOTHING",
-            )
-              .bind(posted.message.id, target.discordThreadId, envelope.messageId, index)
-              .run();
-          });
-        }
-        if (previewTranslation) {
-          await step.do("mark-draft-preview-posted", DATABASE_STEP, async () => {
-            await this.env.DB.prepare(
-              "UPDATE agent_draft_preview SET posted_at=coalesce(posted_at,?) WHERE message_id=?",
-            )
-              .bind(Date.now(), envelope.messageId)
-              .run();
-          });
-        }
-        const initial = await step.do("load-agent-decision", DATABASE_STEP, () =>
-          agentReplyState(this.env, envelope.messageId),
-        );
-        if (initial?.status === "pending")
-          await step.waitForEvent("wait-agent-decision", {
-            type: "agent-decision",
-            timeout: "7 days",
-          });
-        const decision = await step.do("verify-agent-decision", DATABASE_STEP, () =>
-          agentReplyState(this.env, envelope.messageId),
-        );
-        if (decision?.status !== "approved")
-          return { messageId: envelope.messageId, status: decision?.status ?? "missing" };
-      }
       const persisted = await step.do("persist-ingress", DATABASE_STEP, () =>
         persistIngress(this.env, envelope),
       );
@@ -853,38 +811,17 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
           auditContent = `**Available in chat · sent as written**\n${envelope.originalText}`;
         } else {
           stage = "translation";
-          const translation =
-            previewTranslation ??
-            (await (async () => {
-              const context = await step.do("load-translation-context", DATABASE_STEP, () =>
-                loadTranslationContext(this.env, envelope, generation),
-              );
-              return step.do("translate-message", TRANSLATION_STEP, () =>
-                translate(this.env, envelope, context),
-              );
-            })());
-          if (previewTranslation) {
-            const resultJson = JSON.stringify(previewTranslation);
-            await step.do("save-approved-draft-review", DATABASE_STEP, async () => {
-              await this.env.DB.prepare(`INSERT INTO reply_review(message_id,generation,result_json,confirmed_by,created_at)
-                SELECT p.message_id,?,p.result_json,p.confirmed_by,? FROM agent_draft_preview p JOIN agent_reply r ON r.message_id=p.message_id
-                WHERE p.message_id=? AND p.posted_at IS NOT NULL AND p.result_json=? AND p.confirmed_by=r.decided_by AND r.status='approved'
-                ON CONFLICT(message_id) DO NOTHING`)
-                .bind(generation, Date.now(), envelope.messageId, resultJson)
-                .run();
-              const review = await this.env.DB.prepare(
-                "SELECT confirmed_by,result_json,generation FROM reply_review WHERE message_id=?",
-              )
-                .bind(envelope.messageId)
-                .first<{ confirmed_by: string | null; result_json: string; generation: number }>();
-              if (
-                !review?.confirmed_by ||
-                review.result_json !== resultJson ||
-                review.generation !== generation
-              )
-                permanent(new Error("Draft translation approval is missing or differs"), "review");
-            });
-          } else if (translation.needsReview && envelope.replyTranslation !== undefined) {
+          const context = await step.do("load-translation-context", DATABASE_STEP, () =>
+            loadTranslationContext(this.env, envelope, generation),
+          );
+          const translation = await step.do("translate-message", TRANSLATION_STEP, () =>
+            translate(this.env, envelope, context),
+          );
+          if (
+            "discord" in envelope &&
+            translation.needsReview &&
+            envelope.replyTranslation !== undefined
+          ) {
             await step.do("save-reply-review", DATABASE_STEP, async () => {
               await this.env.DB.prepare(
                 "INSERT INTO reply_review (message_id, generation, result_json, created_at) VALUES (?, ?, ?, ?) ON CONFLICT(message_id) DO UPDATE SET generation = excluded.generation, result_json = excluded.result_json, confirmed_by = NULL, created_at = excluded.created_at WHERE reply_review.generation < excluded.generation",
@@ -892,63 +829,49 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
                 .bind(envelope.messageId, generation, JSON.stringify(translation), Date.now())
                 .run();
             });
-            if ("agent" in envelope) {
-              const target = await ensureDiscordThread(
-                step,
+            await step.do(`notify-reply-review-${generation}`, PRIVATE_PREVIEW_STEP, async () => {
+              if (!envelope.discord.interactionToken) return { notified: false };
+              assertPreviewTokenActive(envelope.acceptedAt);
+              const review = await replyReview(
                 this.env,
-                envelope,
-                "agent-review-discord",
+                envelope.messageId,
+                envelope.discord.interactionId,
               );
-              const chunks = splitDiscordMessage(
-                `**Agent ${envelope.agent.name} · Review translation**\nOriginal: ${envelope.originalText}\n\n${translation.targetLanguage}: ${translation.translatedText}`,
-              );
-              for (const [index, content] of chunks.entries()) {
-                await step.do(
-                  `post-agent-translation-review-${generation}-${index}`,
-                  DISCORD_STEP,
-                  () =>
-                    discordOperation(() =>
-                      discordClient(this.env).sendMessageReconciled({
-                        channelId: target.discordThreadId,
-                        content,
-                        nonce: createDiscordNonce(
-                          `agent-review:${envelope.messageId}:${generation}`,
-                          index,
-                        ),
-                        ...(index === chunks.length - 1
-                          ? {
-                              components: [
-                                {
-                                  type: 1 as const,
-                                  components: [
-                                    {
-                                      type: 2 as const,
-                                      style: 3 as const,
-                                      label: "Approve translation",
-                                      custom_id: `agent:translate:${envelope.messageId}:${generation}`,
-                                    },
-                                  ],
-                                },
-                              ],
-                            }
-                          : {}),
-                      }),
-                    ),
+              if (!review) return { notified: false };
+              try {
+                await updatePrivateInteraction(
+                  this.env,
+                  {
+                    applicationId: envelope.discord.applicationId,
+                    token: envelope.discord.interactionToken,
+                  },
+                  review,
+                  { maxAttempts: 1 },
                 );
+                return { notified: true };
+              } catch (error) {
+                if (error instanceof PrivateInteractionError && !error.retryable) {
+                  permanent(error, "notify reply review");
+                }
+                assertPreviewTokenActive(
+                  envelope.acceptedAt,
+                  Date.now() + PRIVATE_PREVIEW_RETRY_DELAY_MS,
+                );
+                throw error;
               }
-            }
+            });
             await step.waitForEvent(`review-translation-${generation}`, {
-              type: `translation-approved-${generation}`,
+              type: `translation-confirmed-${generation}`,
               timeout: "1 day",
             });
-            await step.do("verify-reply-approval", DATABASE_STEP, async () => {
-              const approval = await this.env.DB.prepare(
+            await step.do("verify-reply-confirmation", DATABASE_STEP, async () => {
+              const confirmation = await this.env.DB.prepare(
                 "SELECT confirmed_by FROM reply_review WHERE message_id = ? AND generation = ?",
               )
                 .bind(envelope.messageId, generation)
                 .first<{ confirmed_by: string | null }>();
-              if (!approval?.confirmed_by)
-                permanent(new Error("Translation approval is missing"), "review");
+              if (!confirmation?.confirmed_by)
+                permanent(new Error("Translation confirmation is missing"), "review");
             });
           }
           stage = "publish";
@@ -982,33 +905,55 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
         const message = await finalizeSuccess(this.env, envelope, generation);
         return { processingStatus: message.processingStatus };
       });
+      if ("discord" in envelope) {
+        await step.do(`notify-reply-sent-${generation}`, DATABASE_STEP, () =>
+          notifyDiscordReply(this.env, envelope, { content: "Reply sent to the customer." }),
+        );
+      }
       return { messageId: envelope.messageId, status: "succeeded" };
     } catch (error) {
+      let recordedAvailability: "pending" | "available" | "not_available" | null = null;
       try {
-        await step.do("record-terminal-failure", DATABASE_STEP, async () => {
+        const recorded = await step.do("record-terminal-failure", DATABASE_STEP, async () => {
           const message = await recordFailure(this.env, envelope, generation, stage, error);
           return {
             processingStatus: message.processingStatus,
             customerAvailability: message.customerAvailability,
           };
         });
+        recordedAvailability = recorded.customerAvailability;
       } catch {
-        // Ingress may have failed before a canonical message existed.
+        // Ingress may have failed before a canonical message existed, or recording failed.
       }
 
-      try {
-        const target = await ensureDiscordThread(step, this.env, envelope, "failure-discord");
-        await projectDiscordChunks(
-          step,
-          this.env,
-          envelope,
-          target,
-          "failure_audit",
-          failureAuditContent(envelope, stage),
-          "post-failure-audit",
+      if ("discord" in envelope) {
+        await step.do(`notify-reply-failed-${generation}`, DATABASE_STEP, () =>
+          notifyDiscordReply(this.env, envelope, {
+            content:
+              recordedAvailability === "available"
+                ? "Reply sent to the customer, but posting the thread copy failed. Do not resend."
+                : recordedAvailability === "not_available"
+                  ? "Reply not sent. Send it again with /reply."
+                  : "Reply delivery could not be confirmed. Check the thread before sending again with /reply.",
+          }),
         );
-      } catch {
-        // The D1 terminal state remains authoritative when best-effort audit fails.
+      }
+
+      if (envelope.direction === "customer_to_operator") {
+        try {
+          const target = await ensureDiscordThread(step, this.env, envelope, "failure-discord");
+          await projectDiscordChunks(
+            step,
+            this.env,
+            envelope,
+            target,
+            "failure_audit",
+            failureAuditContent(envelope),
+            "post-failure-audit",
+          );
+        } catch {
+          // The D1 terminal state remains authoritative when best-effort audit fails.
+        }
       }
       throw error;
     }

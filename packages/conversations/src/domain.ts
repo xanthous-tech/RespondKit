@@ -49,7 +49,9 @@ export function toMessageBusinessStatus(message: MessageStateFields): MessageBus
     message.direction === "operator_to_customer" &&
     message.customerAvailability === "available"
   ) {
-    return message.discordAuditStatus === "failed" ? "audit_failed" : "available";
+    return message.discordAuditStatus === "failed" || message.processingStatus === "failed"
+      ? "audit_failed"
+      : "available";
   }
 
   if (

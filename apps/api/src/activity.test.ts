@@ -506,4 +506,23 @@ describe("Discord activity", () => {
     expect(await response.json()).toEqual({ type: 5, data: { flags: 64 } });
     await waitOnExecutionContext(ctx);
   });
+
+  it("never names any removed Discord command in its messages", async () => {
+    const f = await fixture();
+    const removedPattern = /\/(status|retry|agent|approve)\b|Approve draft|Approve translation/i;
+    const calls = mockServices(f.distinctId, 403);
+    await handleActivityInteraction(apiEnv(), command());
+    await handleActivityInteraction(apiEnv(), { ...command(), until: "last_message" });
+    await handleActivityInteraction(
+      { ...apiEnv(), [`POSTHOG_API_KEY_${TEST_TOPOLOGY.inboxId}`]: undefined },
+      command(),
+    );
+    const okCalls = mockServices(f.distinctId, 200);
+    await handleActivityInteraction(apiEnv(), command());
+    for (const call of [...calls, ...okCalls]) {
+      const body = call.init?.body;
+      const text = typeof body === "string" ? body : "";
+      expect(text).not.toMatch(removedPattern);
+    }
+  });
 });

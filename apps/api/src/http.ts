@@ -1,6 +1,4 @@
-import { steerAgent } from "./agent-notes";
 import { createAgentApp } from "./agent-api";
-import { approveAgentDraftCommand, decideAgentDraft } from "./agent-replies";
 import { LanguageNotRecognized, resolveTranslationLanguage } from "./language";
 import { registerEmailFileRoutes } from "./email-content";
 import {
@@ -15,6 +13,7 @@ import {
   acknowledgeCustomerRead,
   createThread,
   findCustomerMessageByClientId,
+  findMessageById,
   findThreadById,
   listCustomerMessages,
   listCustomerThreads,
@@ -33,9 +32,9 @@ import {
   DiscordInteractionParseError,
   createEphemeralInteractionResponse,
   findDiscordReplyByReference,
+  findInFlightDiscordReplies,
   normalizeDiscordCommand,
   parseDiscordInteraction,
-  recordRecoveryInteraction,
   resolveAuthorizedDiscordThread,
   verifyDiscordSignature,
   type ParsedDiscordCommandInteraction,
@@ -74,9 +73,9 @@ import { verifyCustomerIdentity } from "./customer-identity";
 import { createDatabase } from "./db";
 import {
   handleTranslationInteraction,
-  notifyReplyProgress,
   replyReview,
   updatePrivateInteraction,
+  type PrivateReply,
 } from "./discord-translation";
 import { requireTranslationEnabled } from "./translation-service";
 import { syncDiscordReadReceipts } from "./read-receipts";
@@ -355,23 +354,24 @@ function workflowStatusText(
   if (message !== null) {
     switch (toMessageBusinessStatus(message)) {
       case "available":
-        return "Already available in chat.";
+        return "Reply already sent to the customer.";
       case "audit_failed":
-        return "Available in chat, but the Discord audit failed.";
+        return "Reply already sent to the customer, but posting the thread copy failed. Do not resend.";
       case "not_available":
-        return "The reply was not made available in chat.";
+        return "Reply was not sent. Send it again with /reply.";
       case "failed":
-        return "Processing failed before the reply became available.";
+        return "Reply was not sent. Send it again with /reply.";
       case "processing":
-        return "Processing is still in progress.";
+        return "Reply is still sending.";
     }
   }
-  if (status === null) return "No acceptance was found for that reference.";
-  if (status.status === "unknown") return "No acceptance was found for that reference.";
-  if (isActiveWorkflow(status.status)) return "Processing is still in progress.";
+  if (status === null || status.status === "unknown") {
+    return "Reply was not sent. Send it again with /reply.";
+  }
+  if (isActiveWorkflow(status.status)) return "Reply is still sending.";
   return status.status === "complete"
-    ? "Processing completed, but its transcript state is unavailable."
-    : "Ingress or processing failed before transcript persistence.";
+    ? "Reply processing finished. Check the thread before sending again."
+    : "Reply was not sent. Send it again with /reply.";
 }
 
 function parseListQuery(context: ApiContext) {
@@ -443,8 +443,75 @@ async function discordCommandContext(
   return resolved.ok ? resolved : null;
 }
 
+function ephemeralReviewResponse(
+  context: ApiContext,
+  interaction: { readonly applicationId: string; readonly token: string },
+  review: PrivateReply,
+) {
+  if (review.file !== undefined) {
+    context.executionCtx.waitUntil(
+      updatePrivateInteraction(context.env, interaction, review).catch(() => undefined),
+    );
+    return context.json(createDeferredEphemeralResponse());
+  }
+  return context.json(createEphemeralInteractionResponse(review.content, review.components));
+}
+
+async function resolveReplyTranslation(
+  env: Env,
+  thread: ThreadRow,
+  requested: string,
+): Promise<
+  | { readonly ok: true; readonly language: string }
+  | { readonly ok: false; readonly message: string }
+> {
+  if (requested === "off") return { ok: true, language: "off" };
+  try {
+    requireTranslationEnabled(env, thread.inboxId);
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Translation is disabled.",
+    };
+  }
+  if (requested === "customer" && thread.customerLanguage) {
+    // Recorded by an earlier /reply translate:<language> or translation, never the browser locale.
+    return { ok: true, language: thread.customerLanguage };
+  }
+  if (requested === "customer") {
+    // This value comes from reliable message detection, never the browser locale.
+    const detected = await env.DB.prepare(`
+      SELECT source_language FROM (
+        SELECT mt.source_language, m.accepted_at FROM message_translation mt JOIN message m ON m.id = mt.message_id
+        WHERE m.workspace_id = ? AND m.inbox_id = ? AND m.thread_id = ? AND m.direction = 'customer_to_operator' AND mt.needs_review = 0
+        UNION ALL
+        SELECT json_extract(tj.result_json, '$.sourceLanguage') AS source_language, m.accepted_at FROM translation_job tj JOIN message m ON m.id = tj.message_id
+        WHERE tj.workspace_id = ? AND tj.inbox_id = ? AND tj.thread_id = ? AND tj.status = 'succeeded' AND json_extract(tj.result_json, '$.needsReview') = 0
+      ) ORDER BY accepted_at DESC LIMIT 1`)
+      .bind(
+        thread.workspaceId,
+        thread.inboxId,
+        thread.id,
+        thread.workspaceId,
+        thread.inboxId,
+        thread.id,
+      )
+      .first<{ source_language: string }>();
+    if (detected === null) {
+      return {
+        ok: false,
+        message:
+          "Customer language is unknown. Name it once, for example translate:Burmese or translate:hi; this thread remembers it.",
+      };
+    }
+    return { ok: true, language: detected.source_language };
+  }
+  return { ok: true, language: requested };
+}
+
 function operatorEnvelope(input: {
   readonly command: ReturnType<typeof normalizeDiscordCommand> & { readonly command: "reply" };
+  readonly interactionToken: string;
   readonly integrationId: string;
   readonly workspaceId: string;
   readonly inboxId: string;
@@ -473,6 +540,7 @@ function operatorEnvelope(input: {
     discord: {
       integrationId: input.integrationId,
       interactionId: input.command.interactionId,
+      interactionToken: input.interactionToken,
       applicationId: input.command.applicationId,
       guildId: input.command.guildId,
       threadId: input.command.discordThreadId,
@@ -975,36 +1043,6 @@ export function createHttpApp() {
       interaction = { ...rest, translate: code };
     }
 
-    if (
-      interaction.command === "agent_decision" ||
-      interaction.command === "agent_context" ||
-      interaction.command === "agent" ||
-      interaction.command === "approve"
-    ) {
-      const current = interaction;
-      // An error answers the operator with its reason; Discord would only say "This interaction failed".
-      const operation = (
-        current.command === "agent"
-          ? steerAgent(context.env, current)
-          : current.command === "approve"
-            ? approveAgentDraftCommand(context.env, current)
-            : decideAgentDraft(context.env, current)
-      ).catch((error: unknown) => {
-        console.error(`discord ${current.command} failed`, error);
-        const reason = error instanceof Error ? error.message : String(error);
-        return `That did not work: ${reason.slice(0, 300)}. Nothing was sent.`;
-      });
-      const result = await beforeDiscordResponseCutoff(operation, requestStartedAt);
-      if (result === "cutoff") {
-        context.executionCtx.waitUntil(
-          operation.then(async (content) => {
-            await updatePrivateInteraction(context.env, interaction, { content });
-          }),
-        );
-        return context.json(createDeferredEphemeralResponse());
-      }
-      return context.json(createEphemeralInteractionResponse(result));
-    }
     if (interaction.command === "activity") {
       context.executionCtx.waitUntil(handleActivityInteraction(context.env, interaction));
       return context.json(createDeferredEphemeralResponse());
@@ -1014,15 +1052,7 @@ export function createHttpApp() {
       return context.json(createDeferredEphemeralResponse());
     }
     const command = normalizeDiscordCommand(interaction);
-    if (
-      command.command === "translate" ||
-      command.command === "confirm_translation" ||
-      command.command === "activity" ||
-      command.command === "agent_decision" ||
-      command.command === "agent_context" ||
-      command.command === "agent"
-    )
-      throw new Error("Unexpected command");
+    if (command.command !== "reply") throw new Error("Unexpected command");
     const commandPromise = (async () => {
       const authorized = await discordCommandContext(context, interaction);
       if (authorized === null) {
@@ -1043,143 +1073,77 @@ export function createHttpApp() {
       }
       const acceptedAt = discordInteractionAcceptedAt(command.interactionId);
 
-      if (command.command === "reply") {
-        const canonical = await findDiscordReplyByReference(db, {
-          integrationId: authorized.integration.id,
-          interactionId: command.interactionId,
-          workspaceId: authorized.integration.workspaceId,
-          inboxId: authorized.integration.inboxId,
-        });
-        if (canonical !== null) {
-          if (canonical.interaction.threadId !== thread.id) {
-            return context.json(
-              createEphemeralInteractionResponse(
-                "That interaction already belongs to another support thread.",
-              ),
-            );
-          }
-          if (
-            canonical.message.originalText !== command.message ||
-            (canonical.message.replyTranslationRequest !== null &&
-              canonical.message.replyTranslationRequest !== (command.translate ?? "off"))
-          ) {
-            return context.json(
-              createEphemeralInteractionResponse(
-                "That interaction ID already belongs to another immutable reply.",
-              ),
-            );
-          }
-          return context.json(
-            createEphemeralInteractionResponse(workflowStatusText(null, canonical.message)),
-          );
-        }
-
-        let replyTranslation = command.translate ?? "off";
-        if (replyTranslation !== "off") {
-          try {
-            requireTranslationEnabled(context.env, thread.inboxId);
-          } catch (error) {
-            return context.json(
-              createEphemeralInteractionResponse(
-                error instanceof Error ? error.message : "Translation is disabled.",
-              ),
-            );
-          }
-          if (replyTranslation === "customer" && thread.customerLanguage) {
-            // Recorded by an earlier /reply translate:<language>, /approve or translation, never the browser locale.
-            replyTranslation = thread.customerLanguage;
-          } else if (replyTranslation === "customer") {
-            // This value comes from reliable message detection, never the browser locale.
-            const detected = await context.env.DB.prepare(`
-              SELECT source_language FROM (
-                SELECT mt.source_language, m.accepted_at FROM message_translation mt JOIN message m ON m.id = mt.message_id
-                WHERE m.workspace_id = ? AND m.inbox_id = ? AND m.thread_id = ? AND m.direction = 'customer_to_operator' AND mt.needs_review = 0
-                UNION ALL
-                SELECT json_extract(tj.result_json, '$.sourceLanguage') AS source_language, m.accepted_at FROM translation_job tj JOIN message m ON m.id = tj.message_id
-                WHERE tj.workspace_id = ? AND tj.inbox_id = ? AND tj.thread_id = ? AND tj.status = 'succeeded' AND json_extract(tj.result_json, '$.needsReview') = 0
-              ) ORDER BY accepted_at DESC LIMIT 1`)
-              .bind(
-                thread.workspaceId,
-                thread.inboxId,
-                thread.id,
-                thread.workspaceId,
-                thread.inboxId,
-                thread.id,
-              )
-              .first<{ source_language: string }>();
-            if (detected === null)
-              return context.json(
-                createEphemeralInteractionResponse(
-                  "Customer language is unknown. Name it once, for example translate:Burmese or translate:hi; this thread remembers it.",
-                ),
-              );
-            replyTranslation = detected.source_language;
-          }
-        }
-        const identity = await deriveOperatorMessageIdentity(command);
-        const persisted = await acceptReplyIngress(db, {
-          integrationId: authorized.integration.id,
-          interactionId: command.interactionId,
-          workspaceId: thread.workspaceId,
-          inboxId: thread.inboxId,
-          threadId: thread.id,
-          ...identity,
-          applicationId: command.applicationId,
-          guildId: command.guildId,
-          discordThreadId: command.discordThreadId,
-          operatorUserId: command.operatorUserId,
-          operatorRoleIds: command.operatorRoleIds,
-          acceptedAt,
-          originalEnglishText: command.message,
-          replyTranslation,
-          replyTranslationRequest: command.translate ?? "off",
-        });
-        if (!persisted.immutablePayloadMatches)
+      const canonical = await findDiscordReplyByReference(db, {
+        integrationId: authorized.integration.id,
+        interactionId: command.interactionId,
+        workspaceId: authorized.integration.workspaceId,
+        inboxId: authorized.integration.inboxId,
+      });
+      if (canonical !== null) {
+        if (canonical.interaction.threadId !== thread.id) {
           return context.json(
             createEphemeralInteractionResponse(
-              "That interaction already belongs to another reply or language.",
+              "That interaction already belongs to another support thread.",
             ),
           );
-        // A language the operator names is the customer's language from now on: /reply translate:customer,
-        // /approve and the support agent use it.
-        if (replyTranslation !== "off" && command.translate !== "customer")
-          await context.env.DB.prepare(
-            "UPDATE thread SET customer_language=?, customer_language_updated_at=? WHERE id=? AND workspace_id=? AND inbox_id=? AND (customer_language_updated_at IS NULL OR customer_language_updated_at<=?)",
-          )
-            .bind(
-              replyTranslation,
-              acceptedAt.getTime(),
-              thread.id,
-              thread.workspaceId,
-              thread.inboxId,
-              acceptedAt.getTime(),
-            )
-            .run();
-        const envelope = operatorEnvelope({
-          command,
-          integrationId: authorized.integration.id,
-          workspaceId: authorized.integration.workspaceId,
-          inboxId: authorized.integration.inboxId,
-          thread,
-          ...identity,
-          acceptedAt,
-          replyTranslation,
-          replyTranslationRequest: command.translate ?? "off",
-        });
-        const accepted = await acceptWorkflow(
-          context.env.MESSAGE_WORKFLOW,
-          identity.workflowInstanceId,
-          envelope,
+        }
+        if (
+          canonical.message.originalText !== command.message ||
+          (canonical.message.replyTranslationRequest !== null &&
+            canonical.message.replyTranslationRequest !== (command.translate ?? "off"))
+        ) {
+          return context.json(
+            createEphemeralInteractionResponse(
+              "That interaction ID already belongs to another immutable reply.",
+            ),
+          );
+        }
+        const pendingReview = await replyReview(
+          context.env,
+          canonical.message.id,
+          command.interactionId,
         );
-        if (accepted.kind === "unknown") {
-          return context.json(
-            createEphemeralInteractionResponse(
-              `Acceptance could not be confirmed — do not resend. Use /status with reference ${command.interactionId}.`,
-            ),
-          );
+        if (pendingReview !== null) {
+          return ephemeralReviewResponse(context, interaction, pendingReview);
         }
-        if (accepted.kind === "existing" && !isActiveWorkflow(accepted.status.status)) {
-          const canonical = await findDiscordReplyByReference(db, {
+        if (toMessageBusinessStatus(canonical.message) === "processing") {
+          const replyTranslation = canonical.message.replyTranslation ?? undefined;
+          const replyTranslationRequest = canonical.message.replyTranslationRequest ?? undefined;
+          const envelope = operatorEnvelope({
+            command,
+            interactionToken: interaction.token,
+            integrationId: authorized.integration.id,
+            workspaceId: authorized.integration.workspaceId,
+            inboxId: authorized.integration.inboxId,
+            thread,
+            messageId: canonical.message.id,
+            workflowInstanceId: canonical.message.workflowInstanceId,
+            acceptedAt: canonical.message.acceptedAt,
+            ...(replyTranslation === undefined ? {} : { replyTranslation }),
+            ...(replyTranslationRequest === undefined ? {} : { replyTranslationRequest }),
+          });
+          const accepted = await acceptWorkflow(
+            context.env.MESSAGE_WORKFLOW,
+            canonical.message.workflowInstanceId,
+            envelope,
+          );
+          if (accepted.kind === "unknown") {
+            return context.json(
+              createEphemeralInteractionResponse(
+                "Reply delivery could not be confirmed. Check the thread before sending again with /reply.",
+              ),
+            );
+          }
+          if (accepted.kind === "created") {
+            return context.json(
+              createEphemeralInteractionResponse(
+                replyTranslation === "off"
+                  ? "Queued for delivery as written."
+                  : "Queued for translation and delivery.",
+              ),
+            );
+          }
+          const current = await findDiscordReplyByReference(db, {
             integrationId: authorized.integration.id,
             interactionId: command.interactionId,
             workspaceId: authorized.integration.workspaceId,
@@ -1187,172 +1151,285 @@ export function createHttpApp() {
           });
           return context.json(
             createEphemeralInteractionResponse(
-              workflowStatusText(accepted.status, canonical?.message ?? null),
+              workflowStatusText(accepted.status, current?.message ?? canonical.message),
             ),
           );
         }
-        if (replyTranslation !== "off")
-          context.executionCtx.waitUntil(
-            notifyReplyProgress(
-              context.env,
-              interaction,
-              identity.messageId,
-              command.interactionId,
+        return context.json(
+          createEphemeralInteractionResponse(workflowStatusText(null, canonical.message)),
+        );
+      }
+
+      let resolvedTranslationPromise: ReturnType<typeof resolveReplyTranslation> | undefined;
+      const getResolvedTranslation = () => {
+        resolvedTranslationPromise ??= resolveReplyTranslation(
+          context.env,
+          thread,
+          command.translate ?? "off",
+        );
+        return resolvedTranslationPromise;
+      };
+      const sameTranslationTarget = (requested: string, candidate: string | null | undefined) =>
+        candidate != null && requested.toLowerCase() === candidate.toLowerCase();
+
+      const inFlightReplies = await findInFlightDiscordReplies(db, {
+        workspaceId: thread.workspaceId,
+        inboxId: thread.inboxId,
+        threadId: thread.id,
+        normalizedMessage: command.message,
+      });
+      for (const candidate of inFlightReplies) {
+        if (candidate.message?.customerAvailability === "available") {
+          return context.json(
+            createEphemeralInteractionResponse(
+              "Already sent to the customer. The thread copy is still posting. Do not resend.",
             ),
           );
-        return context.json(
-          createEphemeralInteractionResponse(
-            replyTranslation === "off"
-              ? `Queued for delivery as written. Reference: ${command.interactionId}`
-              : `Queued for translation and delivery. Reference: ${command.interactionId}`,
-          ),
+        }
+        const candidateIdentity =
+          candidate.message !== null
+            ? {
+                messageId: candidate.message.id,
+                workflowInstanceId: candidate.message.workflowInstanceId,
+              }
+            : await deriveOperatorMessageIdentity({
+                applicationId: candidate.interaction.applicationId,
+                interactionId: candidate.interaction.interactionId,
+              });
+        const status = await workflowStatus(
+          context.env.MESSAGE_WORKFLOW,
+          candidateIdentity.workflowInstanceId,
         );
+        if (status !== null && status.status !== "unknown" && !isActiveWorkflow(status.status)) {
+          continue;
+        }
+        const pendingReview = await replyReview(
+          context.env,
+          candidateIdentity.messageId,
+          candidate.interaction.interactionId,
+        );
+        if (pendingReview !== null) {
+          const resolved = await getResolvedTranslation();
+          if (!resolved.ok) {
+            return context.json(createEphemeralInteractionResponse(resolved.message));
+          }
+          if (
+            sameTranslationTarget(
+              resolved.language,
+              candidate.message?.replyTranslation ?? pendingReview.targetLanguage,
+            )
+          ) {
+            return ephemeralReviewResponse(context, interaction, pendingReview);
+          }
+          continue;
+        }
+        if (status !== null && isActiveWorkflow(status.status)) {
+          return context.json(
+            createEphemeralInteractionResponse(
+              "This reply is already in progress. Check the thread before sending again.",
+            ),
+          );
+        }
+
+        const resolved = await getResolvedTranslation();
+        if (!resolved.ok) {
+          return context.json(createEphemeralInteractionResponse(resolved.message));
+        }
+        let reDispatchTranslation: string | undefined;
+        let reDispatchTranslationRequest: string | undefined;
+        if (candidate.message !== null) {
+          if (
+            candidate.message.replyTranslation !== null &&
+            !sameTranslationTarget(resolved.language, candidate.message.replyTranslation)
+          ) {
+            continue;
+          }
+          reDispatchTranslation = candidate.message.replyTranslation ?? undefined;
+          reDispatchTranslationRequest = candidate.message.replyTranslationRequest ?? undefined;
+        } else {
+          reDispatchTranslation = resolved.language;
+          reDispatchTranslationRequest = command.translate ?? "off";
+        }
+        const envelope = operatorEnvelope({
+          command: {
+            command: "reply",
+            interactionId: candidate.interaction.interactionId,
+            applicationId: candidate.interaction.applicationId,
+            guildId: candidate.interaction.guildId,
+            discordThreadId: candidate.interaction.discordThreadId,
+            operatorUserId: candidate.interaction.operatorUserId,
+            operatorRoleIds: candidate.interaction.operatorRoleIds,
+            message: candidate.interaction.normalizedMessage,
+            ...(reDispatchTranslationRequest === undefined
+              ? {}
+              : { translate: reDispatchTranslationRequest }),
+          },
+          interactionToken: interaction.token,
+          integrationId: candidate.interaction.integrationId,
+          workspaceId: candidate.interaction.workspaceId,
+          inboxId: candidate.interaction.inboxId,
+          thread,
+          messageId: candidateIdentity.messageId,
+          workflowInstanceId: candidateIdentity.workflowInstanceId,
+          acceptedAt,
+          ...(reDispatchTranslation === undefined
+            ? {}
+            : { replyTranslation: reDispatchTranslation }),
+          ...(reDispatchTranslationRequest === undefined
+            ? {}
+            : { replyTranslationRequest: reDispatchTranslationRequest }),
+        });
+        const accepted = await acceptWorkflow(
+          context.env.MESSAGE_WORKFLOW,
+          candidateIdentity.workflowInstanceId,
+          envelope,
+        );
+        if (accepted.kind === "unknown") {
+          return context.json(
+            createEphemeralInteractionResponse(
+              "Reply delivery could not be confirmed. Check the thread before sending again with /reply.",
+            ),
+          );
+        }
+        if (accepted.kind === "created") {
+          return context.json(
+            createEphemeralInteractionResponse(
+              reDispatchTranslation === "off"
+                ? "Queued for delivery as written."
+                : "Queued for translation and delivery.",
+            ),
+          );
+        }
+        const currentMessage = await findMessageById(db, {
+          workspaceId: thread.workspaceId,
+          inboxId: thread.inboxId,
+          threadId: thread.id,
+          messageId: candidateIdentity.messageId,
+        });
+        if (
+          currentMessage !== null &&
+          currentMessage.customerAvailability === "available" &&
+          (currentMessage.processingStatus === "processing" ||
+            currentMessage.processingStatus === "retrying")
+        ) {
+          return context.json(
+            createEphemeralInteractionResponse(
+              "Already sent to the customer. The thread copy is still posting. Do not resend.",
+            ),
+          );
+        }
+        if (isActiveWorkflow(accepted.status.status)) {
+          const activeReview = await replyReview(
+            context.env,
+            candidateIdentity.messageId,
+            candidate.interaction.interactionId,
+          );
+          if (activeReview !== null) {
+            if (
+              sameTranslationTarget(
+                resolved.language,
+                currentMessage?.replyTranslation ??
+                  candidate.message?.replyTranslation ??
+                  activeReview.targetLanguage,
+              )
+            ) {
+              return ephemeralReviewResponse(context, interaction, activeReview);
+            }
+            continue;
+          }
+          return context.json(
+            createEphemeralInteractionResponse(
+              "This reply is already in progress. Check the thread before sending again.",
+            ),
+          );
+        }
       }
 
-      const originalIdentity = await deriveOperatorMessageIdentity({
-        applicationId: command.applicationId,
-        interactionId: command.reference,
-      });
-      const original = await findDiscordReplyByReference(db, {
-        integrationId: authorized.integration.id,
-        interactionId: command.reference,
-        workspaceId: authorized.integration.workspaceId,
-        inboxId: authorized.integration.inboxId,
-      });
-      const status = await workflowStatus(
-        context.env.MESSAGE_WORKFLOW,
-        originalIdentity.workflowInstanceId,
-      );
-      if (original !== null && original.interaction.threadId !== thread.id) {
-        return context.json(
-          createEphemeralInteractionResponse("That reference belongs to another support thread."),
-        );
+      const resolvedTranslation = await getResolvedTranslation();
+      if (!resolvedTranslation.ok) {
+        return context.json(createEphemeralInteractionResponse(resolvedTranslation.message));
       }
-
-      const recoveryBase = {
+      const replyTranslation = resolvedTranslation.language;
+      const identity = await deriveOperatorMessageIdentity(command);
+      const persisted = await acceptReplyIngress(db, {
         integrationId: authorized.integration.id,
         interactionId: command.interactionId,
-        workspaceId: authorized.integration.workspaceId,
-        inboxId: authorized.integration.inboxId,
+        workspaceId: thread.workspaceId,
+        inboxId: thread.inboxId,
         threadId: thread.id,
+        ...identity,
         applicationId: command.applicationId,
         guildId: command.guildId,
         discordThreadId: command.discordThreadId,
         operatorUserId: command.operatorUserId,
         operatorRoleIds: command.operatorRoleIds,
-        referenceInteractionId: command.reference,
         acceptedAt,
-      };
-      await recordRecoveryInteraction(
-        db,
-        command.command === "status"
-          ? { ...recoveryBase, commandName: "status" }
-          : {
-              ...recoveryBase,
-              commandName: "retry",
-              originalEnglishText: command.message,
-            },
-      );
-
-      if (command.command === "status") {
-        if (original !== null) {
-          const review = await replyReview(context.env, original.message.id, command.reference);
-          if (review !== null) {
-            context.executionCtx.waitUntil(
-              updatePrivateInteraction(context.env, interaction, review).catch(() => undefined),
-            );
-            return context.json(createDeferredEphemeralResponse());
-          }
-        }
-        return context.json(
-          createEphemeralInteractionResponse(workflowStatusText(status, original?.message ?? null)),
-        );
-      }
-      if (original === null)
+        originalEnglishText: command.message,
+        replyTranslation,
+        replyTranslationRequest: command.translate ?? "off",
+      });
+      if (!persisted.immutablePayloadMatches)
         return context.json(
           createEphemeralInteractionResponse(
-            "The original reply options could not be recovered. Check /status before submitting a new reply.",
+            "That interaction already belongs to another reply or language.",
           ),
         );
-      if (original !== null && original.message.originalText !== command.message) {
-        return context.json(
-          createEphemeralInteractionResponse(
-            "Retry text does not match the original immutable English reply.",
-          ),
-        );
-      }
-      if (original !== null && original.message.customerAvailability === "available") {
-        return context.json(
-          createEphemeralInteractionResponse(workflowStatusText(status, original.message)),
-        );
-      }
-      if (status !== null && isActiveWorkflow(status.status)) {
-        return context.json(createEphemeralInteractionResponse("Processing is still in progress."));
-      }
-      if (status?.status === "errored") {
-        const instance = await context.env.MESSAGE_WORKFLOW.get(
-          originalIdentity.workflowInstanceId,
-        );
-        await instance.restart();
-        return context.json(
-          createEphemeralInteractionResponse("Retry queued with the original ID."),
-        );
-      }
-
-      if (status !== null && status.status !== "unknown") {
-        return context.json(
-          createEphemeralInteractionResponse(workflowStatusText(status, original?.message ?? null)),
-        );
-      }
-
-      const retryCommand = {
-        command: "reply" as const,
-        interactionId: original.interaction.interactionId,
-        applicationId: original.interaction.applicationId,
-        guildId: original.interaction.guildId,
-        discordThreadId: original.interaction.discordThreadId,
-        operatorUserId: original.interaction.operatorUserId,
-        operatorRoleIds: original.interaction.operatorRoleIds,
-        message: original.message.originalText,
-      };
-      const retryEnvelope = operatorEnvelope({
-        command: retryCommand,
+      // A language the operator names is the customer's language from now on.
+      if (replyTranslation !== "off" && command.translate !== "customer")
+        await context.env.DB.prepare(
+          "UPDATE thread SET customer_language=?, customer_language_updated_at=? WHERE id=? AND workspace_id=? AND inbox_id=? AND (customer_language_updated_at IS NULL OR customer_language_updated_at<=?)",
+        )
+          .bind(
+            replyTranslation,
+            acceptedAt.getTime(),
+            thread.id,
+            thread.workspaceId,
+            thread.inboxId,
+            acceptedAt.getTime(),
+          )
+          .run();
+      const envelope = operatorEnvelope({
+        command,
+        interactionToken: interaction.token,
         integrationId: authorized.integration.id,
         workspaceId: authorized.integration.workspaceId,
         inboxId: authorized.integration.inboxId,
         thread,
-        ...originalIdentity,
-        acceptedAt: original.message.acceptedAt,
-        ...(original.message.replyTranslationRequest === null
-          ? {}
-          : { replyTranslationRequest: original.message.replyTranslationRequest }),
-        ...(original.message.replyTranslation === null
-          ? {}
-          : { replyTranslation: original.message.replyTranslation }),
+        ...identity,
+        acceptedAt,
+        replyTranslation,
+        replyTranslationRequest: command.translate ?? "off",
       });
-      const retried = await acceptWorkflow(
+      const accepted = await acceptWorkflow(
         context.env.MESSAGE_WORKFLOW,
-        originalIdentity.workflowInstanceId,
-        retryEnvelope,
+        identity.workflowInstanceId,
+        envelope,
       );
-      if (retried.kind === "existing" && !isActiveWorkflow(retried.status.status)) {
-        const canonical = await findDiscordReplyByReference(db, {
+      if (accepted.kind === "unknown") {
+        return context.json(
+          createEphemeralInteractionResponse(
+            "Reply delivery could not be confirmed. Check the thread before sending again with /reply.",
+          ),
+        );
+      }
+      if (accepted.kind === "existing" && !isActiveWorkflow(accepted.status.status)) {
+        const current = await findDiscordReplyByReference(db, {
           integrationId: authorized.integration.id,
-          interactionId: command.reference,
+          interactionId: command.interactionId,
           workspaceId: authorized.integration.workspaceId,
           inboxId: authorized.integration.inboxId,
         });
         return context.json(
           createEphemeralInteractionResponse(
-            workflowStatusText(retried.status, canonical?.message ?? null),
+            workflowStatusText(accepted.status, current?.message ?? null),
           ),
         );
       }
       return context.json(
         createEphemeralInteractionResponse(
-          retried.kind === "unknown"
-            ? `Retry acceptance is pending. Use /status with reference ${command.reference}.`
-            : "Retry queued with the original ID.",
+          replyTranslation === "off"
+            ? "Queued for delivery as written."
+            : "Queued for translation and delivery.",
         ),
       );
     })();
@@ -1366,11 +1443,7 @@ export function createHttpApp() {
       );
       return context.json(
         createEphemeralInteractionResponse(
-          command.command === "reply"
-            ? `Acceptance pending — do not resend yet. Reference: ${command.interactionId}`
-            : command.command === "status"
-              ? `Status lookup is still pending for reference ${command.reference}.`
-              : `Retry acceptance is pending. Use /status with reference ${command.reference}.`,
+          "Reply is still being accepted. Check the thread before sending again with /reply.",
         ),
       );
     }
