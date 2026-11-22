@@ -78,8 +78,6 @@ export const threads = sqliteTable(
     lastActivityAt: integer("last_activity_at", { mode: "timestamp_ms" })
       .notNull()
       .default(nowInMilliseconds),
-    claimedBy: text("claimed_by"),
-    claimExpiresAt: integer("claim_expires_at", { mode: "timestamp_ms" }),
     closedAt: integer("closed_at", { mode: "timestamp_ms" }),
   },
   (table) => [
