@@ -259,7 +259,7 @@ export const discordInteractions = sqliteTable(
     workspaceId: text("workspace_id").$type<WorkspaceId>().notNull(),
     inboxId: text("inbox_id").$type<InboxId>().notNull(),
     threadId: text("thread_id").$type<ThreadId>().notNull(),
-    messageId: text("message_id").$type<MessageId>(),
+    messageId: text("message_id").$type<MessageId>().notNull(),
     applicationId: text("application_id").notNull(),
     guildId: text("guild_id").notNull(),
     discordThreadId: text("discord_thread_id").notNull(),
@@ -271,8 +271,7 @@ export const discordInteractions = sqliteTable(
     commandName: text("command_name", {
       enum: discordInteractionCommandNames,
     }).notNull(),
-    referenceInteractionId: text("reference_interaction_id"),
-    normalizedMessage: text("normalized_message"),
+    normalizedMessage: text("normalized_message").notNull(),
     acceptedAt: integer("accepted_at", { mode: "timestamp_ms" }).notNull(),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().default(nowInMilliseconds),
   },
@@ -329,19 +328,8 @@ export const discordInteractions = sqliteTable(
         and length(${table.operatorUserId}) between 1 and 32`,
     ),
     check(
-      "discord_interaction_reference_ck",
-      sql`${table.referenceInteractionId} is null or length(${table.referenceInteractionId}) between 1 and 32`,
-    ),
-    check(
       "discord_interaction_message_text_ck",
-      sql`${table.normalizedMessage} is null or length(${table.normalizedMessage}) between 1 and 6000`,
-    ),
-    check(
-      "discord_interaction_options_shape_ck",
-      sql`${table.commandName} = 'reply'
-        and ${table.referenceInteractionId} is null
-        and ${table.normalizedMessage} is not null
-        and ${table.messageId} is not null`,
+      sql`length(${table.normalizedMessage}) between 1 and 6000`,
     ),
     check("discord_interaction_roles_json_ck", sql`json_valid(${table.operatorRoleIds})`),
   ],

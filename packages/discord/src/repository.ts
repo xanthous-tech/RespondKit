@@ -116,7 +116,7 @@ function loadCanonicalAcceptance(
   message: MessageRow,
   kind: IngressAcceptanceKind,
 ): DiscordReplyIngressAcceptance {
-  if (interaction.messageId === null || interaction.commandName !== "reply") {
+  if (interaction.commandName !== "reply") {
     throw new DiscordReplyIdentityConflictError(input.interactionId);
   }
 
@@ -139,7 +139,6 @@ function loadCanonicalAcceptance(
     interaction.discordThreadId === input.discordThreadId &&
     interaction.operatorUserId === input.operatorUserId &&
     JSON.stringify(interaction.operatorRoleIds) === JSON.stringify(roleIds) &&
-    interaction.referenceInteractionId === null &&
     interaction.normalizedMessage === input.originalEnglishText &&
     message.id === input.messageId &&
     message.workflowInstanceId === input.workflowInstanceId &&
@@ -166,15 +165,12 @@ export async function acceptReplyIngress(
 ): Promise<DiscordReplyIngressAcceptance> {
   const existingInteraction = await findDiscordInteraction(db, input);
   if (existingInteraction !== null) {
-    const existingMessage =
-      existingInteraction.messageId === null
-        ? null
-        : await findMessageById(db, {
-            workspaceId: existingInteraction.workspaceId,
-            inboxId: existingInteraction.inboxId,
-            threadId: existingInteraction.threadId,
-            messageId: existingInteraction.messageId,
-          });
+    const existingMessage = await findMessageById(db, {
+      workspaceId: existingInteraction.workspaceId,
+      inboxId: existingInteraction.inboxId,
+      threadId: existingInteraction.threadId,
+      messageId: existingInteraction.messageId,
+    });
     if (existingMessage === null) {
       throw new DiscordReplyIdentityConflictError(input.interactionId);
     }
@@ -214,7 +210,6 @@ export async function acceptReplyIngress(
       operatorUserId: input.operatorUserId,
       operatorRoleIds: canonicalRoleIds(input.operatorRoleIds),
       commandName: "reply",
-      referenceInteractionId: null,
       normalizedMessage: input.originalEnglishText,
       acceptedAt: input.acceptedAt,
       createdAt: input.acceptedAt,
@@ -232,15 +227,12 @@ export async function acceptReplyIngress(
   if (canonicalInteraction === null) {
     throw new DiscordReplyIdentityConflictError(input.interactionId);
   }
-  const canonicalMessage =
-    canonicalInteraction.messageId === null
-      ? null
-      : await findMessageById(db, {
-          workspaceId: canonicalInteraction.workspaceId,
-          inboxId: canonicalInteraction.inboxId,
-          threadId: canonicalInteraction.threadId,
-          messageId: canonicalInteraction.messageId,
-        });
+  const canonicalMessage = await findMessageById(db, {
+    workspaceId: canonicalInteraction.workspaceId,
+    inboxId: canonicalInteraction.inboxId,
+    threadId: canonicalInteraction.threadId,
+    messageId: canonicalInteraction.messageId,
+  });
   if (canonicalMessage === null) {
     throw new DiscordReplyIdentityConflictError(input.interactionId);
   }
@@ -309,7 +301,7 @@ export async function findDiscordReplyByReference(
   if (interaction === null) {
     return null;
   }
-  if (interaction.commandName !== "reply" || interaction.messageId === null) {
+  if (interaction.commandName !== "reply") {
     throw new DiscordPersistenceIdentityConflictError("interaction", input.interactionId);
   }
   const message = await findMessageById(db, {
