@@ -38,7 +38,7 @@ export interface DiscordChatInputCommandDefinition {
   )[];
 }
 
-export type DiscordCommandName = "reply" | "retry" | "status" | "activity" | "agent" | "approve";
+export type DiscordCommandName = "reply" | "activity";
 
 export const DISCORD_REPLY_COMMAND = {
   type: DiscordApplicationCommandType.ChatInput,
@@ -70,48 +70,6 @@ export const DISCORD_TRANSLATE_MESSAGE_COMMAND = {
   name: "Translate to English",
   default_member_permissions: "0",
 } as const;
-
-export const DISCORD_STATUS_COMMAND = {
-  type: DiscordApplicationCommandType.ChatInput,
-  name: "status",
-  description: "Check a pending support reply by interaction reference",
-  default_member_permissions: "0",
-  options: [
-    {
-      type: DiscordApplicationCommandOptionType.String,
-      name: "reference",
-      description: "Original Discord interaction ID",
-      required: true,
-      min_length: 1,
-      max_length: 32,
-    },
-  ],
-} as const satisfies DiscordChatInputCommandDefinition;
-
-export const DISCORD_RETRY_COMMAND = {
-  type: DiscordApplicationCommandType.ChatInput,
-  name: "retry",
-  description: "Retry a support reply using its original interaction ID",
-  default_member_permissions: "0",
-  options: [
-    {
-      type: DiscordApplicationCommandOptionType.String,
-      name: "reference",
-      description: "Original Discord interaction ID",
-      required: true,
-      min_length: 1,
-      max_length: 32,
-    },
-    {
-      type: DiscordApplicationCommandOptionType.String,
-      name: "message",
-      description: "The exact original English reply",
-      required: true,
-      min_length: 1,
-      max_length: 6_000,
-    },
-  ],
-} as const satisfies DiscordChatInputCommandDefinition;
 
 export const DISCORD_ACTIVITY_COMMAND = {
   type: 1,
@@ -163,61 +121,8 @@ export const DISCORD_ACTIVITY_COMMAND = {
   ],
 } as const satisfies DiscordChatInputCommandDefinition;
 
-export const DISCORD_AGENT_COMMAND = {
-  type: 1,
-  name: "agent",
-  description: "Leave an internal steering note for the support agent",
-  default_member_permissions: "0",
-  options: [
-    {
-      type: 3,
-      name: "message",
-      description: "Instructions for the agent",
-      required: true,
-      min_length: 1,
-      max_length: 6000,
-    },
-  ],
-} as const satisfies DiscordChatInputCommandDefinition;
-
-export const DISCORD_APPROVE_COMMAND = {
-  type: DiscordApplicationCommandType.ChatInput,
-  name: "approve",
-  description: "Hand an agent draft back to the agent to translate and send",
-  default_member_permissions: "0",
-  options: [
-    {
-      type: DiscordApplicationCommandOptionType.String,
-      name: "id",
-      description: "The draft's Discord message link or ID",
-      required: true,
-      min_length: 1,
-      max_length: 200,
-    },
-    {
-      type: DiscordApplicationCommandOptionType.String,
-      name: "translate",
-      description: "customer (default), off (send the English as is), or a language name or code",
-      required: false,
-      min_length: 2,
-      max_length: 35,
-    },
-  ],
-} as const satisfies DiscordChatInputCommandDefinition;
-
-export const DISCORD_APPROVE_DRAFT_COMMAND = {
-  type: 3,
-  name: "Approve draft",
-  default_member_permissions: "0",
-} as const;
-
 export const DISCORD_GUILD_COMMANDS = [
-  DISCORD_AGENT_COMMAND,
-  DISCORD_APPROVE_COMMAND,
-  DISCORD_APPROVE_DRAFT_COMMAND,
   DISCORD_REPLY_COMMAND,
-  DISCORD_STATUS_COMMAND,
-  DISCORD_RETRY_COMMAND,
   DISCORD_TRANSLATE_MESSAGE_COMMAND,
   DISCORD_ACTIVITY_COMMAND,
 ] as const;

@@ -31,7 +31,7 @@ export type DiscordProjectionKind = (typeof discordProjectionKinds)[number];
 export const discordProjectionStatuses = ["pending", "sent", "failed"] as const;
 export type DiscordProjectionStatus = (typeof discordProjectionStatuses)[number];
 
-export const discordInteractionCommandNames = ["reply", "status", "retry"] as const;
+export const discordInteractionCommandNames = ["reply"] as const;
 export type DiscordInteractionCommandName = (typeof discordInteractionCommandNames)[number];
 
 export const discordIntegrations = sqliteTable(
@@ -319,10 +319,7 @@ export const discordInteractions = sqliteTable(
     }).onDelete("cascade"),
     uniqueIndex("discord_interaction_message_uq").on(table.messageId),
     index("discord_interaction_thread_idx").on(table.workspaceId, table.threadId, table.acceptedAt),
-    check(
-      "discord_interaction_command_ck",
-      sql`${table.commandName} in ('reply', 'status', 'retry')`,
-    ),
+    check("discord_interaction_command_ck", sql`${table.commandName} = 'reply'`),
     check("discord_interaction_id_ck", sql`length(${table.interactionId}) between 1 and 32`),
     check(
       "discord_interaction_external_scope_ck",
@@ -341,22 +338,10 @@ export const discordInteractions = sqliteTable(
     ),
     check(
       "discord_interaction_options_shape_ck",
-      sql`(
-          ${table.commandName} = 'reply'
-          and ${table.referenceInteractionId} is null
-          and ${table.normalizedMessage} is not null
-          and ${table.messageId} is not null
-        ) or (
-          ${table.commandName} = 'status'
-          and ${table.referenceInteractionId} is not null
-          and ${table.normalizedMessage} is null
-          and ${table.messageId} is null
-        ) or (
-          ${table.commandName} = 'retry'
-          and ${table.referenceInteractionId} is not null
-          and ${table.normalizedMessage} is not null
-          and ${table.messageId} is null
-        )`,
+      sql`${table.commandName} = 'reply'
+        and ${table.referenceInteractionId} is null
+        and ${table.normalizedMessage} is not null
+        and ${table.messageId} is not null`,
     ),
     check("discord_interaction_roles_json_ck", sql`json_valid(${table.operatorRoleIds})`),
   ],

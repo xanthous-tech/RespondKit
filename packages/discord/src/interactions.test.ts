@@ -144,15 +144,8 @@ describe("Discord interaction parsing and authorization", () => {
     expect(normalized).not.toHaveProperty("token");
   });
 
-  it("parses the Approve draft and Translate to English actions, optional translation arguments, and approval buttons; /translate and Reject draft are gone", () => {
+  it("parses Translate to English, /reply translate, and Send this translation confirmation", () => {
     const base = replyPayload();
-    for (const data of [
-      { type: 3, name: "Reject draft", target_id: "12345" },
-      { type: 1, name: "translate" },
-    ])
-      expect(() => parseDiscordInteraction(JSON.stringify({ ...base, data }))).toThrow(
-        "Unsupported Discord command",
-      );
     expect(
       parseDiscordInteraction(
         JSON.stringify({
@@ -166,11 +159,6 @@ describe("Discord interaction parsing and authorization", () => {
         JSON.stringify({ ...base, data: { type: 1, name: "Translate to English" } }),
       ),
     ).toThrow("Invalid command type");
-    expect(
-      parseDiscordInteraction(
-        JSON.stringify({ ...base, data: { type: 3, name: "Approve draft", target_id: "12345" } }),
-      ),
-    ).toMatchObject({ command: "agent_context", action: "approve", targetMessageId: "12345" });
     expect(
       parseDiscordInteraction(
         JSON.stringify({
@@ -193,21 +181,29 @@ describe("Discord interaction parsing and authorization", () => {
     ).toMatchObject({ command: "confirm_translation", reference: "12345", generation: 2 });
     expect(() =>
       parseDiscordInteraction(
-        JSON.stringify({
-          ...base,
-          data: {
-            type: 1,
-            name: "translate",
-            options: [{ type: 3, name: "to", value: "en; DROP TABLE message" }],
-          },
-        }),
-      ),
-    ).toThrow(DiscordInteractionParseError);
-    expect(() =>
-      parseDiscordInteraction(
         JSON.stringify({ ...base, data: { type: 3, name: "reply", target_id: "12345" } }),
       ),
     ).toThrow(DiscordInteractionParseError);
+  });
+
+  it("refuses unknown commands and unknown component buttons", () => {
+    const base = replyPayload();
+    for (const data of [
+      { type: 1, name: "unknown" },
+      { type: 1, name: "translate" },
+      { type: 3, name: "Unknown message action", target_id: "12345" },
+    ]) {
+      expect(() => parseDiscordInteraction(JSON.stringify({ ...base, data }))).toThrow(
+        "Unknown Discord command",
+      );
+    }
+    for (const custom_id of ["other:123:1", "legacy:action:msg_1"]) {
+      expect(() =>
+        parseDiscordInteraction(
+          JSON.stringify({ ...base, type: 3, data: { custom_id, component_type: 2 } }),
+        ),
+      ).toThrow("Unknown Discord interaction");
+    }
   });
 
   it("takes language names as well as codes, and leaves names only the model knows for the API", () => {
@@ -242,35 +238,6 @@ describe("Discord interaction parsing and authorization", () => {
     expect(resolveLanguageInput("Thai")).toBe("th");
     expect(resolveLanguageInput("Nonsense")).toBeNull();
     expect(languageLabel("my")).toBe("Burmese (my)");
-  });
-
-  it("parses /approve with the draft and an optional language", () => {
-    const approve = (options: unknown[]) =>
-      parseDiscordInteraction(
-        JSON.stringify({ ...replyPayload(), data: { type: 1, name: "approve", options } }),
-      );
-    const link = {
-      type: 3,
-      name: "id",
-      value: "https://discord.com/channels/1/2/1560165589727846485",
-    };
-    expect(approve([link, { type: 3, name: "translate", value: "Burmese" }])).toMatchObject({
-      command: "approve",
-      draft: "https://discord.com/channels/1/2/1560165589727846485",
-      translate: "my",
-    });
-    const plain = approve([link]);
-    expect(plain).toMatchObject({ command: "approve" });
-    expect("translate" in plain).toBe(false);
-    expect(approve([link, { type: 3, name: "translate", value: "Customer" }])).toMatchObject({
-      translate: "customer",
-    });
-    expect(approve([link, { type: 3, name: "translate", value: "Klingonese" }])).toMatchObject({
-      languageQuery: "Klingonese",
-    });
-    expect(() => approve([{ type: 3, name: "translate", value: "my" }])).toThrow(
-      DiscordInteractionParseError,
-    );
   });
 
   it("denies commands from the wrong forum even when the operator is allowed", () => {

@@ -1,21 +1,21 @@
 import { describe, expect, it } from "vite-plus/test";
 
 import {
+  DISCORD_ACTIVITY_COMMAND,
   DISCORD_GUILD_COMMANDS,
   DISCORD_REPLY_COMMAND,
-  DISCORD_RETRY_COMMAND,
-  DISCORD_STATUS_COMMAND,
+  DISCORD_TRANSLATE_MESSAGE_COMMAND,
 } from "./commands";
 
 describe("Discord guild commands", () => {
-  it("publishes the canonical recovery-safe command set", () => {
+  it("registers only reply, Translate to English, and activity", () => {
+    expect(DISCORD_GUILD_COMMANDS).toEqual([
+      DISCORD_REPLY_COMMAND,
+      DISCORD_TRANSLATE_MESSAGE_COMMAND,
+      DISCORD_ACTIVITY_COMMAND,
+    ]);
     expect(DISCORD_GUILD_COMMANDS.map((command) => command.name)).toEqual([
-      "agent",
-      "approve",
-      "Approve draft",
       "reply",
-      "status",
-      "retry",
       "Translate to English",
       "activity",
     ]);
@@ -24,7 +24,7 @@ describe("Discord guild commands", () => {
     ).toBe(true);
   });
 
-  it("accepts one free-form English reply up to 6000 characters", () => {
+  it("accepts one free-form reply up to 6000 characters with optional translate", () => {
     expect(DISCORD_REPLY_COMMAND.options[0]).toEqual(
       expect.objectContaining({
         name: "message",
@@ -35,13 +35,5 @@ describe("Discord guild commands", () => {
       }),
     );
     expect(DISCORD_REPLY_COMMAND.options[1]).toMatchObject({ name: "translate", required: false });
-  });
-
-  it("keeps status read-only and retry bound to the original payload", () => {
-    expect(DISCORD_STATUS_COMMAND.options.map((option) => option.name)).toEqual(["reference"]);
-    expect(DISCORD_RETRY_COMMAND.options.map((option) => option.name)).toEqual([
-      "reference",
-      "message",
-    ]);
   });
 });

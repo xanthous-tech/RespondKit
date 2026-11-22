@@ -14,12 +14,7 @@ import {
 } from "drizzle-orm/sqlite-proxy";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
-import {
-  acceptReplyIngress,
-  recordRecoveryInteraction,
-  type DiscordRecoveryInteractionInput,
-  type DiscordReplyIngressInput,
-} from "./repository";
+import { acceptReplyIngress, type DiscordReplyIngressInput } from "./repository";
 
 const workspaceId = "workspace_1" as WorkspaceId;
 const inboxId = "inbox_1" as InboxId;
@@ -172,47 +167,4 @@ describe("Discord interaction timestamp replay", () => {
     expect(changedPayload.immutablePayloadMatches).toBe(false);
     expect(changedPayload.interaction.acceptedAt).toEqual(firstAcceptedAt);
   });
-
-  it.each(["status", "retry"] as const)(
-    "accepts a replayed /%s recovery command with a later observation time",
-    async (commandName) => {
-      const db = createTestDatabase();
-      const firstAcceptedAt = new Date(2_000);
-      const common = {
-        integrationId: "integration_1",
-        interactionId: `interaction_${commandName}_1`,
-        workspaceId,
-        inboxId,
-        threadId,
-        applicationId: "application_1",
-        guildId: "guild_1",
-        discordThreadId: "discord_thread_1",
-        operatorUserId: "operator_1",
-        operatorRoleIds: ["role_2", "role_1"],
-        referenceInteractionId: "interaction_reply_1",
-      } as const;
-      const input: DiscordRecoveryInteractionInput =
-        commandName === "retry"
-          ? {
-              ...common,
-              commandName,
-              originalEnglishText: "How can I help?",
-              acceptedAt: firstAcceptedAt,
-            }
-          : { ...common, commandName, acceptedAt: firstAcceptedAt };
-
-      const initial = await recordRecoveryInteraction(db, input);
-      expect(initial.inserted).toBe(true);
-
-      const replay = await recordRecoveryInteraction(db, {
-        ...input,
-        acceptedAt: new Date(200_000),
-      });
-      expect(replay).toMatchObject({
-        inserted: false,
-        immutablePayloadMatches: true,
-      });
-      expect(replay.interaction.acceptedAt).toEqual(firstAcceptedAt);
-    },
-  );
 });
