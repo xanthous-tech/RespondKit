@@ -1,6 +1,6 @@
 # RespondKit
 
-RespondKit is a small, multilingual support stack for indie products. Customers use a React or native chat widget, and each support thread appears in a Discord forum post in its original language. Optional Gemini translation is available through **Translate to English** on a customer message and `/reply translate:…`; `/approve` hands an agent's draft back to the agent, which translates and sends it. Plain `/reply` sends as written.
+RespondKit is a small, multilingual support stack for indie products. Customers use a React or native chat widget, and each support thread appears in a Discord forum post in its original language. Operators have three Discord actions: **Translate to English** on a customer message, `/reply` (plain or with `translate:…`), and `/activity` for PostHog events.
 
 The runtime is one Cloudflare Worker bundle with D1 and Cloudflare Workflows. It deliberately has no control-plane dashboard, Better Auth, Queue, Cron trigger, Durable Object, WebSocket, or Discord Gateway.
 
@@ -64,7 +64,7 @@ pnpm config:apply --local
 pnpm discord:commands:apply --dry-run
 ```
 
-`config:apply` validates the complete workspace → product → inbox topology, applies the checked-in D1 migration, and idempotently seeds the local database. The Discord dry run prints the guild-scoped command registration requests (`/agent`, `/approve`, **Approve draft**, `/reply`, `/status`, `/retry`, **Translate to English**, `/activity`) without contacting Discord. See the [optional translation setup and test guide](docs/architecture/optional-translation.md) for inbox enablement, permissions, and rollout.
+`config:apply` validates the complete workspace → product → inbox topology, applies the checked-in D1 migration, and idempotently seeds the local database. The Discord dry run prints the guild-scoped command registration requests (`/reply`, **Translate to English**, `/activity`) without contacting Discord. See the [optional translation setup and test guide](docs/architecture/optional-translation.md) for inbox enablement, permissions, and rollout.
 
 Inbox origin allowlists accept exact production origins and loopback any-port patterns such as `http://localhost:*` or `http://127.0.0.1:*`. Wildcards are rejected for non-loopback hosts so a development convenience cannot expose an inbox to arbitrary websites.
 

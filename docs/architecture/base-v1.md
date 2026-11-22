@@ -12,7 +12,7 @@ Scope: pnpm/TypeScript monorepo, React customer widget, D1 chat storage, Cloudfl
 
 This is the implementation architecture for the first product pilot.
 
-1. Discord is the only operator UI. Operators reply with a guild-scoped `/reply message:<English text>` command inside the mapped support thread. Recovery-only `/status reference:<interaction ID>` and `/retry reference:<interaction ID> message:<original English text>` resolve rare ambiguous acceptances using the original idempotency key. There is no Better Auth dependency, magic-link flow, operator web app, or authenticated admin API.
+1. Discord is the only operator UI. Operators reply with a guild-scoped `/reply message:<text>` command inside the mapped support thread, translate incoming customer messages with **Translate to English**, and inspect PostHog events with `/activity`. There is no Better Auth dependency, magic-link flow, operator web app, or authenticated admin API.
 2. Workspace, product, inbox, origin, and Discord-channel configuration live in D1 and are applied by a local Wrangler-authenticated bootstrap command.
 3. Cloudflare Workflow creation is the durable acceptance boundary for messages. The API validates ingress and awaits an idempotent, deterministic `createBatch([one])` call before returning `202 Accepted` to the widget or `Queued` to Discord. The Workflow's first step idempotently writes the canonical message to D1.
 4. D1 is the canonical transcript and product store after that first Workflow step. The customer widget uses optimistic updates plus a two-second cursor poll; there is no per-thread Durable Object or customer WebSocket.
@@ -126,11 +126,7 @@ The HTTP path is:
 6. The Workflow's first step idempotently inserts the interaction receipt, English operator message, and thread activity in one D1 batch. Permanent D1 uniqueness on the interaction and message IDs prevents a replay after Workflow retention expires.
 7. After translation is durable and the reply is customer-visible, post a shared bot-authored “Available in chat” audit containing the exact customer-facing text. A pre-availability terminal failure records that the reply was not made available and attempts a best-effort shared failure audit; an audit-only failure never changes customer availability.
 
-The cutoff covers signature verification, D1 authorization, duplicate-status reconciliation, and Workflow creation—not just the final binding call. Once a signature is valid, if any of those operations remains unresolved at the internal cutoff, return an ephemeral type-4 “Acceptance pending — do not resend yet” response containing the original Discord interaction ID as a stable status reference. The in-flight work may continue under [`ctx.waitUntil`](https://developers.cloudflare.com/workers/runtime-apis/context/#waituntil) and best-effort edit that response, but this continuation is not a second durable handoff. The token is held only by that continuation and is never written to D1 or Workflow parameters.
-
-Register two recovery-only guild-scoped commands. `/status reference:<interaction ID>` revalidates the current application/guild/thread/operator, derives the original Workflow ID, reads its status plus D1 business/mapping state, and reports Processing, Already available, Audit failed, Not made available, or Not found. It never advises a fresh `/reply`, because that would have a new interaction ID and could race a late original acceptance.
-
-`/retry reference:<interaction ID> message:<original English text>` derives the same original Workflow/message IDs. If the original instance is retained and errored, it restarts that instance only when D1 proves the reply is not customer-visible. If the instance is absent, it calls `createBatch` with the original ID and supplied immutable payload; if the original creation appears concurrently, one ID still admits only the first payload. If D1 says the reply is already available, retry is rejected with that exact status. Thus a lost continuation has a Discord-only recovery path without a Queue, outbox, timing assumption, or duplicate customer reply.
+The cutoff covers signature verification, D1 authorization, duplicate-status reconciliation, and Workflow creation. Once a signature is valid, if any of those operations remains unresolved at the internal cutoff, return an ephemeral type-4 response advising the operator to check the thread before sending again with `/reply`. The in-flight work continues under [`ctx.waitUntil`](https://developers.cloudflare.com/workers/runtime-apis/context/#waituntil) and updates the private response with whether the reply was sent or not sent. The token is held only by that continuation and is never written to D1 or Workflow parameters.
 
 Discord message content is limited to 2,000 characters even though the command string option permits 6,000. Audit projection therefore uses deterministic chunks of at most 2,000 characters, each with its own deterministic nonce of at most 25 characters. Every forum starter, translated customer message, and audit receipt containing user-derived text sets `allowed_mentions: { parse: [] }`.
 
@@ -478,25 +474,9 @@ sequenceDiagram
     API-->>Discord: HTTP 200 type 4 with stage-specific result
     Discord-->>Simon: Render Available, Audit failed, or Not available
   else Acceptance unresolved at cutoff
-    API-->>Discord: HTTP 200 type 4 Pending + interaction ID reference
-    Discord-->>Simon: Render Pending; do not resend yet
-    Note over API,Discord: Best-effort continuation may reconcile and PATCH the response
-  end
-  opt Pending response needs recovery
-    Simon->>Discord: Invoke /status with interaction ID
-    Discord->>API: Signed status interaction
-    API->>WF: get(instance ID).status() if present
-    API->>D1: Reconcile canonical business state
-    API-->>Discord: Processing, Available, Failed, or Not found
-    Discord-->>Simon: Render stage-specific status
-    opt Same-reference retry is needed
-      Simon->>Discord: Invoke /retry with reference + original English
-      Discord->>API: Signed retry interaction
-      API->>D1: Revalidate not already customer-visible
-      API->>WF: Create or restart the original Workflow ID
-      API-->>Discord: Queued or Already available
-      Discord-->>Simon: Render retry result
-    end
+    API-->>Discord: HTTP 200 type 4 still accepting
+    Discord-->>Simon: Check the thread before sending again
+    Note over API,Discord: Best-effort continuation updates the private response
   end
   opt Workflow acceptance is or later becomes confirmed
     Note over API,WF: A created Workflow may begin before the interaction response
@@ -535,7 +515,7 @@ Customer widget:
 
 Discord/runtime:
 
-- `POST /v1/discord/interactions` — signed `PING`, `/reply`, recovery-only `/status` and `/retry`, and later `/note`/button/modal ingress
+- `POST /v1/discord/interactions` — signed `PING`, `/reply`, **Translate to English**, `/activity`, and translation confirmation buttons
 - named `MessageWorkflow` entrypoint bound as `MESSAGE_WORKFLOW` inside the same Worker script
 - local `pnpm discord:commands:apply` command registration script
 
@@ -547,7 +527,7 @@ There is no Queue consumer, scheduled handler, bespoke/admin operator API, or pu
 - React uses Testing Library/jsdom, plus `apps/widget` for browser and CORS E2E tests.
 - Translation fixtures cover Thai, Burmese Unicode, likely Zawgyi, protected URLs/code, ambiguous short messages, and failure behavior.
 - API integration tests use Cloudflare's Vitest integration with the real checked-in D1 migration and local Workflow bindings. Tests cover the HTTP acceptance boundary, Workflow creation/replay, translation/projection paths, cursor revisions, and failure state without external credentials. See [Cloudflare's Workflow test APIs](https://developers.cloudflare.com/workers/testing/vitest-integration/test-apis/).
-- Discord interaction tests cover raw-body signature rejection, signed `PING`, command parsing, guild/thread mapping, user/role authorization, duplicate interaction IDs, ambiguous acceptance reconciliation, retained stage-specific failures, Pending-reference `/status`, same-ID `/retry`, rejection after customer availability, and the three-second acknowledgement budget from request arrival.
+- Discord interaction tests cover raw-body signature rejection, signed `PING`, command parsing, guild/thread mapping, user/role authorization, duplicate interaction IDs, unknown command and button refusal, resending a failed `/reply`, and the three-second acknowledgement budget from request arrival.
 - Discord REST contract tests cover rate limits, ambiguous success, deterministic nonce/correlation reconciliation, and visible receipt failure behavior.
 - Workflow tests cover `createBatch`'s empty duplicate result plus status lookup, first-step D1 idempotency, immutable duplicate payloads, replay after instance retention, failure-generation restart, HTTP-status retry classification, outgoing fail-closed behavior, concurrent forum claims/expiry, Discord nonce/correlation reconciliation, audit-only failure, catch/rethrow terminal state, and final D1 state.
 - CI runs package typechecks/tests, both app builds, and `wrangler deploy --dry-run`.

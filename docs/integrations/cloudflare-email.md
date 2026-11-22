@@ -74,7 +74,7 @@ Inbound mail requires a valid role-specific route, current inbox settings, match
 
 `email_delivery` tracks customer sends; `operator_email_delivery` tracks operator sends. Concurrent cron runs claim pending rows atomically. Operator claims also serialize provider handoff per route. `sent` means provider acceptance, not inbox receipt or reading. A thrown provider call or `sending` row older than ten minutes becomes `unknown`, without automatic resending. Inspect Cloudflare Email Service logs and the stored provider ID before resetting a confirmed-unsent row to `pending`; reconcile unknown sends before retrying to avoid duplicate mail.
 
-For an accepted email workflow that later fails, inspect its `workflow_instance_id` in `email_ingress`/`message` and the Cloudflare Workflows dashboard. Restart the original failed instance after fixing the cause; never manufacture a new message ID to recover the same mail. The existing Discord `/retry` command uses Discord interaction references and does not accept email message IDs. A failed Discord audit does not retract a published operator reply or its queued follow-up.
+For an accepted email workflow that later fails, inspect its `workflow_instance_id` in `email_ingress`/`message` and the Cloudflare Workflows dashboard. Restart the original failed instance after fixing the cause; never manufacture a new message ID to recover the same mail. A failed Discord audit does not retract a published operator reply or its queued follow-up.
 
 ## Validation and rollout
 
