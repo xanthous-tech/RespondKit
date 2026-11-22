@@ -12,6 +12,7 @@ export default defineConfig(async () => ({
         bindings: {
           GEMINI_API_KEY: "test-only",
           PUBLIC_API_URL: "https://api.example.test",
+          DISCORD_API_BASE_URL: "https://discord.invalid/api/v10",
           TRANSLATION_ENABLED_INBOXES: '["inbox_public_test"]',
           DISCORD_BOT_TOKEN: "test-only",
           DISCORD_APPLICATION_ID: "100000000000000002",

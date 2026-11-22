@@ -225,7 +225,7 @@ export async function replyReview(
   reference: string,
 ): Promise<PrivateReply | null> {
   const row = await env.DB.prepare(
-    "SELECT rr.generation, rr.result_json FROM reply_review rr JOIN message m ON m.id = rr.message_id AND m.processing_generation = rr.generation WHERE rr.message_id = ? AND m.customer_availability = 'pending' AND m.processing_status IN ('processing', 'retrying')",
+    "SELECT rr.generation, rr.result_json FROM reply_review rr JOIN message m ON m.id = rr.message_id AND m.processing_generation = rr.generation WHERE rr.message_id = ? AND rr.confirmed_by IS NULL AND m.customer_availability = 'pending' AND m.processing_status IN ('processing', 'retrying')",
   )
     .bind(messageId)
     .first<{ generation: number; result_json: string }>();

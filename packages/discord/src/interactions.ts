@@ -572,12 +572,16 @@ export function normalizeDiscordCommand(
   }
 }
 
-export function createEphemeralInteractionResponse(content: string): {
+export function createEphemeralInteractionResponse(
+  content: string,
+  components?: readonly unknown[],
+): {
   readonly type: typeof DiscordInteractionResponseType.ChannelMessageWithSource;
   readonly data: {
     readonly content: string;
     readonly flags: typeof DiscordMessageFlag.Ephemeral;
     readonly allowed_mentions: { readonly parse: readonly [] };
+    readonly components?: readonly unknown[];
   };
 } {
   return {
@@ -586,6 +590,7 @@ export function createEphemeralInteractionResponse(content: string): {
       content,
       flags: DiscordMessageFlag.Ephemeral,
       allowed_mentions: { parse: [] },
+      ...(components === undefined ? {} : { components }),
     },
   };
 }

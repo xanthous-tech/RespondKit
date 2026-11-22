@@ -69,7 +69,11 @@ import { z } from "zod";
 
 import { verifyCustomerIdentity } from "./customer-identity";
 import { createDatabase } from "./db";
-import { handleTranslationInteraction } from "./discord-translation";
+import {
+  handleTranslationInteraction,
+  replyReview,
+  updatePrivateInteraction,
+} from "./discord-translation";
 import { requireTranslationEnabled } from "./translation-service";
 import { syncDiscordReadReceipts } from "./read-receipts";
 import type { Env } from "./env";
@@ -1021,6 +1025,73 @@ export function createHttpApp() {
           return context.json(
             createEphemeralInteractionResponse(
               "That interaction ID already belongs to another immutable reply.",
+            ),
+          );
+        }
+        const pendingReview = await replyReview(
+          context.env,
+          canonical.message.id,
+          command.interactionId,
+        );
+        if (pendingReview !== null) {
+          if (pendingReview.file !== undefined) {
+            context.executionCtx.waitUntil(
+              updatePrivateInteraction(context.env, interaction, pendingReview).catch(
+                () => undefined,
+              ),
+            );
+            return context.json(createDeferredEphemeralResponse());
+          }
+          return context.json(
+            createEphemeralInteractionResponse(pendingReview.content, pendingReview.components),
+          );
+        }
+        if (toMessageBusinessStatus(canonical.message) === "processing") {
+          const replyTranslation = canonical.message.replyTranslation ?? undefined;
+          const replyTranslationRequest = canonical.message.replyTranslationRequest ?? undefined;
+          const envelope = operatorEnvelope({
+            command,
+            interactionToken: interaction.token,
+            integrationId: authorized.integration.id,
+            workspaceId: authorized.integration.workspaceId,
+            inboxId: authorized.integration.inboxId,
+            thread,
+            messageId: canonical.message.id,
+            workflowInstanceId: canonical.message.workflowInstanceId,
+            acceptedAt: canonical.message.acceptedAt,
+            ...(replyTranslation === undefined ? {} : { replyTranslation }),
+            ...(replyTranslationRequest === undefined ? {} : { replyTranslationRequest }),
+          });
+          const accepted = await acceptWorkflow(
+            context.env.MESSAGE_WORKFLOW,
+            canonical.message.workflowInstanceId,
+            envelope,
+          );
+          if (accepted.kind === "unknown") {
+            return context.json(
+              createEphemeralInteractionResponse(
+                "Reply delivery could not be confirmed. Check the thread before sending again with /reply.",
+              ),
+            );
+          }
+          if (accepted.kind === "created") {
+            return context.json(
+              createEphemeralInteractionResponse(
+                replyTranslation === "off"
+                  ? "Queued for delivery as written."
+                  : "Queued for translation and delivery.",
+              ),
+            );
+          }
+          const current = await findDiscordReplyByReference(db, {
+            integrationId: authorized.integration.id,
+            interactionId: command.interactionId,
+            workspaceId: authorized.integration.workspaceId,
+            inboxId: authorized.integration.inboxId,
+          });
+          return context.json(
+            createEphemeralInteractionResponse(
+              workflowStatusText(accepted.status, current?.message ?? canonical.message),
             ),
           );
         }

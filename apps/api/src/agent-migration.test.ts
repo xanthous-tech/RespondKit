@@ -306,6 +306,18 @@ it("upgrades populated 0011 to 0012: remaps message row_id to timeline sequence,
     await env.DB.prepare("PRAGMA table_info(discord_interaction)").all<{ name: string }>()
   ).results.map((c) => c.name);
   expect(interactionCols).not.toContain("reference_interaction_id");
+  const interactionIndexes = (
+    await env.DB.prepare("PRAGMA index_list(discord_interaction)").all<{
+      name: string;
+      unique: number;
+    }>()
+  ).results;
+  expect(interactionIndexes).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ name: "discord_interaction_message_uq", unique: 1 }),
+      expect.objectContaining({ name: "discord_interaction_thread_idx", unique: 0 }),
+    ]),
+  );
   const interactions = await env.DB.prepare(
     "SELECT interaction_id, command_name, message_id FROM discord_interaction",
   ).all<{ interaction_id: string; command_name: string; message_id: string }>();

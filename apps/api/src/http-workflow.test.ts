@@ -1075,10 +1075,19 @@ describe("signed Discord interaction ingress", () => {
   it("records a language named in /reply as the customer's, which translate:customer then uses", async () => {
     const customer = await createCustomerFixture();
     await seedReadyDiscordThread(customer.threadId);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof globalThis.fetch>(async () => Response.json({})),
+    );
     const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
     try {
       await workflows.modifyAll(async (modifier) => {
+        await modifier.disableRetryDelays();
         await modifier.mockStepResult({ name: "translate-message" }, outgoingTranslation);
+        await modifier.mockStepResult(
+          { name: "post-available-audit-0" },
+          { discordMessageId: "100000000000000078" },
+        );
       });
       const named = await sendSignedCommand(
         commandPayload(snowflakeAt(), "reply", [
@@ -1111,7 +1120,9 @@ describe("signed Discord interaction ingress", () => {
           .bind("Then try again.")
           .first(),
       ).toEqual({ reply_translation: "my", reply_translation_request: "customer" });
+      for (const instance of await workflows.get()) await instance.waitForStatus("complete");
     } finally {
+      vi.unstubAllGlobals();
       await workflows.dispose();
     }
   });
@@ -1119,6 +1130,27 @@ describe("signed Discord interaction ingress", () => {
   it("translates an authorized /reply and publishes it to the customer transcript", async () => {
     const customer = await createCustomerFixture();
     await seedReadyDiscordThread(customer.threadId);
+    const privateUpdates: Array<{ content: string; components?: unknown[] }> = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof globalThis.fetch>(async (request, init) => {
+        const url =
+          typeof request === "string"
+            ? request
+            : request instanceof URL
+              ? request.href
+              : request.url;
+        if (
+          init?.method === "PATCH" &&
+          url.includes("/webhooks/") &&
+          typeof init.body === "string"
+        ) {
+          privateUpdates.push(JSON.parse(init.body) as { content: string; components?: unknown[] });
+          return Response.json({});
+        }
+        return Response.json([]);
+      }),
+    );
     const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
     try {
       await workflows.modifyAll(async (modifier) => {
@@ -1149,6 +1181,9 @@ describe("signed Discord interaction ingress", () => {
 
       const instance = await oneCapturedWorkflow(workflows);
       await instance.waitForStatus("complete");
+      expect(privateUpdates).toEqual([
+        expect.objectContaining({ content: "Reply sent to the customer.", components: [] }),
+      ]);
       const transcript = await pollMessages(customer);
       expect(transcript.messages).toEqual([
         expect.objectContaining({
@@ -1185,6 +1220,7 @@ describe("signed Discord interaction ingress", () => {
         data: { content: "Reply already sent to the customer." },
       });
     } finally {
+      vi.unstubAllGlobals();
       await workflows.dispose();
     }
   });
@@ -1338,6 +1374,32 @@ describe("signed Discord interaction ingress", () => {
   it("fails an operator reply closed when translation never succeeds", async () => {
     const customer = await createCustomerFixture();
     await seedReadyDiscordThread(customer.threadId);
+    const privateUpdates: string[] = [];
+    const publicThreadPosts: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof globalThis.fetch>(async (request, init) => {
+        const url =
+          typeof request === "string"
+            ? request
+            : request instanceof URL
+              ? request.href
+              : request.url;
+        if (
+          init?.method === "PATCH" &&
+          url.includes("/webhooks/") &&
+          typeof init.body === "string"
+        ) {
+          privateUpdates.push((JSON.parse(init.body) as { content: string }).content);
+          return Response.json({});
+        }
+        if (init?.method === "POST" && url.includes("/channels/") && url.endsWith("/messages")) {
+          publicThreadPosts.push(typeof init.body === "string" ? init.body : "");
+          return Response.json({});
+        }
+        return Response.json([]);
+      }),
+    );
     const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
     try {
       await workflows.modifyAll(async (modifier) => {
@@ -1362,6 +1424,8 @@ describe("signed Discord interaction ingress", () => {
 
       const instance = await oneCapturedWorkflow(workflows);
       await instance.waitForStatus("errored");
+      expect(privateUpdates).toEqual(["Reply not sent. Send it again with /reply."]);
+      expect(publicThreadPosts).toEqual([]);
       expect((await pollMessages(customer)).messages).toEqual([]);
       expect(await env.DB.prepare("SELECT count(*) n FROM discord_message").first("n")).toBe(0);
 
@@ -1382,13 +1446,40 @@ describe("signed Discord interaction ingress", () => {
         failure_stage: "translation",
       });
     } finally {
+      vi.unstubAllGlobals();
       await workflows.dispose();
     }
   });
 
-  it("keeps a published reply available when only its Discord audit fails", async () => {
+  it("keeps a published reply available when only its Discord audit fails without posting a public failure card", async () => {
     const customer = await createCustomerFixture();
     await seedReadyDiscordThread(customer.threadId);
+    const privateUpdates: string[] = [];
+    const publicThreadPosts: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof globalThis.fetch>(async (request, init) => {
+        const url =
+          typeof request === "string"
+            ? request
+            : request instanceof URL
+              ? request.href
+              : request.url;
+        if (
+          init?.method === "PATCH" &&
+          url.includes("/webhooks/") &&
+          typeof init.body === "string"
+        ) {
+          privateUpdates.push((JSON.parse(init.body) as { content: string }).content);
+          return Response.json({});
+        }
+        if (init?.method === "POST" && url.includes("/channels/") && url.endsWith("/messages")) {
+          publicThreadPosts.push(typeof init.body === "string" ? init.body : "");
+          return Response.json({});
+        }
+        return Response.json([]);
+      }),
+    );
     const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
     try {
       await workflows.modifyAll(async (modifier) => {
@@ -1397,10 +1488,6 @@ describe("signed Discord interaction ingress", () => {
         await modifier.mockStepError(
           { name: "post-available-audit-0" },
           new Error("Discord audit unavailable"),
-        );
-        await modifier.mockStepResult(
-          { name: "post-failure-audit-0" },
-          { discordMessageId: "100000000000000095" },
         );
       });
 
@@ -1415,6 +1502,15 @@ describe("signed Discord interaction ingress", () => {
 
       const instance = await oneCapturedWorkflow(workflows);
       await instance.waitForStatus("errored");
+      expect(privateUpdates).toEqual([
+        "Reply sent to the customer, but posting the thread copy failed. Do not resend.",
+      ]);
+      expect(publicThreadPosts).toEqual([]);
+      expect(
+        await env.DB.prepare(
+          "SELECT count(*) n FROM discord_message WHERE projection_kind='failure_audit'",
+        ).first("n"),
+      ).toBe(0);
       expect((await pollMessages(customer)).messages).toEqual([
         expect.objectContaining({
           direction: "operator_to_customer",
@@ -1440,6 +1536,7 @@ describe("signed Discord interaction ingress", () => {
         failure_stage: "discord_audit",
       });
     } finally {
+      vi.unstubAllGlobals();
       await workflows.dispose();
     }
   });
@@ -1583,28 +1680,52 @@ describe("signed Discord interaction ingress", () => {
       replyTranslationRequest: "off",
     });
 
+    const activeWorkflow = {
+      createBatch: vi.fn(async () => []),
+      get: vi.fn(async () => ({
+        status: vi.fn(async () => ({ status: "running" })),
+      })),
+    } as unknown as ApiEnv["MESSAGE_WORKFLOW"];
     const cases = [
       {
         sql: "UPDATE message SET processing_status='processing', customer_availability='pending' WHERE id=?",
         expected: "Reply is still sending.",
+        useActiveWorkflow: true,
       },
       {
         sql: "UPDATE message SET processing_status='succeeded', customer_availability='available', discord_audit_status='projected' WHERE id=?",
         expected: "Reply already sent to the customer.",
+        useActiveWorkflow: false,
       },
       {
         sql: "UPDATE message SET processing_status='failed', customer_availability='available', discord_audit_status='failed', failure_stage='discord_audit' WHERE id=?",
         expected:
           "Reply already sent to the customer, but posting the thread copy failed. Do not resend.",
+        useActiveWorkflow: false,
       },
       {
         sql: "UPDATE message SET processing_status='failed', customer_availability='not_available', failure_stage='translation' WHERE id=?",
         expected: "Reply was not sent. Send it again with /reply.",
+        useActiveWorkflow: false,
       },
     ];
     for (const entry of cases) {
       await env.DB.prepare(entry.sql).bind(identity.messageId).run();
-      const replay = await sendSignedCommand(payload);
+      let replay: Response;
+      if (entry.useActiveWorkflow) {
+        const rawBody = JSON.stringify(payload);
+        const signed = await signedRequest(rawBody);
+        replay = await createHttpApp().request(
+          "/v1/discord/interactions",
+          { method: "POST", headers: signed.headers, body: rawBody },
+          createTestEnv({
+            DISCORD_PUBLIC_KEY: signed.publicKeyHex,
+            MESSAGE_WORKFLOW: activeWorkflow,
+          }),
+        );
+      } else {
+        replay = await sendSignedCommand(payload);
+      }
       expect(replay.status).toBe(200);
       const body = (await replay.json()) as { data: { content: string } };
       expect(body.data.content).toBe(entry.expected);
@@ -1612,9 +1733,229 @@ describe("signed Discord interaction ingress", () => {
     }
   });
 
-  it("handles acceptance_unknown on /reply cleanly and passes interactionToken to the workflow envelope", async () => {
+  it("warns privately not to resend when enqueue-reply-email fails after customer publication", async () => {
     const customer = await createCustomerFixture();
     await seedReadyDiscordThread(customer.threadId);
+    const privateUpdates: string[] = [];
+    const publicThreadPosts: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof globalThis.fetch>(async (request, init) => {
+        const url =
+          typeof request === "string"
+            ? request
+            : request instanceof URL
+              ? request.href
+              : request.url;
+        if (
+          init?.method === "PATCH" &&
+          url.includes("/webhooks/") &&
+          typeof init.body === "string"
+        ) {
+          privateUpdates.push((JSON.parse(init.body) as { content: string }).content);
+          return Response.json({});
+        }
+        if (init?.method === "POST" && url.includes("/channels/") && url.endsWith("/messages")) {
+          publicThreadPosts.push(typeof init.body === "string" ? init.body : "");
+          return Response.json({});
+        }
+        return Response.json([]);
+      }),
+    );
+    const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+    try {
+      await workflows.modifyAll(async (modifier) => {
+        await modifier.disableRetryDelays();
+        await modifier.mockStepError(
+          { name: "enqueue-reply-email" },
+          new Error("Reply email queue failure"),
+        );
+      });
+
+      const interactionId = snowflakeAt(Date.now(), 85n);
+      const response = await sendSignedCommand(
+        commandPayload(interactionId, "reply", [{ name: "message", value: "Published once." }]),
+      );
+      expect(response.status).toBe(200);
+
+      const instance = await oneCapturedWorkflow(workflows);
+      await instance.waitForStatus("errored");
+      expect((await pollMessages(customer)).messages).toEqual([
+        expect.objectContaining({
+          direction: "operator_to_customer",
+          text: "Published once.",
+          state: "available",
+        }),
+      ]);
+      expect(privateUpdates).toEqual([
+        "Reply sent to the customer, but posting the thread copy failed. Do not resend.",
+      ]);
+      expect(publicThreadPosts).toEqual([]);
+      expect(
+        await env.DB.prepare(
+          "SELECT count(*) n FROM discord_message WHERE projection_kind='failure_audit'",
+        ).first("n"),
+      ).toBe(0);
+    } finally {
+      vi.unstubAllGlobals();
+      await workflows.dispose();
+    }
+  });
+
+  it("recovers a pending translation review with the Send this translation button after a 503 preview webhook outage", async () => {
+    const customer = await createCustomerFixture();
+    await seedReadyDiscordThread(customer.threadId);
+    let failPreviewWebhook = true;
+    const webhookPatches: Array<{ url: string; content: string; components: unknown[] }> = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof globalThis.fetch>(async (request, init) => {
+        const url =
+          typeof request === "string"
+            ? request
+            : request instanceof URL
+              ? request.href
+              : request.url;
+        if (
+          init?.method === "PATCH" &&
+          url.includes("/webhooks/") &&
+          typeof init.body === "string"
+        ) {
+          if (failPreviewWebhook) {
+            return new Response("Discord unavailable", { status: 503 });
+          }
+          const parsed = JSON.parse(init.body) as { content: string; components?: unknown[] };
+          webhookPatches.push({
+            url,
+            content: parsed.content,
+            components: parsed.components ?? [],
+          });
+          return Response.json({});
+        }
+        return Response.json([]);
+      }),
+    );
+
+    const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+    try {
+      await workflows.modifyAll(async (modifier) => {
+        await modifier.disableRetryDelays();
+        await modifier.mockStepResult(
+          { name: "translate-message" },
+          { ...outgoingTranslation, needsReview: true },
+        );
+        await modifier.mockStepResult(
+          { name: "post-available-audit-0" },
+          { discordMessageId: "100000000000000099" },
+        );
+      });
+
+      const interactionId = snowflakeAt(Date.now(), 86n);
+      const replyPayload = {
+        ...commandPayload(interactionId, "reply", [
+          { name: "message", value: "Please reopen the app." },
+          { name: "translate", value: "my-MM" },
+        ]),
+        token: "outage-preview-token",
+      };
+      const initial = await sendSignedCommand(replyPayload);
+      expect(initial.status).toBe(200);
+
+      const instance = await oneCapturedWorkflow(workflows);
+      await instance.waitForStepResult({ name: "notify-reply-review-1" });
+      expect(webhookPatches).toEqual([]);
+
+      // Redelivery recovers the pending review preview with the Send this translation button.
+      const recovered = await sendSignedCommand(replyPayload);
+      expect(recovered.status).toBe(200);
+      await expect(recovered.json()).resolves.toMatchObject({
+        type: 4,
+        data: {
+          content: expect.stringContaining("Review required · reply not sent"),
+          flags: 64,
+          components: [
+            {
+              type: 1,
+              components: [
+                expect.objectContaining({
+                  label: "Send this translation",
+                  custom_id: `confirm-translation:${interactionId}:1`,
+                }),
+              ],
+            },
+          ],
+        },
+      });
+
+      failPreviewWebhook = false;
+      const confirmCtx = createExecutionContext();
+      const confirmRes = await sendSignedCommand(
+        {
+          ...commandPayload(snowflakeAt(Date.now() + 1_000, 87n), "reply", []),
+          type: 3,
+          token: "recovered-confirm-token",
+          data: { custom_id: `confirm-translation:${interactionId}:1`, component_type: 2 },
+        },
+        confirmCtx,
+      );
+      expect(confirmRes.status).toBe(200);
+      await instance.waitForStatus("complete");
+      await waitOnExecutionContext(confirmCtx);
+
+      expect((await pollMessages(customer)).messages).toEqual([
+        expect.objectContaining({
+          direction: "operator_to_customer",
+          text: outgoingTranslation.translatedText,
+          state: "available",
+        }),
+      ]);
+      expect(webhookPatches).toContainEqual(
+        expect.objectContaining({
+          url: expect.stringContaining("/recovered-confirm-token/messages/@original"),
+          content: "Reply sent to the customer.",
+        }),
+      );
+    } finally {
+      vi.unstubAllGlobals();
+      await workflows.dispose();
+    }
+  });
+
+  it("recovers an orphaned /reply whose initial workflow dispatch failed before creation", async () => {
+    const customer = await createCustomerFixture();
+    await seedReadyDiscordThread(customer.threadId);
+    const privateUpdates: Array<{ url: string; content: string }> = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof globalThis.fetch>(async (request, init) => {
+        const url =
+          typeof request === "string"
+            ? request
+            : request instanceof URL
+              ? request.href
+              : request.url;
+        if (
+          init?.method === "PATCH" &&
+          url.includes("/webhooks/") &&
+          typeof init.body === "string"
+        ) {
+          privateUpdates.push({
+            url,
+            content: (JSON.parse(init.body) as { content: string }).content,
+          });
+          return Response.json({});
+        }
+        return Response.json([]);
+      }),
+    );
+
+    const interactionId = snowflakeAt(Date.now(), 91n);
+    const payload = {
+      ...commandPayload(interactionId, "reply", [
+        { name: "message", value: "Checking ambiguous start." },
+      ]),
+      token: "ambiguous-start-token",
+    };
     const capturedParams: unknown[] = [];
     const flakyWorkflow = {
       createBatch: vi.fn(async (items: Array<{ id: string; params: unknown }>) => {
@@ -1626,14 +1967,9 @@ describe("signed Discord interaction ingress", () => {
       }),
     } as unknown as ApiEnv["MESSAGE_WORKFLOW"];
 
-    const rawBody = JSON.stringify({
-      ...commandPayload(snowflakeAt(Date.now(), 91n), "reply", [
-        { name: "message", value: "Checking ambiguous start." },
-      ]),
-      token: "ambiguous-start-token",
-    });
+    const rawBody = JSON.stringify(payload);
     const signed = await signedRequest(rawBody);
-    const response = await createHttpApp().request(
+    const first = await createHttpApp().request(
       "/v1/discord/interactions",
       { method: "POST", headers: signed.headers, body: rawBody },
       createTestEnv({
@@ -1641,14 +1977,53 @@ describe("signed Discord interaction ingress", () => {
         MESSAGE_WORKFLOW: flakyWorkflow,
       }),
     );
-    expect(response.status).toBe(200);
-    const body = (await response.json()) as { data: { content: string } };
-    expect(body.data.content).toBe(
+    expect(first.status).toBe(200);
+    const firstBody = (await first.json()) as { data: { content: string } };
+    expect(firstBody.data.content).toBe(
       "Reply delivery could not be confirmed. Check the thread before sending again with /reply.",
     );
-    expect(body.data.content).not.toMatch(/\/(status|retry|agent|approve)\b/i);
+    expect(firstBody.data.content).not.toMatch(/\/(status|retry|agent|approve)\b/i);
     expect(capturedParams[0]).toMatchObject({
       discord: { interactionToken: "ambiguous-start-token" },
     });
+
+    // Redelivering the same interaction reconciles and starts the missing workflow once.
+    const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+    try {
+      await workflows.modifyAll(async (modifier) => {
+        await modifier.disableRetryDelays();
+        await modifier.mockStepResult(
+          { name: "post-available-audit-0" },
+          { discordMessageId: "100000000000000101" },
+        );
+      });
+      const recovered = await sendSignedCommand({
+        ...payload,
+        token: "recovered-dispatch-token",
+      });
+      expect(recovered.status).toBe(200);
+      await expect(recovered.json()).resolves.toMatchObject({
+        data: { content: "Queued for delivery as written." },
+      });
+
+      const instance = await oneCapturedWorkflow(workflows);
+      await instance.waitForStatus("complete");
+      expect((await pollMessages(customer)).messages).toEqual([
+        expect.objectContaining({
+          direction: "operator_to_customer",
+          text: "Checking ambiguous start.",
+          state: "available",
+        }),
+      ]);
+      expect(privateUpdates).toEqual([
+        expect.objectContaining({
+          url: expect.stringContaining("/recovered-dispatch-token/messages/@original"),
+          content: "Reply sent to the customer.",
+        }),
+      ]);
+    } finally {
+      vi.unstubAllGlobals();
+      await workflows.dispose();
+    }
   });
 });

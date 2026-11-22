@@ -674,13 +674,7 @@ function availableAuditContent(
   });
 }
 
-function failureAuditContent(
-  envelope: MessageWorkflowEnvelope,
-  stage: MessageFailureStage,
-): string {
-  if (envelope.direction === "operator_to_customer" && stage === "discord_audit") {
-    return "**Available in chat, but the Discord audit failed.** The customer-facing reply remains available; do not resend it.";
-  }
+function failureAuditContent(envelope: MessageWorkflowEnvelope): string {
   return [
     "**Processing failed** — the customer message needs investigation.",
     "",
@@ -870,30 +864,34 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
       }
       return { messageId: envelope.messageId, status: "succeeded" };
     } catch (error) {
+      let recordedAvailability: "pending" | "available" | "not_available" | null = null;
       try {
-        await step.do("record-terminal-failure", DATABASE_STEP, async () => {
+        const recorded = await step.do("record-terminal-failure", DATABASE_STEP, async () => {
           const message = await recordFailure(this.env, envelope, generation, stage, error);
           return {
             processingStatus: message.processingStatus,
             customerAvailability: message.customerAvailability,
           };
         });
+        recordedAvailability = recorded.customerAvailability;
       } catch {
-        // Ingress may have failed before a canonical message existed.
+        // Ingress may have failed before a canonical message existed, or recording failed.
       }
 
       if ("discord" in envelope) {
         await step.do(`notify-reply-failed-${generation}`, DATABASE_STEP, () =>
           notifyDiscordReply(this.env, envelope, {
             content:
-              stage === "discord_audit"
+              recordedAvailability === "available"
                 ? "Reply sent to the customer, but posting the thread copy failed. Do not resend."
-                : "Reply not sent. Send it again with /reply.",
+                : recordedAvailability === "not_available"
+                  ? "Reply not sent. Send it again with /reply."
+                  : "Reply delivery could not be confirmed. Check the thread before sending again with /reply.",
           }),
         );
       }
 
-      if (envelope.direction === "customer_to_operator" || stage === "discord_audit") {
+      if (envelope.direction === "customer_to_operator") {
         try {
           const target = await ensureDiscordThread(step, this.env, envelope, "failure-discord");
           await projectDiscordChunks(
@@ -902,7 +900,7 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
             envelope,
             target,
             "failure_audit",
-            failureAuditContent(envelope, stage),
+            failureAuditContent(envelope),
             "post-failure-audit",
           );
         } catch {
