@@ -24,6 +24,7 @@ import {
   createExecutionContext,
   env,
   introspectWorkflow,
+  waitOnExecutionContext,
   type WorkflowIntrospector,
 } from "cloudflare:test";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vite-plus/test";
@@ -929,7 +930,7 @@ describe("signed Discord interaction ingress", () => {
 
   function commandPayload(
     interactionId: string,
-    command: "reply" | "retry" | "status",
+    command: string,
     options: readonly { readonly name: string; readonly value: string }[],
   ): Record<string, unknown> {
     return {
@@ -1156,41 +1157,155 @@ describe("signed Discord interaction ingress", () => {
       );
       expect(replay.status).toBe(200);
       await expect(replay.json()).resolves.toMatchObject({
-        data: { content: "Already available in chat." },
+        data: { content: "Reply already sent to the customer." },
       });
-
-      const statusResponse = await sendSignedCommand(
-        commandPayload(snowflakeAt(Date.now(), 12n), "status", [
-          { name: "reference", value: interactionId },
-        ]),
-      );
-      expect(statusResponse.status).toBe(200);
-      await expect(statusResponse.json()).resolves.toMatchObject({
-        data: { content: "Already available in chat." },
-      });
-
-      const retryResponse = await sendSignedCommand(
-        commandPayload(snowflakeAt(Date.now(), 13n), "retry", [
-          { name: "reference", value: interactionId },
-          { name: "message", value: "Please reopen the app." },
-        ]),
-      );
-      expect(retryResponse.status).toBe(200);
-      await expect(retryResponse.json()).resolves.toMatchObject({
-        data: { content: "Already available in chat." },
-      });
-
-      const recoveryReceipts = await env.DB.prepare(
-        "select command_name from discord_interaction where reference_interaction_id = ? order by command_name",
-      )
-        .bind(interactionId)
-        .all<{ command_name: string }>();
-      expect(recoveryReceipts.results).toEqual([
-        { command_name: "retry" },
-        { command_name: "status" },
-      ]);
     } finally {
       await workflows.dispose();
+    }
+  });
+
+  it("lets a failed /reply be sent again with /reply so the customer gets it once", async () => {
+    const customer = await createCustomerFixture();
+    await seedReadyDiscordThread(customer.threadId);
+    const privateUpdates: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof globalThis.fetch>(async (request, init) => {
+        const url =
+          typeof request === "string"
+            ? request
+            : request instanceof URL
+              ? request.href
+              : request.url;
+        if (
+          init?.method === "PATCH" &&
+          url.includes("/webhooks/") &&
+          typeof init.body === "string"
+        ) {
+          const body = JSON.parse(init.body) as { content: string };
+          privateUpdates.push(body.content);
+          return Response.json({});
+        }
+        return Response.json([]);
+      }),
+    );
+
+    const failedWorkflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+    try {
+      await failedWorkflows.modifyAll(async (modifier) => {
+        await modifier.disableRetryDelays();
+        await modifier.mockStepError(
+          { name: "translate-message" },
+          new Error("Translation provider unavailable"),
+        );
+        await modifier.mockStepResult(
+          { name: "post-failure-audit-0" },
+          { discordMessageId: "100000000000000090" },
+        );
+      });
+
+      const firstCtx = createExecutionContext();
+      const firstResponse = await sendSignedCommand(
+        commandPayload(snowflakeAt(Date.now(), 51n), "reply", [
+          { name: "message", value: "Please try exporting again." },
+          { name: "translate", value: "my-MM" },
+        ]),
+        firstCtx,
+      );
+      expect(firstResponse.status).toBe(200);
+      await (await oneCapturedWorkflow(failedWorkflows)).waitForStatus("errored");
+      await waitOnExecutionContext(firstCtx);
+      expect(privateUpdates.at(-1)).toBe("Reply not sent. Send it again with /reply.");
+      expect((await pollMessages(customer)).messages).toEqual([]);
+    } finally {
+      await failedWorkflows.dispose();
+    }
+
+    const retryWorkflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+    try {
+      await retryWorkflows.modifyAll(async (modifier) => {
+        await modifier.disableRetryDelays();
+        await modifier.mockStepResult({ name: "translate-message" }, outgoingTranslation);
+        await modifier.mockStepResult(
+          { name: "post-available-audit-0" },
+          { discordMessageId: "100000000000000091" },
+        );
+      });
+
+      const secondCtx = createExecutionContext();
+      const secondResponse = await sendSignedCommand(
+        commandPayload(snowflakeAt(Date.now() + 1_000, 52n), "reply", [
+          { name: "message", value: "Please try exporting again." },
+          { name: "translate", value: "my-MM" },
+        ]),
+        secondCtx,
+      );
+      expect(secondResponse.status).toBe(200);
+      await (await oneCapturedWorkflow(retryWorkflows)).waitForStatus("complete");
+      await waitOnExecutionContext(secondCtx);
+      expect(privateUpdates.at(-1)).toBe("Reply sent to the customer.");
+      expect((await pollMessages(customer)).messages).toEqual([
+        expect.objectContaining({
+          direction: "operator_to_customer",
+          text: outgoingTranslation.translatedText,
+          state: "available",
+        }),
+      ]);
+      for (const message of privateUpdates) {
+        expect(message).not.toMatch(/\/(status|retry|agent|approve)\b/i);
+      }
+    } finally {
+      vi.unstubAllGlobals();
+      await retryWorkflows.dispose();
+    }
+  });
+
+  it("refuses interactions for removed commands and buttons as unknown", async () => {
+    const removedSlash = [
+      commandPayload(snowflakeAt(Date.now(), 61n), "status", [
+        { name: "reference", value: "100000000000000001" },
+      ]),
+      commandPayload(snowflakeAt(Date.now(), 62n), "retry", [
+        { name: "reference", value: "100000000000000001" },
+        { name: "message", value: "Hello" },
+      ]),
+      commandPayload(snowflakeAt(Date.now(), 63n), "agent", [{ name: "message", value: "Steer" }]),
+      commandPayload(snowflakeAt(Date.now(), 64n), "approve", [
+        { name: "id", value: "100000000000000001" },
+      ]),
+    ];
+    for (const payload of removedSlash) {
+      const response = await sendSignedCommand(payload);
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toMatchObject({
+        data: { content: "Unknown Discord command" },
+      });
+    }
+
+    const removedMessageCommand = {
+      ...commandPayload(snowflakeAt(Date.now(), 65n), "reply", []),
+      data: { type: 3, name: "Approve draft", target_id: "100000000000000081" },
+    };
+    const msgRes = await sendSignedCommand(removedMessageCommand);
+    expect(msgRes.status).toBe(400);
+    await expect(msgRes.json()).resolves.toMatchObject({
+      data: { content: "Unknown Discord command" },
+    });
+
+    for (const customId of [
+      `agent:approve:msg_agent_${"a".repeat(64)}`,
+      `agent:translate:msg_agent_${"a".repeat(64)}:1`,
+    ]) {
+      const buttonPayload = {
+        ...commandPayload(snowflakeAt(Date.now(), 66n), "reply", []),
+        type: 3,
+        data: { custom_id: customId, component_type: 2 },
+      };
+      const btnRes = await sendSignedCommand(buttonPayload);
+      expect(btnRes.status).toBe(400);
+      await expect(btnRes.json()).resolves.toMatchObject({
+        data: { content: "Unknown Discord interaction" },
+      });
     }
   });
 

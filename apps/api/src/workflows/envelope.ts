@@ -69,8 +69,6 @@ export const agentOperatorEnvelopeSchema = sharedEnvelopeSchema.extend({
   replyTranslationRequest: z.string().min(2).max(35),
   agent: z.object({
     name: z.string().min(1).max(80),
-    mode: z.enum(["send", "draft"]),
-    previewTranslation: z.literal(true).optional(),
   }),
 });
 export type AgentOperatorEnvelope = z.infer<typeof agentOperatorEnvelopeSchema>;

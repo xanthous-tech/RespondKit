@@ -1,10 +1,24 @@
-import { applyD1Migrations, env, reset, type D1Migration } from "cloudflare:test";
-import { expect, it } from "vite-plus/test";
-import { seedTopology, TEST_TOPOLOGY } from "../test/fixtures";
+import {
+  applyD1Migrations,
+  env,
+  introspectWorkflow,
+  reset,
+  type D1Migration,
+} from "cloudflare:test";
+import { expect, it, vi } from "vite-plus/test";
+import {
+  createCustomerFixture,
+  createTestEnv,
+  seedReadyDiscordThread,
+  seedTopology,
+  TEST_TOPOLOGY,
+} from "../test/fixtures";
+import { agentTokenHash } from "./agent-api";
+import { createHttpApp } from "./http";
 
 declare const __D1_MIGRATIONS__: D1Migration[];
 
-it("upgrades existing 0008 data with 0009 and preserves customer and operator transcripts", async () => {
+it("upgrades existing 0008 data through 0012 preserving transcripts and dropping removed agent tables", async () => {
   await reset();
   await applyD1Migrations(
     env.DB,
@@ -41,11 +55,6 @@ it("upgrades existing 0008 data with 0009 and preserves customer and operator tr
   ).toEqual({ original_text: "Existing reply", author_kind: "operator", author_name: null });
   expect(
     await env.DB.prepare(
-      "SELECT claimed_by,claim_expires_at FROM thread WHERE id='legacy-thread'",
-    ).first(),
-  ).toEqual({ claimed_by: null, claim_expires_at: null });
-  expect(
-    await env.DB.prepare(
       "SELECT original_text,author_kind,author_name FROM message WHERE id='legacy-email'",
     ).first(),
   ).toEqual({
@@ -62,167 +71,224 @@ it("upgrades existing 0008 data with 0009 and preserves customer and operator tr
   expect(await env.DB.prepare("SELECT count(*) n FROM agent_rate_limit").first("n")).toBe(0);
 });
 
-it("upgrades populated 0009 to 0010 without changing customer data or existing claims, drafts and limits", async () => {
+it("upgrades populated 0011 to 0012: drops removed tables/columns, bumps message sequence past timeline, and preserves send idempotency", async () => {
   await reset();
   await applyD1Migrations(
     env.DB,
-    __D1_MIGRATIONS__.filter((migration) => migration.name < "0010"),
+    __D1_MIGRATIONS__.filter((migration) => migration.name < "0012"),
   );
   await seedTopology();
+  const customer = await createCustomerFixture();
+  await seedReadyDiscordThread(customer.threadId);
+  const threadRow = await env.DB.prepare("SELECT visitor_id FROM thread WHERE id=?")
+    .bind(customer.threadId)
+    .first<{ visitor_id: string }>();
+
+  const idempotencyKey = "pre-deploy-send-key";
+  const identity = await agentTokenHash(JSON.stringify([TEST_TOPOLOGY.inboxId, idempotencyKey]));
+  const sentMessageId = `msg_agent_${identity}`;
+  const sentWorkflowId = `agent_${identity}`;
+  const sentAcceptedAt = "2026-11-20T10:00:00.000Z";
+  const preDeployRequest = {
+    threadId: customer.threadId,
+    text: "Pre-deploy answer",
+    idempotencyKey,
+    translate: "off",
+    mode: "send",
+  };
+  const preDeployEnvelope = {
+    schema: "respondkit.workflow-message/1",
+    source: "agent",
+    direction: "operator_to_customer",
+    workspaceId: TEST_TOPOLOGY.workspaceId,
+    inboxId: TEST_TOPOLOGY.inboxId,
+    threadId: customer.threadId,
+    visitorId: threadRow!.visitor_id,
+    messageId: sentMessageId,
+    workflowInstanceId: sentWorkflowId,
+    acceptedAt: sentAcceptedAt,
+    originalText: "Pre-deploy answer",
+    replyTranslation: "off",
+    replyTranslationRequest: "off",
+    agent: { name: "Helper", mode: "send" },
+  };
+
   await env.DB.batch([
     env.DB.prepare(
-      "INSERT INTO visitor(id,workspace_id,inbox_id,installation_id) VALUES ('v9',?,?,'v9')",
-    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId),
+      "UPDATE thread SET claimed_by='old-runner', claim_expires_at=9999999999999 WHERE id=?",
+    ).bind(customer.threadId),
     env.DB.prepare(
-      "INSERT INTO thread(id,workspace_id,inbox_id,visitor_id,client_thread_id,claimed_by,claim_expires_at,customer_language) VALUES ('t9',?,?,'v9','t9','existing-run',9999999999999,'fr')",
-    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId),
+      "INSERT INTO message(id,workspace_id,inbox_id,thread_id,workflow_instance_id,direction,original_text,customer_visible_text,client_message_id,accepted_at) VALUES ('cust-1',?,?,?,'wf-cust-1','customer_to_operator','Need help','Need help','client-1',1000)",
+    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId, customer.threadId),
     env.DB.prepare(
-      "INSERT INTO message(id,workspace_id,inbox_id,thread_id,workflow_instance_id,direction,original_text,customer_visible_text,client_message_id,accepted_at) VALUES ('m9',?,?,'t9','w9','customer_to_operator','Question','Question','c9',1000)",
-    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId),
+      "INSERT INTO agent_reply(message_id,workspace_id,inbox_id,thread_id,idempotency_key,request_json,envelope,mode,status,basis_row_id,created_at) VALUES (?,?,?,?,?,?,?,'send','approved',1,1500)",
+    ).bind(
+      sentMessageId,
+      TEST_TOPOLOGY.workspaceId,
+      TEST_TOPOLOGY.inboxId,
+      customer.threadId,
+      idempotencyKey,
+      JSON.stringify(preDeployRequest),
+      JSON.stringify(preDeployEnvelope),
+    ),
     env.DB.prepare(
-      "INSERT INTO message(id,workspace_id,inbox_id,thread_id,workflow_instance_id,direction,original_text,customer_visible_text,author_kind,accepted_at) VALUES ('o9',?,?,'t9','wo9','operator_to_customer','Reply','Reply','operator',1000)",
-    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId),
+      "INSERT INTO message(id,workspace_id,inbox_id,thread_id,workflow_instance_id,direction,author_kind,author_name,original_text,customer_visible_text,reply_translation,reply_translation_request,processing_status,customer_availability,accepted_at) VALUES (?,?,?,?,?,'operator_to_customer','agent','Helper','Pre-deploy answer','Pre-deploy answer','off','off','succeeded','available',1500)",
+    ).bind(
+      sentMessageId,
+      TEST_TOPOLOGY.workspaceId,
+      TEST_TOPOLOGY.inboxId,
+      customer.threadId,
+      sentWorkflowId,
+    ),
     env.DB.prepare(
-      "INSERT INTO agent_reply(message_id,workspace_id,inbox_id,thread_id,idempotency_key,request_json,envelope,mode,status,basis_row_id,created_at) VALUES ('draft9',?,?,'t9','draft9','{}','{}','draft','pending',2,1000)",
-    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId),
+      "INSERT INTO agent_reply(message_id,workspace_id,inbox_id,thread_id,idempotency_key,request_json,envelope,mode,status,basis_row_id,created_at) VALUES ('pending-draft',?,?,?,'pending-key','{}','{}','draft','pending',2,1600)",
+    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId, customer.threadId),
+    env.DB.prepare(
+      "INSERT INTO agent_reply(message_id,workspace_id,inbox_id,thread_id,idempotency_key,request_json,envelope,mode,status,basis_row_id,created_at) VALUES ('rejected-draft',?,?,?,'rejected-key','{}','{}','draft','rejected',2,1700)",
+    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId, customer.threadId),
+    env.DB.prepare(
+      "INSERT INTO agent_draft_chunk VALUES ('900000000000000001',?,'pending-draft',0)",
+    ).bind(TEST_TOPOLOGY.discordThreadId),
+    env.DB.prepare(
+      "INSERT INTO agent_draft_preview(message_id,result_json) VALUES ('pending-draft','{}')",
+    ),
+    env.DB.prepare(
+      "INSERT INTO internal_note(id,workspace_id,inbox_id,thread_id,author_kind,author_name,kind,text,request_json,created_at) VALUES ('note-1',?,?,?,'agent','Helper','reasoning','Old note 1','{}',1800)",
+    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId, customer.threadId),
+    env.DB.prepare(
+      "INSERT INTO internal_note(id,workspace_id,inbox_id,thread_id,author_kind,author_name,kind,text,request_json,created_at) VALUES ('note-2',?,?,?,'operator','Simon','steer','Old note 2','{}',1900)",
+    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId, customer.threadId),
+    env.DB.prepare(
+      "INSERT INTO internal_note(id,workspace_id,inbox_id,thread_id,author_kind,author_name,kind,text,request_json,created_at) VALUES ('note-3',?,?,?,'agent','Helper','summary','Old note 3','{}',2000)",
+    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId, customer.threadId),
+    env.DB.prepare("INSERT INTO agent_ack VALUES (?,5)").bind(customer.threadId),
     env.DB.prepare("INSERT INTO agent_rate_limit VALUES ('existing-hash',123,7)"),
   ]);
-  const tables = [
-    "visitor",
-    "thread",
-    "message",
-    "customer_transcript_entry",
-    "agent_reply",
-    "agent_rate_limit",
-  ];
-  const before = await Promise.all(
-    tables.map((table) => env.DB.prepare(`SELECT * FROM ${table}`).all()),
-  );
-  await applyD1Migrations(env.DB, __D1_MIGRATIONS__);
-  const after = await Promise.all(
-    tables.map((table) => env.DB.prepare(`SELECT * FROM ${table}`).all()),
-  );
-  expect(after.map((r) => r.results)).toEqual(before.map((r) => r.results));
-  expect(
-    (
-      await env.DB.prepare(
-        "SELECT sequence,message_id,author_kind FROM agent_timeline ORDER BY sequence",
-      ).all()
-    ).results,
-  ).toEqual([
-    { sequence: 1, message_id: "m9", author_kind: "customer" },
-    { sequence: 2, message_id: "o9", author_kind: "operator" },
-  ]);
-  expect(await env.DB.prepare("SELECT count(*) n FROM agent_ack").first("n")).toBe(0);
-  await env.DB.prepare(
-    "INSERT INTO internal_note(id,workspace_id,inbox_id,thread_id,author_kind,author_name,kind,text,request_json,created_at) VALUES ('n10',?,?,'t9','operator','Simon','steer','Investigate','{}',1000)",
-  )
-    .bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId)
-    .run();
-  expect(
-    await env.DB.prepare("SELECT ordering_key FROM internal_note WHERE id='n10'").first(
-      "ordering_key",
-    ),
-  ).toBe(3);
-  expect(
-    await env.DB.prepare("SELECT status FROM agent_reply WHERE message_id='draft9'").first(
-      "status",
-    ),
-  ).toBe("stale");
-  await env.DB.prepare(
-    "INSERT INTO message(id,workspace_id,inbox_id,thread_id,workflow_instance_id,direction,original_text,customer_visible_text,client_message_id,accepted_at) VALUES ('m10',?,?,'t9','w10','customer_to_operator','Later','Later','c10',500)",
-  )
-    .bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId)
-    .run();
-  expect(
-    await env.DB.prepare("SELECT sequence FROM agent_timeline WHERE message_id='m10'").first(
-      "sequence",
-    ),
-  ).toBe(4);
-  expect(await env.DB.prepare("SELECT count(*) n FROM message WHERE id='n10'").first("n")).toBe(0);
-});
 
-it("upgrades populated 0010 to 0011 preserving approved reviews and invalidating only pending drafts on steer", async () => {
-  await reset();
-  await applyD1Migrations(
-    env.DB,
-    __D1_MIGRATIONS__.filter((migration) => migration.name < "0011"),
-  );
-  await seedTopology();
-  await env.DB.batch([
-    env.DB.prepare(
-      "INSERT INTO visitor(id,workspace_id,inbox_id,installation_id) VALUES ('v10',?,?,'v10')",
-    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId),
-    env.DB.prepare(
-      "INSERT INTO thread(id,workspace_id,inbox_id,visitor_id,client_thread_id,claimed_by,claim_expires_at) VALUES ('t10',?,?,'v10','t10','existing-run',9999999999999)",
-    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId),
-    env.DB.prepare(
-      "INSERT INTO internal_note(id,workspace_id,inbox_id,thread_id,author_kind,author_name,kind,text,request_json,created_at) VALUES ('old-note',?,?,'t10','agent','Helper','reasoning','Existing note','{}',1000)",
-    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId),
-    env.DB.prepare(
-      "INSERT INTO agent_reply(message_id,workspace_id,inbox_id,thread_id,idempotency_key,request_json,envelope,mode,status,basis_row_id,decided_by,decided_at,created_at) VALUES ('approved10',?,?,'t10','approved10','{}','{}','draft','approved',0,'simon',1000,1000)",
-    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId),
-    env.DB.prepare(
-      "INSERT INTO message(id,workspace_id,inbox_id,thread_id,workflow_instance_id,direction,original_text,author_kind,accepted_at) VALUES ('approved10',?,?,'t10','wa10','operator_to_customer','Approved answer','agent',1000)",
-    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId),
-    env.DB.prepare(
-      'INSERT INTO reply_review(message_id,generation,result_json,created_at) VALUES (\'approved10\',1,\'{"translatedText":"Réponse","needsReview":true}\',1000)',
-    ),
-    env.DB.prepare(
-      "INSERT INTO agent_reply(message_id,workspace_id,inbox_id,thread_id,idempotency_key,request_json,envelope,mode,status,basis_row_id,created_at) VALUES ('pending10',?,?,'t10','pending10','{}','{}','draft','pending',1,1000)",
-    ).bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId),
-    env.DB.prepare("INSERT INTO agent_ack VALUES ('t10',1)"),
-    env.DB.prepare("INSERT INTO agent_draft_chunk VALUES ('123','456','approved10',0)"),
-  ]);
-  const tables = [
-    "visitor",
-    "thread",
-    "message",
-    "customer_transcript_entry",
-    "agent_reply",
-    "reply_review",
+  const maxTimelineBefore = await env.DB.prepare(
+    "SELECT max(sequence) AS max_seq FROM agent_timeline",
+  ).first<{ max_seq: number }>();
+  expect(maxTimelineBefore?.max_seq).toBe(5);
+
+  await applyD1Migrations(env.DB, __D1_MIGRATIONS__);
+
+  const remainingTables = (
+    await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table'").all<{
+      name: string;
+    }>()
+  ).results.map((r) => r.name);
+  for (const dropped of [
     "internal_note",
     "agent_timeline",
     "agent_ack",
     "agent_draft_chunk",
-  ];
-  const before = await Promise.all(
-    tables.map((table) => env.DB.prepare(`SELECT * FROM ${table}`).all()),
-  );
-  await applyD1Migrations(env.DB, __D1_MIGRATIONS__);
-  const after = await Promise.all(
-    tables.map((table) => env.DB.prepare(`SELECT * FROM ${table}`).all()),
-  );
-  expect(after.map((result) => result.results)).toEqual(before.map((result) => result.results));
-  expect(await env.DB.prepare("SELECT count(*) n FROM agent_draft_preview").first("n")).toBe(0);
+    "agent_draft_preview",
+  ]) {
+    expect(remainingTables).not.toContain(dropped);
+  }
+  const remainingTriggers = (
+    await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='trigger' ORDER BY name").all<{
+      name: string;
+    }>()
+  ).results.map((r) => r.name);
+  expect(remainingTriggers).toEqual(["cancel_read_emails", "queue_operator_email"]);
+
+  const threadCols = (
+    await env.DB.prepare("PRAGMA table_info(thread)").all<{ name: string }>()
+  ).results.map((c) => c.name);
+  expect(threadCols).not.toContain("claimed_by");
+  expect(threadCols).not.toContain("claim_expires_at");
+
+  const replyCols = (
+    await env.DB.prepare("PRAGMA table_info(agent_reply)").all<{ name: string }>()
+  ).results.map((c) => c.name);
+  expect(replyCols).toEqual([
+    "message_id",
+    "workspace_id",
+    "inbox_id",
+    "thread_id",
+    "idempotency_key",
+    "request_json",
+    "envelope",
+    "created_at",
+  ]);
+
+  // Only the pre-deploy sent row survived; pending/rejected drafts were dropped.
+  const carried = await env.DB.prepare(
+    "SELECT message_id, request_json, envelope FROM agent_reply",
+  ).all<{ message_id: string; request_json: string; envelope: string }>();
+  expect(carried.results).toHaveLength(1);
+  expect(carried.results[0]?.message_id).toBe(sentMessageId);
+  expect(JSON.parse(carried.results[0]!.envelope).agent).toEqual({ name: "Helper" });
+  expect(await env.DB.prepare("SELECT count(*) n FROM agent_rate_limit").first("n")).toBe(1);
+
+  // Cursor monotonicity: a post-migration message gets row_id > pre-migration max(agent_timeline.sequence).
   await env.DB.prepare(
-    "INSERT INTO internal_note(id,workspace_id,inbox_id,thread_id,author_kind,author_name,operator_discord_user_id,kind,text,request_json,created_at) VALUES ('steer11',?,?,'t10','operator','Simon','simon','steer','Next question','{}',2000)",
+    "INSERT INTO message(id,workspace_id,inbox_id,thread_id,workflow_instance_id,direction,original_text,customer_visible_text,client_message_id,accepted_at) VALUES ('cust-post',?,?,?,'wf-cust-post','customer_to_operator','Follow up','Follow up','client-post',3000)",
   )
-    .bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId)
+    .bind(TEST_TOPOLOGY.workspaceId, TEST_TOPOLOGY.inboxId, customer.threadId)
     .run();
-  expect(
-    await env.DB.prepare("SELECT status FROM agent_reply WHERE message_id='approved10'").first(
-      "status",
-    ),
-  ).toBe("approved");
-  expect(
-    await env.DB.prepare("SELECT status FROM agent_reply WHERE message_id='pending10'").first(
-      "status",
-    ),
-  ).toBe("stale");
-  expect(
-    await env.DB.prepare(
-      "SELECT confirmed_by FROM reply_review WHERE message_id='approved10'",
-    ).first("confirmed_by"),
-  ).toBeNull();
-  expect(
-    await env.DB.prepare("SELECT ordering_key FROM internal_note WHERE id='steer11'").first(
-      "ordering_key",
-    ),
-  ).toBe(3);
-  expect(
-    await env.DB.prepare("SELECT through_sequence FROM agent_ack WHERE thread_id='t10'").first(
-      "through_sequence",
-    ),
-  ).toBe(1);
+  const postRowId = await env.DB.prepare("SELECT row_id FROM message WHERE id='cust-post'").first<{
+    row_id: number;
+  }>();
+  expect(postRowId!.row_id).toBeGreaterThan(maxTimelineBefore!.max_seq);
+
+  // Pre-deploy send retried post-deploy with the same idempotencyKey (with or without mode:'send') delivers once.
+  const token = "migration-test-agent-token";
+  const apiEnv = createTestEnv({
+    [`AGENT_TOKEN_${TEST_TOPOLOGY.inboxId}`]: await agentTokenHash(token),
+    [`AGENT_NAME_${TEST_TOPOLOGY.inboxId}`]: "Helper",
+  });
+  const app = createHttpApp();
+  const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+  try {
+    await workflows.modifyAll(async (modifier) => modifier.disableRetryDelays());
+    for (const payload of [
+      { text: "Pre-deploy answer", idempotencyKey, translate: "off", mode: "send" },
+      { text: "Pre-deploy answer", idempotencyKey, translate: "off" },
+    ]) {
+      const retry = await app.request(
+        `/v1/agent/threads/${customer.threadId}/replies`,
+        {
+          method: "POST",
+          headers: {
+            authorization: `Bearer ${token}`,
+            "content-type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        },
+        apiEnv,
+      );
+      expect(retry.status).toBe(202);
+      const body = await retry.json<{ messageId: string; status: string }>();
+      expect(body.messageId).toBe(sentMessageId);
+      expect(body.status).toBe("available");
+      expect(body).not.toHaveProperty("mode");
+    }
+    const instances = await workflows.get();
+    for (const instance of instances) await instance.waitForStatus("complete");
+    expect(
+      await env.DB.prepare(
+        "SELECT count(*) n FROM message WHERE thread_id=? AND author_kind='agent'",
+      )
+        .bind(customer.threadId)
+        .first("n"),
+    ).toBe(1);
+    const conflict = await app.request(
+      `/v1/agent/threads/${customer.threadId}/replies`,
+      {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${token}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ text: "Different text", idempotencyKey, translate: "off" }),
+      },
+      apiEnv,
+    );
+    expect(conflict.status).toBe(409);
+  } finally {
+    vi.unstubAllGlobals();
+    await workflows.dispose();
+  }
 });

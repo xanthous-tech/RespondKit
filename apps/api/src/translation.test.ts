@@ -417,9 +417,16 @@ describe("optional message translation", () => {
       .first<{ visitor_id: string }>();
     if (!thread) throw new Error("Expected thread");
     const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+    const privateReplies: string[] = [];
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () => Response.json({})),
+      vi.fn(async (request, init) => {
+        if (init?.method === "PATCH" && String(request).includes("/webhooks/")) {
+          const body = JSON.parse(String(init.body)) as { content: string };
+          privateReplies.push(body.content);
+        }
+        return Response.json({});
+      }),
     );
     try {
       await workflows.modifyAll(async (modifier) => {
@@ -480,6 +487,7 @@ describe("optional message translation", () => {
       ).toEqual({ customer_availability: "pending" });
       await handleTranslationInteraction(apiEnv, confirm);
       await instance.waitForStatus("complete");
+      expect(privateReplies.at(-1)).toBe("Reply sent to the customer.");
       expect(
         await env.DB.prepare("SELECT customer_availability FROM message WHERE id = ?")
           .bind(identity.messageId)

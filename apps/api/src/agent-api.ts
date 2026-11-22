@@ -1,11 +1,8 @@
-import { deliverNote, noteResponse, type InternalNote } from "./agent-notes";
-import { applyAgentDraftDecision } from "./agent-replies";
 import {
-  closeThread,
+  acceptOperatorIngress,
   findThreadById,
   messages,
   messageTranslations,
-  reopenThread,
   threads,
   translationJobs,
 } from "@respondkit/conversations";
@@ -16,35 +13,56 @@ import {
   visitors,
   type InboxContext,
 } from "@respondkit/workspaces";
-import { and, asc, desc, eq, lt, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, lt, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { activityConnection, ActivityError, fetchActivity } from "./activity-service";
 import { createDatabase } from "./db";
-import { resolveTranslationLanguage } from "./language";
 import type { Env } from "./env";
+import { resolveTranslationLanguage } from "./language";
 import { readBearerToken } from "./session";
 import { translationEnabled } from "./translation-service";
 import { acceptWorkflow } from "./workflow-binding";
-import { agentOperatorEnvelopeSchema } from "./workflows/envelope";
+import { agentOperatorEnvelopeSchema, type AgentOperatorEnvelope } from "./workflows/envelope";
 
 export async function agentTokenHash(value: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+export async function acceptAgentIngress(env: Env, envelope: AgentOperatorEnvelope) {
+  const stored = await env.DB.prepare("SELECT envelope FROM agent_reply WHERE message_id=?")
+    .bind(envelope.messageId)
+    .first<{ envelope: string }>();
+  if (
+    !stored ||
+    JSON.stringify(agentOperatorEnvelopeSchema.parse(JSON.parse(stored.envelope))) !==
+      JSON.stringify(envelope)
+  ) {
+    throw new Error("Agent reply is missing or the immutable ingress differs");
+  }
+  return acceptOperatorIngress(createDatabase(env.DB), {
+    id: envelope.messageId,
+    workspaceId: envelope.workspaceId,
+    inboxId: envelope.inboxId,
+    threadId: envelope.threadId,
+    workflowInstanceId: envelope.workflowInstanceId,
+    acceptedAt: new Date(envelope.acceptedAt),
+    originalEnglishText: envelope.originalText,
+    replyTranslation: envelope.replyTranslation,
+    replyTranslationRequest: envelope.replyTranslationRequest,
+    authorKind: "agent",
+    authorName: envelope.agent.name,
+  });
+}
+
 interface AgentAuth {
   inbox: InboxContext;
   name: string;
-  holder: string;
 }
 
-async function authenticate(
-  env: Env,
-  authorization: string | undefined,
-  runId: string | undefined,
-): Promise<AgentAuth> {
+async function authenticate(env: Env, authorization: string | undefined): Promise<AgentAuth> {
   const token = readBearerToken(authorization);
   if (!token || token.length > 1024)
     throw new HTTPException(401, { message: "A valid agent bearer token is required" });
@@ -83,36 +101,53 @@ async function authenticate(
       .first<{ count: number }>();
   if (!rate || rate.count > 120)
     throw new HTTPException(429, { message: "Agent rate limit exceeded; retry next minute" });
-  const run = z
-    .string()
-    .regex(/^[A-Za-z0-9_-]{1,64}$/)
-    .parse(runId ?? "default");
   const name = z
     .string()
     .regex(/^[\p{L}\p{N} ._-]{1,80}$/u)
     .parse(env[`AGENT_NAME_${inboxId}`] || inboxId);
-  return { inbox, name, holder: `agent_${(await agentTokenHash(`${hash}:${run}`)).slice(0, 32)}` };
+  return { inbox, name };
 }
 
 const threadQuerySchema = z.object({
   state: z.enum(["open", "closed"]).optional(),
-  needsAgent: z.enum(["0", "1"]).optional(),
-  needsReply: z.enum(["0", "1"]).optional(),
   cursor: z.string().max(512).optional(),
   limit: z.coerce.number().int().min(1).max(100).default(50),
 });
-const replySchema = z
-  .object({
-    text: z
-      .string()
-      .min(1)
-      .max(6000)
-      .refine((text) => text.trim().length > 0),
-    idempotencyKey: z.string().min(1).max(128),
-    translate: z.string().min(2).max(35).default("off"),
-    mode: z.enum(["send", "draft"]),
-  })
-  .strict();
+
+const replySchema = z.object({
+  text: z
+    .string()
+    .min(1)
+    .max(6000)
+    .refine((text) => text.trim().length > 0),
+  idempotencyKey: z.string().min(1).max(128),
+  translate: z.string().min(2).max(35).default("off"),
+});
+
+const storedRequestSchema = z.object({
+  threadId: z.string(),
+  text: z.string(),
+  translate: z.string().default("off"),
+});
+
+function sameReplyRequest(
+  storedJson: string,
+  expected: { threadId: string; text: string; translate: string },
+): boolean {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(storedJson);
+  } catch {
+    return false;
+  }
+  const parsed = storedRequestSchema.safeParse(raw);
+  return (
+    parsed.success &&
+    parsed.data.threadId === expected.threadId &&
+    parsed.data.text === expected.text &&
+    parsed.data.translate === expected.translate
+  );
+}
 
 async function requestJson(request: Request): Promise<unknown> {
   const text = await request.text();
@@ -128,12 +163,10 @@ export function createAgentApp() {
   const app = new Hono<{ Bindings: Env; Variables: { agent: AgentAuth } }>();
   app.use("*", async (c, next) => {
     c.header("cache-control", "no-store");
-    c.set(
-      "agent",
-      await authenticate(c.env, c.req.header("authorization"), c.req.header("x-agent-run-id")),
-    );
+    c.set("agent", await authenticate(c.env, c.req.header("authorization")));
     await next();
   });
+
   app.get("/threads", async (c) => {
     const { inbox } = c.get("agent");
     const query = threadQuerySchema.parse(c.req.query());
@@ -156,15 +189,13 @@ export function createAgentApp() {
         guildId: discordIntegrations.guildId,
         lastCustomerAt: sql<
           number | null
-        >`(SELECT max(created_at) FROM agent_timeline WHERE thread_id=${threads.id} AND author_kind='customer')`,
+        >`(SELECT max(accepted_at) FROM message WHERE thread_id=${threads.id} AND direction='customer_to_operator')`,
         lastOperatorAt: sql<
           number | null
-        >`(SELECT max(created_at) FROM agent_timeline WHERE thread_id=${threads.id} AND author_kind='operator')`,
+        >`(SELECT max(accepted_at) FROM message WHERE thread_id=${threads.id} AND direction='operator_to_customer' AND (author_kind IS NULL OR author_kind<>'agent'))`,
         lastAgentAt: sql<
           number | null
-        >`(SELECT max(at) FROM (SELECT created_at at FROM agent_timeline WHERE thread_id=${threads.id} AND author_kind='agent' UNION ALL SELECT created_at at FROM agent_reply WHERE thread_id=${threads.id}))`,
-        agentCursor: sql<number>`coalesce((SELECT max(sequence) FROM agent_timeline WHERE thread_id=${threads.id}),0)`,
-        acknowledgedCursor: sql<number>`coalesce((SELECT through_sequence FROM agent_ack WHERE thread_id=${threads.id}),0)`,
+        >`(SELECT max(accepted_at) FROM message WHERE thread_id=${threads.id} AND direction='operator_to_customer' AND author_kind='agent')`,
       })
       .from(threads)
       .innerJoin(
@@ -182,14 +213,6 @@ export function createAgentApp() {
           eq(threads.workspaceId, inbox.workspaceId),
           eq(threads.inboxId, inbox.inboxId),
           query.state ? eq(threads.status, query.state) : undefined,
-          query.needsAgent === "1"
-            ? sql`${threads.status}='open' AND EXISTS (SELECT 1 FROM agent_timeline e WHERE e.thread_id=${threads.id} AND e.author_kind IN ('customer','operator') AND e.sequence>coalesce((SELECT through_sequence FROM agent_ack WHERE thread_id=${threads.id}),0))`
-            : undefined,
-          query.needsReply === "1"
-            ? sql`(SELECT direction FROM message WHERE thread_id=${threads.id}
-          AND (direction='customer_to_operator' OR customer_availability='available')
-          ORDER BY accepted_at DESC,id DESC LIMIT 1)='customer_to_operator'`
-            : undefined,
           cursor
             ? or(
                 lt(threads.lastActivityAt, new Date(cursor.at)),
@@ -211,8 +234,6 @@ export function createAgentApp() {
         lastOperatorAt:
           row.lastOperatorAt === null ? null : new Date(row.lastOperatorAt).toISOString(),
         lastAgentAt: row.lastAgentAt === null ? null : new Date(row.lastAgentAt).toISOString(),
-        agentCursor: String(row.agentCursor),
-        acknowledgedCursor: String(row.acknowledgedCursor),
         visitor: row.visitor,
         discordThreadUrl:
           row.guildId && row.discordThreadId
@@ -225,6 +246,7 @@ export function createAgentApp() {
           : null,
     });
   });
+
   app.use("/threads/:id/*", async (c, next) => {
     const { inbox } = c.get("agent");
     const thread = await findThreadById(createDatabase(c.env.DB), {
@@ -234,6 +256,7 @@ export function createAgentApp() {
     if (!thread) throw new HTTPException(404, { message: "Thread not found" });
     await next();
   });
+
   app.get("/threads/:id", async (c) => {
     const { inbox } = c.get("agent");
     const db = createDatabase(c.env.DB);
@@ -247,44 +270,51 @@ export function createAgentApp() {
       .parse(c.req.query());
     const [visitor] = await db.select().from(visitors).where(eq(visitors.id, thread.visitorId));
     const identity = await findVisitorCustomer(db, thread.visitorId);
-    const events = await c.env.DB.prepare(
-      "SELECT sequence,message_id,note_id FROM agent_timeline WHERE thread_id=? AND inbox_id=? AND sequence>? ORDER BY sequence LIMIT ?",
-    )
-      .bind(thread.id, inbox.inboxId, query.cursor, query.limit + 1)
-      .all<{ sequence: number; message_id: string | null; note_id: string | null }>();
-    const eventPage = events.results.slice(0, query.limit);
-    const pageMessageIds = sql`SELECT message_id FROM agent_timeline WHERE thread_id=${thread.id}
-      AND sequence>${query.cursor} AND sequence<=${eventPage.at(-1)?.sequence ?? query.cursor}`;
-    const page = await db
+    const fetched = await db
       .select()
       .from(messages)
-      .where(sql`${messages.id} IN (${pageMessageIds})`)
-      .orderBy(asc(messages.rowId));
-    const noteRows = await c.env.DB.prepare(
-      "SELECT * FROM internal_note WHERE thread_id=? AND inbox_id=? AND ordering_key>? AND ordering_key<=? ORDER BY ordering_key",
-    )
-      .bind(thread.id, inbox.inboxId, query.cursor, eventPage.at(-1)?.sequence ?? query.cursor)
-      .all<InternalNote>();
-    const translations = await db
-      .select()
-      .from(messageTranslations)
       .where(
         and(
-          eq(messageTranslations.threadId, thread.id),
-          eq(messageTranslations.inboxId, inbox.inboxId),
-          sql`${messageTranslations.messageId} IN (${pageMessageIds})`,
+          eq(messages.workspaceId, inbox.workspaceId),
+          eq(messages.inboxId, inbox.inboxId),
+          eq(messages.threadId, thread.id),
+          gt(messages.rowId, query.cursor),
         ),
-      );
-    const jobs = await db
-      .select()
-      .from(translationJobs)
-      .where(
-        and(
-          eq(translationJobs.threadId, thread.id),
-          eq(translationJobs.status, "succeeded"),
-          sql`${translationJobs.messageId} IN (${pageMessageIds})`,
-        ),
-      );
+      )
+      .orderBy(asc(messages.rowId))
+      .limit(query.limit + 1);
+    const page = fetched.slice(0, query.limit);
+    const lastRowId = page.at(-1)?.rowId;
+    const pageMessageIds =
+      lastRowId === undefined
+        ? null
+        : sql`SELECT id FROM message WHERE thread_id=${thread.id} AND inbox_id=${inbox.inboxId} AND row_id>${query.cursor} AND row_id<=${lastRowId}`;
+    const translations =
+      pageMessageIds === null
+        ? []
+        : await db
+            .select()
+            .from(messageTranslations)
+            .where(
+              and(
+                eq(messageTranslations.threadId, thread.id),
+                eq(messageTranslations.inboxId, inbox.inboxId),
+                sql`${messageTranslations.messageId} IN (${pageMessageIds})`,
+              ),
+            );
+    const jobs =
+      pageMessageIds === null
+        ? []
+        : await db
+            .select()
+            .from(translationJobs)
+            .where(
+              and(
+                eq(translationJobs.threadId, thread.id),
+                eq(translationJobs.status, "succeeded"),
+                sql`${translationJobs.messageId} IN (${pageMessageIds})`,
+              ),
+            );
     let activity: unknown = null;
     const configured = JSON.parse(c.env.POSTHOG_ACTIVITY_INBOXES ?? "{}");
     if (Object.hasOwn(configured, inbox.inboxId)) {
@@ -318,153 +348,38 @@ export function createAgentApp() {
         : null,
       messages: page.map((message) => ({
         ...message,
-        // Each attachment also carries the agent's own download path, authorised by its token.
         attachments: (message.attachments ?? []).map((attachment) => ({
           ...attachment,
           agentDownloadPath: `/v1/agent/threads/${encodeURIComponent(thread.id)}/attachments/${encodeURIComponent(attachment.id)}`,
         })),
-        sequence: String(eventPage.find((event) => event.message_id === message.id)!.sequence),
         translations: translations.filter((t) => t.messageId === message.id),
         onDemandTranslations: jobs
           .filter((job) => job.messageId === message.id)
           .map((job) => JSON.parse(job.resultJson!)),
       })),
-      notes: noteRows.results.map(noteResponse),
-      through: String(eventPage.at(-1)?.sequence ?? query.cursor),
-      nextCursor: events.results.length > query.limit ? String(eventPage.at(-1)!.sequence) : null,
+      through: String(lastRowId ?? query.cursor),
+      nextCursor:
+        fetched.length > query.limit && lastRowId !== undefined ? String(lastRowId) : null,
       activity,
     });
   });
-  app.post("/threads/:id/notes", async (c) => {
-    const auth = c.get("agent");
-    const request = z
-      .object({
-        kind: z.enum(["reasoning", "reply", "steer", "summary", "note"]),
-        text: z
-          .string()
-          .min(1)
-          .max(6000)
-          .refine((text) => text.trim().length > 0),
-        idempotencyKey: z.string().min(1).max(128),
-      })
-      .strict()
-      .parse(await requestJson(c.req.raw));
-    const threadId = c.req.param("id");
-    const canonical = JSON.stringify({ threadId, ...request });
-    const id = `note_agent_${await agentTokenHash(JSON.stringify([auth.inbox.inboxId, request.idempotencyKey]))}`;
-    const inserted =
-      await c.env.DB.prepare(`INSERT INTO internal_note(id,workspace_id,inbox_id,thread_id,author_kind,author_name,kind,text,idempotency_key,request_json,created_at)
-      SELECT ?,workspace_id,inbox_id,id,'agent',?,?,?,?,?,? FROM thread WHERE id=? AND inbox_id=? AND workspace_id=?
-      AND (claimed_by IS NULL OR claim_expires_at<=? OR claimed_by=?) ON CONFLICT(inbox_id,idempotency_key) DO NOTHING RETURNING id`)
-        .bind(
-          id,
-          auth.name,
-          request.kind,
-          request.text,
-          request.idempotencyKey,
-          canonical,
-          Date.now(),
-          threadId,
-          auth.inbox.inboxId,
-          auth.inbox.workspaceId,
-          Date.now(),
-          auth.holder,
-        )
-        .first();
-    const note = await c.env.DB.prepare(
-      "SELECT * FROM internal_note WHERE inbox_id=? AND idempotency_key=?",
-    )
-      .bind(auth.inbox.inboxId, request.idempotencyKey)
-      .first<InternalNote>();
-    if (!note) throw new HTTPException(409, { message: "Another holder has a live claim" });
-    if (note.request_json !== canonical)
-      throw new HTTPException(409, {
-        message: "Idempotency key belongs to another immutable note",
-      });
-    const posted = await deliverNote(c.env, note);
-    return c.json(
-      { note: noteResponse(note), delivery: posted ? "posted" : "pending" },
-      posted ? (inserted ? 201 : 200) : 503,
-    );
-  });
-  app.post("/threads/:id/ack", async (c) => {
-    const { inbox, holder } = c.get("agent");
-    const { through } = z
-      .object({
-        through: z
-          .string()
-          .regex(/^(0|[1-9][0-9]*)$/)
-          .refine((s) => Number.isSafeInteger(Number(s))),
-      })
-      .strict()
-      .parse(await requestJson(c.req.raw));
-    const sequence = Number(through);
-    const threadId = c.req.param("id");
-    if (
-      sequence !== 0 &&
-      !(await c.env.DB.prepare(
-        "SELECT sequence FROM agent_timeline WHERE thread_id=? AND inbox_id=? AND sequence=?",
-      )
-        .bind(threadId, inbox.inboxId, sequence)
-        .first())
-    )
-      throw new HTTPException(400, { message: "Cursor does not belong to this thread" });
-    const ack = await c.env.DB.prepare(`INSERT INTO agent_ack(thread_id,through_sequence)
-      SELECT id,? FROM thread WHERE id=? AND inbox_id=? AND workspace_id=? AND (claimed_by IS NULL OR claim_expires_at<=? OR claimed_by=?)
-      ON CONFLICT(thread_id) DO UPDATE SET through_sequence=max(agent_ack.through_sequence,excluded.through_sequence) RETURNING through_sequence`)
-      .bind(sequence, threadId, inbox.inboxId, inbox.workspaceId, Date.now(), holder)
-      .first<{ through_sequence: number }>();
-    if (!ack) throw new HTTPException(409, { message: "Another holder has a live claim" });
-    return c.json({ acknowledgedCursor: String(ack.through_sequence) });
-  });
-  app.post("/threads/:id/claim", async (c) => {
-    const { inbox, holder } = c.get("agent");
-    const { leaseSeconds } = z
-      .object({ leaseSeconds: z.number().int().min(1).max(3600) })
-      .strict()
-      .parse(await requestJson(c.req.raw));
-    const now = Date.now();
-    const claimed =
-      await c.env.DB.prepare(`UPDATE thread SET claimed_by=?,claim_expires_at=? WHERE id=? AND inbox_id=? AND workspace_id=? AND status='open'
-      AND (claimed_by IS NULL OR claim_expires_at<=? OR claimed_by=?) RETURNING claimed_by,claim_expires_at`)
-        .bind(
-          holder,
-          now + leaseSeconds * 1000,
-          c.req.param("id"),
-          inbox.inboxId,
-          inbox.workspaceId,
-          now,
-          holder,
-        )
-        .first<{ claimed_by: string; claim_expires_at: number }>();
-    if (!claimed)
-      throw new HTTPException(409, { message: "Thread is closed or has another live claim" });
-    return c.json({
-      claimedBy: claimed.claimed_by,
-      claimExpiresAt: new Date(claimed.claim_expires_at).toISOString(),
-    });
-  });
-  app.post("/threads/:id/release", async (c) => {
-    const { inbox, holder } = c.get("agent");
-    const released =
-      await c.env.DB.prepare(`UPDATE thread SET claimed_by=NULL,claim_expires_at=NULL WHERE id=? AND inbox_id=?
-      AND (claimed_by IS NULL OR claimed_by=? OR claim_expires_at<=?) RETURNING id`)
-        .bind(c.req.param("id"), inbox.inboxId, holder, Date.now())
-        .first();
-    if (!released) throw new HTTPException(409, { message: "Another holder has a live claim" });
-    return c.json({ released: true });
-  });
+
   app.post("/threads/:id/replies", async (c) => {
     const auth = c.get("agent");
     const request = replySchema.parse(await requestJson(c.req.raw));
     const threadId = c.req.param("id");
-    const canonicalRequest = JSON.stringify({ threadId, ...request });
+    const canonicalPayload = {
+      threadId,
+      text: request.text,
+      translate: request.translate,
+    };
+    const canonicalRequest = JSON.stringify(canonicalPayload);
     const db = createDatabase(c.env.DB);
     let stored = await c.env.DB.prepare(
-      "SELECT envelope,request_json,status FROM agent_reply WHERE inbox_id=? AND idempotency_key=?",
+      "SELECT envelope,request_json FROM agent_reply WHERE inbox_id=? AND idempotency_key=?",
     )
       .bind(auth.inbox.inboxId, request.idempotencyKey)
-      .first<{ envelope: string; request_json: string; status: string }>();
+      .first<{ envelope: string; request_json: string }>();
     if (!stored) {
       const thread = (await findThreadById(db, { ...auth.inbox, threadId }))!;
       let translate = request.translate;
@@ -507,43 +422,34 @@ export function createAgentApp() {
         replyTranslationRequest: request.translate,
         agent: {
           name: auth.name,
-          mode: request.mode,
-          ...(request.mode === "draft" && translate !== "off" ? { previewTranslation: true } : {}),
         },
       });
-      await c.env.DB.prepare(`INSERT INTO agent_reply(message_id,workspace_id,inbox_id,thread_id,idempotency_key,request_json,envelope,mode,status,basis_row_id,created_at)
-        SELECT ?,workspace_id,inbox_id,id,?,?,?,?,?,coalesce((SELECT max(row_id) FROM message WHERE thread_id=thread.id),0),?
-        FROM thread WHERE id=? AND inbox_id=? AND status='open' AND (claimed_by IS NULL OR claim_expires_at<=? OR claimed_by=?)
+      await c.env.DB.prepare(`INSERT INTO agent_reply(message_id,workspace_id,inbox_id,thread_id,idempotency_key,request_json,envelope,created_at)
+        SELECT ?,workspace_id,inbox_id,id,?,?,?,?
+        FROM thread WHERE id=? AND inbox_id=? AND status='open'
         ON CONFLICT(inbox_id,idempotency_key) DO NOTHING`)
         .bind(
           envelope.messageId,
           request.idempotencyKey,
           canonicalRequest,
           JSON.stringify(envelope),
-          request.mode,
-          request.mode === "draft" ? "pending" : "approved",
           Date.now(),
           threadId,
           auth.inbox.inboxId,
-          Date.now(),
-          auth.holder,
         )
         .run();
       stored = await c.env.DB.prepare(
-        "SELECT envelope,request_json,status FROM agent_reply WHERE inbox_id=? AND idempotency_key=?",
+        "SELECT envelope,request_json FROM agent_reply WHERE inbox_id=? AND idempotency_key=?",
       )
         .bind(auth.inbox.inboxId, request.idempotencyKey)
         .first();
-      if (!stored)
-        throw new HTTPException(409, { message: "Thread is closed or has another live claim" });
+      if (!stored) throw new HTTPException(409, { message: "Thread is closed" });
     }
-    if (stored.request_json !== canonicalRequest)
+    if (!sameReplyRequest(stored.request_json, canonicalPayload))
       throw new HTTPException(409, {
         message: "Idempotency key belongs to another immutable reply",
       });
     const envelope = agentOperatorEnvelopeSchema.parse(JSON.parse(stored.envelope));
-    if (stored.status === "rejected" || stored.status === "stale")
-      return c.json({ messageId: envelope.messageId, status: stored.status });
     const acceptance = await acceptWorkflow(
       c.env.MESSAGE_WORKFLOW,
       envelope.workflowInstanceId,
@@ -557,8 +463,7 @@ export function createAgentApp() {
     return c.json(
       {
         messageId: envelope.messageId,
-        mode: envelope.agent.mode,
-        status: message?.customerAvailability === "available" ? "available" : stored.status,
+        status: message?.customerAvailability === "available" ? "available" : "accepted",
         acceptance: acceptance.kind === "unknown" ? "acceptance_unknown" : acceptance.kind,
         workflowStatus: acceptance.kind === "existing" ? acceptance.status.status : null,
         processingStatus: message?.processingStatus ?? null,
@@ -567,49 +472,7 @@ export function createAgentApp() {
       acceptance.kind === "unknown" ? 503 : 202,
     );
   });
-  /**
-   * The agent approves its own pending draft, e.g. after Simon left it
-   * untapped for the inbox's timeout. One conditional update shared with the
-   * operator's Approve draft: whichever comes first publishes it, the other
-   * is a no-op, and a draft that went stale (new message, operator reply,
-   * steer, close) is never published. A translated draft keeps needing an
-   * operator, who confirms the translation with the approval.
-   */
-  app.post("/threads/:id/replies/:messageId/approve", async (c) => {
-    const { inbox, holder, name } = c.get("agent");
-    z.object({})
-      .strict()
-      .parse(await requestJson(c.req.raw));
-    const threadId = c.req.param("id");
-    const messageId = c.req.param("messageId");
-    const thread = await c.env.DB.prepare(
-      "SELECT id FROM thread WHERE id=? AND inbox_id=? AND workspace_id=? AND (claimed_by IS NULL OR claim_expires_at<=? OR claimed_by=?)",
-    )
-      .bind(threadId, inbox.inboxId, inbox.workspaceId, Date.now(), holder)
-      .first();
-    if (!thread) throw new HTTPException(409, { message: "Another holder has a live claim" });
-    const reply = await c.env.DB.prepare(
-      "SELECT envelope FROM agent_reply WHERE message_id=? AND thread_id=? AND inbox_id=? AND mode='draft'",
-    )
-      .bind(messageId, threadId, inbox.inboxId)
-      .first<{ envelope: string }>();
-    if (!reply) throw new HTTPException(404, { message: "Draft not found in this thread" });
-    if (agentOperatorEnvelopeSchema.parse(JSON.parse(reply.envelope)).agent.previewTranslation)
-      throw new HTTPException(409, { message: "A translated draft needs an operator's approval" });
-    const outcome = await applyAgentDraftDecision(c.env, {
-      messageId,
-      threadId,
-      inboxId: inbox.inboxId,
-      action: "approve",
-      decidedBy: `agent:${name}`,
-    });
-    return c.json({ messageId, outcome });
-  });
-  /**
-   * One attachment of a message in this thread, for the agent to inspect: the
-   * token's inbox only, a completed upload or email file already attached to a
-   * message of this thread. Always a download, never rendered on the API origin.
-   */
+
   app.get("/threads/:id/attachments/:attachmentId", async (c) => {
     const { inbox } = c.get("agent");
     const threadId = c.req.param("id");
@@ -640,23 +503,6 @@ export function createAgentApp() {
       },
     });
   });
-  for (const action of ["close", "reopen"] as const) {
-    app.post(`/threads/:id/${action}`, async (c) => {
-      const { inbox, holder } = c.get("agent");
-      const threadId = c.req.param("id")!;
-      const db = createDatabase(c.env.DB);
-      const thread =
-        action === "close"
-          ? await closeThread(db, { ...inbox, threadId, closedAt: new Date(), claimedBy: holder })
-          : await reopenThread(db, {
-              ...inbox,
-              threadId,
-              reopenedAt: new Date(),
-              claimedBy: holder,
-            });
-      if (!thread) throw new HTTPException(409, { message: "Another holder has a live claim" });
-      return c.json({ thread });
-    });
-  }
+
   return app;
 }

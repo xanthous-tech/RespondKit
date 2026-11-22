@@ -4,8 +4,8 @@ import {
   type ParsedDiscordTranslateInteraction,
 } from "@respondkit/discord";
 import type { TranslationResult } from "@respondkit/translation";
-import type { Env } from "./env";
 import { createDatabase } from "./db";
+import type { Env } from "./env";
 import {
   getTranslationJob,
   requestMessageTranslation,
@@ -114,7 +114,7 @@ export async function handleTranslationInteraction(
         .first<{ id: string; workflow_instance_id: string; processing_generation: number }>();
       if (!message)
         throw new Error(
-          "This preview is no longer awaiting confirmation. Check /status before sending another reply.",
+          "This preview is no longer awaiting confirmation. Check the thread before sending another reply.",
         );
       await env.DB.prepare(
         "UPDATE reply_review SET confirmed_by = coalesce(confirmed_by, ?) WHERE message_id = ? AND generation = ?",
@@ -123,11 +123,35 @@ export async function handleTranslationInteraction(
         .run();
       const workflow = await env.MESSAGE_WORKFLOW.get(message.workflow_instance_id);
       await workflow.sendEvent({
-        type: `translation-approved-${message.processing_generation}`,
+        type: `translation-confirmed-${message.processing_generation}`,
         payload: {},
       });
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const current = await env.DB.prepare(
+          "SELECT customer_availability, processing_status FROM message WHERE id = ?",
+        )
+          .bind(message.id)
+          .first<{ customer_availability: string; processing_status: string }>();
+        if (current?.customer_availability === "available") {
+          await updatePrivateInteraction(env, interaction, {
+            content:
+              current.processing_status === "failed"
+                ? "Reply sent to the customer, but posting the thread copy failed. Do not resend."
+                : "Reply sent to the customer.",
+          });
+          return;
+        }
+        if (current?.processing_status === "failed") {
+          await updatePrivateInteraction(env, interaction, {
+            content: "Reply not sent. Send it again with /reply.",
+          });
+          return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1_000));
+      }
       await updatePrivateInteraction(env, interaction, {
-        content: `Translation approved; delivery is pending. Use /status reference:${interaction.reference} to check.`,
+        content:
+          "Translation confirmed; delivery is still in progress. Check the thread before sending again.",
       });
       return;
     }
@@ -207,7 +231,7 @@ export async function replyReview(
   if (!row) return null;
   const result = JSON.parse(row.result_json) as TranslationResult;
   return {
-    content: `**Review required · reply not sent**\nTarget language: ${result.targetLanguage}\n${result.translatedText.length > 1500 ? "Read the complete translation in the attached file before confirming." : result.translatedText}\n\nReference: ${reference}`,
+    content: `**Review required · reply not sent**\nTarget language: ${result.targetLanguage}\n${result.translatedText.length > 1500 ? "Read the complete translation in the attached file before confirming." : result.translatedText}`,
     ...(result.translatedText.length > 1500 ? { file: result.translatedText } : {}),
     components: [
       {
@@ -245,22 +269,25 @@ export async function notifyReplyProgress(
         .first<{ customer_availability: string; processing_status: string }>();
       if (message?.customer_availability === "available") {
         await updatePrivateInteraction(env, interaction, {
-          content: `Reply available in chat. Reference: ${reference}`,
+          content:
+            message.processing_status === "failed"
+              ? "Reply sent to the customer, but posting the thread copy failed. Do not resend."
+              : "Reply sent to the customer.",
         });
         return;
       }
       if (message?.processing_status === "failed") {
         await updatePrivateInteraction(env, interaction, {
-          content: `Reply not sent—translation or publication failed. Use /status reference:${reference}.`,
+          content: "Reply not sent. Send it again with /reply.",
         });
         return;
       }
       await new Promise((resolve) => setTimeout(resolve, 1_000));
     }
     await updatePrivateInteraction(env, interaction, {
-      content: `Reply is still processing. Use /status reference:${reference} to check delivery or review a translation.`,
+      content: "Reply is still processing. Check the thread before sending again with /reply.",
     });
   } catch {
-    // The durable reply state and /status remain available if the interaction token expires.
+    // The durable reply state remains in D1 if the interaction token expires.
   }
 }
