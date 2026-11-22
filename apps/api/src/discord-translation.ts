@@ -20,7 +20,7 @@ export interface PrivateReply {
   file?: string;
 }
 
-/** Interaction credentials are used only in memory, never saved in D1 or workflow parameters. */
+/** Interaction tokens are never saved in D1; only used to patch the operator's ephemeral reply. */
 export async function updatePrivateInteraction(
   env: Env,
   interaction: { applicationId: string; token: string },
@@ -49,8 +49,9 @@ export async function updatePrivateInteraction(
       { method: "PATCH", headers, body, signal: AbortSignal.timeout(5_000) },
     );
     if (response.ok) return;
-    // A very fast job can finish before Discord has processed the initial acknowledgment.
-    if (response.status !== 404 || attempt === 2)
+    // Retry briefly for initial-ack 404 races, rate limits, or transient 5xx responses.
+    const retryable = response.status === 404 || response.status === 429 || response.status >= 500;
+    if (!retryable || attempt === 2)
       throw new Error(`Discord private response failed (${response.status})`);
     await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
   }
@@ -247,47 +248,4 @@ export async function replyReview(
       },
     ],
   };
-}
-
-export async function notifyReplyProgress(
-  env: Env,
-  interaction: { applicationId: string; token: string },
-  messageId: string,
-  reference: string,
-) {
-  try {
-    for (let attempt = 0; attempt < 10; attempt++) {
-      const review = await replyReview(env, messageId, reference);
-      if (review) {
-        await updatePrivateInteraction(env, interaction, review);
-        return;
-      }
-      const message = await env.DB.prepare(
-        "SELECT customer_availability, processing_status FROM message WHERE id = ?",
-      )
-        .bind(messageId)
-        .first<{ customer_availability: string; processing_status: string }>();
-      if (message?.customer_availability === "available") {
-        await updatePrivateInteraction(env, interaction, {
-          content:
-            message.processing_status === "failed"
-              ? "Reply sent to the customer, but posting the thread copy failed. Do not resend."
-              : "Reply sent to the customer.",
-        });
-        return;
-      }
-      if (message?.processing_status === "failed") {
-        await updatePrivateInteraction(env, interaction, {
-          content: "Reply not sent. Send it again with /reply.",
-        });
-        return;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 1_000));
-    }
-    await updatePrivateInteraction(env, interaction, {
-      content: "Reply is still processing. Check the thread before sending again with /reply.",
-    });
-  } catch {
-    // The durable reply state remains in D1 if the interaction token expires.
-  }
 }

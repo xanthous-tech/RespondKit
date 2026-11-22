@@ -118,28 +118,6 @@ export async function findThreadById(
   return thread ?? null;
 }
 
-export async function closeThread(
-  db: DrizzleD1Database,
-  input: {
-    readonly workspaceId: WorkspaceId;
-    readonly inboxId: InboxId;
-    readonly threadId: ThreadId;
-    readonly closedAt: Date;
-  },
-): Promise<ThreadRow | null> {
-  const [thread] = await db
-    .update(threads)
-    .set({
-      status: "closed",
-      closedAt: input.closedAt,
-      updatedAt: input.closedAt,
-    })
-    .where(threadScope(input))
-    .returning();
-
-  return thread ?? null;
-}
-
 function threadScope(input: {
   readonly workspaceId: WorkspaceId;
   readonly inboxId: InboxId;

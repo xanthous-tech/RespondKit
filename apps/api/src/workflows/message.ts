@@ -1,4 +1,5 @@
 import { acceptAgentIngress } from "../agent-api";
+import { replyReview, updatePrivateInteraction, type PrivateReply } from "../discord-translation";
 import { emailArchiveLinks } from "../email-content";
 import { acceptOperatorEmailIngress } from "../operator-email";
 import { enqueueReplyEmail } from "../email";
@@ -680,19 +681,33 @@ function failureAuditContent(
   if (envelope.direction === "operator_to_customer" && stage === "discord_audit") {
     return "**Available in chat, but the Discord audit failed.** The customer-facing reply remains available; do not resend it.";
   }
-  return envelope.direction === "operator_to_customer"
-    ? [
-        "**Processing failed** — the reply was not made available in chat.",
-        "",
-        "**English reply**",
-        envelope.originalText,
-      ].join("\n")
-    : [
-        "**Processing failed** — the customer message needs investigation.",
-        "",
-        "**Original customer message**",
-        envelope.originalText,
-      ].join("\n");
+  return [
+    "**Processing failed** — the customer message needs investigation.",
+    "",
+    "**Original customer message**",
+    envelope.originalText,
+  ].join("\n");
+}
+
+async function notifyDiscordReply(
+  env: Env,
+  envelope: MessageWorkflowEnvelope,
+  reply: PrivateReply,
+): Promise<{ notified: boolean }> {
+  if (!("discord" in envelope) || !envelope.discord.interactionToken) {
+    return { notified: false };
+  }
+  try {
+    await updatePrivateInteraction(
+      env,
+      { applicationId: envelope.discord.applicationId, token: envelope.discord.interactionToken },
+      reply,
+    );
+    return { notified: true };
+  } catch {
+    // The durable state remains in D1 if the short-lived interaction token expired.
+    return { notified: false };
+  }
 }
 
 async function finalizeSuccess(env: Env, envelope: MessageWorkflowEnvelope, generation: number) {
@@ -794,6 +809,15 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
                 .bind(envelope.messageId, generation, JSON.stringify(translation), Date.now())
                 .run();
             });
+            await step.do(`notify-reply-review-${generation}`, DATABASE_STEP, async () => {
+              const review = await replyReview(
+                this.env,
+                envelope.messageId,
+                envelope.discord.interactionId,
+              );
+              if (!review) return { notified: false };
+              return notifyDiscordReply(this.env, envelope, review);
+            });
             await step.waitForEvent(`review-translation-${generation}`, {
               type: `translation-confirmed-${generation}`,
               timeout: "1 day",
@@ -839,6 +863,11 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
         const message = await finalizeSuccess(this.env, envelope, generation);
         return { processingStatus: message.processingStatus };
       });
+      if ("discord" in envelope) {
+        await step.do(`notify-reply-sent-${generation}`, DATABASE_STEP, () =>
+          notifyDiscordReply(this.env, envelope, { content: "Reply sent to the customer." }),
+        );
+      }
       return { messageId: envelope.messageId, status: "succeeded" };
     } catch (error) {
       try {
@@ -853,19 +882,32 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
         // Ingress may have failed before a canonical message existed.
       }
 
-      try {
-        const target = await ensureDiscordThread(step, this.env, envelope, "failure-discord");
-        await projectDiscordChunks(
-          step,
-          this.env,
-          envelope,
-          target,
-          "failure_audit",
-          failureAuditContent(envelope, stage),
-          "post-failure-audit",
+      if ("discord" in envelope) {
+        await step.do(`notify-reply-failed-${generation}`, DATABASE_STEP, () =>
+          notifyDiscordReply(this.env, envelope, {
+            content:
+              stage === "discord_audit"
+                ? "Reply sent to the customer, but posting the thread copy failed. Do not resend."
+                : "Reply not sent. Send it again with /reply.",
+          }),
         );
-      } catch {
-        // The D1 terminal state remains authoritative when best-effort audit fails.
+      }
+
+      if (envelope.direction === "customer_to_operator" || stage === "discord_audit") {
+        try {
+          const target = await ensureDiscordThread(step, this.env, envelope, "failure-discord");
+          await projectDiscordChunks(
+            step,
+            this.env,
+            envelope,
+            target,
+            "failure_audit",
+            failureAuditContent(envelope, stage),
+            "post-failure-audit",
+          );
+        } catch {
+          // The D1 terminal state remains authoritative when best-effort audit fails.
+        }
       }
       throw error;
     }

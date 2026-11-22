@@ -69,7 +69,7 @@ import { z } from "zod";
 
 import { verifyCustomerIdentity } from "./customer-identity";
 import { createDatabase } from "./db";
-import { handleTranslationInteraction, notifyReplyProgress } from "./discord-translation";
+import { handleTranslationInteraction } from "./discord-translation";
 import { requireTranslationEnabled } from "./translation-service";
 import { syncDiscordReadReceipts } from "./read-receipts";
 import type { Env } from "./env";
@@ -437,6 +437,7 @@ async function discordCommandContext(
 
 function operatorEnvelope(input: {
   readonly command: ReturnType<typeof normalizeDiscordCommand> & { readonly command: "reply" };
+  readonly interactionToken: string;
   readonly integrationId: string;
   readonly workspaceId: string;
   readonly inboxId: string;
@@ -465,6 +466,7 @@ function operatorEnvelope(input: {
     discord: {
       integrationId: input.integrationId,
       interactionId: input.command.interactionId,
+      interactionToken: input.interactionToken,
       applicationId: input.command.applicationId,
       guildId: input.command.guildId,
       threadId: input.command.discordThreadId,
@@ -1109,6 +1111,7 @@ export function createHttpApp() {
           .run();
       const envelope = operatorEnvelope({
         command,
+        interactionToken: interaction.token,
         integrationId: authorized.integration.id,
         workspaceId: authorized.integration.workspaceId,
         inboxId: authorized.integration.inboxId,
@@ -1143,9 +1146,6 @@ export function createHttpApp() {
           ),
         );
       }
-      context.executionCtx.waitUntil(
-        notifyReplyProgress(context.env, interaction, identity.messageId, command.interactionId),
-      );
       return context.json(
         createEphemeralInteractionResponse(
           replyTranslation === "off"

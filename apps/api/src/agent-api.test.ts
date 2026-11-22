@@ -13,7 +13,7 @@ import {
   TEST_ORIGIN,
   TEST_TOPOLOGY,
 } from "../test/fixtures";
-import { agentTokenHash } from "./agent-api";
+import { acceptAgentIngress, agentTokenHash } from "./agent-api";
 import { createDatabase } from "./db";
 import type { Env } from "./env";
 import { createHttpApp } from "./http";
@@ -630,4 +630,72 @@ it("lists a message's attachments with the agent's download path, and serves the
       )
     ).status,
   ).toBe(401);
+});
+
+it("rejects agent ingress when the agent_reply row is missing or the envelope was tampered with", async () => {
+  const { threadId } = await createCustomerFixture();
+  const threadRow = await env.DB.prepare("SELECT visitor_id FROM thread WHERE id=?")
+    .bind(threadId)
+    .first<{ visitor_id: string }>();
+  const fake = fakeWorkflow();
+  const res = await request(
+    `/threads/${threadId}/replies`,
+    { text: "Original text", idempotencyKey: "ingress-check" },
+    fake,
+  );
+  expect(res.status).toBe(202);
+  const { messageId } = await res.json<{ messageId: string }>();
+  const stored = await env.DB.prepare("SELECT envelope FROM agent_reply WHERE message_id=?")
+    .bind(messageId)
+    .first<{ envelope: string }>();
+  const envelope = JSON.parse(stored!.envelope);
+
+  await expect(
+    acceptAgentIngress(apiEnv, {
+      ...envelope,
+      messageId: `msg_agent_${"0".repeat(64)}`,
+      visitorId: threadRow!.visitor_id,
+    }),
+  ).rejects.toThrow("Agent reply is missing or the immutable ingress differs");
+
+  await expect(
+    acceptAgentIngress(apiEnv, {
+      ...envelope,
+      originalText: "Tampered text",
+    }),
+  ).rejects.toThrow("Agent reply is missing or the immutable ingress differs");
+});
+
+it("handles concurrent POST /v1/agent/threads/:id/replies with the same idempotencyKey once", async () => {
+  const { threadId } = await createCustomerFixture();
+  await seedReadyDiscordThread(threadId);
+  const posts = mockDiscord();
+  const workflows = await introspectWorkflow(env.MESSAGE_WORKFLOW);
+  try {
+    await workflows.modifyAll(async (modifier) => modifier.disableRetryDelays());
+    const payload = { text: "Concurrent reply", idempotencyKey: "concurrent-send" };
+    const [first, second] = await Promise.all([
+      request(`/threads/${threadId}/replies`, payload),
+      request(`/threads/${threadId}/replies`, payload),
+    ]);
+    expect(first.status).toBe(202);
+    expect(second.status).toBe(202);
+    const firstBody = await first.json<{ messageId: string }>();
+    const secondBody = await second.json<{ messageId: string }>();
+    expect(firstBody.messageId).toBe(secondBody.messageId);
+
+    const instances = await workflows.get();
+    for (const instance of instances) await instance.waitForStatus("complete");
+    expect(await env.DB.prepare("SELECT count(*) n FROM agent_reply").first("n")).toBe(1);
+    expect(
+      await env.DB.prepare(
+        "SELECT count(*) n FROM message WHERE thread_id=? AND direction='operator_to_customer'",
+      )
+        .bind(threadId)
+        .first("n"),
+    ).toBe(1);
+    expect(posts).toHaveLength(1);
+  } finally {
+    await workflows.dispose();
+  }
 });

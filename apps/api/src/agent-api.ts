@@ -404,7 +404,7 @@ export function createAgentApp() {
         }
       }
       const identity = await agentTokenHash(
-        JSON.stringify([auth.inbox.inboxId, request.idempotencyKey]),
+        JSON.stringify(["reply/v2", auth.inbox.inboxId, request.idempotencyKey]),
       );
       const envelope = agentOperatorEnvelopeSchema.parse({
         schema: "respondkit.workflow-message/1",

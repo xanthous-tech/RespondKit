@@ -42,6 +42,7 @@ export const operatorWorkflowEnvelopeSchema = sharedEnvelopeSchema.extend({
   discord: z.object({
     integrationId: z.string().min(1).max(128),
     interactionId: z.string().min(1).max(32),
+    interactionToken: z.string().min(1).max(2_048).optional(),
     applicationId: z.string().min(1).max(32),
     guildId: z.string().min(1).max(32),
     threadId: z.string().min(1).max(32),

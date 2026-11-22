@@ -186,18 +186,35 @@ describe("Discord interaction parsing and authorization", () => {
     ).toThrow(DiscordInteractionParseError);
   });
 
-  it("refuses unknown commands and unknown component buttons", () => {
+  it("refuses unknown and removed commands and component buttons", () => {
     const base = replyPayload();
     for (const data of [
       { type: 1, name: "unknown" },
       { type: 1, name: "translate" },
+      { type: 1, name: "status", options: [{ type: 3, name: "reference", value: "12345" }] },
+      {
+        type: 1,
+        name: "retry",
+        options: [
+          { type: 3, name: "reference", value: "12345" },
+          { type: 3, name: "message", value: "Hello" },
+        ],
+      },
+      { type: 1, name: "agent", options: [{ type: 3, name: "message", value: "Steer" }] },
+      { type: 1, name: "approve", options: [{ type: 3, name: "id", value: "12345" }] },
+      { type: 3, name: "Approve draft", target_id: "12345" },
       { type: 3, name: "Unknown message action", target_id: "12345" },
     ]) {
       expect(() => parseDiscordInteraction(JSON.stringify({ ...base, data }))).toThrow(
         "Unknown Discord command",
       );
     }
-    for (const custom_id of ["other:123:1", "legacy:action:msg_1"]) {
+    for (const custom_id of [
+      "other:123:1",
+      "legacy:action:msg_1",
+      `agent:approve:msg_agent_${"a".repeat(64)}`,
+      `agent:translate:msg_agent_${"a".repeat(64)}:1`,
+    ]) {
       expect(() =>
         parseDiscordInteraction(
           JSON.stringify({ ...base, type: 3, data: { custom_id, component_type: 2 } }),
