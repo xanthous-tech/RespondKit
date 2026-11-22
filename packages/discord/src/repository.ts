@@ -7,13 +7,14 @@ import type {
 } from "@respondkit/protocol";
 import {
   customerTranscriptEntries,
+  messages,
   threads,
   findMessageById,
   prepareOperatorMessageStatements,
   type IngressAcceptanceKind,
   type MessageRow,
 } from "@respondkit/conversations";
-import { and, asc, eq, isNull, lte, ne, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, lte, ne, or, sql } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 
 import {
@@ -314,6 +315,55 @@ export async function findDiscordReplyByReference(
     throw new DiscordPersistenceIdentityConflictError("interaction", input.interactionId);
   }
   return { interaction, message };
+}
+
+export interface InFlightDiscordReply {
+  readonly interaction: DiscordInteractionRow;
+  readonly message: MessageRow | null;
+}
+
+export async function findInFlightDiscordReplies(
+  db: DrizzleD1Database,
+  input: {
+    readonly workspaceId: WorkspaceId;
+    readonly inboxId: InboxId;
+    readonly threadId: ThreadId;
+    readonly normalizedMessage: string;
+  },
+): Promise<readonly InFlightDiscordReply[]> {
+  return db
+    .select({
+      interaction: discordInteractions,
+      message: messages,
+    })
+    .from(discordInteractions)
+    .leftJoin(
+      messages,
+      and(
+        eq(messages.id, discordInteractions.messageId),
+        eq(messages.workspaceId, discordInteractions.workspaceId),
+        eq(messages.inboxId, discordInteractions.inboxId),
+        eq(messages.threadId, discordInteractions.threadId),
+      ),
+    )
+    .where(
+      and(
+        eq(discordInteractions.workspaceId, input.workspaceId),
+        eq(discordInteractions.inboxId, input.inboxId),
+        eq(discordInteractions.threadId, input.threadId),
+        eq(discordInteractions.commandName, "reply"),
+        eq(discordInteractions.normalizedMessage, input.normalizedMessage),
+        or(
+          isNull(messages.id),
+          and(
+            inArray(messages.processingStatus, ["processing", "retrying"]),
+            eq(messages.customerAvailability, "pending"),
+          ),
+        ),
+      ),
+    )
+    .orderBy(desc(discordInteractions.acceptedAt), desc(discordInteractions.createdAt))
+    .limit(10);
 }
 
 export type ResolveAuthorizedDiscordThreadResult =

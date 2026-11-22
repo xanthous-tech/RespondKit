@@ -14,7 +14,11 @@ import {
 } from "drizzle-orm/sqlite-proxy";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
-import { acceptReplyIngress, type DiscordReplyIngressInput } from "./repository";
+import {
+  acceptReplyIngress,
+  findInFlightDiscordReplies,
+  type DiscordReplyIngressInput,
+} from "./repository";
 
 const workspaceId = "workspace_1" as WorkspaceId;
 const inboxId = "inbox_1" as InboxId;
@@ -165,5 +169,64 @@ describe("Discord interaction timestamp replay", () => {
     });
     expect(changedPayload.immutablePayloadMatches).toBe(false);
     expect(changedPayload.interaction.acceptedAt).toEqual(firstAcceptedAt);
+  });
+
+  it("finds in-flight replies with matching text and excludes delivered or failed rows", async () => {
+    const db = createTestDatabase();
+    const raw = openDatabases.at(-1)!;
+    await acceptReplyIngress(db, {
+      ...replyInput(new Date(1_000)),
+      interactionId: "interaction_processing",
+      messageId: "message_processing" as MessageId,
+      workflowInstanceId: "workflow_processing" as WorkflowInstanceId,
+      originalEnglishText: "Same text",
+    });
+    await acceptReplyIngress(db, {
+      ...replyInput(new Date(2_000)),
+      interactionId: "interaction_delivered",
+      messageId: "message_delivered" as MessageId,
+      workflowInstanceId: "workflow_delivered" as WorkflowInstanceId,
+      originalEnglishText: "Same text",
+    });
+    raw.exec(
+      "update message set processing_status = 'succeeded', customer_availability = 'available' where id = 'message_delivered'",
+    );
+    await acceptReplyIngress(db, {
+      ...replyInput(new Date(3_000)),
+      interactionId: "interaction_failed",
+      messageId: "message_failed" as MessageId,
+      workflowInstanceId: "workflow_failed" as WorkflowInstanceId,
+      originalEnglishText: "Same text",
+    });
+    raw.exec(
+      "update message set processing_status = 'failed', customer_availability = 'not_available' where id = 'message_failed'",
+    );
+    raw.exec(`
+      insert into discord_interaction (
+        integration_id, interaction_id, workspace_id, inbox_id, thread_id, message_id,
+        application_id, guild_id, discord_thread_id, operator_user_id, operator_role_ids,
+        command_name, normalized_message, accepted_at, created_at
+      ) values (
+        'integration_1', 'interaction_orphan', 'workspace_1', 'inbox_1', 'thread_1', 'message_orphan',
+        'application_1', 'guild_1', 'discord_thread_1', 'operator_1', '["role_1"]',
+        'reply', 'Same text', 4000, 4000
+      )
+    `);
+
+    const matches = await findInFlightDiscordReplies(db, {
+      workspaceId,
+      inboxId,
+      threadId,
+      normalizedMessage: "Same text",
+    });
+    expect(
+      matches.map((entry) => ({
+        interactionId: entry.interaction.interactionId,
+        hasMessage: entry.message !== null,
+      })),
+    ).toEqual([
+      { interactionId: "interaction_orphan", hasMessage: false },
+      { interactionId: "interaction_processing", hasMessage: true },
+    ]);
   });
 });

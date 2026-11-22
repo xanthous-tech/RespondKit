@@ -88,10 +88,25 @@ const DISCORD_STEP = {
   timeout: "1 minute",
 } as const;
 
-const PRIVATE_PREVIEW_STEP = {
-  retries: { limit: 8, delay: "5 seconds", backoff: "exponential" },
+export const DISCORD_INTERACTION_TOKEN_LIFETIME_MS = 15 * 60 * 1_000;
+export const DISCORD_PREVIEW_DEADLINE_BUFFER_MS = 30 * 1_000;
+export const DISCORD_PREVIEW_DEADLINE_MS =
+  DISCORD_INTERACTION_TOKEN_LIFETIME_MS - DISCORD_PREVIEW_DEADLINE_BUFFER_MS;
+
+export const PRIVATE_PREVIEW_STEP = {
+  retries: { limit: 6, delay: "5 seconds", backoff: "exponential" },
   timeout: "1 minute",
 } as const;
+
+export function assertPreviewTokenActive(acceptedAt: string, nowMs = Date.now()): void {
+  const acceptedAtMs = Date.parse(acceptedAt);
+  if (Number.isNaN(acceptedAtMs) || nowMs >= acceptedAtMs + DISCORD_PREVIEW_DEADLINE_MS) {
+    permanent(
+      new Error("Discord interaction token expired before the review preview could be delivered"),
+      "notify reply review",
+    );
+  }
+}
 
 const DISCORD_THREAD_CLAIM_LEASE_MS = 2 * 60 * 1_000;
 
@@ -815,6 +830,7 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
             });
             await step.do(`notify-reply-review-${generation}`, PRIVATE_PREVIEW_STEP, async () => {
               if (!envelope.discord.interactionToken) return { notified: false };
+              assertPreviewTokenActive(envelope.acceptedAt);
               const review = await replyReview(
                 this.env,
                 envelope.messageId,
@@ -836,6 +852,7 @@ export class MessageWorkflow extends WorkflowEntrypoint<Env, MessageWorkflowEnve
                 if (error instanceof PrivateInteractionError && !error.retryable) {
                   permanent(error, "notify reply review");
                 }
+                assertPreviewTokenActive(envelope.acceptedAt);
                 throw error;
               }
             });

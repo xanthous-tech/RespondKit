@@ -31,6 +31,7 @@ import {
   DiscordInteractionParseError,
   createEphemeralInteractionResponse,
   findDiscordReplyByReference,
+  findInFlightDiscordReplies,
   normalizeDiscordCommand,
   parseDiscordInteraction,
   resolveAuthorizedDiscordThread,
@@ -73,6 +74,7 @@ import {
   handleTranslationInteraction,
   replyReview,
   updatePrivateInteraction,
+  type PrivateReply,
 } from "./discord-translation";
 import { requireTranslationEnabled } from "./translation-service";
 import { syncDiscordReadReceipts } from "./read-receipts";
@@ -93,6 +95,7 @@ import {
 import {
   acceptWorkflow,
   isActiveWorkflow,
+  workflowStatus,
   type WorkflowAcceptance,
   type WorkflowStatusSnapshot,
 } from "./workflow-binding";
@@ -437,6 +440,72 @@ async function discordCommandContext(
     operatorRoleIds: interaction.operatorRoleIds,
   });
   return resolved.ok ? resolved : null;
+}
+
+function ephemeralReviewResponse(
+  context: ApiContext,
+  interaction: { readonly applicationId: string; readonly token: string },
+  review: PrivateReply,
+) {
+  if (review.file !== undefined) {
+    context.executionCtx.waitUntil(
+      updatePrivateInteraction(context.env, interaction, review).catch(() => undefined),
+    );
+    return context.json(createDeferredEphemeralResponse());
+  }
+  return context.json(createEphemeralInteractionResponse(review.content, review.components));
+}
+
+async function resolveReplyTranslation(
+  env: Env,
+  thread: ThreadRow,
+  requested: string,
+): Promise<
+  | { readonly ok: true; readonly language: string }
+  | { readonly ok: false; readonly message: string }
+> {
+  if (requested === "off") return { ok: true, language: "off" };
+  try {
+    requireTranslationEnabled(env, thread.inboxId);
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Translation is disabled.",
+    };
+  }
+  if (requested === "customer" && thread.customerLanguage) {
+    // Recorded by an earlier /reply translate:<language> or translation, never the browser locale.
+    return { ok: true, language: thread.customerLanguage };
+  }
+  if (requested === "customer") {
+    // This value comes from reliable message detection, never the browser locale.
+    const detected = await env.DB.prepare(`
+      SELECT source_language FROM (
+        SELECT mt.source_language, m.accepted_at FROM message_translation mt JOIN message m ON m.id = mt.message_id
+        WHERE m.workspace_id = ? AND m.inbox_id = ? AND m.thread_id = ? AND m.direction = 'customer_to_operator' AND mt.needs_review = 0
+        UNION ALL
+        SELECT json_extract(tj.result_json, '$.sourceLanguage') AS source_language, m.accepted_at FROM translation_job tj JOIN message m ON m.id = tj.message_id
+        WHERE tj.workspace_id = ? AND tj.inbox_id = ? AND tj.thread_id = ? AND tj.status = 'succeeded' AND json_extract(tj.result_json, '$.needsReview') = 0
+      ) ORDER BY accepted_at DESC LIMIT 1`)
+      .bind(
+        thread.workspaceId,
+        thread.inboxId,
+        thread.id,
+        thread.workspaceId,
+        thread.inboxId,
+        thread.id,
+      )
+      .first<{ source_language: string }>();
+    if (detected === null) {
+      return {
+        ok: false,
+        message:
+          "Customer language is unknown. Name it once, for example translate:Burmese or translate:hi; this thread remembers it.",
+      };
+    }
+    return { ok: true, language: detected.source_language };
+  }
+  return { ok: true, language: requested };
 }
 
 function operatorEnvelope(input: {
@@ -1034,17 +1103,7 @@ export function createHttpApp() {
           command.interactionId,
         );
         if (pendingReview !== null) {
-          if (pendingReview.file !== undefined) {
-            context.executionCtx.waitUntil(
-              updatePrivateInteraction(context.env, interaction, pendingReview).catch(
-                () => undefined,
-              ),
-            );
-            return context.json(createDeferredEphemeralResponse());
-          }
-          return context.json(
-            createEphemeralInteractionResponse(pendingReview.content, pendingReview.components),
-          );
+          return ephemeralReviewResponse(context, interaction, pendingReview);
         }
         if (toMessageBusinessStatus(canonical.message) === "processing") {
           const replyTranslation = canonical.message.replyTranslation ?? undefined;
@@ -1100,48 +1159,139 @@ export function createHttpApp() {
         );
       }
 
-      let replyTranslation = command.translate ?? "off";
-      if (replyTranslation !== "off") {
-        try {
-          requireTranslationEnabled(context.env, thread.inboxId);
-        } catch (error) {
+      const inFlightReplies = await findInFlightDiscordReplies(db, {
+        workspaceId: thread.workspaceId,
+        inboxId: thread.inboxId,
+        threadId: thread.id,
+        normalizedMessage: command.message,
+      });
+      for (const candidate of inFlightReplies) {
+        const candidateIdentity =
+          candidate.message !== null
+            ? {
+                messageId: candidate.message.id,
+                workflowInstanceId: candidate.message.workflowInstanceId,
+              }
+            : await deriveOperatorMessageIdentity({
+                applicationId: candidate.interaction.applicationId,
+                interactionId: candidate.interaction.interactionId,
+              });
+        const status = await workflowStatus(
+          context.env.MESSAGE_WORKFLOW,
+          candidateIdentity.workflowInstanceId,
+        );
+        if (status !== null && status.status !== "unknown" && !isActiveWorkflow(status.status)) {
+          continue;
+        }
+        const pendingReview = await replyReview(
+          context.env,
+          candidateIdentity.messageId,
+          candidate.interaction.interactionId,
+        );
+        if (pendingReview !== null) {
+          return ephemeralReviewResponse(context, interaction, pendingReview);
+        }
+        if (status !== null && isActiveWorkflow(status.status)) {
           return context.json(
             createEphemeralInteractionResponse(
-              error instanceof Error ? error.message : "Translation is disabled.",
+              "This reply is already in progress. Check the thread before sending again.",
             ),
           );
         }
-        if (replyTranslation === "customer" && thread.customerLanguage) {
-          // Recorded by an earlier /reply translate:<language> or translation, never the browser locale.
-          replyTranslation = thread.customerLanguage;
-        } else if (replyTranslation === "customer") {
-          // This value comes from reliable message detection, never the browser locale.
-          const detected = await context.env.DB.prepare(`
-            SELECT source_language FROM (
-              SELECT mt.source_language, m.accepted_at FROM message_translation mt JOIN message m ON m.id = mt.message_id
-              WHERE m.workspace_id = ? AND m.inbox_id = ? AND m.thread_id = ? AND m.direction = 'customer_to_operator' AND mt.needs_review = 0
-              UNION ALL
-              SELECT json_extract(tj.result_json, '$.sourceLanguage') AS source_language, m.accepted_at FROM translation_job tj JOIN message m ON m.id = tj.message_id
-              WHERE tj.workspace_id = ? AND tj.inbox_id = ? AND tj.thread_id = ? AND tj.status = 'succeeded' AND json_extract(tj.result_json, '$.needsReview') = 0
-            ) ORDER BY accepted_at DESC LIMIT 1`)
-            .bind(
-              thread.workspaceId,
-              thread.inboxId,
-              thread.id,
-              thread.workspaceId,
-              thread.inboxId,
-              thread.id,
-            )
-            .first<{ source_language: string }>();
-          if (detected === null)
-            return context.json(
-              createEphemeralInteractionResponse(
-                "Customer language is unknown. Name it once, for example translate:Burmese or translate:hi; this thread remembers it.",
-              ),
-            );
-          replyTranslation = detected.source_language;
+
+        let reDispatchTranslation: string | undefined;
+        let reDispatchTranslationRequest: string | undefined;
+        if (candidate.message !== null) {
+          reDispatchTranslation = candidate.message.replyTranslation ?? undefined;
+          reDispatchTranslationRequest = candidate.message.replyTranslationRequest ?? undefined;
+        } else {
+          const resolved = await resolveReplyTranslation(
+            context.env,
+            thread,
+            command.translate ?? "off",
+          );
+          if (!resolved.ok) {
+            return context.json(createEphemeralInteractionResponse(resolved.message));
+          }
+          reDispatchTranslation = resolved.language;
+          reDispatchTranslationRequest = command.translate ?? "off";
+        }
+        const envelope = operatorEnvelope({
+          command: {
+            command: "reply",
+            interactionId: candidate.interaction.interactionId,
+            applicationId: candidate.interaction.applicationId,
+            guildId: candidate.interaction.guildId,
+            discordThreadId: candidate.interaction.discordThreadId,
+            operatorUserId: candidate.interaction.operatorUserId,
+            operatorRoleIds: candidate.interaction.operatorRoleIds,
+            message: candidate.interaction.normalizedMessage,
+            ...(reDispatchTranslationRequest === undefined
+              ? {}
+              : { translate: reDispatchTranslationRequest }),
+          },
+          interactionToken: interaction.token,
+          integrationId: candidate.interaction.integrationId,
+          workspaceId: candidate.interaction.workspaceId,
+          inboxId: candidate.interaction.inboxId,
+          thread,
+          messageId: candidateIdentity.messageId,
+          workflowInstanceId: candidateIdentity.workflowInstanceId,
+          acceptedAt,
+          ...(reDispatchTranslation === undefined
+            ? {}
+            : { replyTranslation: reDispatchTranslation }),
+          ...(reDispatchTranslationRequest === undefined
+            ? {}
+            : { replyTranslationRequest: reDispatchTranslationRequest }),
+        });
+        const accepted = await acceptWorkflow(
+          context.env.MESSAGE_WORKFLOW,
+          candidateIdentity.workflowInstanceId,
+          envelope,
+        );
+        if (accepted.kind === "unknown") {
+          return context.json(
+            createEphemeralInteractionResponse(
+              "Reply delivery could not be confirmed. Check the thread before sending again with /reply.",
+            ),
+          );
+        }
+        if (accepted.kind === "created") {
+          return context.json(
+            createEphemeralInteractionResponse(
+              reDispatchTranslation === "off"
+                ? "Queued for delivery as written."
+                : "Queued for translation and delivery.",
+            ),
+          );
+        }
+        if (isActiveWorkflow(accepted.status.status)) {
+          const activeReview = await replyReview(
+            context.env,
+            candidateIdentity.messageId,
+            candidate.interaction.interactionId,
+          );
+          if (activeReview !== null) {
+            return ephemeralReviewResponse(context, interaction, activeReview);
+          }
+          return context.json(
+            createEphemeralInteractionResponse(
+              "This reply is already in progress. Check the thread before sending again.",
+            ),
+          );
         }
       }
+
+      const resolvedTranslation = await resolveReplyTranslation(
+        context.env,
+        thread,
+        command.translate ?? "off",
+      );
+      if (!resolvedTranslation.ok) {
+        return context.json(createEphemeralInteractionResponse(resolvedTranslation.message));
+      }
+      const replyTranslation = resolvedTranslation.language;
       const identity = await deriveOperatorMessageIdentity(command);
       const persisted = await acceptReplyIngress(db, {
         integrationId: authorized.integration.id,
